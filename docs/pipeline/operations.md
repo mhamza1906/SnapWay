@@ -192,6 +192,23 @@ The map has 114 regions, 133 openings (45 of them analytical joins), 45 of 53 de
 | **Re-enabling supported doors.** Openings that the source supported stayed disabled only because of their classification. | `shared/building/assumed-doors.js` re-enables them before and after placing assumed doors, then drops assumed doors that have become redundant. | no dedicated test found (unverified) |
 | **Bridging.** Some parts of the map were disconnected. | `bridgeComponents` (up to 12) uses detected openings that the verifier called "unclear". Wall and glazing verdicts are never overridden. | `assumed-doors.test.js` |
 
+### Clean-plan trial
+
+Sam Ibrahim board photo, 6 floors, prod (Vertex AI), October 17, 2026. See
+[clean-plans.md](clean-plans.md) for the clean stage itself.
+
+| Run | Clean stage | Mapping (6 floors in parallel, Gemini 4 high) | Outcome |
+| --- | --- | --- | --- |
+| 1 | 147 s; 6 redraws in ~30 s | 1,201 s wall vs 5,426 s summed; 90 requests, 1.16 M tokens | Level B **35/35 rooms routable**; the other 5 floors held: detail tiles timed out (180 s limit), Level 2 inventory hit `MAX_TOKENS`, Level 1 corridor overlaps |
+| 2 (timeout 5 min + retry) | 226 s (re-planned; split cache not yet in place) | Every floor reached its 20-minute deadline after 10–15 requests; Level 5's first request timed out twice | No floor applied |
+
+**Finding:** with 6 floors × 2 requests in flight, this Vertex project answered
+Gemini 4 (high) requests in several minutes each, so floors run out of time.
+The same parallel layout on Claude (dev) finished 6 floors in 455 s earlier the
+same day. Before relying on 6-way parallelism on Vertex, check the project's
+quota/throughput, or lower `floorConcurrency`, or use medium effort for
+extraction. Cached stages are reused on every resume.
+
 ## 5. Testing
 
 ```sh
