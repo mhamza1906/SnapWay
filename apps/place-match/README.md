@@ -4,8 +4,8 @@ Match frames from a recorded video (or an existing frame sequence) to reference
 photographs of the same physical place, and find the best video frames for each
 reference photo.
 
-Self-contained app: its own `pyproject.toml`, `uv.lock` and `.venv`. It does not
-change the SnapWay root environment or any other app. Contracts and file ownership
+Self-contained app: its own `pyproject.toml`, `uv.lock` and `.venv`. Its Python dependencies remain independent of the SnapWay root environment;
+private configuration follows the shared local/.env contract. Contracts and file ownership
 are in [INTERFACES.md](INTERFACES.md); datasets in [DATASETS.md](DATASETS.md); label/split
 audit in [LABEL_AUDIT.md](LABEL_AUDIT.md); Vertex AI setup in [VERTEX.md](VERTEX.md).
 Measured results: [REPORT-v2.md](REPORT-v2.md) (current, Vertex AI vs MegaLoc on
@@ -46,8 +46,8 @@ tested). About 1 GB for model weights plus the dataset subsets in DATASETS.md.
 ```sh
 cd apps/place-match
 uv sync                       # exact versions pinned in uv.lock
-cp /dev/null .env && chmod 600 .env
-echo 'GEMINI_API_KEY=...' >> .env   # or export GEMINI_API_KEY; never commit it
+# Initialize/migrate repository local/.env from the root using scripts/env_contract.py.
+# Obtain private values through the external team channel; do not create an app .env.
 uv run pytest -q              # offline tests
 ```
 
@@ -139,7 +139,7 @@ A separate token-protected API for the SnapWay iOS app (never tunnel `serve`, po
 ```sh
 uv run placematch build-references --references DIR --name SET            # MegaLoc index
 uv run placematch build-references --references DIR --name SET --backend vertex --dry-run
-uv run placematch mobile-token --create                                     # MOBILE_API_TOKEN in .env
+uv run placematch mobile-token --create   # canonical token in repository local/.env; not printed
 MOBILE_REFERENCE_SET=SET uv run placematch serve-mobile                     # 127.0.0.1:8790
 ```
 

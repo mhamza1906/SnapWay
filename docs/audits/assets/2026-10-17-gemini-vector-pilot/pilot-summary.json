@@ -1,0 +1,453 @@
+{
+  "scope": "Gemini-only vector pilot; downloaded raster simulates image-generation stage; no OpenAI/Opus calls or production apply",
+  "model": "gemini-4-argon",
+  "effort": "medium",
+  "requests": 4,
+  "attempts": [
+    {
+      "stage": "trace",
+      "requestId": "candidate-8aaf2ca074bce958-trace",
+      "frameId": "candidate-8aaf2ca074bce958",
+      "startedAt": "2026-10-17T08:52:15.899Z",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "sourceHash": "8aaf2ca074bce958a545d8f357b8e7f06e03660d7862f0cc799dc75de12f7b08",
+      "status": "response-saved",
+      "httpStatus": 200,
+      "latencyMs": 47517,
+      "usage": {
+        "promptTokenCount": 2985,
+        "candidatesTokenCount": 3578,
+        "totalTokenCount": 6563,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1100
+          },
+          {
+            "modality": "TEXT",
+            "tokenCount": 1885
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3578
+          }
+        ]
+      },
+      "returnedModel": "gemini-4-argon",
+      "estimatedUndiscountedUsd": 0.0835,
+      "finishedAt": "2026-10-17T08:53:03.427Z"
+    },
+    {
+      "stage": "structure",
+      "requestId": "candidate-8aaf2ca074bce958-structure",
+      "frameId": "candidate-8aaf2ca074bce958",
+      "startedAt": "2026-10-17T08:53:15.090Z",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "sourceHash": "8aaf2ca074bce958a545d8f357b8e7f06e03660d7862f0cc799dc75de12f7b08",
+      "status": "response-saved",
+      "httpStatus": 200,
+      "latencyMs": 51408,
+      "usage": {
+        "promptTokenCount": 6462,
+        "candidatesTokenCount": 4006,
+        "totalTokenCount": 10468,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5362
+          },
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1100
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4006
+          }
+        ]
+      },
+      "returnedModel": "gemini-4-argon",
+      "estimatedUndiscountedUsd": 0.105968,
+      "finishedAt": "2026-10-17T08:54:06.509Z"
+    },
+    {
+      "stage": "trace",
+      "requestId": "candidate-d1542c73969761c5-trace",
+      "frameId": "candidate-d1542c73969761c5",
+      "startedAt": "2026-10-17T08:55:24.248Z",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "sourceHash": "d1542c73969761c5644345dd58763514531901cd1bcc83b036bf595a8bd4c33e",
+      "status": "response-saved",
+      "artifactDirectory": "local/test-results/pipeline-v2-pilot/stair-c-detail",
+      "httpStatus": 200,
+      "latencyMs": 18597,
+      "usage": {
+        "promptTokenCount": 3015,
+        "candidatesTokenCount": 1271,
+        "totalTokenCount": 4286,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1092
+          },
+          {
+            "modality": "TEXT",
+            "tokenCount": 1923
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1271
+          }
+        ]
+      },
+      "returnedModel": "gemini-4-argon",
+      "estimatedUndiscountedUsd": 0.03748,
+      "finishedAt": "2026-10-17T08:55:42.852Z"
+    },
+    {
+      "stage": "trace",
+      "requestId": "candidate-71a4013b353db9b2-trace",
+      "frameId": "candidate-71a4013b353db9b2",
+      "startedAt": "2026-10-17T08:56:20.524Z",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "sourceHash": "71a4013b353db9b27d731d582a4479ec819c90f39241e0ae1fb68d9266e204a5",
+      "status": "response-saved",
+      "artifactDirectory": "local/test-results/pipeline-v2-pilot/door-detail",
+      "httpStatus": 200,
+      "latencyMs": 29034,
+      "usage": {
+        "promptTokenCount": 3032,
+        "candidatesTokenCount": 2017,
+        "totalTokenCount": 5049,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "IMAGE",
+            "tokenCount": 1073
+          },
+          {
+            "modality": "TEXT",
+            "tokenCount": 1959
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2017
+          }
+        ]
+      },
+      "returnedModel": "gemini-4-argon",
+      "estimatedUndiscountedUsd": 0.052468,
+      "finishedAt": "2026-10-17T08:56:49.565Z"
+    }
+  ],
+  "inputTokens": 15494,
+  "outputTokens": 10872,
+  "totalTokens": 26366,
+  "totalHttpLatencyMs": 146556,
+  "estimatedUndiscountedUsd": 0.27941600000000005,
+  "priceBasis": {
+    "currency": "USD",
+    "date": "2026-10-17",
+    "inputPerMillion": 4,
+    "outputAndThinkingPerMillion": 20,
+    "creditsExcluded": true,
+    "url": "https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing?hl=en"
+  },
+  "detailResults": [
+    {
+      "name": "stair-c-detail",
+      "parentFrame": {
+        "parent": "candidate-8aaf2ca074bce958",
+        "crop_xyxy": [
+          500,
+          45,
+          710,
+          335
+        ],
+        "coordinate_conversion": "parent_x=left+local_x/1000*width; parent_y=top+local_y/1000*height"
+      },
+      "schema": "Validated by harness before geometric checks",
+      "basicPolygonValid": false,
+      "error": "Self-intersecting polygon: stair_c_landing",
+      "spaces": 8,
+      "openingCandidates": 3,
+      "geometryIssues": [
+        {
+          "code": "polygon",
+          "message": "stair_c_landing: polygon self-intersects",
+          "target": {
+            "kind": "spaces",
+            "id": "stair_c_landing"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "polygon",
+          "message": "stair_c_landing: polygon self-intersects",
+          "target": {
+            "kind": "spaces",
+            "id": "stair_c_landing"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "polygon",
+          "message": "stair_c_landing: polygon self-intersects",
+          "target": {
+            "kind": "spaces",
+            "id": "stair_c_landing"
+          },
+          "severity": "error"
+        }
+      ],
+      "openingBoundaries": [
+        {
+          "id": "open_north_exit",
+          "adjacency": [
+            {
+              "id": "stair_c_landing",
+              "maxEndpointDistancePixels": 8.699999999999996
+            }
+          ]
+        },
+        {
+          "id": "open_west_door",
+          "adjacency": [
+            {
+              "id": "room_west",
+              "maxEndpointDistancePixels": 6.984972073317125
+            }
+          ]
+        },
+        {
+          "id": "open_east_door",
+          "adjacency": [
+            {
+              "id": "room_north_east",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        }
+      ],
+      "unresolved": [
+        {
+          "target_ref": "stair_c_landing",
+          "code": "ambiguous_geometry",
+          "reason": "Internal doorway between Stair C landing and adjacent circulation spaces is not clearly depicted as a wall gap or door arc."
+        },
+        {
+          "target_ref": "room_north_east",
+          "code": "clipped",
+          "reason": "Space extends beyond the right edge of the crop."
+        },
+        {
+          "target_ref": "south_stairs_flight",
+          "code": "different_floor",
+          "reason": "Exterior/multi-level stair flights at the bottom transition across levels with ambiguous Level 1 boundary."
+        }
+      ],
+      "appliedToBaseline": false
+    },
+    {
+      "name": "door-detail",
+      "parentFrame": {
+        "parent": "candidate-8aaf2ca074bce958",
+        "crop_xyxy": [
+          630,
+          240,
+          880,
+          555
+        ],
+        "coordinate_conversion": "parent_x=left+local_x/1000*width; parent_y=top+local_y/1000*height"
+      },
+      "schema": "Validated by harness before geometric checks",
+      "basicPolygonValid": true,
+      "error": null,
+      "spaces": 9,
+      "openingCandidates": 7,
+      "geometryIssues": [],
+      "openingBoundaries": [
+        {
+          "id": "open_dm_south",
+          "adjacency": [
+            {
+              "id": "dark_matter_west_alcove",
+              "maxEndpointDistancePixels": 0
+            },
+            {
+              "id": "circ_between_dm_and_stair_b",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        },
+        {
+          "id": "open_stair_b_north",
+          "adjacency": [
+            {
+              "id": "circ_between_dm_and_stair_b",
+              "maxEndpointDistancePixels": 0
+            },
+            {
+              "id": "stair_b_landing",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        },
+        {
+          "id": "open_dm_internal",
+          "adjacency": [
+            {
+              "id": "dark_matter_room",
+              "maxEndpointDistancePixels": 0
+            },
+            {
+              "id": "dark_matter_west_alcove",
+              "maxEndpointDistancePixels": 11.448847103529681
+            }
+          ]
+        },
+        {
+          "id": "open_dm_northeast",
+          "adjacency": [
+            {
+              "id": "dark_matter_room",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        },
+        {
+          "id": "open_stair_b_south_mid",
+          "adjacency": [
+            {
+              "id": "stair_b_landing",
+              "maxEndpointDistancePixels": 0
+            },
+            {
+              "id": "stair_b_south_vestibule",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        },
+        {
+          "id": "open_circ_sw_north",
+          "adjacency": [
+            {
+              "id": "circ_south_west",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        },
+        {
+          "id": "open_east_corridor_north",
+          "adjacency": [
+            {
+              "id": "circ_between_dm_and_stair_b",
+              "maxEndpointDistancePixels": 0
+            },
+            {
+              "id": "circ_east_stair_b",
+              "maxEndpointDistancePixels": 0
+            }
+          ]
+        }
+      ],
+      "unresolved": [
+        {
+          "target_ref": "circ_between_dm_and_stair_b",
+          "code": "clipped",
+          "reason": "Circulation space extends beyond the crop boundaries to the west, north, and east."
+        }
+      ],
+      "appliedToBaseline": false
+    }
+  ],
+  "labelAnchorCheck": [
+    {
+      "label": "brainstorm",
+      "point": {
+        "x": 985,
+        "y": 120
+      },
+      "insideCorrespondingRegion": true
+    },
+    {
+      "label": "dark-matter",
+      "point": {
+        "x": 787,
+        "y": 354
+      },
+      "insideCorrespondingRegion": true
+    },
+    {
+      "label": "the-cave",
+      "point": {
+        "x": 987,
+        "y": 383
+      },
+      "insideCorrespondingRegion": true
+    }
+  ],
+  "labelAnchorCheckScope": "Three manually read text-centre points on the frozen raster, not surveyed geometry or independent OCR evaluation",
+  "baseline": {
+    "spaces": 16,
+    "walls": 96,
+    "openingCandidates": 12,
+    "overlaps": [
+      {
+        "code": "overlap",
+        "message": "THE CAVE overlaps main_circulation",
+        "target": {
+          "kind": "spaces",
+          "id": "room_the_cave"
+        },
+        "severity": "error"
+      },
+      {
+        "code": "overlap",
+        "message": "STAIR C overlaps STAIR C",
+        "target": {
+          "kind": "spaces",
+          "id": "stair_c_landing"
+        },
+        "severity": "error"
+      }
+    ],
+    "unresolved": [
+      {
+        "target_ref": null,
+        "code": "capacity",
+        "reason": "Reached max 16 spaces limit; omitted secondary rooms, western hall/auditorium, voids, and additional exterior stairs."
+      },
+      {
+        "target_ref": "stair-c",
+        "code": "ambiguous_geometry",
+        "reason": "Upper flight in Stair C has dashed/overlapping lines indicating split level or overhead run."
+      },
+      {
+        "target_ref": "the-cave",
+        "code": "ambiguous_geometry",
+        "reason": "Complex tiered seating and internal ramps/stairs inside The Cave merged into single room boundary."
+      }
+    ],
+    "openingBoundaryTolerancePixels": 2,
+    "openingsWithinTolerance": 5,
+    "maxOpeningBoundaryDistance": 56.19999999999993,
+    "acceptedDoors": 0,
+    "acceptedRouteEdges": 0
+  }
+}

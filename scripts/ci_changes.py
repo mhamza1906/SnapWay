@@ -51,7 +51,10 @@ def classify_changes(paths):
     web = shared or any(
         p.startswith("apps/web/") or p in {".node-version", ".editorconfig"} for p in paths
     )
-    return backend, web
+    pipeline = shared or any(
+        p.startswith("apps/pipeline/") or p in {".node-version", ".env.example"} for p in paths
+    )
+    return backend, web, pipeline
 
 
 def main():
@@ -63,8 +66,11 @@ def main():
         paths = subprocess.check_output(
             ["git", "diff", "--no-renames", "--name-only", base, head], text=True
         ).splitlines()
-    backend, web = classify_changes(paths)
-    result = f"backend={str(backend).lower()}\nweb={str(web).lower()}\n"
+    backend, web, pipeline = classify_changes(paths)
+    result = (
+        f"backend={str(backend).lower()}\nweb={str(web).lower()}\n"
+        f"pipeline={str(pipeline).lower()}\n"
+    )
     print(result, end="")
     if output := os.environ.get("GITHUB_OUTPUT"):
         with Path(output).open("a", encoding="utf-8") as stream:

@@ -300,6 +300,27 @@ def activate(release_id, *, rollback=False):
         raise ValueError("Invalid deployment domain")
     require_secret_file(CONFIG / "api.env")
     source = release / "source"
+    # Validate the protected host file against this release's public contract
+    # before migrations, service startup or proxy changes. No private values logged.
+    # Execute only the administrator-installed validator as root, never Python
+    # code from a release upload. The release supplies public contract data only.
+    validator = CONFIG / "env_contract.py"
+    template = source / ".env.example"
+    if rollback and not template.is_file():
+        # Pre-contract releases did not package these files. The installer keeps
+        # a reviewed fallback contract; Django checks still verify the old code.
+        template = CONFIG / ".env.example"
+    run(
+        "/usr/bin/python3",
+        str(validator),
+        "check",
+        "--template",
+        str(template),
+        "--file",
+        str(CONFIG / "api.env"),
+        "--profile",
+        "production",
+    )
     backend_hash = tree_digest(source)
     web_hash = tree_digest(release / "web")
     if not (release / "web/index.html").is_file():

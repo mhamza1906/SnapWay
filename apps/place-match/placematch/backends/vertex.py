@@ -65,9 +65,9 @@ class VertexBackend(GoogleEmbeddingBackend):
         self.project = project or os.environ.get("VERTEX_PROJECT", "")
         self.location = location or os.environ.get("VERTEX_LOCATION", "")
         if not self.project:
-            raise RuntimeError("VERTEX_PROJECT is not set (environment or apps/place-match/.env)")
+            raise RuntimeError("VERTEX_PROJECT is not set (environment or repository local/.env)")
         if not self.location:
-            raise RuntimeError("VERTEX_LOCATION is not set (environment or apps/place-match/.env)")
+            raise RuntimeError("VERTEX_LOCATION is not set (environment or repository local/.env)")
         if self.location not in DOCUMENTED_LOCATIONS:
             raise ValueError(
                 f"location {self.location!r} is not documented for {model} on Vertex AI "

@@ -1,11 +1,12 @@
 """Reproduce the locked team environment on Windows, macOS or Linux."""
 
 import json
-import secrets
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from env_contract import LEGACY, PRIVATE, initialize
 
 ROOT = Path(__file__).resolve().parents[1]
 EXTRAS = ["--extra", "ai", "--extra", "geometry", "--extra", "mcp"]
@@ -31,15 +32,11 @@ def main():
         raise SystemExit("Use npm 11; see apps/web/package.json.")
     for name in ("env", "logs", "artifacts", "tests", "research", "skills", "media", "static"):
         (ROOT / "local" / name).mkdir(parents=True, exist_ok=True)
-    environment_file = ROOT / "local" / "env" / "api.env"
-    if not environment_file.exists():
-        template = (ROOT / ".env.example").read_text(encoding="utf-8")
-        template = template.replace(
-            "DJANGO_SECRET_KEY=", f"DJANGO_SECRET_KEY={secrets.token_urlsafe(64)}", 1
-        )
-        with environment_file.open("x", encoding="utf-8") as target:
-            target.write(template)
-        print("Created private local/env/api.env with a new development secret.")
+    if any(path.exists() for path in LEGACY):
+        raise SystemExit("Run python scripts/env_contract.py migrate before bootstrap.")
+    initialize()
+    print("Using private local/.env; existing values preserved.")
+    run([sys.executable, "scripts/env_contract.py", "check", "--file", str(PRIVATE)])
     run([uv, "sync", "--locked", "--link-mode", "copy", *EXTRAS])
     run([npm, "ci", "--no-fund", "--no-audit"], ROOT / "apps" / "web")
     run([uv, "run", "--locked", *EXTRAS, "python", "apps/api/manage.py", "migrate", "--noinput"])

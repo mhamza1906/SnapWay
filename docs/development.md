@@ -5,6 +5,11 @@ architecture are indexed in [initial/README.md](initial/README.md). This guide
 describes implemented setup behavior; the initial files retain their original
 planning status and content.
 
+Maintain all authored documentation under `docs/` in English, including plans,
+feature records, audits, diagram labels and explanatory examples. Preserve original
+source artifacts and historical input bytes; describe their meaning in English
+instead of modifying evidence. The shared rule is recorded in [AGENTS.md](../AGENTS.md).
+
 For the interactive frontend, use the [prototype walkthrough](frontend-prototype.md).
 Its Local Storage service and simulated AI/device flows run without the API; this
 guide remains the initialization and backend/toolchain reference.
@@ -61,20 +66,20 @@ packages are resolved by the package managers.
 Run `python scripts/bootstrap.py` from a fresh checkout. It checks Node/npm,
 creates ignored `local/` directories, installs the locked profiles and runs
 migrations/checks. uv obtains the pinned Python if necessary. A development key
-is generated only when `local/env/api.env` does not exist. Repeating bootstrap
+is generated only when `local/.env` does not exist. Repeating bootstrap
 preserves existing settings and data; an invalid existing configuration is
 reported instead of overwritten.
 
-`config.settings.development` alone loads that private file. This project does
-**not** use a repo-root `.env` for application settings. Process environment
-variables take precedence. The root `.env.example` contains only implemented
-development setup settings and inactive provider placeholders (copy values into
-`local/env/api.env`). The full future configuration inventory remains intact at
-`docs/initial/.env.example`.
+Django development settings and the Node service load the single ignored
+`local/.env`, with process environment taking precedence. The root `.env.example`
+is the sole active shared contract; no per-service private env or template is
+maintained. Follow [environment synchronization](environment-sync.md) for the
+one-time legacy migration, external updates, allowed local exceptions and checks.
+The file under `docs/initial/` is historical evidence only.
 
 | Settings profile | Database | Secret source |
 | --- | --- | --- |
-| `config.settings.development` | `DATABASE_URL` or ignored `local/dev.sqlite3` | Process environment / `local/env/api.env`; required |
+| `config.settings.development` | `DATABASE_URL` or ignored `local/dev.sqlite3` | Process environment / `local/.env`; required |
 | `config.settings.test` | Isolated in-memory SQLite | Explicit non-deployment test key |
 | `config.settings.production` | Required PostgreSQL URL, verified TLS | Process environment; no local file loaded |
 
@@ -99,7 +104,7 @@ Google OAuth for developers is wired through django-allauth on branch
 [backend-oauth.md](backend-oauth.md): `/accounts/google/login/`, session
 `GET /api/auth/me/` and `POST /api/auth/logout/`, and env placeholders for
 `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`. Private development
-settings live **only** in ignored `local/env/api.env` (never a repo-root `.env`).
+settings live **only** in ignored `local/.env` (never a repo-root `.env`).
 Development prefers Tiger Data PostgreSQL via `DATABASE_URL` there; SQLite
 remains the offline fallback. Map roles are never granted by Google. AI provider
 SDKs remain inactive. No application authoring job or server-backed
@@ -200,6 +205,12 @@ files and two archive references) were copied byte-for-byte into `docs/initial`.
 line endings so verification works on a fresh clone. Relative document links
 retain the original directory relationships. `scripts/check_docs.py` verifies
 the snapshot independently of the original source directory.
+
+Upstream later renamed one archive file and updated two baseline files for the
+approved demo TLS exception. The original migration manifest remains unchanged;
+[initial-approved-updates.json](initial-approved-updates.json) records the exact
+upstream commits, original hashes and current paths/hashes. The checker applies
+only these explicit transitions and still rejects unrecorded content changes.
 
 Keep new implementation guidance and decisions under `docs/`; link back to
 the initial requirement where useful. Personal scripts, original research source

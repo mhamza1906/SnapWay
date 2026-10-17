@@ -1,0 +1,252 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "frame_id",
+    "footprint",
+    "walls",
+    "stairs",
+    "seating",
+    "door_symbols",
+    "unresolved"
+  ],
+  "properties": {
+    "frame_id": {
+      "type": "string"
+    },
+    "footprint": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "x",
+          "y"
+        ],
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        }
+      }
+    },
+    "walls": {
+      "type": "array",
+      "maxItems": 160,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "a",
+          "b"
+        ],
+        "properties": {
+          "a": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            }
+          },
+          "b": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            }
+          }
+        }
+      }
+    },
+    "stairs": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "region_id",
+          "envelope",
+          "tread_angle_deg",
+          "tread_count"
+        ],
+        "properties": {
+          "region_id": {
+            "type": "string"
+          },
+          "envelope": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              }
+            }
+          },
+          "tread_angle_deg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 359.99
+          },
+          "tread_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 40
+          }
+        }
+      }
+    },
+    "seating": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "region_id",
+          "envelope",
+          "angle_deg",
+          "rows",
+          "columns"
+        ],
+        "properties": {
+          "region_id": {
+            "type": "string"
+          },
+          "envelope": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              }
+            }
+          },
+          "angle_deg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 359.99
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "columns": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          }
+        }
+      }
+    },
+    "door_symbols": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opening_id",
+          "hinge",
+          "swing"
+        ],
+        "properties": {
+          "opening_id": {
+            "type": "string"
+          },
+          "hinge": {
+            "type": "string",
+            "enum": [
+              "a",
+              "b"
+            ]
+          },
+          "swing": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right",
+              "unknown"
+            ]
+          }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {
+        "type": "string",
+        "maxLength": 180
+      }
+    }
+  }
+}

@@ -159,11 +159,11 @@ in the order of `reference_ids`/`location_ids`, plus `backend_key`, `thresholds`
 
 ## Engine configuration
 
-In the ignored `apps/place-match/.env` (or the environment):
+In the ignored `local/.env` (or the environment):
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `MOBILE_API_TOKEN` | — (required, ≥ 24 chars) | Bearer token; create with `placematch mobile-token --create` |
+| `PLACEMATCH_ENGINE_TOKEN` | — (required, ≥ 24 chars) | Bearer token; create with `placematch mobile-token --create` |
 | `MOBILE_REFERENCE_SET` | `default` | Set under `data/references/<name>/` |
 | `MOBILE_RATE_LIMIT_PER_MIN` | `60` | Per-token requests per minute |
 | `MOBILE_ENABLE_VERTEX` | `1` | `0` disables the Vertex slot entirely |
@@ -175,12 +175,12 @@ Reference sets: `data/references/<set>/images/<location_id>/...`, `manifest.json
 
 ## SnapWay API configuration
 
-In `local/env/api.env` (development) or `/etc/indoor-nav/api.env` (server):
+In `local/.env` (development) or `/etc/indoor-nav/api.env` (server):
 
 | Variable | Meaning |
 | --- | --- |
 | `PLACEMATCH_ENGINE_URL` | Engine base URL, e.g. `http://127.0.0.1:8790`; empty disables the endpoints (503 `not_configured`) |
-| `PLACEMATCH_ENGINE_TOKEN` | The engine's `MOBILE_API_TOKEN` |
+| `PLACEMATCH_ENGINE_TOKEN` | The shared canonical engine bearer token; `MOBILE_API_TOKEN` remains a process-only legacy alias |
 | `PLACEMATCH_ENGINE_TIMEOUT_S` | Forwarding timeout, default 30 |
 | `PLACEMATCH_DEV_TOKEN` | Optional bearer token for the iOS debug build; ignored unless `DEBUG` |
 | `LOCALIZATION_RATE` | DRF scoped throttle, default `60/min` |

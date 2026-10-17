@@ -1,0 +1,1152 @@
+{
+  "schema_version": 1,
+  "request_id": "optimized-7b8edc60e54b1b08-trace",
+  "frame_id": "optimized-7b8edc60e54b1b08",
+  "coordinate_space": "crop_n1000_xy",
+  "spaces": [
+    {
+      "local_id": "sp_brainstorm",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 680,
+          "y": 225
+        },
+        {
+          "x": 772,
+          "y": 225
+        },
+        {
+          "x": 772,
+          "y": 318
+        },
+        {
+          "x": 666,
+          "y": 270
+        }
+      ],
+      "label_refs": [
+        "room-1"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_dark_matter",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 546,
+          "y": 561
+        },
+        {
+          "x": 564,
+          "y": 481
+        },
+        {
+          "x": 579,
+          "y": 425
+        },
+        {
+          "x": 609,
+          "y": 425
+        },
+        {
+          "x": 609,
+          "y": 561
+        }
+      ],
+      "label_refs": [
+        "room-2"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_the_cave",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 679,
+          "y": 382
+        },
+        {
+          "x": 864,
+          "y": 458
+        },
+        {
+          "x": 858,
+          "y": 503
+        },
+        {
+          "x": 888,
+          "y": 516
+        },
+        {
+          "x": 888,
+          "y": 650
+        },
+        {
+          "x": 833,
+          "y": 701
+        },
+        {
+          "x": 660,
+          "y": 714
+        },
+        {
+          "x": 660,
+          "y": 568
+        },
+        {
+          "x": 641,
+          "y": 551
+        }
+      ],
+      "label_refs": [
+        "room-3"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_a_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 126,
+          "y": 610
+        },
+        {
+          "x": 198,
+          "y": 610
+        },
+        {
+          "x": 198,
+          "y": 674
+        },
+        {
+          "x": 126,
+          "y": 674
+        }
+      ],
+      "label_refs": [
+        "stair-1"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_a_landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 64,
+          "y": 566
+        },
+        {
+          "x": 126,
+          "y": 608
+        },
+        {
+          "x": 126,
+          "y": 645
+        },
+        {
+          "x": 55,
+          "y": 592
+        }
+      ],
+      "label_refs": [
+        "stair-1"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_b_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 545,
+          "y": 603
+        },
+        {
+          "x": 609,
+          "y": 603
+        },
+        {
+          "x": 609,
+          "y": 668
+        },
+        {
+          "x": 561,
+          "y": 668
+        },
+        {
+          "x": 561,
+          "y": 718
+        },
+        {
+          "x": 545,
+          "y": 718
+        }
+      ],
+      "label_refs": [
+        "stair-2"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_elev_b",
+      "role": "elevator_shaft",
+      "polygon": [
+        {
+          "x": 522,
+          "y": 603
+        },
+        {
+          "x": 545,
+          "y": 603
+        },
+        {
+          "x": 545,
+          "y": 679
+        },
+        {
+          "x": 522,
+          "y": 679
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_c_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 411,
+          "y": 272
+        },
+        {
+          "x": 483,
+          "y": 272
+        },
+        {
+          "x": 483,
+          "y": 336
+        },
+        {
+          "x": 411,
+          "y": 336
+        }
+      ],
+      "label_refs": [
+        "stair-3"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_elev_c",
+      "role": "elevator_shaft",
+      "polygon": [
+        {
+          "x": 483,
+          "y": 272
+        },
+        {
+          "x": 508,
+          "y": 272
+        },
+        {
+          "x": 508,
+          "y": 320
+        },
+        {
+          "x": 483,
+          "y": 320
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_j_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 411,
+          "y": 207
+        },
+        {
+          "x": 474,
+          "y": 207
+        },
+        {
+          "x": 474,
+          "y": 272
+        },
+        {
+          "x": 411,
+          "y": 272
+        }
+      ],
+      "label_refs": [
+        "stair-4"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_stair_d_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 808,
+          "y": 210
+        },
+        {
+          "x": 831,
+          "y": 207
+        },
+        {
+          "x": 831,
+          "y": 268
+        },
+        {
+          "x": 881,
+          "y": 268
+        },
+        {
+          "x": 881,
+          "y": 336
+        },
+        {
+          "x": 826,
+          "y": 336
+        },
+        {
+          "x": 808,
+          "y": 326
+        }
+      ],
+      "label_refs": [
+        "stair-5"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_void_left",
+      "role": "void",
+      "polygon": [
+        {
+          "x": 92,
+          "y": 244
+        },
+        {
+          "x": 248,
+          "y": 244
+        },
+        {
+          "x": 285,
+          "y": 344
+        },
+        {
+          "x": 246,
+          "y": 344
+        },
+        {
+          "x": 201,
+          "y": 503
+        },
+        {
+          "x": 242,
+          "y": 574
+        },
+        {
+          "x": 274,
+          "y": 582
+        },
+        {
+          "x": 258,
+          "y": 634
+        },
+        {
+          "x": 234,
+          "y": 634
+        },
+        {
+          "x": 234,
+          "y": 601
+        },
+        {
+          "x": 117,
+          "y": 538
+        },
+        {
+          "x": 92,
+          "y": 582
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_center_island_left",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 248,
+          "y": 344
+        },
+        {
+          "x": 301,
+          "y": 344
+        },
+        {
+          "x": 333,
+          "y": 431
+        },
+        {
+          "x": 299,
+          "y": 582
+        },
+        {
+          "x": 242,
+          "y": 574
+        },
+        {
+          "x": 199,
+          "y": 501
+        },
+        {
+          "x": 214,
+          "y": 442
+        },
+        {
+          "x": 232,
+          "y": 442
+        },
+        {
+          "x": 251,
+          "y": 374
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_north_stair_ext",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 401,
+          "y": 336
+        },
+        {
+          "x": 495,
+          "y": 382
+        },
+        {
+          "x": 471,
+          "y": 475
+        },
+        {
+          "x": 445,
+          "y": 489
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_dark_matter_west",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 486,
+          "y": 561
+        },
+        {
+          "x": 515,
+          "y": 447
+        },
+        {
+          "x": 579,
+          "y": 412
+        },
+        {
+          "x": 564,
+          "y": 481
+        },
+        {
+          "x": 546,
+          "y": 561
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_south_core_east",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 609,
+          "y": 603
+        },
+        {
+          "x": 658,
+          "y": 603
+        },
+        {
+          "x": 658,
+          "y": 714
+        },
+        {
+          "x": 561,
+          "y": 718
+        },
+        {
+          "x": 561,
+          "y": 668
+        },
+        {
+          "x": 609,
+          "y": 668
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_brainstorm_east",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 772,
+          "y": 221
+        },
+        {
+          "x": 808,
+          "y": 210
+        },
+        {
+          "x": 808,
+          "y": 328
+        },
+        {
+          "x": 772,
+          "y": 318
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_circ_west",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 93,
+          "y": 647
+        },
+        {
+          "x": 126,
+          "y": 647
+        },
+        {
+          "x": 126,
+          "y": 674
+        },
+        {
+          "x": 198,
+          "y": 674
+        },
+        {
+          "x": 198,
+          "y": 636
+        },
+        {
+          "x": 258,
+          "y": 636
+        },
+        {
+          "x": 258,
+          "y": 672
+        },
+        {
+          "x": 293,
+          "y": 672
+        },
+        {
+          "x": 304,
+          "y": 639
+        },
+        {
+          "x": 299,
+          "y": 582
+        },
+        {
+          "x": 333,
+          "y": 431
+        },
+        {
+          "x": 301,
+          "y": 344
+        },
+        {
+          "x": 321,
+          "y": 315
+        },
+        {
+          "x": 298,
+          "y": 258
+        },
+        {
+          "x": 368,
+          "y": 225
+        },
+        {
+          "x": 406,
+          "y": 225
+        },
+        {
+          "x": 374,
+          "y": 258
+        },
+        {
+          "x": 445,
+          "y": 489
+        },
+        {
+          "x": 471,
+          "y": 475
+        },
+        {
+          "x": 505,
+          "y": 350
+        },
+        {
+          "x": 486,
+          "y": 561
+        },
+        {
+          "x": 522,
+          "y": 603
+        },
+        {
+          "x": 522,
+          "y": 679
+        },
+        {
+          "x": 505,
+          "y": 679
+        },
+        {
+          "x": 505,
+          "y": 718
+        },
+        {
+          "x": 445,
+          "y": 722
+        },
+        {
+          "x": 93,
+          "y": 722
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_circ_east",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 505,
+          "y": 350
+        },
+        {
+          "x": 540,
+          "y": 225
+        },
+        {
+          "x": 680,
+          "y": 225
+        },
+        {
+          "x": 666,
+          "y": 270
+        },
+        {
+          "x": 808,
+          "y": 336
+        },
+        {
+          "x": 881,
+          "y": 336
+        },
+        {
+          "x": 881,
+          "y": 225
+        },
+        {
+          "x": 908,
+          "y": 225
+        },
+        {
+          "x": 908,
+          "y": 398
+        },
+        {
+          "x": 880,
+          "y": 469
+        },
+        {
+          "x": 901,
+          "y": 481
+        },
+        {
+          "x": 901,
+          "y": 518
+        },
+        {
+          "x": 858,
+          "y": 503
+        },
+        {
+          "x": 864,
+          "y": 458
+        },
+        {
+          "x": 679,
+          "y": 382
+        },
+        {
+          "x": 641,
+          "y": 551
+        },
+        {
+          "x": 660,
+          "y": 568
+        },
+        {
+          "x": 658,
+          "y": 603
+        },
+        {
+          "x": 522,
+          "y": 603
+        },
+        {
+          "x": 486,
+          "y": 561
+        },
+        {
+          "x": 609,
+          "y": 561
+        },
+        {
+          "x": 609,
+          "y": 425
+        },
+        {
+          "x": 579,
+          "y": 412
+        },
+        {
+          "x": 515,
+          "y": 447
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_north_core_east",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 474,
+          "y": 207
+        },
+        {
+          "x": 524,
+          "y": 207
+        },
+        {
+          "x": 538,
+          "y": 228
+        },
+        {
+          "x": 508,
+          "y": 320
+        },
+        {
+          "x": 508,
+          "y": 272
+        },
+        {
+          "x": 474,
+          "y": 272
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_northeast_room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 831,
+          "y": 221
+        },
+        {
+          "x": 881,
+          "y": 221
+        },
+        {
+          "x": 881,
+          "y": 268
+        },
+        {
+          "x": 831,
+          "y": 268
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_entry_north",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 297,
+          "y": 219
+        },
+        {
+          "x": 342,
+          "y": 191
+        },
+        {
+          "x": 354,
+          "y": 225
+        },
+        {
+          "x": 307,
+          "y": 258
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_entry_south",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 449,
+          "y": 722
+        },
+        {
+          "x": 496,
+          "y": 691
+        },
+        {
+          "x": 506,
+          "y": 722
+        },
+        {
+          "x": 459,
+          "y": 755
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "sp_entry_east",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 896,
+          "y": 396
+        },
+        {
+          "x": 920,
+          "y": 408
+        },
+        {
+          "x": 901,
+          "y": 481
+        },
+        {
+          "x": 880,
+          "y": 469
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    }
+  ],
+  "opening_candidates": [
+    {
+      "local_id": "op_brainstorm",
+      "a": {
+        "x": 744,
+        "y": 305
+      },
+      "b": {
+        "x": 756,
+        "y": 311
+      },
+      "adjacent_local_ids": [
+        "sp_brainstorm",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 738,
+          "y": 285
+        },
+        {
+          "x": 762,
+          "y": 285
+        },
+        {
+          "x": 762,
+          "y": 320
+        },
+        {
+          "x": 738,
+          "y": 320
+        }
+      ]
+    },
+    {
+      "local_id": "op_dark_matter_s",
+      "a": {
+        "x": 532,
+        "y": 561
+      },
+      "b": {
+        "x": 546,
+        "y": 561
+      },
+      "adjacent_local_ids": [
+        "sp_dark_matter_west",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 528,
+          "y": 542
+        },
+        {
+          "x": 550,
+          "y": 542
+        },
+        {
+          "x": 550,
+          "y": 570
+        },
+        {
+          "x": 528,
+          "y": 570
+        }
+      ]
+    },
+    {
+      "local_id": "op_dark_matter_n",
+      "a": {
+        "x": 609,
+        "y": 430
+      },
+      "b": {
+        "x": 609,
+        "y": 442
+      },
+      "adjacent_local_ids": [
+        "sp_dark_matter",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 595,
+          "y": 425
+        },
+        {
+          "x": 615,
+          "y": 425
+        },
+        {
+          "x": 615,
+          "y": 448
+        },
+        {
+          "x": 595,
+          "y": 448
+        }
+      ]
+    },
+    {
+      "local_id": "op_cave_nw",
+      "a": {
+        "x": 668,
+        "y": 410
+      },
+      "b": {
+        "x": 662,
+        "y": 426
+      },
+      "adjacent_local_ids": [
+        "sp_the_cave",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 652,
+          "y": 402
+        },
+        {
+          "x": 680,
+          "y": 402
+        },
+        {
+          "x": 680,
+          "y": 435
+        },
+        {
+          "x": 652,
+          "y": 435
+        }
+      ]
+    },
+    {
+      "local_id": "op_cave_sw",
+      "a": {
+        "x": 649,
+        "y": 518
+      },
+      "b": {
+        "x": 641,
+        "y": 548
+      },
+      "adjacent_local_ids": [
+        "sp_the_cave",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 628,
+          "y": 510
+        },
+        {
+          "x": 672,
+          "y": 510
+        },
+        {
+          "x": 672,
+          "y": 560
+        },
+        {
+          "x": 628,
+          "y": 560
+        }
+      ]
+    },
+    {
+      "local_id": "op_brainstorm_east",
+      "a": {
+        "x": 776,
+        "y": 319
+      },
+      "b": {
+        "x": 788,
+        "y": 323
+      },
+      "adjacent_local_ids": [
+        "sp_brainstorm_east",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 770,
+          "y": 312
+        },
+        {
+          "x": 795,
+          "y": 312
+        },
+        {
+          "x": 795,
+          "y": 340
+        },
+        {
+          "x": 770,
+          "y": 340
+        }
+      ]
+    },
+    {
+      "local_id": "op_stair_d",
+      "a": {
+        "x": 812,
+        "y": 326
+      },
+      "b": {
+        "x": 826,
+        "y": 336
+      },
+      "adjacent_local_ids": [
+        "sp_stair_d_flight",
+        "sp_circ_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 806,
+          "y": 312
+        },
+        {
+          "x": 832,
+          "y": 312
+        },
+        {
+          "x": 832,
+          "y": 342
+        },
+        {
+          "x": 806,
+          "y": 342
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "target_ref": "room-1",
+      "code": "capacity",
+      "reason": "Capacity 24 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": "room-2",
+      "code": "capacity",
+      "reason": "Capacity 24 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": "room-3",
+      "code": "capacity",
+      "reason": "Capacity 210 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": null,
+      "code": "missing_label",
+      "reason": "Multiple secondary rooms, restrooms, and mechanical/storage cores have no text labels in the inventory."
+    }
+  ]
+}

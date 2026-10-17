@@ -26,6 +26,7 @@ jobs:
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
       web: ${{ steps.changes.outputs.web }}
+      pipeline: ${{ steps.changes.outputs.pipeline }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -63,6 +64,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - run: uv sync --locked --extra ai --extra geometry --extra mcp
+      - run: python scripts/env_contract.py template
+      - run: python scripts/check_audit_evidence.py
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py check --settings=config.settings.test
@@ -137,9 +140,28 @@ jobs:
           path: apps/web/dist/snapway/browser
           if-no-files-found: error
 
+  # Map-authoring pipeline service (Node). Offline tests only: synthetic
+  # providers, no keys and no paid calls.
+  pipeline:
+    needs: changes
+    if: needs.changes.outputs.pipeline == 'true'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/pipeline
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/pipeline/package-lock.json
+      - run: npm ci --no-fund --no-audit
+      - run: npm test
+
   required:
     if: always()
-    needs: [changes, backend, postgresql, web]
+    needs: [changes, backend, postgresql, web, pipeline]
     runs-on: ubuntu-24.04
     steps:
       - env:

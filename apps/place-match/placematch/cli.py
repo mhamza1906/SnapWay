@@ -194,34 +194,40 @@ def cmd_serve_mobile(a) -> None:
 
 
 def cmd_mobile_token(a) -> None:
-    """Show whether MOBILE_API_TOKEN is set; --create writes a new one to the ignored .env."""
+    """Check/rotate the canonical engine token in the shared private file."""
     import os
     import secrets
 
-    from placematch.env import APP_DIR, load_env
+    from placematch.env import PRIVATE_ENV, load_env
 
     load_env()
-    env_path = APP_DIR / ".env"
-    if os.environ.get("MOBILE_API_TOKEN") and not a.create:
-        print(f"MOBILE_API_TOKEN is set (in the environment or {env_path}); not shown")
+    env_path = PRIVATE_ENV
+    if (
+        os.environ.get("MOBILE_API_TOKEN") or os.environ.get("PLACEMATCH_ENGINE_TOKEN")
+    ) and not a.create:
+        print("Engine token is configured; value not shown")
         return
     if not a.create:
-        print("MOBILE_API_TOKEN is not set; run with --create")
+        print("Engine token is not set; run with --create")
         return
+    if not env_path.is_file():
+        raise RuntimeError("Initialize repository local/.env using scripts/env_contract.py init")
     token = secrets.token_urlsafe(32)
     lines = []
     if env_path.is_file():
         lines = [
             line
             for line in env_path.read_text(encoding="utf-8").splitlines()
-            if not line.startswith("MOBILE_API_TOKEN=")
+            if not line.startswith(("MOBILE_API_TOKEN=", "PLACEMATCH_ENGINE_TOKEN="))
         ]
-    lines.append(f"MOBILE_API_TOKEN={token}")
-    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    env_path.chmod(0o600)
-    print(f"Wrote a new MOBILE_API_TOKEN to {env_path} (owner-only).")
-    print("Enter it once in the iOS app's debug settings (stored in the Keychain):")
-    print(token)
+    lines.append(f"PLACEMATCH_ENGINE_TOKEN={token}")
+    temporary = env_path.with_name(env_path.name + ".tmp")
+    with temporary.open("x", encoding="utf-8") as stream:
+        temporary.chmod(0o600)
+        stream.write("\n".join(lines) + "\n")
+    temporary.replace(env_path)
+    print("Engine token updated in repository local/.env; value not shown.")
+    print("Restart the engine and Django; distribute private updates through the external channel.")
 
 
 def add_query_args(p) -> None:
@@ -320,7 +326,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--allow-non-loopback", action="store_true")
     p.set_defaults(func=cmd_serve_mobile)
 
-    p = sub.add_parser("mobile-token", help="check or create MOBILE_API_TOKEN in .env")
+    p = sub.add_parser("mobile-token", help="check or create engine token in repository local/.env")
     p.add_argument("--create", action="store_true")
     p.set_defaults(func=cmd_mobile_token)
 

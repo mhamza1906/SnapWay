@@ -63,7 +63,7 @@ Views must expose `get_map_target()` or set `map_target` before permission check
 | `GET /api/auth/me/` | Includes read-only `memberships: [{target_id, role}]` when authenticated |
 | `GET /api/maps/targets/<uuid>/access/` | Diagnostic: caller’s role or 403 (not product UI) |
 
-Secrets: `local/env/api.env` only (never repo-root `.env`).
+Secrets: `local/.env` only (never repo-root `.env`).
 
 ## Tests
 

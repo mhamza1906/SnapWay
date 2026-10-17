@@ -1,0 +1,528 @@
+{
+  "schemaValid": true,
+  "basicPolygonValid": true,
+  "basicError": null,
+  "provider": "vertex",
+  "regions": 24,
+  "walls": 132,
+  "openingCandidates": 7,
+  "openingBoundaries": [
+    {
+      "id": "op_brainstorm",
+      "adjacency": [
+        {
+          "id": "sp_brainstorm",
+          "maxEndpointDistancePixels": 0.31443699602603936
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 1.2260941550730216
+        }
+      ]
+    },
+    {
+      "id": "op_dark_matter_s",
+      "adjacency": [
+        {
+          "id": "sp_dark_matter_west",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "op_dark_matter_n",
+      "adjacency": [
+        {
+          "id": "sp_dark_matter",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 5.684341886080802e-14
+        }
+      ]
+    },
+    {
+      "id": "op_cave_nw",
+      "adjacency": [
+        {
+          "id": "sp_the_cave",
+          "maxEndpointDistancePixels": 10.343139652523824
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 10.343139652523824
+        }
+      ]
+    },
+    {
+      "id": "op_cave_sw",
+      "adjacency": [
+        {
+          "id": "sp_the_cave",
+          "maxEndpointDistancePixels": 0.981780116892397
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 0.981780116892397
+        }
+      ]
+    },
+    {
+      "id": "op_brainstorm_east",
+      "adjacency": [
+        {
+          "id": "sp_brainstorm_east",
+          "maxEndpointDistancePixels": 0.5593782072800303
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 3.6231771099346517
+        }
+      ]
+    },
+    {
+      "id": "op_stair_d",
+      "adjacency": [
+        {
+          "id": "sp_stair_d_flight",
+          "maxEndpointDistancePixels": 2.133899402180179
+        },
+        {
+          "id": "sp_circ_east",
+          "maxEndpointDistancePixels": 10.240000000000009
+        }
+      ]
+    }
+  ],
+  "domainIssues": [
+    {
+      "code": "door",
+      "message": "BRAINSTORM: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_brainstorm"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "DARK MATTER: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_dark_matter"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "THE CAVE: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_the_cave"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR A: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_a_landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_center_island_left: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_center_island_left"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_dark_matter_west: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_dark_matter_west"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_south_core_east: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_south_core_east"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_brainstorm_east: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_brainstorm_east"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_circ_west: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_west"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_circ_east: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_east"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_north_core_east: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_north_core_east"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_northeast_room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_northeast_room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_entry_north: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_north"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_entry_south: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_south"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "sp_entry_east: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_east"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "overlap",
+      "message": "sp_void_left overlaps sp_center_island_left",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_void_left"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "sp_circ_west overlaps sp_entry_north",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_west"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "sp_circ_west overlaps sp_entry_south",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_west"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "sp_circ_east overlaps sp_entry_east",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "BRAINSTORM: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_brainstorm"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "DARK MATTER: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_dark_matter"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "THE CAVE: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_the_cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR A: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_a_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR A: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_a_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR B: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_b_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_elev_b: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_elev_b"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR C: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_c_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_elev_c: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_elev_c"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR J: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_j_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR D: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_stair_d_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_void_left: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_void_left"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_center_island_left: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_center_island_left"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_north_stair_ext: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_north_stair_ext"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_dark_matter_west: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_dark_matter_west"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_south_core_east: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_south_core_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_brainstorm_east: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_brainstorm_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_circ_west: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_west"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_circ_east: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_circ_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_north_core_east: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_north_core_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_northeast_room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_northeast_room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_entry_north: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_north"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_entry_south: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_south"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "sp_entry_east: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "sp_entry_east"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "scale",
+      "message": "Unscaled map — distances are shown in pixels",
+      "target": null,
+      "severity": "info"
+    }
+  ],
+  "traceUnresolved": [
+    {
+      "target_ref": "room-1",
+      "code": "capacity",
+      "reason": "Capacity 24 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": "room-2",
+      "code": "capacity",
+      "reason": "Capacity 24 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": "room-3",
+      "code": "capacity",
+      "reason": "Capacity 210 seats from label text not stored in space geometry."
+    },
+    {
+      "target_ref": null,
+      "code": "missing_label",
+      "reason": "Multiple secondary rooms, restrooms, and mechanical/storage cores have no text labels in the inventory."
+    }
+  ],
+  "presentationUnresolved": [
+    "room-1 (BRAINSTORM) capacity 24 seats is from label text only; no seating grid drawn.",
+    "room-2 (DARK MATTER) capacity 24 seats is from label text only; no seating grid drawn.",
+    "room-3 (THE CAVE) capacity 210 seats is from label text; drawn seating grid is a schematic presentation estimate.",
+    "Unlabelled secondary rooms, restrooms, and mechanical/elevator cores remain unnamed per inventory constraints."
+  ],
+  "navigationAccepted": false,
+  "acceptedDoors": 0,
+  "routeEdges": 0
+}

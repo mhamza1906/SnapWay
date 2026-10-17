@@ -15,7 +15,7 @@ Subagent 1, 2026-10-17. Everything below was measured on this machine unless it 
    Optionally attribute quota to the project:
    `gcloud auth application-default set-quota-project <project>` (silences the
    "without a quota project" warning; not done on this machine).
-3. In `apps/place-match/.env` (git-ignored, non-secret values):
+3. In `local/.env` (git-ignored, non-secret values):
    `VERTEX_PROJECT=<project>` and `VERTEX_LOCATION=us` (`global` and `eu` are also
    documented for `gemini-embedding-2`; only `us` was tested). No API key is used.
 4. Smoke test before any large run (sends 0 requests, then a few):

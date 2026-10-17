@@ -1,5 +1,10 @@
 # Vultr deployment
 
+The [deployment update plan](deployment-update-plan.md) selects the next increment:
+Django-owned business APIs and durable jobs, with one private Node compute
+service and a serial authoring worker. It defines delivery/resource/rollback
+gates; Node and the worker are not implemented by the deployment described here.
+
 Owner: Eric. Updated October 17, 2026. Demo TLS fix: pending on `ci/deployment`.
 Earlier deployment commits: [native deployment](https://github.com/mhamza1906/SnapWay/commit/8d0a005)
 and [single environment file](https://github.com/mhamza1906/SnapWay/commit/32a5abf).
@@ -54,7 +59,10 @@ From **local Windows PowerShell**, copy the reviewed infrastructure files:
 
 ```powershell
 ssh snapwayadmin@155.138.198.255 'mkdir -p ~/snapway-infra/infra'
-scp C:/Users/Beaming/Desktop/SnapWay/infra/deploy.py C:/Users/Beaming/Desktop/SnapWay/infra/install-server.sh C:/Users/Beaming/Desktop/SnapWay/infra/api.env.example snapwayadmin@155.138.198.255:~/snapway-infra/infra/
+scp infra/deploy.py infra/install-server.sh snapwayadmin@155.138.198.255:~/snapway-infra/infra/
+ssh snapwayadmin@155.138.198.255 'mkdir -p ~/snapway-infra/scripts'
+scp scripts/env_contract.py snapwayadmin@155.138.198.255:~/snapway-infra/scripts/
+scp .env.example snapwayadmin@155.138.198.255:~/snapway-infra/
 ```
 
 On the **server**:
@@ -73,7 +81,14 @@ receives sudo access only to that command, never arbitrary systemctl or shells.
 Updating the controller itself is an administrator maintenance step using
 reviewed files; ordinary code releases cannot replace it.
 
-Complete the server-only environment template:
+Follow the [single-env synchronization guide](environment-sync.md) to reconcile
+all keys and ENV_SCHEMA_VERSION with the root template before installing this
+updated controller. Set the production settings/debug/hosts/origins/media values;
+the root template defaults are for local development, not a ready-to-run server.
+The installer preserves existing credentials. Activation now validates the server
+file against the release contract before migrations or process changes.
+
+Complete the production values in the shared environment contract:
 
 - Generate a Django secret with `python3 -c 'import secrets; print(secrets.token_urlsafe(64))'`
   and insert it directly in the server file; never put it in Git or chat.
@@ -126,7 +141,7 @@ sudo rm /etc/indoor-nav/migration.env
 Do not remove the old file before preserving its connection and installing the
 updated controller. Existing running API processes pick up environment changes
 on restart; subsequent releases generate the API service's migration-variable
-exclusion. Local development still reads `local/env/api.env` and uses its
+exclusion. Local development still reads `local/.env` and uses its
 `DATABASE_URL`; this change does not alter the local management entrypoint.
 
 ### Free-plan demo TLS
@@ -144,7 +159,7 @@ sudo nano /etc/indoor-nav/api.env
 ```
 
 1. Set `PGSSLMODE=require`.
-2. Remove the `PGSSLROOTCERT` line. `sslrootcert=system` is incompatible with
+2. Set `PGSSLROOTCERT=` (retain the empty key for schema parity). `sslrootcert=system` is incompatible with
    `require`, and other CA files can activate certificate verification.
 3. In **both** `DATABASE_URL` and `DATABASE_MIGRATOR`, change any `sslmode=verify-full`
    query parameter to `sslmode=require` and remove any `sslrootcert` parameter.
@@ -247,7 +262,7 @@ Data. Recovery exercises must restore DB records and matching private assets.
 - [CI](../.github/workflows/ci.yml) and [deployment job](../.github/workflows/deploy.yml)
 - [Change classifier](../scripts/ci_changes.py) and [release packager](../scripts/package_release.py)
 - [Server installer](../infra/install-server.sh), [upload script](../infra/upload-release.sh),
-  [activation controller](../infra/deploy.py), [environment template](../infra/api.env.example)
+  [activation controller](../infra/deploy.py), [environment template](../.env.example)
 - [Production TLS/static configuration](../apps/api/config/settings/production.py)
   and [configuration regression tests](../apps/api/tests/test_configuration.py)
 - [Architecture baseline](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)

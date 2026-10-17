@@ -1,0 +1,1014 @@
+{
+  "date": "2026-10-17",
+  "scope": "Original inventory -> actual GPT Image 2.5 API edit -> GPT vectorization and matched whole-image Gemini comparison; crop proposals retained independently",
+  "image": {
+    "stage": "image-edit",
+    "requestedModel": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1536x1024",
+    "startedAt": "2026-10-17T09:25:59Z",
+    "status": "completed",
+    "maximumUpstreamRequests": 1,
+    "usage": {
+      "input_tokens": 1822,
+      "input_tokens_details": {
+        "image_tokens": 1456,
+        "text_tokens": 366
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 3194
+    },
+    "httpStatus": 200,
+    "latencyMs": 31325,
+    "returnedModel": null,
+    "returnedSize": "1536x1024",
+    "returnedQuality": "high",
+    "estimatedUndiscountedUsd": 0.054638,
+    "cliExitCode": 0,
+    "outputExists": true,
+    "finishedAt": "2026-10-17T09:26:54Z"
+  },
+  "sourceInventory": {
+    "observations": 11,
+    "rooms": [
+      {
+        "id": "room-1",
+        "kind": "room",
+        "name": "BRAINSTORM",
+        "raw_text": "BRAINSTORM\n24 SEATS",
+        "capacity": 24,
+        "label_position": {
+          "x": 714,
+          "y": 229
+        },
+        "observation": "visible"
+      },
+      {
+        "id": "room-2",
+        "kind": "room",
+        "name": "DARK MATTER",
+        "raw_text": "DARK\nMATTER\n24 SEATS",
+        "capacity": 24,
+        "label_position": {
+          "x": 581,
+          "y": 531
+        },
+        "observation": "visible"
+      },
+      {
+        "id": "room-3",
+        "kind": "room",
+        "name": "THE CAVE",
+        "raw_text": "THE CAVE\n210 SEATS",
+        "capacity": 210,
+        "label_position": {
+          "x": 703,
+          "y": 569
+        },
+        "observation": "visible"
+      }
+    ]
+  },
+  "ledger": [
+    {
+      "name": "inventory",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:24:26.918Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 26002,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "usage": {
+        "input_tokens": 2460,
+        "input_tokens_details": {
+          "cache_write_tokens": 2457,
+          "cached_tokens": 0
+        },
+        "output_tokens": 1383,
+        "output_tokens_details": {
+          "reasoning_tokens": 488
+        },
+        "total_tokens": 3843
+      },
+      "estimatedUndiscountedUsd": 0.0199785,
+      "finishedAt": "2026-10-17T09:24:53.262Z",
+      "serviceTier": "default"
+    },
+    {
+      "name": "gpt-trace",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:27:00.299Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 118147,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "usage": {
+        "input_tokens": 4880,
+        "input_tokens_details": {
+          "cache_write_tokens": 4877,
+          "cached_tokens": 0
+        },
+        "output_tokens": 6380,
+        "output_tokens_details": {
+          "reasoning_tokens": 2983
+        },
+        "total_tokens": 11260
+      },
+      "estimatedUndiscountedUsd": 0.0759985,
+      "finishedAt": "2026-10-17T09:28:58.815Z",
+      "serviceTier": "default"
+    },
+    {
+      "name": "gpt-structure",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:29:35.548Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 104636,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "usage": {
+        "input_tokens": 7660,
+        "input_tokens_details": {
+          "cache_write_tokens": 7657,
+          "cached_tokens": 0
+        },
+        "output_tokens": 6380,
+        "output_tokens_details": {
+          "reasoning_tokens": 1330
+        },
+        "total_tokens": 14040
+      },
+      "estimatedUndiscountedUsd": 0.0829485,
+      "finishedAt": "2026-10-17T09:31:20.550Z",
+      "serviceTier": "default"
+    },
+    {
+      "name": "gemini-trace",
+      "provider": "vertex",
+      "requestedModel": "gemini-4-argon",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:31:44.010Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 47039,
+      "httpStatus": 200,
+      "returnedModel": "gemini-4-argon",
+      "serviceTier": null,
+      "usage": {
+        "promptTokenCount": 4199,
+        "candidatesTokenCount": 3680,
+        "totalTokenCount": 7879,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "IMAGE",
+            "tokenCount": 2158
+          },
+          {
+            "modality": "TEXT",
+            "tokenCount": 2041
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3680
+          }
+        ]
+      },
+      "estimatedUndiscountedUsd": 0.090396,
+      "finishedAt": "2026-10-17T09:32:31.380Z"
+    },
+    {
+      "name": "gemini-structure",
+      "provider": "vertex",
+      "requestedModel": "gemini-4-argon",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:32:52.789Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 65044,
+      "httpStatus": 200,
+      "returnedModel": "gemini-4-argon",
+      "serviceTier": null,
+      "usage": {
+        "promptTokenCount": 7910,
+        "candidatesTokenCount": 5174,
+        "totalTokenCount": 13124,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5752
+          },
+          {
+            "modality": "IMAGE",
+            "tokenCount": 2158
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5174
+          }
+        ],
+        "thoughtsTokenCount": 40
+      },
+      "estimatedUndiscountedUsd": 0.13592,
+      "finishedAt": "2026-10-17T09:33:58.182Z"
+    },
+    {
+      "name": "gpt-trace-roi-0-140",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:34:15.149Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "49b4d43c58e0df070b56b1c053bd5527a12720378bae1118a67b60b96c882244",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 137246,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "serviceTier": "default",
+      "usage": {
+        "input_tokens": 3825,
+        "input_tokens_details": {
+          "cache_write_tokens": 3822,
+          "cached_tokens": 0
+        },
+        "output_tokens": 6413,
+        "output_tokens_details": {
+          "reasoning_tokens": 3106
+        },
+        "total_tokens": 10238
+      },
+      "estimatedUndiscountedUsd": 0.073691,
+      "finishedAt": "2026-10-17T09:36:32.715Z",
+      "localRevalidation": "Stored response replayed through UTF-8 binary stdin; no new API request",
+      "recoveredLocalIssue": "Windows stdin codepage defect; replayed stored response with explicit UTF-8, no additional API request"
+    },
+    {
+      "name": "gpt-structure-roi-0-140",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:38:26.053Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "49b4d43c58e0df070b56b1c053bd5527a12720378bae1118a67b60b96c882244",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 82097,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "serviceTier": "default",
+      "usage": {
+        "input_tokens": 6477,
+        "input_tokens_details": {
+          "cache_write_tokens": 6474,
+          "cached_tokens": 0
+        },
+        "output_tokens": 4793,
+        "output_tokens_details": {
+          "reasoning_tokens": 800
+        },
+        "total_tokens": 11270
+      },
+      "estimatedUndiscountedUsd": 0.064121,
+      "finishedAt": "2026-10-17T09:39:48.475Z"
+    },
+    {
+      "name": "gpt-trace-roi-640-140",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:40:06.032Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "bb897c1538b37a2bd968830967787f0f5c3bbea0ca6a7af37c403c0d31de7320",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 118040,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "serviceTier": "default",
+      "usage": {
+        "input_tokens": 3823,
+        "input_tokens_details": {
+          "cache_write_tokens": 3820,
+          "cached_tokens": 0
+        },
+        "output_tokens": 5648,
+        "output_tokens_details": {
+          "reasoning_tokens": 2070
+        },
+        "total_tokens": 9471
+      },
+      "estimatedUndiscountedUsd": 0.066036,
+      "finishedAt": "2026-10-17T09:42:04.416Z"
+    },
+    {
+      "name": "gpt-structure-roi-640-140",
+      "provider": "openai",
+      "requestedModel": "gpt-6.1-sol",
+      "effort": "medium",
+      "maxOutputTokens": 16384,
+      "startedAt": "2026-10-17T09:42:46.486Z",
+      "status": "schema-valid",
+      "inputHashes": [
+        "bb897c1538b37a2bd968830967787f0f5c3bbea0ca6a7af37c403c0d31de7320",
+        "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe"
+      ],
+      "latencyMs": 128172,
+      "httpStatus": 200,
+      "returnedModel": "gpt-6.1-sol",
+      "serviceTier": "default",
+      "usage": {
+        "input_tokens": 6671,
+        "input_tokens_details": {
+          "cache_write_tokens": 6668,
+          "cached_tokens": 0
+        },
+        "output_tokens": 7121,
+        "output_tokens_details": {
+          "reasoning_tokens": 1545
+        },
+        "total_tokens": 13792
+      },
+      "estimatedUndiscountedUsd": 0.087886,
+      "finishedAt": "2026-10-17T09:44:54.990Z"
+    }
+  ],
+  "conditions": [
+    {
+      "name": "gpt-structure",
+      "model": "gpt-6.1-sol",
+      "inputCondition": "whole",
+      "frame": {
+        "frameId": "optimized-7b8edc60e54b1b08",
+        "width": 1536,
+        "height": 1024,
+        "parentWidth": 1536,
+        "parentHeight": 1024,
+        "roi": null,
+        "inputHash": "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45"
+      },
+      "calls": 2,
+      "httpLatencyMs": 222783,
+      "estimatedUndiscountedUsd": 0.158947,
+      "estimatedVertexIntroductoryNetUsd": null,
+      "regions": 24,
+      "walls": 160,
+      "openingCandidates": 2,
+      "openingBoundaryTolerancePixels": 2,
+      "openingsWithinTolerance": 2,
+      "maxOpeningBoundaryDistancePixels": 3.2615210179049714e-7,
+      "basicPolygonValid": true,
+      "overlaps": [
+        {
+          "code": "overlap",
+          "message": "stair-a-landing overlaps unnamed-west-space",
+          "target": {
+            "kind": "spaces",
+            "id": "stair-a-landing"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "unnamed-west-space overlaps west-upper-flight",
+          "target": {
+            "kind": "spaces",
+            "id": "unnamed-west-space"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "unnamed-west-space overlaps west-main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "unnamed-west-space"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "central-diagonal-flight overlaps west-main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "central-diagonal-flight"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "west-upper-flight overlaps west-main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "west-upper-flight"
+          },
+          "severity": "error"
+        }
+      ],
+      "otherGeometryIssues": [],
+      "namedRooms": [
+        {
+          "name": "BRAINSTORM",
+          "capacity": 24,
+          "linkedRegions": [
+            "brainstorm"
+          ]
+        },
+        {
+          "name": "DARK MATTER",
+          "capacity": 24,
+          "linkedRegions": [
+            "dark-matter"
+          ]
+        },
+        {
+          "name": "THE CAVE",
+          "capacity": 210,
+          "linkedRegions": [
+            "the-cave"
+          ]
+        }
+      ],
+      "traceUnresolved": [
+        {
+          "target_ref": "room-1",
+          "code": "capacity",
+          "reason": "The reference inventory states 24 seats; capacity is semantic evidence only and is not independently verified from the optimized drawing."
+        },
+        {
+          "target_ref": "room-2",
+          "code": "capacity",
+          "reason": "The reference inventory states 24 seats; capacity is not independently verified from the optimized drawing."
+        },
+        {
+          "target_ref": "room-3",
+          "code": "capacity",
+          "reason": "The reference inventory states 210 seats. Seating symbols support an auditorium, but an exact seat count is not verified."
+        },
+        {
+          "target_ref": "unnamed-west-space",
+          "code": "ambiguous_geometry",
+          "reason": "The large western unlabeled area is bounded partly by irregular enclosure geometry. Its use as an ordinary room rather than circulation is uncertain."
+        },
+        {
+          "target_ref": "west-central-enclosure",
+          "code": "ambiguous_geometry",
+          "reason": "The nested diagonal enclosure is visible, but the evidence does not reliably establish whether it is usable floor, a void, or another architectural element."
+        },
+        {
+          "target_ref": "central-diagonal-flight",
+          "code": "ambiguous_geometry",
+          "reason": "Tread-like lines support a stair flight, but its exact transition to the surrounding flat landing is uncertain. No inventory stair label is assigned."
+        },
+        {
+          "target_ref": "south-entrance-circulation",
+          "code": "ambiguous_geometry",
+          "reason": "The southern perimeter contains small enclosures, diagonal walls and entrance recesses. The proposed polygon traces only a conservative portion of the flat circulation."
+        },
+        {
+          "target_ref": null,
+          "code": "ambiguous_geometry",
+          "reason": "The 24-polygon limit leaves some small service rooms, toilet compartments, stair-side strips, entrance vestibules and the lower-west short flight untraced. These omitted regions do"
+        }
+      ],
+      "presentationUnresolved": [
+        "Structural perimeter excludes the surrounding triangular facade mesh. East and south vestibule connections remain approximate where mesh overlaps wall lines.",
+        "Visible door gaps are retained; incompletely legible openings are not asserted as additional access.",
+        "Door hinges are estimated from visible leaves; swing handedness is unresolved.",
+        "Central diagonal and western upper flights have no supported inventory stair-label association. Their tread counts and transitions are approximate.",
+        "The lower-west short flight lacks a prior region ID and is omitted from tread presentation.",
+        "Western nested enclosure use remains unknown; small service partitions and facade-adjacent details are simplified.",
+        "Seating grids are clipped presentation estimates, not verified seats or capacity. Inventory capacities of 24, 24 and 210 are not independently confirmed; no seating grid is imposed"
+      ],
+      "navigationAccepted": false
+    },
+    {
+      "name": "gemini-structure",
+      "model": "gemini-4-argon",
+      "inputCondition": "whole",
+      "frame": {
+        "frameId": "optimized-7b8edc60e54b1b08",
+        "width": 1536,
+        "height": 1024,
+        "parentWidth": 1536,
+        "parentHeight": 1024,
+        "roi": null,
+        "inputHash": "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45"
+      },
+      "calls": 2,
+      "httpLatencyMs": 112083,
+      "estimatedUndiscountedUsd": 0.22631600000000002,
+      "estimatedVertexIntroductoryNetUsd": 0.11315800000000001,
+      "regions": 24,
+      "walls": 132,
+      "openingCandidates": 7,
+      "openingBoundaryTolerancePixels": 2,
+      "openingsWithinTolerance": 4,
+      "maxOpeningBoundaryDistancePixels": 10.343139652523824,
+      "basicPolygonValid": true,
+      "overlaps": [
+        {
+          "code": "overlap",
+          "message": "sp_void_left overlaps sp_center_island_left",
+          "target": {
+            "kind": "spaces",
+            "id": "sp_void_left"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "sp_circ_west overlaps sp_entry_north",
+          "target": {
+            "kind": "spaces",
+            "id": "sp_circ_west"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "sp_circ_west overlaps sp_entry_south",
+          "target": {
+            "kind": "spaces",
+            "id": "sp_circ_west"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "sp_circ_east overlaps sp_entry_east",
+          "target": {
+            "kind": "spaces",
+            "id": "sp_circ_east"
+          },
+          "severity": "error"
+        }
+      ],
+      "otherGeometryIssues": [],
+      "namedRooms": [
+        {
+          "name": "BRAINSTORM",
+          "capacity": 24,
+          "linkedRegions": [
+            "sp_brainstorm"
+          ]
+        },
+        {
+          "name": "DARK MATTER",
+          "capacity": 24,
+          "linkedRegions": [
+            "sp_dark_matter"
+          ]
+        },
+        {
+          "name": "THE CAVE",
+          "capacity": 210,
+          "linkedRegions": [
+            "sp_the_cave"
+          ]
+        }
+      ],
+      "traceUnresolved": [
+        {
+          "target_ref": "room-1",
+          "code": "capacity",
+          "reason": "Capacity 24 seats from label text not stored in space geometry."
+        },
+        {
+          "target_ref": "room-2",
+          "code": "capacity",
+          "reason": "Capacity 24 seats from label text not stored in space geometry."
+        },
+        {
+          "target_ref": "room-3",
+          "code": "capacity",
+          "reason": "Capacity 210 seats from label text not stored in space geometry."
+        },
+        {
+          "target_ref": null,
+          "code": "missing_label",
+          "reason": "Multiple secondary rooms, restrooms, and mechanical/storage cores have no text labels in the inventory."
+        }
+      ],
+      "presentationUnresolved": [
+        "room-1 (BRAINSTORM) capacity 24 seats is from label text only; no seating grid drawn.",
+        "room-2 (DARK MATTER) capacity 24 seats is from label text only; no seating grid drawn.",
+        "room-3 (THE CAVE) capacity 210 seats is from label text; drawn seating grid is a schematic presentation estimate.",
+        "Unlabelled secondary rooms, restrooms, and mechanical/elevator cores remain unnamed per inventory constraints."
+      ],
+      "navigationAccepted": false
+    },
+    {
+      "name": "gpt-structure-roi-0-140",
+      "model": "gpt-6.1-sol",
+      "inputCondition": "crop",
+      "frame": {
+        "frameId": "optimized-49b4d43c58e0df07",
+        "width": 896,
+        "height": 720,
+        "parentWidth": 1536,
+        "parentHeight": 1024,
+        "roi": {
+          "left": 0,
+          "top": 140,
+          "width": 896,
+          "height": 720
+        },
+        "inputHash": "49b4d43c58e0df070b56b1c053bd5527a12720378bae1118a67b60b96c882244"
+      },
+      "calls": 2,
+      "httpLatencyMs": 219343,
+      "estimatedUndiscountedUsd": 0.137812,
+      "estimatedVertexIntroductoryNetUsd": null,
+      "regions": 24,
+      "walls": 133,
+      "openingCandidates": 0,
+      "openingBoundaryTolerancePixels": 2,
+      "openingsWithinTolerance": 0,
+      "maxOpeningBoundaryDistancePixels": 0,
+      "basicPolygonValid": true,
+      "overlaps": [
+        {
+          "code": "overlap",
+          "message": "west-circulation overlaps main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "west-circulation"
+          },
+          "severity": "error"
+        }
+      ],
+      "otherGeometryIssues": [],
+      "namedRooms": [
+        {
+          "name": "BRAINSTORM",
+          "capacity": 24,
+          "linkedRegions": []
+        },
+        {
+          "name": "DARK MATTER",
+          "capacity": 24,
+          "linkedRegions": [
+            "dark-matter-clipped"
+          ]
+        },
+        {
+          "name": "THE CAVE",
+          "capacity": 210,
+          "linkedRegions": []
+        }
+      ],
+      "traceUnresolved": [
+        {
+          "target_ref": "main-circulation",
+          "code": "ambiguous_geometry",
+          "reason": "Large continuous floor region has several narrow interfaces and stair edges. Its detailed boundary is a proposal requiring local wall verification."
+        },
+        {
+          "target_ref": "main-circulation",
+          "code": "clipped",
+          "reason": "The circulation continues beyond the right crop boundary; no continuation is reconstructed."
+        },
+        {
+          "target_ref": "central-angular-structure",
+          "code": "ambiguous_geometry",
+          "reason": "Nested angular boundaries are visible, but the evidence does not securely distinguish a stair/escalator assembly, void, and surrounding flat surfaces. Kept unknown rather than inf઀"
+        },
+        {
+          "target_ref": "north-diagonal-stairs",
+          "code": "ambiguous_geometry",
+          "reason": "Treads are visible in differently oriented banks. Internal flight/landing segmentation and floor association need verification; no named stair label is assigned."
+        },
+        {
+          "target_ref": "stair-b-flight-clipped",
+          "code": "clipped",
+          "reason": "Only the western part of the labelled Stair B assembly is visible."
+        },
+        {
+          "target_ref": "dark-matter-clipped",
+          "code": "clipped",
+          "reason": "The room continues beyond the right edge. Its nearby vestibule and stair boundaries are not fully resolved."
+        },
+        {
+          "target_ref": "room-1",
+          "code": "clipped",
+          "reason": "BRAINSTORM is identified in the semantic reference but lies outside this crop; no polygon is inferred."
+        },
+        {
+          "target_ref": "room-3",
+          "code": "clipped",
+          "reason": "THE CAVE is outside the visible crop; no polygon is inferred."
+        },
+        {
+          "target_ref": "stair-5",
+          "code": "clipped",
+          "reason": "STAIR D is outside the visible crop; no polygon is inferred."
+        },
+        {
+          "target_ref": "room-1",
+          "code": "capacity",
+          "reason": "The supplied inventory reports 24 seats. Capacity is semantic evidence only and cannot be validated in this crop."
+        },
+        {
+          "target_ref": "room-2",
+          "code": "capacity",
+          "reason": "The supplied inventory reports 24 seats. The clipped drawing cannot independently validate capacity."
+        },
+        {
+          "target_ref": "room-3",
+          "code": "capacity",
+          "reason": "The supplied inventory reports 210 seats. The room is outside this crop and capacity cannot be validated."
+        },
+        {
+          "target_ref": null,
+          "code": "capacity",
+          "reason": "At the 24-polygon limit, several small central compartments, southwest service spaces, entrance vestibules, and additional stair/landing subdivisions remain untraced."
+        },
+        {
+          "target_ref": null,
+          "code": "ambiguous_geometry",
+          "reason": "Door swings are visible at several locations, but no opening is proposed without sufficiently secure shared traced boundaries for all adjacent spaces."
+        }
+      ],
+      "presentationUnresolved": [
+        "Footprint follows structural enclosure and visible vestibules, excluding decorative west facade mesh; right-edge continuation remains clipped.",
+        "Southwest small projecting enclosure and its connection are unclear and are not incorporated into the footprint.",
+        "No prior opening IDs exist; door symbols are omitted. Visible door gaps remain unbridged where identifiable.",
+        "North diagonal stair-bank subdivision and tread counts are presentation estimates; no named stair association is established.",
+        "Other visible short tread banks lack matching prior stair-flight regions and are not parameterized.",
+        "Central angular assembly remains an unidentified structural or circulation feature.",
+        "Stair B and Dark Matter remain clipped. Brainstorm, The Cave and Stair D are outside this crop.",
+        "No seating grid is visible in this crop. Inventory capacities of 24, 24 and 210 are unverified semantic values, not presentation counts.",
+        "Minor service partitions and ambiguous small wall returns are omitted."
+      ],
+      "navigationAccepted": false
+    },
+    {
+      "name": "gpt-structure-roi-640-140",
+      "model": "gpt-6.1-sol",
+      "inputCondition": "crop",
+      "frame": {
+        "frameId": "optimized-bb897c1538b37a2b",
+        "width": 896,
+        "height": 720,
+        "parentWidth": 1536,
+        "parentHeight": 1024,
+        "roi": {
+          "left": 640,
+          "top": 140,
+          "width": 896,
+          "height": 720
+        },
+        "inputHash": "bb897c1538b37a2bd968830967787f0f5c3bbea0ca6a7af37c403c0d31de7320"
+      },
+      "calls": 2,
+      "httpLatencyMs": 246212,
+      "estimatedUndiscountedUsd": 0.153922,
+      "estimatedVertexIntroductoryNetUsd": null,
+      "regions": 24,
+      "walls": 129,
+      "openingCandidates": 4,
+      "openingBoundaryTolerancePixels": 2,
+      "openingsWithinTolerance": 4,
+      "maxOpeningBoundaryDistancePixels": 0.03254519076567762,
+      "basicPolygonValid": true,
+      "overlaps": [
+        {
+          "code": "overlap",
+          "message": "DARK MATTER overlaps dark-matter-west-vestibule",
+          "target": {
+            "kind": "spaces",
+            "id": "dark-matter"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "THE CAVE overlaps cave-west-middle-room",
+          "target": {
+            "kind": "spaces",
+            "id": "the-cave"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "THE CAVE overlaps main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "the-cave"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "cave-west-middle-room overlaps cave-west-lower-room",
+          "target": {
+            "kind": "spaces",
+            "id": "cave-west-middle-room"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "cave-west-middle-room overlaps main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "cave-west-middle-room"
+          },
+          "severity": "error"
+        },
+        {
+          "code": "overlap",
+          "message": "cave-west-lower-room overlaps main-circulation",
+          "target": {
+            "kind": "spaces",
+            "id": "cave-west-lower-room"
+          },
+          "severity": "error"
+        }
+      ],
+      "otherGeometryIssues": [],
+      "namedRooms": [
+        {
+          "name": "BRAINSTORM",
+          "capacity": 24,
+          "linkedRegions": [
+            "brainstorm"
+          ]
+        },
+        {
+          "name": "DARK MATTER",
+          "capacity": 24,
+          "linkedRegions": [
+            "dark-matter"
+          ]
+        },
+        {
+          "name": "THE CAVE",
+          "capacity": 210,
+          "linkedRegions": [
+            "the-cave"
+          ]
+        }
+      ],
+      "traceUnresolved": [
+        {
+          "target_ref": "room-1",
+          "code": "capacity",
+          "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+        },
+        {
+          "target_ref": "room-2",
+          "code": "capacity",
+          "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+        },
+        {
+          "target_ref": "room-3",
+          "code": "capacity",
+          "reason": "The labelled reference states 210 seats. Seating marks support an auditorium, but do not independently establish capacity."
+        },
+        {
+          "target_ref": "stair-1",
+          "code": "clipped",
+          "reason": "STAIR A is outside the image-1 crop. No polygon or location has been transferred from image 2."
+        },
+        {
+          "target_ref": "stair-j-landing",
+          "code": "clipped",
+          "reason": "The northwest stair core intersects the left crop boundary; only the visible landing portion is proposed."
+        },
+        {
+          "target_ref": "stair-c-landing",
+          "code": "clipped",
+          "reason": "The landing continues beyond the left crop boundary."
+        },
+        {
+          "target_ref": "northwest-open-stair",
+          "code": "clipped",
+          "reason": "The flight is cut by the left crop boundary. Its association with a named stair is not established."
+        },
+        {
+          "target_ref": "main-circulation",
+          "code": "ambiguous_geometry",
+          "reason": "This is a partial circulation trace. Western and southern continuations, local door recesses, and the eastern exit enclosure require further subdivision and verification."
+        },
+        {
+          "target_ref": "dark-matter-west-vestibule",
+          "code": "ambiguous_geometry",
+          "reason": "The boundary between the stair-side vestibule and DARK MATTER is partly unclear; the room association is restricted to the clearly enclosed eastern region."
+        },
+        {
+          "target_ref": "the-cave",
+          "code": "ambiguous_geometry",
+          "reason": "Tiered seating and internal aisle marks were not treated as room walls. The northwest entry recesses and southeast enclosure require local boundary verification."
+        },
+        {
+          "target_ref": "stair-b-landing",
+          "code": "ambiguous_geometry",
+          "reason": "Only the supported western landing strip and its visible return are traced; the eastern stair landing and adjoining service partitions need verification."
+        },
+        {
+          "target_ref": null,
+          "code": "missing_label",
+          "reason": "Unnamed service rooms, elevator shafts, and open stair flights have no supported inventory labels."
+        },
+        {
+          "target_ref": null,
+          "code": "ambiguous_geometry",
+          "reason": "The references have different crop and perspective geometry. Image 2 was used only for semantic associations; small partition and doorway correspondences remain uncertain."
+        },
+        {
+          "target_ref": null,
+          "code": "ambiguous_geometry",
+          "reason": "Opening candidates declare only boundaries directly traced here. Opposite-side adjacency is intentionally omitted where exact shared boundaries are not established."
+        }
+      ],
+      "presentationUnresolved": [
+        "The footprint is clipped at the left image boundary; no closing structural wall or unseen continuation is inferred there.",
+        "Decorative facade mesh and dashed reference lines are excluded. The southern angular perimeter and eastern vestibule junction remain locally uncertain.",
+        "STAIR A is outside this crop. The two unnamed open flights have no established inventory-label association.",
+        "Stair and seating parameters are presentation estimates clipped to their envelopes; landing areas are not filled with treads.",
+        "The stated capacities of 24, 24 and 210 are not independently verified. Seating grids neither establish capacity nor represent every auditorium seating tier.",
+        "Auditorium tier edges, aisles and seating marks are not treated as room walls. Small service partitions and several entry recesses remain unresolved.",
+        "Door symbols use only prior opening IDs. Swing sides remain unknown; no additional access is inferred from symbols."
+      ],
+      "navigationAccepted": false
+    }
+  ],
+  "matchedComparison": {
+    "sameImageHashes": true,
+    "sameTracePrompt": true,
+    "sameTraceSchema": true,
+    "samePresentationSchema": true,
+    "notes": "Presentation template is identical; each model receives its own prior trace. Effort names match but do not imply equal compute. One run per condition; no model winner."
+  },
+  "wholeImageLatencyRatioGPTOverGemini": 1.9876609298466315,
+  "textVisionEstimatedUndiscountedUsd": 0.6969755000000001,
+  "combinedEstimatedUndiscountedUsd": 0.7516135,
+  "totalHttpLatencyMs": 857748,
+  "callsIncludingImage": 10,
+  "acceptedMapCost": null,
+  "priceBasis": {
+    "currency": "USD",
+    "date": "2026-10-17",
+    "openai": "Standard short context, input 2/cache-read .1/cache-write 2.5/output including reasoning 10 USD per million; image text-input 5/image-input 8/image-output 30",
+    "vertex": "Global undiscounted 4 input/.2 cached/20 output+thinking; conditional introductory net estimate shown separately at 50%; credit/invoice not verified",
+    "sources": [
+      "https://developers.openai.com/api/docs/pricing",
+      "https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing?hl=en"
+    ]
+  },
+  "limits": [
+    "Not surveyed ground truth",
+    "No model output accepted for routing",
+    "Image exterior simplification incomplete",
+    "Shared DB read-only connection unavailable; local SQLite staging only",
+    "Crop outputs not stitched or applied; cross-crop duplicates/seams unresolved",
+    "HTTP sums exclude CLI startup, coding/review gaps and human work",
+    "No invoice-level reconciliation"
+  ]
+}
