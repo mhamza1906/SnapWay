@@ -88,7 +88,7 @@ never a guess. Responses carry `backend_used`, `fallback_used`, `second_opinion_
    ```sh
    uv run placematch build-references --references <folder with location subfolders> --name <set>
    uv run placematch build-references --references <same folder> --name <set> --backend vertex --dry-run   # then with --limit N
-   uv run placematch mobile-token --create        # prints the token once
+   uv run placematch mobile-token --create        # writes shared token; does not print it
    MOBILE_REFERENCE_SET=<set> uv run placematch serve-mobile
    ```
 2. Install ngrok (`brew install ngrok`), create the account and run
@@ -98,8 +98,8 @@ never a guess. Responses carry `backend_used`, `fallback_used`, `second_opinion_
 3. On the iPhone (Debug build from Xcode): **Locate with camera** → settings icon →
    paste the `https://…ngrok-free.app` address and the token → **Test** → **Save**.
 4. Optional SnapWay API path: set `PLACEMATCH_ENGINE_URL=http://127.0.0.1:8790`,
-   `PLACEMATCH_ENGINE_TOKEN` (= `MOBILE_API_TOKEN`) and `PLACEMATCH_DEV_TOKEN` in
-   `local/env/api.env`; choose "SnapWay API" in the app.
+   `PLACEMATCH_ENGINE_TOKEN` (the same canonical token the engine reads) and `PLACEMATCH_DEV_TOKEN` in
+   `local/.env`; choose "SnapWay API" in the app.
 
 ## How to run the app
 
@@ -149,7 +149,7 @@ Latency to note per frame: app round trip vs. `timings_ms.total`, `embed_megaloc
 | "Use an https:// address" when saving | Plain `http://` to a LAN or tunnel address | Use the `https://…ngrok-free.app` address; `http` is accepted only for `localhost` in the Simulator |
 | **Test** fails with a connection error | Tunnel or `serve-mobile` not running, or campus Wi-Fi isolates devices | Check `curl https://<tunnel>/v1/health -H "Authorization: Bearer …"` from the Mac; use cellular or a Personal Hotspot |
 | HTTP 401 | Token mismatch, or the dev token used with `DEBUG` off | Paste the token again (Settings › Clear, then Save); for SnapWay mode check `PLACEMATCH_DEV_TOKEN` and `DEBUG` |
-| HTTP 502 (SnapWay mode) | `PLACEMATCH_ENGINE_TOKEN` differs from the engine's `MOBILE_API_TOKEN` | Copy the engine token into `local/env/api.env` and restart the API |
+| HTTP 502 (SnapWay mode) | `PLACEMATCH_ENGINE_TOKEN` differs from the engine's `MOBILE_API_TOKEN` | Copy the engine token into `local/.env` and restart the API |
 | HTTP 503 `not_configured` | `PLACEMATCH_ENGINE_URL` empty | Set it to `http://127.0.0.1:8790` |
 | HTTP 503 `no_backend_available` | No index for the set, or MegaLoc weights missing and Vertex disabled | **Test** lists ready backends; run `build-references` for the missing backend |
 | Always `uncertain` | `thresholds_id: "uncalibrated"` or iPhone frames differ from the calibration images | Check `data/calibration/current.json`; recalibrate on iPhone captures (§8) |

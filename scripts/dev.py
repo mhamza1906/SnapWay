@@ -30,6 +30,7 @@ def main():
         commands = [
             ([sys.executable, "scripts/check_docs.py"], ROOT),
             ([sys.executable, "scripts/env_contract.py", "check"], ROOT),
+            ([sys.executable, "scripts/check_audit_evidence.py"], ROOT),
             ([*prefix, "ruff", "check", "."], ROOT),
             ([*prefix, "ruff", "format", "--check", "."], ROOT),
             ([*prefix, "python", "apps/api/manage.py", "check"], ROOT),

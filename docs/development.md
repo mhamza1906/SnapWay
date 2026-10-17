@@ -206,6 +206,12 @@ line endings so verification works on a fresh clone. Relative document links
 retain the original directory relationships. `scripts/check_docs.py` verifies
 the snapshot independently of the original source directory.
 
+Upstream later renamed one archive file and updated two baseline files for the
+approved demo TLS exception. The original migration manifest remains unchanged;
+[initial-approved-updates.json](initial-approved-updates.json) records the exact
+upstream commits, original hashes and current paths/hashes. The checker applies
+only these explicit transitions and still rejects unrecorded content changes.
+
 Keep new implementation guidance and decisions under `docs/`; link back to
 the initial requirement where useful. Personal scripts, original research source
 downloads, private captures, logs and credentials remain in ignored `local/`.

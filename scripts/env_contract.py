@@ -14,6 +14,7 @@ LEGACY = (
     ROOT / "apps/pipeline/.env.prod",
     ROOT / "apps/pipeline/.env.dev",
     ROOT / "apps/pipeline/.env",
+    ROOT / "apps/place-match/.env",
     ROOT / ".env",
 )
 MANAGED = {"APP_RELEASE", "STATIC_ROOT", "STATIC_URL", "PYTHONPATH"}
@@ -137,6 +138,8 @@ def migrate():
     merged = {}
     for source in sources:
         for key, value in read_values(source).items():
+            if key == "MOBILE_API_TOKEN":
+                key = "PLACEMATCH_ENGINE_TOKEN"
             if key in MANAGED:
                 continue
             if key not in defaults:

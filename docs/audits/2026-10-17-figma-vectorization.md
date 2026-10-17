@@ -109,7 +109,7 @@ node --input-type=module -e "import sharp from 'sharp'; const p='../../docs/audi
 ```
 
 ```powershell
-.venv/Scripts/python.exe docs/audits/assets/2026-10-17-figma-vectorization/analyze.py
+.venv/Scripts/python.exe scripts/analyze_floorplan_vectors.py
 ```
 
 Checked original structure/input hash, native dimensions, threshold sensitivity, montage and three detail regions. No new routing, doorway annotation, Figma automation, mobile-performance test or model inference occurred. Navigation verdicts identify missing evidence, not measured routing outcomes.
@@ -146,3 +146,11 @@ Use the [support channel](https://vectormagic.com/support); no message was sent 
 4. What minimum monthly charges, renewal, failure/retention fees and deletion rules apply? Is desktop headless/batch/server use separately supported/licensed?
 
 Only then test the frozen PNG with separate visual/navigation acceptance. MIT VTracer remains a candidate independent of that vendor contract, subject to the repository's approval rule for a new dependency. This follow-up changed research conclusions only, not runtime architecture, dependencies, APIs or data.
+
+
+The original `analyze.py` is frozen source evidence recorded by the asset manifest.
+Use the maintained [replay tool](../../scripts/analyze_floorplan_vectors.py) for
+new runs; it writes only beneath ignored `local/`. The
+[integrity check](../../scripts/check_audit_evidence.py) verifies all ten original
+artifacts in CI. The maintained replay reproduces the archived metrics without
+modifying the original analyzer, images or manifest.

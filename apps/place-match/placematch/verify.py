@@ -87,9 +87,10 @@ def release() -> None:
 
 
 def empty_cache() -> None:
-    import torch
+    import sys
 
-    if torch.backends.mps.is_available():
+    torch = sys.modules.get("torch")
+    if torch is not None and torch.backends.mps.is_available():
         torch.mps.empty_cache()
 
 
@@ -99,10 +100,11 @@ def is_oom(exc: BaseException) -> bool:
 
 def extract(path: Path, device: str | None = None) -> tuple[dict, np.ndarray]:
     """SuperPoint features (kept on the CPU so caches never hold accelerator memory)."""
+    # Reject invalid inputs before loading optional heavyweight dependencies/weights.
+    img = load_upright_array(path)
     import torch
 
     extractor, _, dev = load_models(device)
-    img = load_upright_array(path)
     t = torch.from_numpy(img.transpose(2, 0, 1).copy()).float().div(255.0)
     with torch.inference_mode():
         feats = extractor.extract(t.to(dev), resize=RESIZE)

@@ -1,5 +1,9 @@
 # place-match: shared interfaces and file ownership
 
+Integration update: private configuration now follows the repository's
+[single-env contract](../../docs/environment-sync.md) at `local/.env`; this is
+separate from the independent Python dependency/lockfile boundary below.
+
 Self-contained app inside SnapWay. It must not change anything outside
 `apps/place-match/` (no edits to the root `pyproject.toml`, `uv.lock`, other apps,
 CI or `docs/` except the single feature doc written by the head agent).

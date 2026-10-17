@@ -251,3 +251,13 @@ The [subsequent remote-main alignment](environment-sync.md#subsequent-remote-mai
 adds the four iOS/localization settings from fetched main `7af9eae` to contract
 `2026-10-17.2` without merging its consumer code. This machine's env is aligned;
 team/server distribution and real engine credentials remain pending.
+
+## Merge-readiness repairs
+
+Main `7af9eae` was merged in `04e632e`; the
+[repair report](audits/2026-10-17-merge-readiness.md) links the classifier/quality,
+evidence-preserving replay, shared-engine configuration, Windows telemetry and
+invalid-photo fixes, with local/remote verification kept distinct. Frontend changes
+apply the required formatter and preserve behavior. The current env contract is
+`2026-10-17.3` (56 keys); main deployment and real pipeline acceptance remain
+separate gates.

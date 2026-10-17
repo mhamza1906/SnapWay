@@ -133,3 +133,15 @@ def test_reference_comparison_detects_secret_rotation_without_disclosure(tmp_pat
     assert result.returncode == 1
     assert "Reference differs: OPENAI_API_KEY" in result.stdout
     assert "before-private" not in result.stdout and "after-private" not in result.stdout
+
+
+def test_legacy_engine_token_migrates_to_canonical_shared_key(tmp_path, monkeypatch):
+    legacy, private = tmp_path / "engine.env", tmp_path / ".env"
+    legacy.write_text("MOBILE_API_TOKEN=synthetic-legacy-token\n")
+    monkeypatch.setattr(contract, "PRIVATE", private)
+    monkeypatch.setattr(contract, "LEGACY", (legacy,))
+    contract.migrate()
+    values = contract.read_values(private)
+    assert values["PLACEMATCH_ENGINE_TOKEN"] == "synthetic-legacy-token"
+    assert "MOBILE_API_TOKEN" not in values
+    assert not legacy.exists()

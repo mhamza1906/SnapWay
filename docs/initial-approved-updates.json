@@ -1,0 +1,24 @@
+{
+  "source": "Existing upstream main changes; original migration manifest is unchanged.",
+  "recorded_on": "2026-10-17",
+  "updates": {
+    "archive/Indoor_Visual_Navigation_Detailed_Plan_EN.md": {
+      "original_sha256": "fccd7a929939e76c52a78bd0b1c61dfae173cf4d2d6a3e5b29722b05c862b753",
+      "path": "archive/Outdated_Plan.md",
+      "sha256": "fccd7a929939e76c52a78bd0b1c61dfae173cf4d2d6a3e5b29722b05c862b753",
+      "upstream_commit": "186448e"
+    },
+    "Indoor_Navigation_Architecture_and_Dependencies_EN.md": {
+      "original_sha256": "5b3058e90b4645d46fe606067bc24f10ad5efdaf7a4b650a921607239fb53812",
+      "path": "Indoor_Navigation_Architecture_and_Dependencies_EN.md",
+      "sha256": "a4388a561cfbfa7658a3bbadbbd5a571a611dda84add4c696d72dd93728a217c",
+      "upstream_commit": "19e10d1"
+    },
+    "Indoor_Navigation_Infrastructure_Integration_EN.md": {
+      "original_sha256": "44aadc18912c6eb041ff1108f43cb350f91400605c432ac7fe9dfdc46711ae13",
+      "path": "Indoor_Navigation_Infrastructure_Integration_EN.md",
+      "sha256": "006718ccd9b470d4f199b93dbfeed5453a90626d021be135c05956194c1b144c",
+      "upstream_commit": "19e10d1"
+    }
+  }
+}

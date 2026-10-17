@@ -3,8 +3,8 @@
 **Scope.** Experimental, self-contained app in [`apps/place-match/`](../apps/place-match/)
 that matches frames of a recorded video (or a frame sequence) to reference photographs
 of the same place, and the reverse. It has its own `pyproject.toml`, `uv.lock` and
-`.venv`, so the root dependencies are unchanged. Committed on `feature/mobile-ios`
-(not `main`). The iOS app reaches it through the mobile API (`serve-mobile`, port 8790)
+`.venv`, so the root dependencies are unchanged. Originally developed on `feature/mobile-ios`, merged into main and now synchronized
+into the acceptance branch. The iOS app reaches it through the mobile API (`serve-mobile`, port 8790)
 directly or via the SnapWay API (`/api/navigation/localize/`); see
 [mobile-ios.md](mobile-ios.md) and the [production plan](place-match-production.md).
 
@@ -16,7 +16,7 @@ directly or via the SnapWay API (`/api/navigation/localize/`); see
 verification are opt-in (see REPORT-v2.md for the measurements behind this).
 
 **Env contract.** Vertex AI (opt-in Google provider): Application Default Credentials plus
-`VERTEX_PROJECT` / `VERTEX_LOCATION` in the ignored `apps/place-match/.env` (guide:
+`VERTEX_PROJECT` / `VERTEX_LOCATION` in the ignored `local/.env` (guide:
 [`VERTEX.md`](../apps/place-match/VERTEX.md)). Legacy Gemini Developer API: `GEMINI_API_KEY`
 in the same ignored file (bench-v1 only). Nothing secret is committed. MegaLoc and SuperPoint/LightGlue run locally
 (weights downloaded into the ignored `apps/place-match/data/models/`).

@@ -93,11 +93,12 @@ class MobileSettings:
     @classmethod
     def from_env(cls) -> MobileSettings:
         load_env()
-        token = os.environ.get("MOBILE_API_TOKEN", "")
+        # Legacy process alias remains supported; the shared file has one token.
+        token = os.environ.get("MOBILE_API_TOKEN") or os.environ.get("PLACEMATCH_ENGINE_TOKEN", "")
         if len(token) < 24:
             raise RuntimeError(
-                "MOBILE_API_TOKEN is missing or shorter than 24 characters; create one with "
-                "`uv run placematch mobile-token --create` (stored in the ignored .env)"
+                "PLACEMATCH_ENGINE_TOKEN is missing or shorter than 24 characters; create one with "
+                "`uv run placematch mobile-token --create` (stored in repository local/.env)"
             )
         return cls(
             token=token,

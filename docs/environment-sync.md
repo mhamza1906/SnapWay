@@ -4,7 +4,7 @@ Updated October 17, 2026. This is the active configuration workflow for contribu
 
 ## One template and one private file per machine
 
-The repository root [`.env.example`](../.env.example) is the sole maintained application environment template. Each member keeps exactly one ignored private file at `local/.env`. Django development settings, Node and active experiment entry points use that file; process environment overrides it. No application reads a root `.env`, `local/env/api.env`, or pipeline `.env.prod`/`.env.dev` anymore. The file in `docs/initial/` is preserved historical evidence, not another active template.
+The repository root [`.env.example`](../.env.example) is the sole maintained application environment template. Each member keeps exactly one ignored private file at `local/.env`. Django development settings, Node, the place-match engine and active experiment entry points use that file; process environment overrides it. No application reads a root `.env`, `local/env/api.env`, or pipeline `.env.prod`/`.env.dev` anymore. The file in `docs/initial/` is preserved historical evidence, not another active template.
 
 Production keeps its one private file at `/etc/indoor-nav/api.env` (root-owned, mode 0600). Keeping this established path avoids an unnecessary server path migration. Its key set and `ENV_SCHEMA_VERSION` must exactly match the root template; optional and unavailable keys remain present with empty values. Private values never go into templates, Git, chat, CI output, client bundles or shared action history.
 
@@ -118,7 +118,7 @@ with engine/token fields empty and the existing main throttle default `60/min`.
 The dev token and engine address are host-specific; the dev token should remain
 empty in production. Engine credentials must come from that service's owner.
 These settings do not enable a working engine on their own. Their consuming
-iOS/localization code is fetched but not merged into this acceptance branch.
+iOS/localization code was subsequently merged in `04e632e`; see the readiness update below.
 
 This machine's private file was aligned without changing any existing private
 value. Its schema matches the updated local template. The remote acceptance/main
@@ -127,3 +127,29 @@ reference or live server file was available to prove credential freshness.
 Distribute the public contract/code commit through Git and private provider
 values only through the external team channel; never include the local Django
 secret or migration credentials in a general team share.
+
+
+## Merge-readiness configuration update
+
+Main `7af9eae` is now merged into the acceptance branch in `04e632e`. The engine
+also reads the single private file, loading only its consumed keys so Django
+secrets/settings do not enter its environment. Contract **2026-10-17.3** has
+**56 keys**: the previous 51 plus `PLACEMATCH_ENGINE_TIMEOUT_S=30`,
+`MOBILE_REFERENCE_SET=default`, `MOBILE_RATE_LIMIT_PER_MIN=60`,
+`MOBILE_STORE_FRAMES=0` and `MOBILE_ENABLE_VERTEX=1`, matching existing engine
+behavior. The engine's local Python dependencies/lockfile remain independent.
+
+`PLACEMATCH_ENGINE_TOKEN` is the single file-based engine token used by both
+Django and the engine. `MOBILE_API_TOKEN` remains a legacy explicit process alias;
+one-time migration maps that old file key and rejects conflicting values. The
+`mobile-token --create` command writes the canonical key atomically to existing
+`local/.env`, preserves other fields and does not print the token. An actual
+rotation still requires external distribution, schema coordination and restart.
+No real token was generated or rotated during these tests.
+
+This machine's file is aligned with every earlier private value preserved.
+Members must obtain the new commit/schema, migrate any old engine-specific file,
+add the five defaults above, validate and restart affected services. The deployment
+owner must align the server file and reviewed controller/validator before relying
+on the new gate. None of those server actions was performed. The
+[merge-readiness report](audits/2026-10-17-merge-readiness.md) records verification.

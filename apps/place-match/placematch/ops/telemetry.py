@@ -9,7 +9,6 @@ status code: never headers, URLs with query strings, bodies or credentials.
 from __future__ import annotations
 
 import platform
-import resource
 import subprocess
 import sys
 import threading
@@ -17,6 +16,11 @@ import time
 from collections import Counter
 
 import numpy as np
+
+try:
+    import resource
+except ImportError:  # Windows has no Unix resource module.
+    resource = None
 
 
 def percentiles(values: list[float]) -> dict:
@@ -33,8 +37,65 @@ def percentiles(values: list[float]) -> dict:
     }
 
 
-def peak_rss_mb() -> float:
+def _windows_memory_mb(pid: int | None = None) -> tuple[float, float] | None:
+    """Current/peak working set via Win32; unavailable measurements stay unknown."""
+    import ctypes
+    from ctypes import wintypes
+
+    class Counters(ctypes.Structure):
+        _fields_ = [
+            ("cb", wintypes.DWORD),
+            ("PageFaultCount", wintypes.DWORD),
+            *[
+                (name, ctypes.c_size_t)
+                for name in (
+                    "PeakWorkingSetSize",
+                    "WorkingSetSize",
+                    "QuotaPeakPagedPoolUsage",
+                    "QuotaPagedPoolUsage",
+                    "QuotaPeakNonPagedPoolUsage",
+                    "QuotaNonPagedPoolUsage",
+                    "PagefileUsage",
+                    "PeakPagefileUsage",
+                )
+            ],
+        ]
+
+    try:
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.GetCurrentProcess.restype = wintypes.HANDLE
+        kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel.OpenProcess.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        handle = (
+            kernel.GetCurrentProcess() if pid is None else kernel.OpenProcess(0x1000, False, pid)
+        )
+        if not handle:
+            return None
+        try:
+            query = ctypes.WinDLL("psapi").GetProcessMemoryInfo
+            query.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+            query.restype = wintypes.BOOL
+            counters = Counters()
+            counters.cb = ctypes.sizeof(counters)
+            if not query(handle, ctypes.byref(counters), counters.cb):
+                return None
+            return (
+                round(counters.WorkingSetSize / (1 << 20), 1),
+                round(counters.PeakWorkingSetSize / (1 << 20), 1),
+            )
+        finally:
+            if pid is not None:
+                kernel.CloseHandle(handle)
+    except (OSError, AttributeError):
+        return None
+
+
+def peak_rss_mb() -> float | None:
     """Peak resident set size of this process (macOS reports bytes, Linux KiB)."""
+    if resource is None:
+        memory = _windows_memory_mb()
+        return memory[1] if memory else None
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return round(peak / (1 << 20) if sys.platform == "darwin" else peak / 1024, 1)
 
@@ -42,6 +103,10 @@ def peak_rss_mb() -> float:
 def current_rss_mb(pid: int | None = None) -> float | None:
     """Current RSS via ``ps`` (no psutil dependency)."""
     import os
+
+    if sys.platform == "win32":
+        memory = _windows_memory_mb(pid)
+        return memory[0] if memory else None
 
     try:
         out = subprocess.run(
@@ -113,7 +178,7 @@ def hardware(note: str | None = None) -> dict:
         import os
 
         load = [round(x, 2) for x in os.getloadavg()]
-    except OSError:
+    except (OSError, AttributeError):
         pass
     out = {
         "chip": _sysctl("machdep.cpu.brand_string") or platform.processor(),

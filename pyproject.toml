@@ -35,7 +35,12 @@ package = false
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-extend-exclude = ["docs/initial", "local", "apps/web"]
+# The exact archived analyzer is hash-verified, not maintained executable code;
+# its maintained replacement is scripts/analyze_floorplan_vectors.py (fully linted).
+extend-exclude = [
+  "docs/initial", "local", "apps/web",
+  "docs/audits/assets/2026-10-17-figma-vectorization/analyze.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

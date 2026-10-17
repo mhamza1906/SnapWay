@@ -65,6 +65,7 @@ jobs:
           cache-dependency-glob: uv.lock
       - run: uv sync --locked --extra ai --extra geometry --extra mcp
       - run: python scripts/env_contract.py template
+      - run: python scripts/check_audit_evidence.py
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py check --settings=config.settings.test

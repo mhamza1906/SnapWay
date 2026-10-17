@@ -40,6 +40,12 @@ Files: [workflow](../.github/workflows/ci.yml),
 [development guide](development.md), [feature record](ci.md).
 Personal action history remains in ignored `local/ACTIONS.md`.
 
+The [acceptance merge-readiness repairs](audits/2026-10-17-merge-readiness.md)
+resolve the three-output classifier integration and source-format failures.
+Backend CI now validates the public env template and the immutable Figma audit
+manifest; its maintained replay tool remains linted while the exact archived
+source is hash-verified. No real provider calls enter the shared CI path.
+
 Validation: 14 local documentation/mixed/code classification cases passed;
 GitHub output, rename handling, workflow YAML/job conditions, Ruff lint/format
 and diff whitespace checks passed. Remote CI has not been run by this change.
