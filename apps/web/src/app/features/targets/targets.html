@@ -1,0 +1,145 @@
+<div class="page">
+  <div class="page-heading">
+    <div>
+      <span class="subtle-label">THE PLACES WE’RE BUILDING TOGETHER</span>
+      <h1>Mapping targets</h1>
+      <p>Find a floor, add your knowledge, make it navigable.</p>
+    </div>
+    @if (repo.profile().role === 'admin') {
+      <button class="btn primary" (click)="error.set(''); createDialog.showModal()">
+        <app-icon name="plus" />Create mapping target
+      </button>
+    }
+  </div>
+  <div class="filters">
+    <label class="search-input"
+      ><app-icon name="search" /><input
+        placeholder="Search places or floors…"
+        aria-label="Search targets"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+    /></label>
+    <div class="tabs">
+      <button [class.active]="status() === 'open'" (click)="status.set('open')">Open</button
+      ><button [class.active]="status() === 'archived'" (click)="status.set('archived')">
+        Archived</button
+      ><button [class.active]="status() === 'all'" (click)="status.set('all')">All targets</button>
+    </div>
+    <div class="segmented">
+      <button
+        [class.active]="!list()"
+        aria-label="Grid view"
+        [attr.aria-pressed]="!list()"
+        (click)="list.set(false)"
+      >
+        <app-icon name="grid" /></button
+      ><button
+        [class.active]="list()"
+        aria-label="List view"
+        [attr.aria-pressed]="list()"
+        (click)="list.set(true)"
+      >
+        <app-icon name="menu" />
+      </button>
+    </div>
+  </div>
+  <div class="target-grid" [class.list-mode]="list()">
+    @for (target of filtered(); track target.id) {
+      <a class="panel target-card" [routerLink]="['/targets', target.id]"
+        ><div class="map-preview">
+          @if (target.published) {
+            <app-map-canvas [document]="target.published.document" [compact]="true" />
+          } @else {
+            <div class="blank-map">
+              <app-icon name="map" /><span>A place waiting to take shape</span>
+            </div>
+          }
+          <span
+            class="map-tag badge"
+            [class.green]="target.published && target.status === 'open'"
+            [class.orange]="!target.published"
+            [class.archived]="target.status === 'archived'"
+            >{{
+              target.status === 'archived'
+                ? 'Archived'
+                : target.published
+                  ? 'Published · v' + target.published.version
+                  : 'Ready to map'
+            }}</span
+          >
+        </div>
+        <div class="card-body">
+          <span class="subtle-label">{{ target.building }}</span>
+          <h3>{{ target.name }}</h3>
+          <p>{{ target.description }}</p>
+          <div class="card-meta">
+            <span>{{ target.floor }}</span
+            ><span
+              >{{ target.published?.document?.rooms?.length ?? 0 }} mapped spaces
+              <span aria-hidden="true">↗</span></span
+            >
+          </div>
+        </div></a
+      >
+    } @empty {
+      <div class="empty panel span-2">
+        <app-icon name="search" />
+        <h3>No targets found</h3>
+        <p>Try a different search or status filter.</p>
+        <button class="btn secondary" (click)="query.set(''); status.set('all')">
+          Clear filters
+        </button>
+      </div>
+    }
+  </div>
+</div>
+<dialog #createDialog class="modal" aria-labelledby="create-target-title">
+  <div class="modal-header">
+    <div>
+      <span class="subtle-label">A NEW PLACE TO MAP</span>
+      <h2 id="create-target-title">Create mapping target</h2>
+    </div>
+    <button
+      class="btn ghost icon-only"
+      aria-label="Close create target"
+      (click)="createDialog.close()"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="create(createDialog)">
+    <div class="form-grid">
+      <label class="field span-2"
+        ><span>Place name</span
+        ><input
+          formControlName="name"
+          placeholder="e.g. Student Learning Centre"
+          maxlength="80" /></label
+      ><label class="field"
+        ><span>Campus / building group</span
+        ><input formControlName="building" placeholder="e.g. North Campus" maxlength="80" /></label
+      ><label class="field"
+        ><span>Floor</span
+        ><input formControlName="floor" placeholder="e.g. Level 1" maxlength="40" /></label
+      ><label class="field span-2"
+        ><span>Mapping brief</span
+        ><textarea
+          formControlName="description"
+          rows="3"
+          maxlength="500"
+          placeholder="What should contributors know about this space?"
+        ></textarea>
+      </label>
+    </div>
+    @if (form.touched && form.invalid) {
+      <p class="field-error">Complete every field before creating a target.</p>
+    }
+    @if (error()) {
+      <p class="notice error" role="alert">{{ error() }}</p>
+    }
+    <div class="modal-footer">
+      <button class="btn secondary" type="button" (click)="createDialog.close()">Cancel</button
+      ><button class="btn primary" type="submit"><app-icon name="plus" />Create target</button>
+    </div>
+  </form>
+</dialog>

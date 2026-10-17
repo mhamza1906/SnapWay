@@ -1,0 +1,150 @@
+﻿<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1000 640"
+  role="group"
+  aria-label="Interactive floor plan"
+  [class.compact]="compact()"
+  (click)="point($event)"
+>
+  <title>Floor plan with rooms, walking connections and landmarks</title>
+  <rect class="building" x="65" y="90" width="870" height="470" rx="5" />
+  <path class="corridor" d="M 65 280 H 935 V 370 H 65 Z" />
+  <text class="corridor-label" x="500" y="339" text-anchor="middle">Main corridor</text>
+  @for (room of document().rooms; track room.id) {
+    <g
+      class="room"
+      [class.selected]="selected() === room.id"
+      [class.amenity]="room.kind === 'amenity'"
+      [class.lab]="room.kind === 'lab'"
+      [attr.role]="canSelect() ? 'button' : null"
+      [attr.tabindex]="canSelect() ? 0 : null"
+      [attr.aria-label]="room.name + ', ' + room.kind"
+      (click)="pick($event, room.id)"
+      (keydown.enter)="keySelect(room.id)"
+      (keydown.space)="$event.preventDefault(); keySelect(room.id)"
+    >
+      <rect
+        [attr.x]="room.x"
+        [attr.y]="room.y"
+        [attr.width]="room.width"
+        [attr.height]="room.height"
+        rx="4"
+      />
+      <text class="room-kind" [attr.x]="room.x + 18" [attr.y]="room.y + 30">{{ room.kind }}</text>
+      <text class="room-name" [attr.x]="room.x + 18" [attr.y]="room.y + 57">{{ room.name }}</text>
+      @if (room.accessible) {
+        <text
+          class="accessible-symbol"
+          [attr.x]="room.x + room.width - 26"
+          [attr.y]="room.y + room.height - 18"
+          aria-label="Accessible"
+        >
+          ♿
+        </text>
+      }
+    </g>
+  }
+  <g class="connections" [class.editing]="interactive()">
+    @for (edge of paths(); track edge.id) {
+      @if (edge.start && edge.end) {
+        <g
+          class="connection"
+          [class.blocked]="edge.blocked"
+          [class.selected]="selected() === edge.id"
+          [attr.role]="canSelect() ? 'button' : null"
+          [attr.tabindex]="interactive() ? 0 : null"
+          [attr.aria-label]="
+            'Connection ' + edge.from + ' to ' + edge.to + (edge.blocked ? ', blocked' : '')
+          "
+          (click)="pick($event, edge.id)"
+          (keydown.enter)="keySelect(edge.id)"
+        >
+          <line
+            class="edge-hit"
+            [attr.x1]="edge.start.x"
+            [attr.y1]="edge.start.y"
+            [attr.x2]="edge.end.x"
+            [attr.y2]="edge.end.y"
+          />
+          <line
+            class="edge-line"
+            [attr.x1]="edge.start.x"
+            [attr.y1]="edge.start.y"
+            [attr.x2]="edge.end.x"
+            [attr.y2]="edge.end.y"
+          />
+        </g>
+      }
+    }
+  </g>
+  @if (route().length > 1) {
+    <polyline class="route-path" [attr.points]="routePoints()" />
+  }
+  @for (node of document().nodes; track node.id) {
+    <g
+      class="waypoint"
+      [class.selected]="selected() === node.id"
+      [class.on-route]="route().includes(node.id)"
+      [attr.role]="canSelect() ? 'button' : null"
+      [attr.tabindex]="canSelect() ? 0 : null"
+      [attr.aria-label]="'Waypoint: ' + node.label"
+      (click)="pick($event, node.id)"
+      (keydown.enter)="keySelect(node.id)"
+      (keydown.space)="$event.preventDefault(); keySelect(node.id)"
+    >
+      <circle class="node-hit" [attr.cx]="node.x" [attr.cy]="node.y" r="15" />
+      <circle
+        class="node-dot"
+        [attr.cx]="node.x"
+        [attr.cy]="node.y"
+        [attr.r]="selected() === node.id ? 8 : 5"
+      />
+      @if (interactive() && selected() === node.id) {
+        <text class="node-label" [attr.x]="node.x + 13" [attr.y]="node.y - 13">
+          {{ node.label }}
+        </text>
+      }
+    </g>
+  }
+  @for (annotation of document().annotations; track annotation.id) {
+    <g
+      class="annotation"
+      [class.selected]="selected() === annotation.id"
+      [attr.role]="canSelect() ? 'button' : null"
+      [attr.tabindex]="canSelect() ? 0 : null"
+      [attr.aria-label]="annotation.type + ': ' + annotation.text"
+      (click)="pick($event, annotation.id)"
+      (keydown.enter)="keySelect(annotation.id)"
+    >
+      @if (annotation.type === 'pin') {
+        <circle class="pin" [attr.cx]="annotation.x" [attr.cy]="annotation.y" r="12" />
+        <text
+          class="pin-symbol"
+          [attr.x]="annotation.x"
+          [attr.y]="annotation.y + 4"
+          text-anchor="middle"
+        >
+          !
+        </text>
+      }
+      <text
+        class="annotation-text"
+        [attr.x]="annotation.x + (annotation.type === 'pin' ? 19 : 0)"
+        [attr.y]="annotation.y + 5"
+      >
+        {{ annotation.text }}
+      </text>
+    </g>
+  }
+  @if (current(); as location) {
+    <g class="current-position" aria-label="Preview position">
+      <circle class="position-halo" [attr.cx]="location.x" [attr.cy]="location.y" r="22" />
+      <circle class="position-dot" [attr.cx]="location.x" [attr.cy]="location.y" r="10" />
+    </g>
+  }
+  <g class="map-compass" aria-label="Plan orientation, not calibrated geographic north">
+    <path d="M 953 58 L 961 82 L 953 77 L 945 82 Z" />
+    <text x="953" y="47" text-anchor="middle">Plan up</text>
+  </g>
+  <text class="map-caption" x="68" y="606">Schematic floor plan · distances are illustrative</text>
+</svg>

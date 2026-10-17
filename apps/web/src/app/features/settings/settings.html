@@ -1,0 +1,188 @@
+<main class="page settings-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">YOUR WORKSPACE</p>
+      <h1>Settings</h1>
+      <p>A little control over your local prototype.</p>
+    </div>
+    <a class="btn secondary" routerLink="/help"><app-icon name="help" /> Testing guide</a>
+  </header>
+
+  @if (repository.storageError()) {
+    <div class="notice error" role="alert">
+      <app-icon name="archive" /><span>{{ repository.storageError() }}</span>
+    </div>
+  }
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="profile-title">
+      <div class="panel-heading">
+        <h2 id="profile-title">Demo profile</h2>
+        <span class="badge orange">LOCAL PREVIEW</span>
+      </div>
+      <div class="panel-body">
+        <div class="profile-summary">
+          <span class="avatar">EY</span>
+          <div>
+            <strong>{{ repository.profile().name }}</strong>
+            <p>SnapWay contributor workspace</p>
+          </div>
+        </div>
+        <label class="field" for="demo-role"
+          >Preview as
+          <select id="demo-role" [value]="repository.profile().role" (change)="changeRole($event)">
+            <option value="admin">Administrator — manage and review</option>
+            <option value="volunteer">Volunteer — contribute and edit</option>
+          </select>
+          <small>Role switching previews permissions. It does not sign in to a real account.</small>
+        </label>
+        <div class="role-description">
+          <app-icon name="review" />
+          <p>
+            Administrators manage targets and publish reviewed maps. Volunteers create drafts and
+            submit contributions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="storage-title">
+      <div class="panel-heading">
+        <h2 id="storage-title">Local data</h2>
+        <app-icon name="layers" />
+      </div>
+      <div class="panel-body">
+        <div class="storage-summary">
+          <strong>{{ dataSize() }}</strong
+          ><span>current dataset export size</span>
+        </div>
+        <dl class="data-counts">
+          <div>
+            <dt>Mapping targets</dt>
+            <dd>{{ repository.targets().length }}</dd>
+          </div>
+          <div>
+            <dt>Contributions</dt>
+            <dd>{{ repository.contributions().length }}</dd>
+          </div>
+          <div>
+            <dt>Published maps</dt>
+            <dd>{{ publications() }}</dd>
+          </div>
+        </dl>
+        <p class="small-copy">
+          Saved changes stay in this browser on this address. Export a copy before clearing browser
+          data or switching devices.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel transfer-panel" aria-labelledby="transfer-title">
+    <div class="panel-heading">
+      <h2 id="transfer-title">Keep your work moving</h2>
+      <span class="badge">JSON EXPORT</span>
+    </div>
+    <div class="panel-body transfer-grid">
+      <div>
+        <h3>Export your prototype</h3>
+        <p class="small-copy">
+          Download maps, references, contributions and recent activity. Share this file with a
+          teammate to reproduce your test state.
+        </p>
+        <button class="btn secondary" type="button" (click)="exportData()">
+          <app-icon name="download" /> Export data
+        </button>
+      </div>
+      <div>
+        <h3>Restore an export</h3>
+        <p class="small-copy">
+          Import a SnapWay prototype JSON file up to 8 MB. You will review a summary before
+          replacing this browser's current data.
+        </p>
+        <input
+          #importInput
+          type="file"
+          accept=".json,application/json"
+          hidden
+          (change)="prepareImport($event, importDialog)"
+        /><button
+          class="btn secondary"
+          type="button"
+          [disabled]="loading()"
+          (click)="importInput.click()"
+        >
+          <app-icon name="upload" /> {{ loading() ? 'Checking file…' : 'Import data' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel reset-panel" aria-labelledby="reset-title">
+    <div>
+      <h3 id="reset-title">Start fresh</h3>
+      <p class="small-copy">
+        Restore the three example targets and their original contributions. Export any work you want
+        to keep first.
+      </p>
+    </div>
+    <button class="btn danger" type="button" (click)="resetDialog.showModal()">
+      <app-icon name="undo" /> Reset demo
+    </button>
+  </section>
+
+  <aside class="notice info">
+    <app-icon name="help" /><span
+      >The map editor, review and route calculation work locally. AI responses, camera permissions
+      and positioning are simulated for testing.</span
+    >
+  </aside>
+
+  <dialog
+    #importDialog
+    class="modal"
+    aria-labelledby="import-title"
+    aria-describedby="import-description"
+  >
+    <h2 id="import-title">Replace your local workspace?</h2>
+    <p id="import-description">
+      This restores <strong>{{ pendingImport()?.name }}</strong> with
+      {{ pendingImport()?.targets }} targets and {{ pendingImport()?.contributions }} contributions.
+      Current maps, drafts and activity will be replaced.
+    </p>
+    <p class="small-copy">
+      The file has passed structure and map-reference validation. Export your current data first if
+      you want to return to it.
+    </p>
+    <div class="modal-footer">
+      <button autofocus type="button" class="btn secondary" (click)="importDialog.close()">
+        Keep current data</button
+      ><button type="button" class="btn primary" (click)="confirmImport(importDialog)">
+        Replace with import
+      </button>
+    </div>
+  </dialog>
+
+  <dialog
+    #resetDialog
+    class="modal"
+    aria-labelledby="reset-confirm-title"
+    aria-describedby="reset-description"
+  >
+    <h2 id="reset-confirm-title">Reset this prototype?</h2>
+    <p id="reset-description">
+      Your local edits, imported images and review history will be replaced by the original
+      examples. This cannot be undone without an export.
+    </p>
+    <div class="modal-footer">
+      <button autofocus type="button" class="btn secondary" (click)="resetDialog.close()">
+        Keep my work</button
+      ><button type="button" class="btn danger" (click)="resetDemo(resetDialog)">
+        Reset demo data
+      </button>
+    </div>
+  </dialog>
+</main>

@@ -1,0 +1,198 @@
+:host {
+  display: block;
+  width: 100%;
+}
+svg {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  font-family: inherit;
+  overflow: visible;
+}
+.building {
+  fill: #e7e9e5;
+  stroke: #aeb9b4;
+  stroke-width: 3;
+}
+.corridor {
+  fill: #fafbf8;
+}
+.corridor-label {
+  fill: #a6afa9;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.room {
+  cursor: pointer;
+  outline: none;
+  rect {
+    fill: #fff;
+    stroke: #a9b4ae;
+    stroke-width: 2;
+    transition:
+      fill 120ms,
+      stroke 120ms;
+  }
+  &.amenity rect {
+    fill: #e8efe7;
+  }
+  &.lab rect {
+    fill: #edf1f6;
+  }
+  &:hover rect,
+  &:focus-visible rect {
+    stroke: #4975c9;
+    stroke-width: 3;
+  }
+  &.selected rect {
+    fill: #fff0e8;
+    stroke: #df754c;
+    stroke-width: 3;
+  }
+}
+.room-kind {
+  fill: #8d9792;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.room-name {
+  fill: #34403d;
+  font-size: 18px;
+  font-weight: 600;
+}
+.accessible-symbol {
+  fill: #8d9792;
+  font-size: 18px;
+}
+.connection {
+  cursor: pointer;
+  outline: none;
+  .edge-hit {
+    stroke: transparent;
+    stroke-width: 18;
+  }
+  .edge-line {
+    stroke: #c4cdc6;
+    stroke-width: 2;
+    stroke-dasharray: 4 6;
+    pointer-events: none;
+  }
+  &.blocked .edge-line {
+    stroke: #ba655c;
+    stroke-dasharray: 3 6;
+  }
+  &.selected .edge-line,
+  &:focus-visible .edge-line {
+    stroke: #df754c;
+    stroke-width: 4;
+  }
+}
+.connections:not(.editing) {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.waypoint {
+  cursor: pointer;
+  outline: none;
+  .node-hit {
+    fill: transparent;
+  }
+  .node-dot {
+    fill: #f9fbf8;
+    stroke: #90a29a;
+    stroke-width: 2;
+    transition: r 120ms;
+  }
+  &:focus-visible .node-dot,
+  &.selected .node-dot {
+    fill: #df754c;
+    stroke: white;
+    stroke-width: 3;
+  }
+  &.on-route .node-dot {
+    fill: #4975c9;
+    stroke: white;
+  }
+}
+.node-label {
+  fill: #8a4d2d;
+  font-size: 13px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 4;
+}
+.route-path {
+  fill: none;
+  stroke: #4975c9;
+  stroke-width: 7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.annotation {
+  cursor: pointer;
+  outline: none;
+  .pin {
+    fill: #df754c;
+  }
+  .pin-symbol {
+    fill: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .annotation-text {
+    fill: #715a48;
+    font-size: 15px;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 4;
+  }
+  &:focus-visible .annotation-text,
+  &.selected .annotation-text {
+    fill: #c25d32;
+  }
+}
+.current-position {
+  pointer-events: none;
+  .position-halo {
+    fill: #4975c9;
+    opacity: 0.15;
+  }
+  .position-dot {
+    fill: #4975c9;
+    stroke: white;
+    stroke-width: 4;
+  }
+}
+.map-compass {
+  fill: #7c8b83;
+  path {
+    fill: #89958c;
+  }
+  text {
+    font-size: 10px;
+  }
+}
+.map-caption {
+  fill: #939e96;
+  font-size: 11px;
+}
+.compact {
+  .room-kind,
+  .accessible-symbol,
+  .corridor-label,
+  .map-caption,
+  .map-compass {
+    display: none;
+  }
+  .room-name {
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

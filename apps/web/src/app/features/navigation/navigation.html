@@ -1,0 +1,288 @@
+<section class="navigation-page page">
+  <header class="navigation-heading">
+    <div>
+      <p class="eyebrow">Find your way</p>
+      <h1>One step closer.</h1>
+      <p class="muted">Explore a published floor, at your own pace.</p>
+    </div>
+    <span class="badge preview-badge"><app-icon name="compass" /> Navigation preview</span>
+  </header>
+
+  @if (session(); as current) {
+    <div class="context-bar">
+      <label
+        ><span>Building</span
+        ><select [value]="current.building" (change)="selectBuilding(value($event))">
+          @for (building of buildings(); track building) {
+            <option [value]="building">{{ building }}</option>
+          }
+        </select></label
+      >
+      <label
+        ><span>Floor</span
+        ><select [value]="current.id" (change)="selectTarget(value($event))">
+          @for (floor of floors(); track floor.id) {
+            <option [value]="floor.id">
+              {{ floor.floor }}{{ floor.status === 'archived' ? ' · Archived' : '' }}
+            </option>
+          }
+        </select></label
+      >
+      <span class="revision-label"
+        >Published v{{ current.published?.version }}
+        @if (current.status === 'archived') {
+          <span class="badge">Archived · read only</span>
+        }
+      </span>
+      <button class="btn ghost location-suggestion" (click)="suggestBuilding()">
+        <app-icon name="location" /> Suggest building
+      </button>
+    </div>
+    @if (suggestedBuilding()) {
+      <div class="notice" role="status">
+        <span
+          >GPS simulation suggests {{ suggestedBuilding() }}. Confirm your building and floor; this
+          is not an indoor location.</span
+        ><button class="btn secondary" (click)="selectBuilding(suggestedBuilding())">
+          Use building</button
+        ><button
+          class="btn ghost"
+          aria-label="Dismiss building suggestion"
+          (click)="suggestedBuilding.set('')"
+        >
+          <app-icon name="close" />
+        </button>
+      </div>
+    }
+    @if (publicationUnavailable()) {
+      <div class="notice" role="status">
+        <span
+          >This map is no longer published in the current demo data. This session is showing its
+          cached snapshot.</span
+        ><button class="btn secondary" (click)="leaveUnavailableSession()">
+          {{ targets().length ? 'Choose an available map' : 'End cached preview' }}
+        </button>
+      </div>
+    }
+    @if (publicationChanged()) {
+      <div class="notice">
+        The published map changed in local data. This session keeps its original snapshot.<button
+          class="btn secondary"
+          (click)="refreshPublication()"
+        >
+          Load latest &amp; restart
+        </button>
+      </div>
+    }
+    @if (device.offline()) {
+      <div class="notice">
+        Offline simulation · Using a cached map with manual guidance. Scene recognition is
+        unavailable.
+      </div>
+    }
+    @if (device.background()) {
+      <div class="notice">
+        App paused in the background. Resume below to start a fresh observation.
+      </div>
+    }
+
+    <div class="navigation-layout">
+      <aside class="journey-panel">
+        <div class="destination-picker">
+          <h2>Where are you going?</h2>
+          <label class="search-input"
+            ><app-icon name="search" /><input
+              aria-label="Search destinations"
+              placeholder="Search a room or place"
+              [value]="query()"
+              (input)="query.set(value($event))"
+          /></label>
+          <div class="destination-list" aria-label="Destinations">
+            @for (node of destinations(); track node.id) {
+              <button
+                class="destination-option"
+                [class.selected]="destination() === node.id"
+                [attr.aria-pressed]="destination() === node.id"
+                (click)="chooseDestination(node.id)"
+              >
+                <span class="destination-icon"><app-icon name="pin" /></span
+                ><span
+                  ><strong>{{ node.label }}</strong
+                  ><small>{{ current.floor }}</small></span
+                >
+                @if (destination() === node.id) {
+                  <app-icon name="check" />
+                }
+              </button>
+            } @empty {
+              <p class="muted">No destinations match. Try another room name or floor.</p>
+            }
+          </div>
+        </div>
+
+        <div class="start-picker">
+          <h3>Your starting point</h3>
+          <label class="field"
+            ><span>Choose a checkpoint manually</span
+            ><select
+              aria-label="Starting checkpoint"
+              [value]="start()"
+              (change)="chooseStart(value($event))"
+            >
+              <option value="">Select a starting point</option>
+              @for (node of map().nodes; track node.id) {
+                <option [value]="node.id">{{ node.label }}</option>
+              }
+            </select></label
+          >
+          <button
+            class="btn secondary capture-button"
+            (click)="openCamera()"
+            [disabled]="device.offline() || device.background() || !map().nodes.length"
+          >
+            <app-icon name="camera" /> Try photo localization
+          </button>
+          <label class="accessibility-toggle"
+            ><input
+              type="checkbox"
+              [checked]="accessible()"
+              (change)="toggleAccessible($any($event.target).checked)"
+            /><app-icon name="accessibility" /><span>Step-free route</span></label
+          >
+        </div>
+
+        <div class="route-status" aria-live="polite">
+          @if (route(); as planned) {
+            @if (phase() === 'arrived') {
+              <div class="arrival-mark"><app-icon name="check" /></div>
+              <h2>You made it.</h2>
+              <p>{{ destinationNode()?.label }}</p>
+              <p class="muted">This is a simulated arrival.</p>
+              <button class="btn secondary" (click)="resetGuidance()">Preview again</button>
+            } @else if (phase() === 'guiding') {
+              <span class="badge">Checkpoint {{ step() + 1 }} of {{ planned.nodes.length }}</span>
+              <h3>{{ instruction() }}</h3>
+              <p class="muted">{{ nextNode()?.label }} is your next checkpoint.</p>
+              <button
+                class="btn primary wide"
+                (click)="nextStep()"
+                [disabled]="device.background()"
+              >
+                {{
+                  step() + 2 === planned.nodes.length
+                    ? 'Simulate arrival'
+                    : 'Simulate next checkpoint'
+                }}<app-icon name="arrow-right" /></button
+              ><button class="btn ghost wide" (click)="resetGuidance()">End preview</button>
+            } @else {
+              <div class="route-summary">
+                <app-icon name="route" />
+                <div>
+                  <strong>{{ destinationNode()?.label }}</strong
+                  ><span
+                    >{{ planned.nodes.length - 1 }} connections ·
+                    {{ accessible() ? 'Step-free' : 'Shortest path' }}</span
+                  >
+                </div>
+              </div>
+              <label class="heading-check"
+                ><input
+                  type="checkbox"
+                  [checked]="headingConfirmed()"
+                  (change)="headingConfirmed.set($any($event.target).checked)"
+                /><span
+                  >I am facing {{ planned.nodes[1]?.label ?? destinationNode()?.label }} in this
+                  preview.</span
+                ></label
+              >
+              <button
+                class="btn primary wide"
+                (click)="startGuidance()"
+                [disabled]="!headingConfirmed() || device.background()"
+              >
+                Start navigation preview<app-icon name="arrow-right" />
+              </button>
+            }
+          } @else if (start() && destination()) {
+            <h3>No available route</h3>
+            <p>
+              These checkpoints are not connected{{ accessible() ? ' by a step-free path' : '' }}.
+              Choose another destination or starting point.
+            </p>
+          } @else {
+            <app-icon name="route" />
+            <p class="muted">Select a destination and starting point to see your route.</p>
+          }
+        </div>
+      </aside>
+
+      <app-navigation-map
+        [document]="map()"
+        [name]="current.name"
+        [floor]="current.floor"
+        [selected]="destinationNode()?.roomId || destination()"
+        [route]="routeIds()"
+        [position]="position()"
+        [phase]="phase()"
+        [instruction]="instruction()"
+        [guideAngle]="guideAngle()"
+        [paused]="device.background()"
+        (objectSelected)="selectObject($event)"
+        (advanced)="nextStep()"
+      />
+    </div>
+
+    <p class="status-message" role="status">{{ message() }}</p>
+    <details class="device-controls">
+      <summary>Preview device &amp; recovery scenarios</summary>
+      <div class="device-control-grid">
+        <label class="field"
+          ><span>Simulated camera permission</span
+          ><select [value]="device.permission()" (change)="setPermission(value($event))">
+            <option value="prompt">Ask when used</option>
+            <option value="granted">Granted</option>
+            <option value="denied">Denied</option>
+            <option value="unsupported">Camera unavailable</option>
+          </select></label
+        ><label class="field"
+          ><span>Simulated photo result</span
+          ><select [value]="outcome()" (change)="outcome.set($any(value($event)))">
+            <option value="accepted">Accepted checkpoint</option>
+            <option value="ambiguous">Ambiguous locations</option>
+            <option value="rejected">No supported match</option>
+            <option value="error">Service error</option>
+          </select></label
+        ><label class="accessibility-toggle"
+          ><input
+            type="checkbox"
+            [checked]="device.offline()"
+            (change)="setOffline($any($event.target).checked)"
+          />
+          Offline simulation</label
+        ><button class="btn secondary" (click)="toggleBackground()">
+          {{ device.background() ? 'Resume app' : 'Simulate background' }}
+        </button>
+      </div>
+      <p>
+        All hardware and recognition outcomes here are simulated. Uploaded photos stay in this tab.
+        Manual building selection remains available without GPS.
+      </p>
+    </details>
+  } @else {
+    <div class="empty panel">
+      <app-icon name="map" />
+      <h2>No published maps yet</h2>
+      <p>A map must be reviewed and published before it appears in the visitor preview.</p>
+    </div>
+  }
+</section>
+
+@if (cameraOpen()) {
+  <app-capture-panel
+    [context]="captureContext()"
+    [candidates]="candidateNodes()"
+    [(outcome)]="outcome"
+    (closed)="cancelCapture()"
+    (checkpoint)="acceptCheckpoint($event)"
+  />
+}

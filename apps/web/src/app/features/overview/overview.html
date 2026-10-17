@@ -1,0 +1,185 @@
+<div class="page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">LET’S MAKE PLACES EASIER TO FIND</p>
+      <h1>Your mapping workspace</h1>
+      <p>A little local knowledge. A clearer way for everyone.</p>
+    </div>
+    <a class="btn primary" routerLink="/targets"><app-icon name="plus" />Explore mapping targets</a>
+  </div>
+  <div class="metrics">
+    <div class="metric">
+      <span class="metric-label">Published floors<app-icon name="layers" /></span
+      ><strong>{{ published().length.toString().padStart(2, '0') }}</strong
+      ><small><span class="status-dot"></span>Ready for visitors</small>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Open targets<app-icon name="map" /></span
+      ><strong>{{ openTargets().length.toString().padStart(2, '0') }}</strong
+      ><small>Spaces waiting to be mapped</small>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Your active drafts<app-icon name="edit" /></span
+      ><strong>{{ drafts().length.toString().padStart(2, '0') }}</strong
+      ><small>Pick up where you left off</small>
+    </div>
+    <a class="metric review-metric" routerLink="/review"
+      ><span class="metric-label">Awaiting review<app-icon name="review" /></span
+      ><strong>{{ review().length.toString().padStart(2, '0') }}</strong
+      ><small>Help a map take its next step <app-icon name="arrow-right" /></small
+    ></a>
+  </div>
+  <div class="two-columns">
+    <div>
+      <section class="overview-section">
+        <div class="section-title">
+          <h2>
+            Places taking shape <span class="count">{{ openTargets().length }}</span>
+          </h2>
+          <a class="link" routerLink="/targets">View all targets <app-icon name="arrow-right" /></a>
+        </div>
+        <div class="grid-2">
+          @for (target of openTargets().slice(0, 2); track target.id) {
+            <a class="panel target-card" [routerLink]="['/targets', target.id]"
+              ><div class="map-preview">
+                @if (target.published) {
+                  <app-map-canvas [document]="target.published.document" [compact]="true" />
+                } @else {
+                  <div class="unmapped-preview">
+                    <div class="blueprint-grid"></div>
+                    <app-icon name="map" /><span>Your next blank canvas</span>
+                  </div>
+                }
+                <span
+                  class="map-tag badge"
+                  [class.green]="target.published"
+                  [class.orange]="!target.published"
+                  >{{
+                    target.published ? 'Published · v' + target.published.version : 'Ready to map'
+                  }}</span
+                >
+              </div>
+              <div class="card-body">
+                <span class="subtle-label">{{ target.building }}</span>
+                <h3>{{ target.name }} <app-icon name="arrow" /></h3>
+                <div class="card-meta">
+                  <span><app-icon name="layers" />{{ target.floor }}</span
+                  ><span>{{ target.published?.document?.rooms?.length ?? 0 }} spaces</span>
+                </div>
+              </div></a
+            >
+          }
+        </div>
+      </section>
+      <section class="panel overview-section">
+        <div class="panel-heading">
+          <h2>Continue your work</h2>
+          <a class="link" routerLink="/contributions"
+            >All contributions <app-icon name="arrow-right"
+          /></a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>CONTRIBUTION</th>
+                <th>STATUS</th>
+                <th>UPDATED</th>
+                <th><span class="sr-only">Open</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (draft of drafts().slice(0, 3); track draft.id) {
+                <tr>
+                  <td>
+                    <a class="table-link" [routerLink]="['/editor', draft.id]">{{ draft.title }}</a
+                    ><small
+                      >{{ repo.getTarget(draft.targetId)?.name }} ·
+                      {{ repo.getTarget(draft.targetId)?.floor }}</small
+                    >
+                  </td>
+                  <td>
+                    <span [class]="'badge ' + draft.status">{{
+                      draft.status === 'changes-requested' ? 'Changes requested' : 'Draft'
+                    }}</span>
+                  </td>
+                  <td>
+                    <span class="table-date">{{ draft.updatedAt | date: 'MMM d' }}</span>
+                  </td>
+                  <td>
+                    <a
+                      class="btn ghost icon-only"
+                      [routerLink]="['/editor', draft.id]"
+                      aria-label="Open draft"
+                      ><app-icon name="arrow-right"
+                    /></a>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4">
+                    <div class="empty">
+                      <h3>A fresh start</h3>
+                      <p>Choose a target and start your first contribution.</p>
+                      <a class="btn secondary" routerLink="/targets">Browse targets</a>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div class="journey-banner">
+        <div class="journey-art"><span></span><app-icon name="pin" /></div>
+        <div>
+          <span class="subtle-label">FROM FLOOR PLAN TO FIRST STEPS</span>
+          <h3>Small contributions, real direction.</h3>
+          <p>Upload a plan, refine the details, and help someone find their way.</p>
+        </div>
+        <a routerLink="/help" class="btn secondary"
+          >See how it works<app-icon name="arrow-right"
+        /></a>
+      </div>
+    </div>
+    <aside>
+      <section class="panel activity-panel">
+        <div class="panel-heading">
+          <h2>Latest activity</h2>
+          <span class="status-dot"></span>
+        </div>
+        <div class="panel-body">
+          <ol class="timeline">
+            @for (event of repo.activity().slice(0, 4); track event.id) {
+              <li>
+                <span class="dot"></span><time>{{ event.at | date: 'MMM d · h:mm a' }}</time
+                ><strong>{{ event.title }}</strong>
+                <p>{{ event.detail }}</p>
+              </li>
+            }
+          </ol>
+          <a class="link" routerLink="/activity"
+            >View activity log <app-icon name="arrow-right"
+          /></a>
+        </div>
+      </section>
+      <section class="getting-started">
+        <span class="guide-tag"><app-icon name="sparkles" />A GOOD PLACE TO START</span>
+        <h3>Bring your first map to life.</h3>
+        <p>Our sample floor plan has everything you need to try the full workflow.</p>
+        <a routerLink="/editor/innovation-draft"
+          ><span class="step-number">1</span>Refine a room or add a marker<app-icon
+            name="arrow-right" /></a
+        ><a routerLink="/review/innovation-review"
+          ><span class="step-number">2</span>Review a contribution<app-icon name="arrow-right" /></a
+        ><a routerLink="/navigate"
+          ><span class="step-number">3</span>Try the visitor experience<app-icon name="arrow-right"
+        /></a>
+      </section>
+    </aside>
+  </div>
+  <footer class="page-footer">
+    <span><span class="status-dot"></span> All changes stay in this browser</span
+    ><span>Made for the way you move.</span>
+  </footer>
+</div>

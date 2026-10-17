@@ -1,0 +1,112 @@
+.evidence-panel {
+  margin-top: 24px;
+}
+.evidence-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.evidence-images figure {
+  margin: 0;
+}
+.evidence-images img {
+  display: block;
+  width: 100%;
+  max-height: 230px;
+  object-fit: contain;
+  background: #f4f5ef;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.evidence-images figcaption {
+  font-size: 12px;
+  margin-top: 9px;
+}
+.evidence-images figcaption span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+}
+.reference-evidence {
+  display: grid;
+  gap: 18px;
+}
+.reference-evidence article {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.reference-evidence article > .evidence-image-button {
+  flex: 0 0 170px;
+}
+.reference-evidence article > div {
+  min-width: 0;
+  flex: 1;
+}
+.reference-evidence img {
+  display: block;
+  width: 170px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 7px;
+}
+.reference-heading {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+.reference-heading h3 {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+.reference-evidence p {
+  font-size: 11px;
+  margin: 8px 0;
+  white-space: pre-line;
+}
+.reference-context,
+.reference-evidence time {
+  color: var(--muted);
+  font-size: 10px;
+}
+.evidence-empty {
+  margin: 6px 0;
+}
+
+.evidence-image-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: zoom-in;
+}
+.evidence-dialog {
+  width: min(950px, 95vw);
+}
+.evidence-dialog > img {
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+}
+
+@media (max-width: 700px) {
+  .evidence-images {
+    grid-template-columns: 1fr;
+  }
+  .reference-evidence article {
+    flex-direction: column;
+  }
+  .reference-evidence article > .evidence-image-button {
+    flex-basis: auto;
+    width: 100%;
+  }
+  .reference-evidence img {
+    width: 100%;
+    height: 180px;
+  }
+}

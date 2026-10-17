@@ -1,0 +1,163 @@
+.layers-panel {
+  border-right: 1px solid var(--line);
+  padding: 18px 12px;
+}
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  h2 {
+    font-size: 13px;
+    font-weight: 650;
+    margin: 0;
+  }
+  > app-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+  }
+}
+.section-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 17px 0 9px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+}
+.layer-row {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 11px 8px;
+  border: 0;
+  background: none;
+  border-radius: 6px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 3px;
+  > app-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+  }
+  small {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  &.active {
+    background: #f4f5f0;
+    > app-icon {
+      color: var(--accent);
+    }
+  }
+}
+.source-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+  .btn {
+    width: 100%;
+    font-size: 11px;
+    justify-content: center;
+    padding-inline: 5px;
+  }
+}
+.upload-label {
+  position: relative;
+  overflow: hidden;
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+  }
+  &:focus-within {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+}
+.text-button {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.layer-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 20px 0;
+}
+.object-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  button {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    background: none;
+    border: 0;
+    color: #606c66;
+    padding: 9px 8px;
+    text-align: left;
+    font-size: 11px;
+    border-radius: 5px;
+    cursor: pointer;
+    > span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    app-icon {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+    &:hover {
+      background: #f6f7f3;
+    }
+    &.selected {
+      color: #ab5b35;
+      background: #fbede5;
+    }
+  }
+}
+.object-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #b7c2b4;
+  background: #eef1e9;
+  flex-shrink: 0;
+  border-radius: 2px;
+  &.lab {
+    background: #e1e8f1;
+    border-color: #a6b7cc;
+  }
+}
+details {
+  border-top: 1px solid #edf0ea;
+  margin-top: 12px;
+  padding-top: 12px;
+  summary {
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--muted);
+    span {
+      float: right;
+    }
+  }
+}

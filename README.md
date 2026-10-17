@@ -1,9 +1,15 @@
 # SnapWay
 
 Collaborative indoor mapping and reviewed visual navigation. The current work is
-**Stage 1: Map Platform**. This repository now contains a runnable development
-foundation; map editing, contribution review, AI authoring and visitor navigation
-are not implemented yet.
+**Stage 1: Map Platform**. The `feature/frontend-prototype` branch contains an
+interactive Angular prototype covering map editing, contribution review,
+publication and visitor navigation. Prototype data is saved in browser Local
+Storage; AI, authentication and Android hardware are explicitly simulated.
+
+Start with the [prototype walkthrough and integration guide](docs/frontend-prototype.md)
+and [Figma prototype](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa).
+For frontend-only testing, run `npm ci` then `npm start` from `apps/web`; no API
+server or Python environment is required for the prototype.
 
 Start with the [initial documentation index](docs/initial/README.md), then follow
 the [development guide](docs/development.md). The original planning files and
@@ -36,7 +42,8 @@ python scripts/dev.py api
 python scripts/dev.py web
 ```
 
-Open **http://127.0.0.1:4200/** and click **Check connection**. The Angular proxy
+Open **http://127.0.0.1:4200/** for the prototype workspace. The original
+**Check connection** diagnostic is at `/connection-check`. The Angular proxy
 connects to Django on `127.0.0.1:8000`. Liveness is available at
 `/api/health/live/`; database/framework readiness is `/api/health/ready/`.
 

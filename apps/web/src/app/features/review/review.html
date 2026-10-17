@@ -1,0 +1,145 @@
+<main class="page review-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">QUALITY BEFORE PUBLICATION</p>
+      <h1>Review queue</h1>
+      <p>A second look makes every map more useful.</p>
+    </div>
+    <a class="btn secondary" routerLink="/contributions"
+      ><app-icon name="layers" /> All contributions</a
+    >
+  </header>
+  @if (repository.profile().role !== 'admin') {
+    <div class="notice info">
+      <app-icon name="eye" /><span
+        >You can inspect contributions as a volunteer. Switch to the administrator demo role in
+        <a routerLink="/settings" class="link">Settings</a> to make review decisions.</span
+      >
+    </div>
+  }
+  <div class="review-metrics">
+    <section class="panel">
+      <span>Awaiting review</span><strong>{{ pending().length }}</strong
+      ><small>Submitted contributions</small>
+    </section>
+    <section class="panel">
+      <span>Need reconciliation</span><strong>{{ staleCount() }}</strong
+      ><small>Based on an older publication</small>
+    </section>
+    <section class="panel">
+      <span>Decisions recorded</span><strong>{{ reviewedCount() }}</strong
+      ><small>Published, returned or rejected</small>
+    </section>
+  </div>
+  <div class="filters">
+    <label class="search-input"
+      ><app-icon name="search" /><span class="sr-only">Search review queue</span
+      ><input
+        type="search"
+        placeholder="Search contribution or author…"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)" /></label
+    ><label class="target-filter"
+      ><span class="sr-only">Filter by target</span
+      ><select
+        class="input"
+        [value]="selectedTarget()"
+        (change)="selectedTarget.set($any($event.target).value)"
+      >
+        <option value="">All mapping targets</option>
+        @for (target of repository.targets(); track target.id) {
+          <option [value]="target.id">{{ target.name }}</option>
+        }
+      </select></label
+    >
+  </div>
+  <section class="panel" aria-labelledby="queue-title">
+    <div class="panel-heading">
+      <h2 id="queue-title">
+        Ready for a second look <span class="count">{{ filtered().length }}</span>
+      </h2>
+      <app-icon name="review" />
+    </div>
+    @if (filtered().length) {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">CONTRIBUTION</th>
+              <th scope="col">TARGET / BASE</th>
+              <th scope="col">SUBMITTED</th>
+              <th scope="col">READINESS</th>
+              <th scope="col"><span class="sr-only">Action</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of filtered(); track item.id) {
+              <tr>
+                <td>
+                  <a class="table-link" [routerLink]="['/review', item.id]"
+                    ><strong>{{ item.title }}</strong
+                    ><small>{{ item.author }}</small></a
+                  >
+                </td>
+                <td>
+                  <strong>{{ targetName(item.targetId) }}</strong
+                  ><small>Based on revision {{ item.baseRevision }}</small>
+                </td>
+                <td>
+                  {{ item.updatedAt | date: 'MMM d, y'
+                  }}<small>{{ item.updatedAt | date: 'h:mm a' }}</small>
+                </td>
+                <td>
+                  @if (archived(item)) {
+                    <span class="badge archived">Target archived</span>
+                  } @else if (stale(item)) {
+                    <span class="badge orange">Newer map available</span>
+                  } @else {
+                    <span class="badge blue">Ready for review</span>
+                  }
+                </td>
+                <td>
+                  <a class="btn secondary small" [routerLink]="['/review', item.id]"
+                    >Review <app-icon name="arrow-right"
+                  /></a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty">
+        <app-icon name="check" />
+        <h3>
+          {{ query() || selectedTarget() ? 'No matching contributions' : 'You are all caught up' }}
+        </h3>
+        <p>
+          {{
+            query() || selectedTarget()
+              ? 'Try a different search or mapping target.'
+              : 'Submitted map contributions will appear here for review.'
+          }}
+        </p>
+        @if (query() || selectedTarget()) {
+          <button
+            type="button"
+            class="btn secondary"
+            (click)="query.set(''); selectedTarget.set('')"
+          >
+            Clear filters
+          </button>
+        } @else {
+          <a class="btn secondary" routerLink="/targets">Explore mapping targets</a>
+        }
+      </div>
+    }
+  </section>
+  <aside class="review-tip">
+    <app-icon name="help" />
+    <p>
+      Compare both maps, check references and route connections, then publish or leave specific
+      feedback. A newer publication must be reconciled before another contribution can replace it.
+    </p>
+  </aside>
+</main>

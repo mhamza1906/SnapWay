@@ -1,0 +1,78 @@
+<div class="map-panel">
+  <div class="map-heading">
+    <div>
+      <strong>{{ name() }}</strong
+      ><span>{{ floor() }} · published map</span>
+    </div>
+    <div class="view-switch" role="group" aria-label="Guidance view">
+      <button
+        [class.active]="view() === 'map'"
+        [attr.aria-pressed]="view() === 'map'"
+        (click)="view.set('map')"
+      >
+        <app-icon name="map" />Map</button
+      ><button
+        [class.active]="view() === 'guided'"
+        [attr.aria-pressed]="view() === 'guided'"
+        (click)="view.set('guided')"
+      >
+        <app-icon name="compass" />Guided
+      </button>
+    </div>
+  </div>
+  @if (view() === 'map') {
+    <div class="visitor-map">
+      <app-map-canvas
+        [document]="document()"
+        [selectable]="true"
+        [selected]="selected()"
+        [route]="route()"
+        [position]="position()"
+        (objectSelected)="objectSelected.emit($event)"
+      />
+    </div>
+  } @else {
+    <div
+      class="guided-view"
+      [class.is-guiding]="phase() === 'guiding'"
+      [class.has-arrived]="phase() === 'arrived'"
+    >
+      <span class="badge">Schematic guidance</span>
+      <div class="direction-stage" [style.--guide-angle]="guideAngle() + 'deg'">
+        <span class="direction-ring"></span
+        ><app-icon [name]="phase() === 'arrived' ? 'check' : 'arrow-right'" />
+      </div>
+      <h2>
+        {{
+          phase() === 'arrived'
+            ? 'You have arrived'
+            : phase() === 'guiding'
+              ? instruction()
+              : 'Your next move, in focus.'
+        }}
+      </h2>
+      <p>
+        {{
+          phase() === 'guiding'
+            ? 'Advance one checkpoint at a time using the route controls.'
+            : 'Choose a route and confirm your heading to begin.'
+        }}
+      </p>
+      <small>Screen-space animation only. No camera pose, sensor tracking or registered AR.</small>
+    </div>
+  }
+  <div class="map-caption">
+    <span
+      ><i class="position-dot"></i>
+      {{ position() ? 'Preview position' : 'No location confirmed' }}</span
+    ><span><i class="route-line"></i> Reviewed connections</span><span>Plan scale unverified</span>
+  </div>
+  @if (phase() === 'guiding') {
+    <div class="mobile-next">
+      <strong>{{ instruction() }}</strong
+      ><button class="btn primary" (click)="advanced.emit()" [disabled]="paused()">
+        Next <app-icon name="arrow-right" />
+      </button>
+    </div>
+  }
+</div>

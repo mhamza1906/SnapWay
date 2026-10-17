@@ -1,0 +1,808 @@
+@if (contribution(); as item) {
+  <header class="editor-heading">
+    <div class="heading-copy">
+      <a class="back-link" [routerLink]="['/targets', item.targetId]"
+        ><app-icon name="arrow-left" /> {{ target()?.building }} / {{ target()?.floor }}</a
+      >
+      <div class="title-row">
+        <h1>{{ item.title }}</h1>
+        <span class="badge" [class.orange]="dirty()">{{
+          readonly() ? item.status : dirty() ? 'Unsaved changes' : 'Draft saved'
+        }}</span>
+      </div>
+      <p class="muted">
+        {{
+          readonly()
+            ? 'Inspect this contribution and its source evidence.'
+            : 'Turn a floor plan into a place people can navigate.'
+        }}
+      </p>
+    </div>
+    <div class="heading-actions">
+      <button class="btn ghost" (click)="reloadSaved()" title="Reload the latest saved draft">
+        Reload saved
+      </button>
+      <button class="btn secondary" (click)="download()" title="Export the prototype map document">
+        <app-icon name="download" /> Export
+      </button>
+      @if (!readonly()) {
+        <button class="btn secondary" (click)="save()" [disabled]="!dirty()">Save draft</button>
+        <button class="btn primary" id="submit-open" (click)="openSubmit()">
+          Submit for review <app-icon name="arrow-right" />
+        </button>
+      }
+    </div>
+  </header>
+  @if (target()?.status === 'archived') {
+    <div class="notice">
+      This target is archived. Its map remains available for inspection; new edits are closed.
+    </div>
+  }
+  @if (item.feedback) {
+    <div class="notice"><strong>Reviewer feedback</strong> {{ item.feedback }}</div>
+  }
+  @if (
+    item.baseRevision !== (target()?.published?.version ?? 0) &&
+    item.status !== 'merged' &&
+    item.status !== 'rejected'
+  ) {
+    <div class="notice info">
+      <strong>A newer publication is available.</strong> Save your draft, compare it with the latest
+      map and reconcile changes before submitting.
+      <a class="link" [routerLink]="['/review', item.id]">Compare revisions</a>
+    </div>
+  }
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <span>{{ error() }}</span
+      ><button class="btn ghost" aria-label="Dismiss error" (click)="error.set('')">
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+  @if (message()) {
+    <div class="editor-notice" role="status">
+      <app-icon name="check" /><span>{{ message() }}</span
+      ><button class="btn ghost" aria-label="Dismiss message" (click)="message.set('')">
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+  <nav class="editor-tabs" aria-label="Editor sections">
+    <button [class.active]="tab() === 'map'" (click)="tab.set('map')">
+      <app-icon name="map" /> Map editor
+    </button>
+    <button [class.active]="tab() === 'references'" (click)="tab.set('references')">
+      <app-icon name="image" /> Reference photos <span>{{ document().references.length }}</span>
+    </button>
+    <span class="revision-label"
+      >Based on revision {{ item.baseRevision || 'none' }} · local version {{ version() }}</span
+    >
+  </nav>
+
+  @if (tab() === 'map') {
+    <div class="editor-workbench">
+      <aside class="layers-panel" aria-label="Map layers">
+        <div class="panel-title">
+          <h2>Map layers</h2>
+          <app-icon name="layers" />
+        </div>
+        <p class="section-label">Source evidence</p>
+        <button
+          class="layer-row"
+          [class.active]="layer() === 'source'"
+          (click)="layer.set('source')"
+        >
+          <app-icon name="image" /><span
+            >Original plan<small>{{
+              document().sourceImage ? 'Image attached' : 'No source yet'
+            }}</small></span
+          >
+        </button>
+        <button
+          class="layer-row"
+          [class.active]="layer() === 'standardized'"
+          (click)="layer.set('standardized')"
+        >
+          <app-icon name="sparkles" /><span
+            >Standardized<small>{{
+              document().standardizedImage ? 'Demo preview ready' : 'Not generated'
+            }}</small></span
+          >
+        </button>
+        <button
+          class="layer-row"
+          [class.active]="layer() === 'vector'"
+          (click)="layer.set('vector')"
+        >
+          <app-icon name="map" /><span
+            >Editable map<small
+              >{{ document().rooms.length }} rooms · {{ document().nodes.length }} waypoints</small
+            ></span
+          >
+        </button>
+        @if (!readonly()) {
+          <div class="source-actions">
+            <label class="btn secondary upload-label"
+              ><app-icon name="upload" /> {{ uploading() ? 'Reading…' : 'Upload plan'
+              }}<input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                [disabled]="uploading()"
+                (change)="upload($event, 'source')" /></label
+            ><button class="text-button" (click)="useSample()">Use sample plan</button>
+            <button class="text-button" (click)="downloadSample()">Download sample PNG</button>
+          </div>
+        }
+        <div class="layer-divider"></div>
+        <p class="section-label">
+          Rooms <span>{{ document().rooms.length }}</span>
+        </p>
+        <div class="object-list">
+          @for (room of document().rooms; track room.id) {
+            <button
+              [class.selected]="selected() === room.id"
+              (click)="setTool('select'); select(room.id); layer.set('vector')"
+            >
+              <span class="object-dot" [class.lab]="room.kind === 'lab'"></span
+              ><span>{{ room.name }}</span>
+            </button>
+          }
+          @if (!document().rooms.length) {
+            <p class="small muted">Attach a plan, then try a simulated vector trace.</p>
+          }
+        </div>
+        <details>
+          <summary>
+            Waypoints <span>{{ document().nodes.length }}</span>
+          </summary>
+          <div class="object-list">
+            @for (node of document().nodes; track node.id) {
+              <button
+                [class.selected]="selected() === node.id"
+                (click)="setTool('select'); select(node.id); layer.set('vector')"
+              >
+                <app-icon name="pin" /><span>{{ node.label }}</span>
+              </button>
+            }
+          </div>
+        </details>
+        <details>
+          <summary>
+            Walking connections <span>{{ document().edges.length }}</span>
+          </summary>
+          <div class="object-list">
+            @for (edge of document().edges; track edge.id) {
+              <button
+                [class.selected]="selected() === edge.id"
+                (click)="setTool('select'); select(edge.id); layer.set('vector')"
+              >
+                <app-icon name="route" /><span
+                  >{{ edge.blocked ? 'Blocked' : 'Open' }} · {{ edge.id }}</span
+                >
+              </button>
+            }
+          </div>
+        </details>
+        <details>
+          <summary>
+            Annotations <span>{{ document().annotations.length }}</span>
+          </summary>
+          <div class="object-list">
+            @for (annotation of document().annotations; track annotation.id) {
+              <button
+                [class.selected]="selected() === annotation.id"
+                (click)="setTool('select'); select(annotation.id); layer.set('vector')"
+              >
+                <app-icon name="edit" /><span>{{ annotation.text }}</span>
+              </button>
+            }
+          </div>
+        </details>
+      </aside>
+
+      <section class="canvas-panel" aria-label="Floor plan workspace">
+        <div class="compact-source-controls">
+          <label class="field"
+            >Plan layer<select [value]="layer()" (change)="layer.set($any($event.target).value)">
+              <option value="vector">Editable map</option>
+              <option value="source">Original source</option>
+              <option value="standardized">Standardized preview</option>
+            </select></label
+          >
+          @if (!readonly()) {
+            <label class="btn secondary upload-label"
+              ><app-icon name="upload" /> Upload plan<input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                [disabled]="uploading()"
+                (change)="upload($event, 'source')"
+            /></label>
+            <button class="text-button" (click)="useSample()">Use sample</button>
+            <button class="text-button" (click)="downloadSample()">Download PNG</button>
+          }
+        </div>
+        <div class="canvas-toolbar">
+          <div class="tool-group" role="group" aria-label="Editing tools">
+            @for (entry of tools; track entry.id) {
+              <button
+                [class.active]="tool() === entry.id"
+                [disabled]="(readonly() && entry.id !== 'select') || layer() !== 'vector'"
+                [title]="entry.label"
+                [attr.aria-label]="entry.label"
+                [attr.aria-pressed]="tool() === entry.id"
+                (click)="setTool(entry.id)"
+              >
+                <app-icon [name]="entry.icon" />
+              </button>
+            }
+          </div>
+          <span class="toolbar-divider"></span>
+          <div class="tool-group" role="group" aria-label="Edit history">
+            <button
+              aria-label="Undo"
+              title="Undo"
+              [disabled]="!history().length || readonly()"
+              (click)="undo()"
+            >
+              <app-icon name="undo" /></button
+            ><button
+              aria-label="Redo"
+              title="Redo"
+              [disabled]="!future().length || readonly()"
+              (click)="redo()"
+            >
+              <app-icon name="redo" />
+            </button>
+          </div>
+          <span class="toolbar-spacer"></span>
+          <div class="tool-group zoom-group">
+            <button aria-label="Zoom out" [disabled]="zoom() <= 60" (click)="changeZoom(-20)">
+              <app-icon name="zoom-out" /></button
+            ><button class="zoom-reset" title="Reset zoom" (click)="zoom.set(100)">
+              {{ zoom() }}%</button
+            ><button aria-label="Zoom in" [disabled]="zoom() >= 180" (click)="changeZoom(20)">
+              <app-icon name="zoom-in" />
+            </button>
+          </div>
+        </div>
+        <div class="canvas-scroll" [class.placing]="tool() !== 'select' && layer() === 'vector'">
+          <div class="canvas-sheet" [style.width.%]="zoom()">
+            @if (layer() === 'vector') {
+              @if (showSource() && document().sourceImage) {
+                <img
+                  class="source-overlay"
+                  [src]="document().sourceImage"
+                  alt="Source evidence overlay"
+                  [style.opacity]="opacity() / 100"
+                  [style.transform]="'rotate(' + rotation() + 'deg)'"
+                />
+              }
+              <app-map-canvas
+                [selectable]="true"
+                [document]="document()"
+                [selected]="selected()"
+                [interactive]="!readonly()"
+                (objectSelected)="select($event)"
+                (pointSelected)="place($event)"
+              />
+            } @else if (
+              layer() === 'source' ? document().sourceImage : document().standardizedImage
+            ) {
+              <img
+                class="plan-image"
+                [class.standardized]="layer() === 'standardized'"
+                [src]="layer() === 'source' ? document().sourceImage : document().standardizedImage"
+                [alt]="
+                  layer() === 'source' ? 'Original source plan' : 'Simulated standardized preview'
+                "
+                [style.transform]="'rotate(' + rotation() + 'deg)'"
+              />
+            } @else {
+              <div class="canvas-empty">
+                <span class="empty-icon"
+                  ><app-icon [name]="layer() === 'source' ? 'upload' : 'sparkles'"
+                /></span>
+                <h3>
+                  {{
+                    layer() === 'source'
+                      ? 'Start with a floor plan'
+                      : 'A clearer plan, ready to compare'
+                  }}
+                </h3>
+                <p>
+                  {{
+                    layer() === 'source'
+                      ? 'Upload a PNG, JPEG or WebP under 1 MB, or explore the sample plan.'
+                      : 'Attach a source, then ask the assistant to create a simulated standardized preview.'
+                  }}
+                </p>
+                @if (!readonly()) {
+                  <button
+                    class="btn secondary"
+                    (click)="
+                      layer() === 'source' ? useSample() : suggest('Standardize source image')
+                    "
+                  >
+                    {{ layer() === 'source' ? 'Use sample plan' : 'Open assistant' }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="canvas-footer">
+          <span
+            ><span class="status-dot"></span>
+            {{
+              layer() === 'vector'
+                ? 'Editable vector geometry'
+                : layer() === 'source'
+                  ? 'Preserved source image'
+                  : 'Simulated image preview'
+            }}</span
+          ><span>{{
+            selectedKind() ? selectedKind() + ' selected' : 'Select an object to inspect it'
+          }}</span>
+        </div>
+      </section>
+
+      <aside class="inspector-panel" aria-label="Inspector and assistant">
+        <div class="inspector-tabs">
+          <button
+            [class.active]="sidePanel() === 'properties'"
+            (click)="sidePanel.set('properties')"
+          >
+            Properties</button
+          ><button
+            [class.active]="sidePanel() === 'assistant'"
+            (click)="sidePanel.set('assistant')"
+          >
+            <app-icon name="sparkles" /> Assistant
+          </button>
+        </div>
+        @if (sidePanel() === 'properties') {
+          <div class="inspector-content">
+            @if (selectedKind()) {
+              <span class="section-label">{{ selectedKind() }} properties</span>
+              <h3>
+                {{
+                  selectedRoom()?.name ||
+                    selectedNode()?.label ||
+                    selectedAnnotation()?.text ||
+                    'Walking connection'
+                }}
+              </h3>
+              <form [formGroup]="properties" (ngSubmit)="applyProperties()">
+                <fieldset [disabled]="readonly()">
+                  @if (!selectedEdge()) {
+                    <label class="field"
+                      >{{ selectedRoom() ? 'Room name' : 'Label'
+                      }}<input formControlName="name" maxlength="80"
+                    /></label>
+                  }
+                  @if (selectedRoom()) {
+                    <label class="field"
+                      >Room use<select formControlName="kind">
+                        <option value="classroom">Classroom</option>
+                        <option value="office">Office</option>
+                        <option value="lab">Laboratory</option>
+                        <option value="meeting">Meeting room</option>
+                        <option value="amenity">Amenity</option>
+                      </select></label
+                    >
+                  }
+                  @if (!selectedEdge()) {
+                    <div class="field-pair">
+                      <label class="field"
+                        >X position<input
+                          type="number"
+                          formControlName="x"
+                          min="0"
+                          max="1000" /></label
+                      ><label class="field"
+                        >Y position<input type="number" formControlName="y" min="0" max="640"
+                      /></label>
+                    </div>
+                  }
+                  @if (selectedRoom()) {
+                    <div class="field-pair">
+                      <label class="field"
+                        >Width<input
+                          type="number"
+                          formControlName="width"
+                          min="24"
+                          max="1000" /></label
+                      ><label class="field"
+                        >Height<input type="number" formControlName="height" min="24" max="640"
+                      /></label>
+                    </div>
+                  }
+                  @if (selectedNode()) {
+                    <label class="field"
+                      >Associated room<select formControlName="roomId">
+                        <option value="">Corridor / no room</option>
+                        @for (room of document().rooms; track room.id) {
+                          <option [value]="room.id">{{ room.name }}</option>
+                        }
+                      </select></label
+                    >
+                    <p class="small muted">
+                      A waypoint is a walking checkpoint. Connecting it to a room does not create a
+                      walking edge.
+                    </p>
+                  }
+                  @if (selectedEdge()) {
+                    <label class="field"
+                      >From waypoint<select formControlName="from">
+                        @for (node of document().nodes; track node.id) {
+                          <option [value]="node.id">{{ node.label }}</option>
+                        }
+                      </select></label
+                    ><label class="field"
+                      >To waypoint<select formControlName="to">
+                        @for (node of document().nodes; track node.id) {
+                          <option [value]="node.id">{{ node.label }}</option>
+                        }
+                      </select></label
+                    ><label class="checkbox-field"
+                      ><input type="checkbox" formControlName="blocked" /> Temporarily
+                      blocked</label
+                    >
+                  }
+                  @if (selectedRoom() || selectedEdge()) {
+                    <label class="checkbox-field"
+                      ><input type="checkbox" formControlName="accessible" /> Step-free
+                      access</label
+                    >
+                  }
+                  @if (!readonly()) {
+                    <button class="btn primary full" type="submit">Apply properties</button>
+                  }
+                </fieldset>
+              </form>
+              @if (!readonly()) {
+                <button class="btn ghost danger full delete-object" (click)="removeSelected()">
+                  <app-icon name="trash" /> Remove {{ selectedKind().toLowerCase() }}
+                </button>
+              }
+            } @else {
+              <div class="inspector-empty">
+                <app-icon name="map" />
+                <h3>Every detail has a place.</h3>
+                <p>
+                  Select a room, waypoint or annotation to edit its information. Use the toolbar to
+                  add landmarks and walking connections.
+                </p>
+              </div>
+            }
+            <div class="layer-divider"></div>
+            <p class="section-label">Comparison controls</p>
+            <label class="checkbox-field"
+              ><input
+                type="checkbox"
+                [checked]="showSource()"
+                [disabled]="!document().sourceImage"
+                (change)="showSource.set($any($event.target).checked)"
+              />
+              Overlay original plan</label
+            >
+            <label class="field"
+              >Source opacity <span>{{ opacity() }}%</span
+              ><input
+                type="range"
+                min="10"
+                max="100"
+                [value]="opacity()"
+                (input)="opacity.set(+$any($event.target).value)"
+            /></label>
+            <label class="field"
+              >Image rotation<select
+                [value]="rotation()"
+                (change)="rotation.set(+$any($event.target).value)"
+              >
+                <option value="0">0° · original</option>
+                <option value="90">90° clockwise</option>
+                <option value="180">180°</option>
+                <option value="270">270° clockwise</option>
+              </select></label
+            >
+            <p class="small muted">
+              Rotation and opacity are comparison controls only. They do not calibrate geographic
+              north or rewrite source pixels.
+            </p>
+          </div>
+        } @else {
+          <div class="inspector-content assistant-content">
+            <div class="assistant-mark"><app-icon name="sparkles" /></div>
+            <h3>A second pair of eyes.</h3>
+            <p class="small muted">
+              Describe a change, inspect the proposal, then decide what to apply.
+            </p>
+            <span class="demo-label">Simulated assistant · no provider connected</span>
+            <div class="assistant-suggestions">
+              <button (click)="suggest('Standardize source image')">Standardize source</button
+              ><button (click)="suggest('Create vector map from source')">Create vector map</button
+              ><button (click)="suggest('Rename selected room to Design studio')">
+                Rename a room</button
+              ><button (click)="suggest('Add label Quiet zone')">Add a label</button
+              ><button (click)="suggest('Add waypoint')">Add a waypoint</button>
+            </div>
+            <label class="field"
+              >Your request<textarea
+                [formControl]="prompt"
+                rows="4"
+                placeholder="Rename selected room to Design studio"
+                maxlength="500"
+              ></textarea>
+            </label>
+            <label class="checkbox-field small"
+              ><input
+                type="checkbox"
+                [checked]="aiFailure()"
+                (change)="aiFailure.set($any($event.target).checked)"
+              />
+              Simulate a provider failure</label
+            >
+            @if (aiState() === 'running') {
+              <button class="btn secondary full" (click)="cancelAssistant()">Cancel request</button>
+            } @else {
+              <button
+                class="btn primary full"
+                [disabled]="readonly() || prompt.invalid"
+                (click)="runAssistant()"
+              >
+                <app-icon name="sparkles" /> Preview change
+              </button>
+            }
+            @if (aiState() === 'running') {
+              <ol class="ai-progress" aria-label="Processing steps">
+                <li [class.done]="aiStep() > 0">Read map context</li>
+                <li [class.current]="aiStep() === 1">Prepare proposal</li>
+                <li>Wait for your approval</li>
+              </ol>
+            }
+            @if (aiDescription()) {
+              <div class="ai-result" [class.failure]="aiState() === 'error'" aria-live="polite">
+                <span class="section-label">{{
+                  aiState() === 'proposal'
+                    ? 'Proposed change'
+                    : aiState() === 'error'
+                      ? 'Request stopped'
+                      : 'Assistant'
+                }}</span>
+                <p>{{ aiDescription() }}</p>
+                @if (aiState() === 'proposal') {
+                  <div class="proposal-actions">
+                    <button class="btn primary" [disabled]="readonly()" (click)="applyProposal()">
+                      Apply proposal</button
+                    ><button class="btn ghost" (click)="cancelAssistant()">Discard</button>
+                  </div>
+                }
+                @if (aiState() === 'error') {
+                  <button
+                    class="btn secondary full"
+                    [disabled]="readonly()"
+                    (click)="runAssistant(true)"
+                  >
+                    Retry request
+                  </button>
+                }
+              </div>
+            }
+            <p class="small muted assistant-note">
+              Changes are applied as one undoable step. Newer edits invalidate older proposals.
+            </p>
+          </div>
+        }
+      </aside>
+    </div>
+  } @else {
+    <section class="references-workspace">
+      <div class="reference-library">
+        <div class="reference-heading">
+          <div>
+            <h2>Give the map real-world context.</h2>
+            <p class="muted">
+              Associate a scene with a waypoint, add the viewing direction and review its
+              description.
+            </p>
+          </div>
+          <span class="badge">{{ document().references.length }} references</span>
+        </div>
+        @if (!document().references.length) {
+          <div class="empty reference-empty">
+            <app-icon name="image" />
+            <h3>No reference photos yet</h3>
+            <p>
+              Add a corridor, doorway or recognizable landmark. A plan image can test this flow, but
+              cannot replace a real scene photograph.
+            </p>
+            <button class="btn secondary" [disabled]="readonly()" (click)="useSample('reference')">
+              Try with a sample image
+            </button>
+          </div>
+        }
+        <div class="reference-grid">
+          @for (reference of document().references; track reference.id) {
+            <article class="reference-card">
+              <button
+                class="reference-image-button"
+                (click)="editReference(reference)"
+                [attr.aria-label]="'Inspect ' + reference.name"
+              >
+                <img [src]="reference.image" [alt]="reference.name" />
+              </button>
+              <div class="reference-card-body">
+                <span class="badge" [class.orange]="!reference.reviewed">{{
+                  reference.reviewed ? 'Reviewed' : 'Needs review'
+                }}</span>
+                <h3>{{ reference.name }}</h3>
+                <p>{{ reference.description }}</p>
+                <div class="reference-meta">
+                  <span>{{ reference.nodeId }}</span
+                  ><span>{{ reference.direction }}</span>
+                </div>
+                <div class="reference-actions">
+                  <button class="btn secondary" (click)="editReference(reference)">
+                    {{ readonly() ? 'Inspect' : 'Edit reference' }}
+                  </button>
+                  @if (!readonly()) {
+                    <button
+                      class="btn ghost danger"
+                      aria-label="Remove reference"
+                      (click)="removeReference(reference.id)"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  }
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+      <aside class="reference-form-panel">
+        <div class="panel-title">
+          <h2>{{ referenceId() ? 'Reference details' : 'Add a reference' }}</h2>
+          @if (referenceId()) {
+            <button
+              class="btn ghost"
+              (click)="resetReference()"
+              aria-label="Clear reference selection"
+            >
+              <app-icon name="close" />
+            </button>
+          }
+        </div>
+        @if (referenceImage()) {
+          <img
+            class="reference-preview"
+            [src]="referenceImage()"
+            alt="Selected reference preview"
+          />
+        }
+        @if (!readonly()) {
+          <label class="btn secondary full upload-label"
+            ><app-icon name="upload" /> Upload a photo<input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              (change)="upload($event, 'reference')"
+              [disabled]="uploading()" /></label
+          ><button class="text-button sample-reference" (click)="useSample('reference')">
+            Use synthetic sample
+          </button>
+        }
+        <form [formGroup]="referenceForm" (ngSubmit)="saveReference()">
+          <fieldset [disabled]="readonly()">
+            <label class="field"
+              >Reference name<input
+                formControlName="name"
+                placeholder="Outside the design studio"
+                maxlength="80" /></label
+            ><label class="field"
+              >Observed waypoint<select formControlName="nodeId">
+                <option value="">Choose a waypoint</option>
+                @for (node of document().nodes; track node.id) {
+                  <option [value]="node.id">{{ node.label }}</option>
+                }
+              </select></label
+            ><label class="field"
+              >Viewing direction<select formControlName="direction">
+                <option>Unknown</option>
+                <option>Plan up</option>
+                <option>Plan right</option>
+                <option>Plan down</option>
+                <option>Plan left</option>
+              </select></label
+            >
+            @if (!readonly()) {
+              <button
+                class="btn secondary full"
+                type="button"
+                [disabled]="!referenceImage() || referenceBusy()"
+                (click)="analyzeReference()"
+              >
+                <app-icon name="sparkles" />
+                {{ referenceBusy() ? 'Analyzing…' : 'Simulate scene analysis' }}
+              </button>
+            }
+            @if (referenceAnalysis()) {
+              <p class="reference-analysis" role="status">{{ referenceAnalysis() }}</p>
+            }
+            <label class="field"
+              >Scene description<textarea
+                formControlName="description"
+                rows="5"
+                maxlength="600"
+                placeholder="Describe visible landmarks and verify all details."
+              ></textarea></label
+            ><label class="checkbox-field"
+              ><input type="checkbox" formControlName="reviewed" /> I reviewed the image, location
+              and description.</label
+            >
+            @if (referenceForm.invalid && referenceForm.touched) {
+              <p class="field-error">Add a name, waypoint and scene description.</p>
+            }
+            @if (!readonly()) {
+              <button class="btn primary full" type="submit">
+                {{ referenceId() ? 'Update reference' : 'Add to draft' }}
+              </button>
+            }
+          </fieldset>
+        </form>
+        <p class="small muted">
+          Unreviewed references prevent publication. Direction uses the plan frame, not calibrated
+          geographic north.
+        </p>
+      </aside>
+    </section>
+  }
+  @if (submitOpen()) {
+    <div class="modal-backdrop" (click)="closeSubmit()">
+      <section
+        class="submit-dialog panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submit-title"
+        (click)="$event.stopPropagation()"
+        (keydown.escape)="closeSubmit()"
+        (keydown)="trapSubmitFocus($event)"
+      >
+        <button class="btn ghost modal-close" aria-label="Close submission" (click)="closeSubmit()">
+          <app-icon name="close" /></button
+        ><span class="eyebrow">Contribution review</span>
+        <h2 id="submit-title">Ready for another pair of eyes?</h2>
+        <p class="muted">
+          Your draft will be saved and frozen for review. An administrator can request changes or
+          publish a complete revision.
+        </p>
+        <label class="field"
+          >What changed?<textarea
+            [formControl]="summary"
+            rows="4"
+            maxlength="500"
+            placeholder="Describe the map changes and the evidence you checked."
+          ></textarea>
+        </label>
+        @if (summary.invalid && summary.touched) {
+          <p class="field-error">Write a summary of at least 8 characters.</p>
+        }
+        @if (error()) {
+          <p class="field-error" role="alert">{{ error() }}</p>
+        }
+        <div class="dialog-actions">
+          <button class="btn secondary" (click)="closeSubmit()">Keep editing</button
+          ><button class="btn primary" (click)="submit()">Submit contribution</button>
+        </div>
+      </section>
+    </div>
+  }
+} @else {
+  <div class="empty missing-draft">
+    <app-icon name="map" />
+    <h1>Contribution not found</h1>
+    <p>This draft may have been removed or the prototype data was reset.</p>
+    <a class="btn primary" routerLink="/targets">Explore mapping targets</a>
+  </div>
+}

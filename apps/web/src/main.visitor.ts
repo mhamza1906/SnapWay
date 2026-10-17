@@ -1,9 +1,11 @@
-import { provideBrowserGlobalErrorListeners } from '@angular/core';
+import { Component, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
-import { App } from './app/app';
+import { provideRouter, RouterOutlet } from '@angular/router';
 
-bootstrapApplication(App, {
+@Component({ selector: 'app-root', imports: [RouterOutlet], template: '<router-outlet />' })
+class VisitorApp {}
+
+bootstrapApplication(VisitorApp, {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter([

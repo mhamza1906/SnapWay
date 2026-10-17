@@ -1,0 +1,138 @@
+<div class="capture-backdrop" (click)="closed.emit()">
+  <section
+    class="capture-dialog"
+    #dialog
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="capture-title"
+    (click)="$event.stopPropagation()"
+    (keydown.escape)="closed.emit()"
+    (keydown)="trapFocus($event)"
+    tabindex="-1"
+  >
+    <header>
+      <div>
+        <span class="eyebrow">Photo localization · simulation</span>
+        <h2 id="capture-title">Find your checkpoint.</h2>
+      </div>
+      <button class="btn ghost" aria-label="Close photo localization" (click)="closed.emit()">
+        <app-icon name="close" />
+      </button>
+    </header>
+    <div class="scene-preview">
+      @if (previewImage()) {
+        <img
+          [src]="previewImage()"
+          alt="Uploaded scene for simulated localization"
+          (error)="
+            previewImage.set('');
+            imageError.set('This file is not a readable image. Choose another image.')
+          "
+        />
+      } @else {
+        <div class="scene-corridor">
+          <div></div>
+          <span>Reference scene preview</span>
+        </div>
+      }
+      <span class="scene-label">{{
+        imageName()
+          ? 'Imported image · historical evidence'
+          : 'Simulated camera · no hardware access'
+      }}</span>
+      @if (device.processing()) {
+        <div class="scan-line"></div>
+      }
+    </div>
+    <div class="capture-body" aria-live="polite">
+      @if (device.permission() === 'prompt') {
+        <h3>Try the camera permission flow</h3>
+        <p>This preview uses a simulated camera. You can also choose an image from this device.</p>
+        <div class="capture-actions">
+          <button class="btn primary" (click)="setPermission('granted')">Simulate allow</button
+          ><button class="btn secondary" (click)="setPermission('denied')">Simulate deny</button>
+        </div>
+      } @else if (device.permission() === 'denied' || device.permission() === 'unsupported') {
+        <h3>
+          {{ device.permission() === 'denied' ? 'Camera access denied' : 'Camera unavailable' }}
+        </h3>
+        <p>Choose a starting checkpoint manually, or change the permission simulation and retry.</p>
+        <button class="btn secondary" (click)="setPermission('granted')">
+          Enable camera simulation</button
+        ><button class="btn ghost" (click)="closed.emit()">Choose manually</button>
+      } @else if (device.processing()) {
+        <h3>Comparing scene landmarks…</h3>
+        <p>Running the selected demo result. The last confirmed checkpoint stays unchanged.</p>
+        <button class="btn secondary" (click)="device.cancel()">Cancel analysis</button>
+      } @else if (result() === 'accepted') {
+        <span class="badge">Demo match · {{ observationTime() }}</span>
+        <h3>{{ candidates()[0]?.label }}</h3>
+        <p>
+          This simulated result belongs to the captured scene. Confirm the checkpoint and then your
+          facing direction.
+        </p>
+        <button class="btn primary" (click)="checkpoint.emit(candidates()[0]?.id || '')">
+          Use demo checkpoint</button
+        ><button class="btn ghost" (click)="result.set(null)">Retake</button>
+      } @else if (result() === 'ambiguous') {
+        <h3>Two places look similar</h3>
+        <p>
+          No position was confirmed. Select a known checkpoint manually or retake with a clearer
+          landmark.
+        </p>
+        @for (node of candidates(); track node.id) {
+          <button class="btn secondary" (click)="checkpoint.emit(node.id)">
+            Choose {{ node.label }} manually
+          </button>
+        }
+        <button class="btn ghost" (click)="result.set(null)">Retake photo</button>
+      } @else if (result() === 'rejected') {
+        <h3>No supported match</h3>
+        <p>
+          This demo scene could not be matched to the selected floor. Check the floor or choose a
+          manual starting point.
+        </p>
+        <button class="btn secondary" (click)="result.set(null)">Retake photo</button
+        ><button class="btn ghost" (click)="closed.emit()">Choose manually</button>
+      } @else if (result() === 'error') {
+        <h3>Recognition is unavailable</h3>
+        <p>
+          A simulated service error interrupted this request. Your map and last checkpoint are
+          preserved.
+        </p>
+        <button class="btn primary" (click)="capture()">Retry analysis</button
+        ><button class="btn ghost" (click)="closed.emit()">Continue manually</button>
+      } @else {
+        <h3>Include a sign or distinct landmark</h3>
+        <p>
+          Choose a demo result below, then compare. An uploaded image is previewed locally; no AI
+          provider is called.
+        </p>
+        <label class="field"
+          ><span>Demo recognition outcome</span
+          ><select [value]="outcome()" (change)="outcome.set($any(value($event)))">
+            <option value="accepted">Accepted checkpoint</option>
+            <option value="ambiguous">Ambiguous</option>
+            <option value="rejected">Rejected</option>
+            <option value="error">Service error</option>
+          </select></label
+        >
+        <div class="capture-actions">
+          <button class="btn primary" (click)="capture()">
+            <app-icon name="camera" /> Compare scene</button
+          ><label class="btn secondary"
+            ><app-icon name="upload" /> Choose image<input
+              class="file-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              aria-label="Choose scene image"
+              (change)="uploadPhoto($event)"
+          /></label>
+        </div>
+      }
+      @if (imageError()) {
+        <p class="upload-error" role="alert">{{ imageError() }}</p>
+      }
+    </div>
+  </section>
+</div>

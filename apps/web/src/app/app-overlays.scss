@@ -1,0 +1,170 @@
+﻿.toast {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  background: #26392e;
+  color: #fff;
+  border-radius: 10px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: min(600px, 90vw);
+  box-shadow: 0 5px 30px #182b2429;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  z-index: 100;
+  font-size: 12px;
+}
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.toast button {
+  background: none;
+  border: 0;
+  color: white;
+  cursor: pointer;
+  display: flex;
+}
+.toast app-icon {
+  width: 16px;
+}
+.search-results {
+  display: grid;
+  margin-top: 20px;
+  gap: 8px;
+}
+.search-results a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 7px;
+  background: var(--canvas);
+}
+.search-results a:hover {
+  background: #f8ece5;
+}
+.search-results small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  font-size: 11px;
+}
+.search-results a app-icon:last-child {
+  margin-left: auto;
+}
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 200;
+  background: white;
+  padding: 12px;
+  border: 2px solid var(--accent);
+}
+.skip-link:focus {
+  top: 10px;
+}
+.sidebar-scrim {
+  position: fixed;
+  inset: 0;
+  background: #13231c55;
+  border: 0;
+  z-index: 29;
+}
+.search-dialog {
+  max-height: 85dvh;
+  overflow: auto;
+}
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 210px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .workspace-main {
+    margin-left: 210px;
+  }
+  .topbar {
+    padding: 0 24px;
+  }
+  .search-trigger span {
+    display: none;
+  }
+  .visitor-card {
+    margin-top: 18px;
+  }
+}
+@media (max-width: 800px) {
+  .sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    width: 232px;
+    transition: transform 0.2s;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  .workspace-main {
+    margin-left: 0;
+  }
+  .mobile-menu {
+    display: flex;
+  }
+  .topbar {
+    height: 62px;
+    padding: 0 15px;
+  }
+  .breadcrumb {
+    font-size: 10px;
+  }
+  .breadcrumb > span {
+    padding: 0 5px;
+  }
+  .demo-badge {
+    display: none;
+  }
+  .search-trigger {
+    margin-right: 0;
+  }
+  .topbar > .actions {
+    gap: 8px;
+  }
+}
+.visitor-return {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1500px;
+  margin: 20px auto 0;
+  padding: 0 38px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.visitor-return a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.visitor-return a app-icon {
+  width: 14px;
+}
+.visitor-return > span {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+@media (max-width: 700px) {
+  .visitor-return {
+    padding: 0 18px;
+  }
+}

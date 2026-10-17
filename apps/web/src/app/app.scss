@@ -1,0 +1,230 @@
+﻿:host {
+  display: block;
+  min-height: 100dvh;
+}
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 232px;
+  background: #fcfcfa;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  padding: 27px 18px 0;
+  z-index: 30;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  font-size: 27px;
+  font-weight: 750;
+  letter-spacing: -1.4px;
+  padding: 0 8px 27px;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--accent);
+  color: white;
+  width: 32px;
+  height: 32px;
+  margin-right: 9px;
+  transform: rotate(-7deg);
+}
+.brand-dot {
+  color: var(--accent);
+}
+.workspace-name {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 11px 9px;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 28px;
+}
+.workspace-name small {
+  display: block;
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.workspace-name app-icon {
+  width: 14px;
+  margin-left: auto;
+}
+.workspace-monogram {
+  background: #eeeae1;
+  color: #746c55;
+  border-radius: 7px;
+  padding: 9px;
+  font-weight: 700;
+}
+.nav-label {
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 1.7px;
+  color: #939a96;
+  margin: 0 13px 10px;
+}
+nav {
+  display: grid;
+  gap: 5px;
+}
+nav a {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 11px 12px;
+  border-radius: 7px;
+  color: #68736d;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+nav a:hover {
+  background: #f0f2ec;
+}
+nav a.active {
+  background: #f8ece5;
+  color: #b85d3d;
+}
+nav app-icon {
+  width: 18px;
+  height: 18px;
+}
+.nav-count {
+  margin-left: auto;
+  background: #eed6c9;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+}
+.visitor-card {
+  margin: 30px 4px 20px;
+  padding: 17px 12px;
+  border: 1px solid #dfe4dc;
+  border-radius: 10px;
+  background: linear-gradient(140deg, #f0f4ed, #fafaf5);
+  font-size: 11px;
+}
+.visitor-card strong {
+  display: block;
+  font-size: 12px;
+  margin-top: 9px;
+}
+.visitor-card p {
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 6px 0 14px;
+  color: #788174;
+}
+.visitor-icon {
+  color: #718365;
+}
+.visitor-card .btn {
+  width: 100%;
+  font-size: 10px;
+  padding: 8px;
+}
+.visitor-card .btn app-icon {
+  width: 14px;
+}
+.bottom-nav {
+  margin-top: auto;
+  margin-bottom: 18px;
+}
+.profile {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 11px;
+}
+.profile .avatar {
+  width: 31px;
+  height: 31px;
+  font-size: 10px;
+}
+.profile small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.profile a {
+  margin-left: auto;
+  color: #929a94;
+}
+.profile a app-icon {
+  width: 16px;
+}
+.workspace-main {
+  margin-left: 232px;
+}
+.topbar {
+  height: 73px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 37px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.breadcrumb {
+  font-size: 11px;
+  color: var(--muted);
+}
+.breadcrumb span {
+  padding: 0 10px;
+  color: #bec4bc;
+}
+.breadcrumb strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+.search-trigger {
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #919a92;
+  cursor: pointer;
+  margin-right: 14px;
+}
+.search-trigger app-icon {
+  width: 16px;
+}
+.demo-badge {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--green);
+  background: #eff5ee;
+  border: 1px solid #e2e9dd;
+  border-radius: 20px;
+  padding: 5px 9px;
+}
+.role-select select {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  color: #536156;
+  font: inherit;
+  font-size: 11px;
+  padding: 6px 3px;
+}
+.mobile-menu {
+  display: none;
+}
