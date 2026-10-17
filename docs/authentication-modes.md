@@ -28,6 +28,13 @@ Native SVG morphs start only after Angular binds their frames, preventing a prem
 arrow flash. Main letter, thread and arrow strokes remain eight CSS pixels without
 scale compression. Interior aperture and lane markings use finer decorative strokes.
 The moving brand fully leaves by 6.2 seconds and does not restore itself.
+The y stem and its initial arrow share the same blue from the outset. Other
+letters switch to that exact blue as their morph starts; the travelling thread
+stays fully opaque during unfolding. One composited parent fades the whole mark
+and thread together, preventing darker overlap seams and late joint remnants.
+Decorative aperture, lane markings and initial arrow cap hide when their glyph
+starts opening. Camera status badges use bounded text lengths, centered baselines,
+and centered icon/text groups so all labels remain inside their backgrounds.
 
 The subtitle stays on one line on the same horizontal axis as the arrow on desktop
 and narrow layouts; its font size adapts instead of moving to a second header row.

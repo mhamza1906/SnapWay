@@ -5,6 +5,12 @@
   min-height: var(--header-height);
   isolation: isolate;
 }
+.header-ink {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: fade-thread 0.6s ease 5.6s forwards;
+}
 .entry-brand {
   position: absolute;
   left: 36px;
@@ -13,6 +19,7 @@
   height: 57.2px;
   color: #192b3b;
   text-decoration: none;
+  pointer-events: auto;
   transform-origin: 25% 100%;
   animation:
     brand-bounce 1s both,
@@ -31,12 +38,8 @@
   pointer-events: none;
 }
 .lead-y {
-  animation:
-    lead-arrow 4.1s cubic-bezier(0.4, 0, 0.2, 1) 1.7s both,
-    thread-ink 0.7s 1s both;
-}
-.letter-unroll {
-  animation: fade-thread 0.6s ease 5.6s forwards;
+  color: #008ff5;
+  animation: lead-arrow 4.1s cubic-bezier(0.4, 0, 0.2, 1) 1.7s both;
 }
 .brand-rest {
   position: absolute;
@@ -107,32 +110,23 @@
 }
 @keyframes lead-arrow {
   0% {
-    opacity: 1;
     transform: translateX(0);
   }
   85% {
-    opacity: 1;
     transform: translateX(var(--flight-distance));
   }
   100% {
-    opacity: 0;
     transform: translateX(var(--flight-distance));
   }
 }
 @keyframes header-sweep {
   0% {
-    opacity: 0;
     clip-path: inset(0 100% 0 0);
   }
-  10% {
-    opacity: 0.65;
-  }
   85% {
-    opacity: 0.5;
     clip-path: inset(0 0 0 0);
   }
   100% {
-    opacity: 0;
     clip-path: inset(0 0 0 0);
   }
 }
@@ -201,9 +195,7 @@
   color: #008ff5;
 }
 .letter-unroll:not(.road-glyph) {
-  animation:
-    fade-thread 0.6s ease 5.6s forwards,
-    thread-ink 0.6s var(--unroll-delay) both;
+  animation: thread-ink 0s var(--unroll-delay) forwards;
 }
 .brand-motion .road-center,
 .brand-rest .road-center {
@@ -212,7 +204,7 @@
   stroke-dasharray: 3.5 3;
 }
 .brand-motion .road-center {
-  animation: fade-thread 0.15s 2.4s forwards;
+  animation: brand-exit 0s 2.4s forwards;
 }
 .camera-aperture path {
   stroke: #fff;
@@ -227,7 +219,7 @@
   stroke: none;
 }
 .brand-motion .camera-aperture {
-  animation: fade-thread 0.15s 3.7s forwards;
+  animation: brand-exit 0s 3.7s forwards;
 }
 @keyframes thread-ink {
   from {
@@ -242,7 +234,7 @@
   stroke: #008ff5;
 }
 .brand-motion .initial-arrow {
-  animation: fade-thread 0.25s 1s forwards;
+  animation: brand-exit 0s 1s forwards;
 }
 @media (prefers-reduced-motion: reduce) and (max-width: 900px) {
   .entry-brand {
