@@ -62,6 +62,7 @@ python scripts/dev.py check
 ```text
 apps/web/               Angular contributor workspace + separate visitor entry
 apps/web/android/       Generated Capacitor Android project and Gradle wrapper
+apps/web/ios/           Generated Capacitor iOS project (Xcode, Swift Package Manager)
 apps/api/               Django/DRF, domain schema, custom user, health and Celery setup
 apps/mcp/               Official MCP v2 read-only local stdio scaffold
 packages/geometry/     Geometry boundary; algorithms follow later
