@@ -1,0 +1,12 @@
+---
+description: SnapWay uses only local/env/api.env for private development secrets
+alwaysApply: true
+---
+
+# Private environment file
+
+- Load secrets **only** from ignored `local/env/api.env`.
+- Do **not** use, create, or read a repo-root `.env` for application settings.
+- Do not teach teammates to put `DATABASE_URL` or provider keys in root `.env`.
+- Bootstrap / docs / `config.settings.development` must stay aligned with this rule.
+- Root `.env.example` is a public template only; real values go in `local/env/api.env`.

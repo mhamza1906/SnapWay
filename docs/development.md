@@ -65,10 +65,12 @@ is generated only when `local/env/api.env` does not exist. Repeating bootstrap
 preserves existing settings and data; an invalid existing configuration is
 reported instead of overwritten.
 
-`config.settings.development` alone loads that private file. Process environment
+`config.settings.development` alone loads that private file. This project does
+**not** use a repo-root `.env` for application settings. Process environment
 variables take precedence. The root `.env.example` contains only implemented
-development setup settings and inactive provider placeholders. The full future
-configuration inventory remains intact at `docs/initial/.env.example`.
+development setup settings and inactive provider placeholders (copy values into
+`local/env/api.env`). The full future configuration inventory remains intact at
+`docs/initial/.env.example`.
 
 | Settings profile | Database | Secret source |
 | --- | --- | --- |
@@ -95,12 +97,14 @@ uv run --locked python apps/api/manage.py createsuperuser
 Google OAuth for developers is wired through django-allauth on branch
 `feature/backend-oauth`. See the shared feature record
 [backend-oauth.md](backend-oauth.md): `/accounts/google/login/`, session
-`GET /api/auth/me/` and `POST /api/auth/logout/`, local SQLite by default, and
-env placeholders for `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`.
-Map roles are never granted by Google. AI provider SDKs remain inactive. No
-application authoring job or server-backed guest-navigation capability is
-implemented. The separate frontend prototype still simulates contributor roles
-locally until an Angular login UI is added.
+`GET /api/auth/me/` and `POST /api/auth/logout/`, and env placeholders for
+`GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`. Private development
+settings live **only** in ignored `local/env/api.env` (never a repo-root `.env`).
+Development prefers Tiger Data PostgreSQL via `DATABASE_URL` there; SQLite
+remains the offline fallback. Map roles are never granted by Google. AI provider
+SDKs remain inactive. No application authoring job or server-backed
+guest-navigation capability is implemented. The separate frontend prototype still
+simulates contributor roles locally until an Angular login UI is added.
 
 ## Development commands and health
 
