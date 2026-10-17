@@ -25,16 +25,30 @@ Personal execution history is maintained in ignored `local/ACTIONS.md`.
   map-first application UI and auth pages are the next integration stage after
   the user completes the Console setup and the provider probe passes.
 
-## 1. Select the Google project
+## 1. Create the dedicated Google project
 
-1. Open [Google Cloud Console](https://console.cloud.google.com/), then the project
-   selector at the top. Find the project used for the previous Map Tiles work.
-2. Record its **Project ID**, not just its display name. In **Billing**, confirm
-   that this project is linked to an active billing account for the standard Maps
-   JavaScript API setup. Existing Map Tiles use does not prove this API is enabled.
-3. In **APIs & Services → Enabled APIs & services**, inspect enabled services.
-   Google Developer Console and Google Cloud Console refer to the same project
-   ecosystem; a separate developer account is not required for this web test.
+Use a dedicated project for SnapWay. Reusing the previous Map Tiles project was
+only a quick-test option; a separate project keeps this team's APIs, credentials,
+permissions and usage management independent of the older application.
+
+1. Open [New Project](https://console.cloud.google.com/projectcreate), or open
+   [Google Cloud Console](https://console.cloud.google.com/), click the top project
+   selector and **New project**. The **IAM & Admin → Manage resources → Create
+   project** route is another entry point.
+2. Enter **Project name: SnapWay Development**. Use the generated globally unique
+   **Project ID**, or edit it before creation. For a personal account choose **No
+   organization** if offered; for a team-owned Workspace choose its actual
+   organization/folder. Click **Create**, then select the new project at the top.
+3. Record its **Project ID**, not just its display name. Open
+   [Billing](https://console.cloud.google.com/billing), with the SnapWay project
+   selected. If it has no billing account, click **Link a billing account**, choose
+   an existing valid account and **Set account**. If only account management is
+   shown, open **My projects**, find SnapWay, then **Actions → Change billing →
+   choose account → Set account**. Reusing a billing account does not reuse the
+   older project's APIs or credentials.
+4. Confirm the project selector says **SnapWay Development** before each following
+   operation. Google Developer Console and Google Cloud Console use the same
+   project ecosystem; a separate developer account is not required.
 
 ## 2. Enable only the immediate Maps service
 
@@ -68,6 +82,34 @@ Personal execution history is maintained in ignored `local/ACTIONS.md`.
 5. Put the key in `local/env/web.env` as described below. Do not paste it into a
    source file or this guide. A browser Maps key is visible in browser requests;
    website/API restrictions are the protection, not treating it as a server secret.
+
+### Sharing with team members
+
+Running the frontend does not require a Console account or an IAM grant. The key
+owner can open **APIs & Services → Credentials**, find `snapway-web-dev`, click
+**Show key** (or open it and use its copy control), and share the restricted
+browser key through the team's password manager/private credential channel.
+Each developer puts it in their own ignored `local/env/web.env`. The allowed
+localhost origins apply on each member's machine; do not add teammate email
+addresses or private LAN IPs to the website-referrer list.
+
+For members who need Console access, open
+[IAM](https://console.cloud.google.com/iam-admin/iam), verify the project, click
+**Grant access**, enter the member's Google account under **New principals**, then
+use **Select a role** and **Save**:
+
+| Task | Role |
+| --- | --- |
+| View/copy API keys | API Keys Viewer (`roles/serviceusage.apiKeysViewer`) |
+| Create/change/delete keys and their restrictions | API Keys Admin (`roles/serviceusage.apiKeysAdmin`) |
+| Configure Google OAuth clients/branding | OAuth Config Editor (`roles/oauthconfig.editor`) |
+
+Grant only the roles needed for that member's work. API Keys Viewer can read key
+strings, not only metadata, across its granted project scope. Sharing an OAuth
+Client ID is different from sharing its Client secret: the secret is reserved for
+backend maintainers and their private configuration. Do not distribute OAuth
+secrets through frontend files, commits or PR descriptions. OAuth **Test users**
+and IAM project members are separate lists with different purposes.
 
 ## 4. Choose the Map ID and fill local configuration
 
@@ -156,9 +198,10 @@ the fictional prototype buildings have not been assigned invented real addresses
    backend callback. Do not invent a working callback on port 4200. This does not
    prevent preparing the client; it deliberately does not yet enable its login flow.
 6. Copy the Client ID to the reserved frontend/backend fields. Copy the Client
-   secret only to `local/env/google-auth.env`. Do not add secrets or Google tokens
-   to Local Storage. No service-account key or OAuth consent publishing is needed
-   for the isolated Maps test or auth UI work.
+   secret only to `local/env/google-auth.env`, immediately when it is created:
+   Google only displays/downloads the full secret at creation. Do not add secrets
+   or Google tokens to Local Storage. No service-account key or OAuth consent
+   publishing is needed for the isolated Maps test or auth UI work.
 
 Frontend auth work will cover login, registration, verify-email/resend states,
 forgot/reset password, Google pending/error states and return navigation. Until
@@ -204,4 +247,7 @@ Official references checked on October 17, 2026:
 [browser location](https://developers.google.com/maps/documentation/javascript/geolocation),
 [Google identity setup](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid),
 [allauth Google provider](https://docs.allauth.org/en/latest/socialaccount/providers/google.html),
-[Maps directions URLs](https://developers.google.com/maps/documentation/urls/guide).
+[Maps directions URLs](https://developers.google.com/maps/documentation/urls/guide),
+[project access](https://cloud.google.com/iam/docs/granting-changing-revoking-access),
+[API key roles](https://docs.cloud.google.com/iam/docs/roles-permissions/apikeys),
+[OAuth client configuration and secret visibility](https://support.google.com/cloud/answer/15549257?hl=en).
