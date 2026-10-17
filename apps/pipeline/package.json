@@ -12,6 +12,7 @@
     "dev": "node server/start.js dev",
     "prod": "node server/start.js prod",
     "build-plan": "node server/build-from-plan.js",
+    "import-prebuilt": "node server/vectorization/import-prebuilt.js",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
