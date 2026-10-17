@@ -98,4 +98,4 @@ uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
 
 ## Commits
 
-Update after commits on `feature/backend-permissions`.
+- `1f79869` — Add map Membership permission layer for admin and volunteer roles.
