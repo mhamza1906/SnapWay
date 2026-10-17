@@ -10,3 +10,6 @@ server setup, protected configuration, gated Actions deployment, versioned
 releases, health checks and rollback. Keep writable assets and credentials outside
 immutable releases. Deployment stays disabled until server setup is complete and
 the production Actions variable is enabled; no live release has been verified.
+
+Optional photo-localization engine on the same VM, installed by an administrator
+and outside automatic releases: [place-match-vultr.md](../docs/place-match-vultr.md).

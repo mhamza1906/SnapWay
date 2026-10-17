@@ -6,6 +6,9 @@ API, quota or billing change has been made.** Every price below is a planning es
 from public list prices as remembered on 2026-10-17; check the live pricing pages before
 deciding. Measured numbers come from `apps/place-match/REPORT-v2.md` (Apple M3).
 
+Short-term alternative on the existing Vultr VM (MegaLoc on CPU, after a resize):
+[place-match-vultr.md](place-match-vultr.md).
+
 ## Target shape
 
 ```text
