@@ -1,6 +1,6 @@
 from django.urls import path
 
-from maps.views import TargetAccessView
+from maps.views import PublicBuildingListView, TargetAccessView
 from maps.views_graph import (
     EdgeCollectionView,
     EdgeDetailView,
@@ -14,6 +14,7 @@ from maps.views_graph import (
 )
 
 urlpatterns = [
+    path("public/buildings/", PublicBuildingListView.as_view(), name="public-buildings"),
     path(
         "targets/<uuid:target_id>/access/",
         TargetAccessView.as_view(),

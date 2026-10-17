@@ -2,11 +2,12 @@
 
 import argparse
 import json
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ENV_PATH = ROOT / "local" / "env" / "web.env"
+ENV_PATH = ROOT / "local" / ".env"
 HTML_PATH = Path(__file__).with_suffix(".html")
 
 
@@ -19,7 +20,11 @@ def read_config():
                 continue
             name, separator, value = line.partition("=")
             if separator:
-                values[name.strip()] = value.strip().strip("\"'")
+                values[name.strip()] = value.strip()
+    # Explicit process overrides follow the application environment convention.
+    for name in ("PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY", "GOOGLE_MAPS_MAP_ID"):
+        if name in os.environ:
+            values[name] = os.environ[name]
     return {
         "key": values.get("PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY", ""),
         "mapId": values.get("GOOGLE_MAPS_MAP_ID", "DEMO_MAP_ID") or "DEMO_MAP_ID",
@@ -31,7 +36,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/":
             self.send_error(404)
             return
-        # This allowlist never reads API/backend env files or OAuth secrets.
+        # Only these two browser settings may leave the shared private file.
         config = json.dumps(read_config(), ensure_ascii=True).replace("<", "\\u003c")
         page = HTML_PATH.read_text(encoding="utf-8").replace("__MAP_CONFIG__", config)
         body = page.encode("utf-8")
@@ -59,7 +64,7 @@ def main():
     if args.check:
         return 0 if configured else 2
     server = HTTPServer(("127.0.0.1", args.port), Handler)
-    print(f"Open http://localhost:{args.port}/ (Ctrl+C to stop)")
+    print(f"Open http://127.0.0.1:{args.port}/ (Ctrl+C to stop)")
     print("Google requests start only after clicking Load Google Map.")
     try:
         server.serve_forever()

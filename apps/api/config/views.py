@@ -2,12 +2,32 @@ import logging
 
 from django.conf import settings
 from django.db import DatabaseError, connection
+from django.views.decorators.cache import never_cache
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
+
+
+@extend_schema(exclude=True)
+@api_view(["GET"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+@never_cache
+def client_config(request):
+    """Explicit browser allowlist; never serialize environment or provider settings."""
+    google = settings.SOCIALACCOUNT_PROVIDERS.get("google", {}).get("APP", {})
+    return Response(
+        {
+            "maps": {
+                "browser_key": settings.PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY,
+                "map_id": settings.GOOGLE_MAPS_MAP_ID,
+            },
+            "auth": {"google_enabled": bool(google.get("client_id") and google.get("secret"))},
+        }
+    )
 
 
 @extend_schema(exclude=True)

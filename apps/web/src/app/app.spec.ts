@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { PROTOTYPE_STORAGE } from './core/prototype.repository';
+import { AuthService } from './core/auth.service';
 
 @Component({ template: '<p>Route content</p>' })
 class RouteContent {}
@@ -18,6 +19,17 @@ describe('Workspace shell routing', () => {
           { path: 'targets', component: RouteContent },
         ]),
         { provide: PROTOTYPE_STORAGE, useValue: null },
+        {
+          provide: AuthService,
+          useValue: {
+            refresh: async () => ({ authenticated: true }),
+            initials: () => 'TS',
+            name: () => 'Test',
+            role: () => 'No map membership',
+            busy: () => false,
+            error: () => '',
+          },
+        },
       ],
     });
     const fixture = TestBed.createComponent(App);

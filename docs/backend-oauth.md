@@ -1,5 +1,12 @@
 # Backend Google OAuth
 
+Frontend integration update: `/welcome` now starts Google sign-in from Angular,
+`/auth/complete` restores a safe local destination, and the shell uses server
+identity and CSRF logout. `/api/auth/me/` also sets the CSRF cookie and is not
+cached. The original backend-only non-goals below describe that earlier slice;
+see [frontend-iteration.md](frontend-iteration.md) for current behavior, live
+acceptance, implementation links and remaining email/native/production work.
+
 Shared feature record for Google developer login via django-allauth and Django
 sessions. Personal execution history is in ignored `local/ACTIONS.md`. Work lives
 on branch `feature/backend-oauth`.

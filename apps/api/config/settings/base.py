@@ -44,7 +44,7 @@ AUTHENTICATION_BACKENDS = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "accounts" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -68,6 +68,8 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APP_RELEASE = env("APP_RELEASE", default="development")
+PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY = env("PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY", default="")
+GOOGLE_MAPS_MAP_ID = env("GOOGLE_MAPS_MAP_ID", default="DEMO_MAP_ID") or "DEMO_MAP_ID"
 
 # Google establishes identity; map roles stay in maps.Membership / staff (never from Google).
 LOGIN_REDIRECT_URL = env("LOGIN_REDIRECT_URL", default="/api/auth/me/")

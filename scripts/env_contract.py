@@ -11,6 +11,8 @@ PRIVATE = ROOT / "local" / ".env"
 TEMPLATE = ROOT / ".env.example"
 LEGACY = (
     ROOT / "local/env/api.env",
+    ROOT / "local/env/web.env",
+    ROOT / "local/env/google-auth.env",
     ROOT / "apps/pipeline/.env.prod",
     ROOT / "apps/pipeline/.env.dev",
     ROOT / "apps/pipeline/.env",
@@ -18,6 +20,14 @@ LEGACY = (
     ROOT / ".env",
 )
 MANAGED = {"APP_RELEASE", "STATIC_ROOT", "STATIC_URL", "PYTHONPATH"}
+# Retired scaffolding never controlled the live Django OAuth implementation.
+# Accept only known scaffold defaults; custom values require explicit review.
+RETIRED_DEFAULTS = {
+    "GOOGLE_CLOUD_PROJECT_ID": {""},
+    "GOOGLE_OAUTH_SCOPES": {"", "openid,email,profile"},
+    "GOOGLE_OAUTH_CALLBACK_URL": {""},
+    "PUBLIC_APP_ORIGIN": {"", "http://localhost:4200", "http://127.0.0.1:4200"},
+}
 KEY = re.compile(r"[A-Z][A-Z0-9_]*")
 
 
@@ -140,6 +150,12 @@ def migrate():
         for key, value in read_values(source).items():
             if key == "MOBILE_API_TOKEN":
                 key = "PLACEMATCH_ENGINE_TOKEN"
+            if key == "PUBLIC_GOOGLE_OAUTH_CLIENT_ID":
+                key = "GOOGLE_OAUTH_CLIENT_ID"
+            if key in RETIRED_DEFAULTS:
+                if value in RETIRED_DEFAULTS[key]:
+                    continue
+                raise ContractError(f"Retired key needs private review: {key}")
             if key in MANAGED:
                 continue
             if key not in defaults:
