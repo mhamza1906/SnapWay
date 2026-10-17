@@ -10,6 +10,7 @@ from maps.views_graph import (
     NodeDetailView,
     NodePhotoCollectionView,
     PhotoDetailView,
+    RevisionIndexView,
     UnderlayUploadView,
 )
 
@@ -60,5 +61,10 @@ urlpatterns = [
         "revisions/<uuid:revision_id>/underlay/",
         UnderlayUploadView.as_view(),
         name="map-revision-underlay",
+    ),
+    path(
+        "revisions/<uuid:revision_id>/index/",
+        RevisionIndexView.as_view(),
+        name="map-revision-index",
     ),
 ]
