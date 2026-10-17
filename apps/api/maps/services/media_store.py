@@ -16,6 +16,14 @@ def put_bytes(storage_key: str, raw: bytes, content_type: str) -> str:
     return default_storage.save(storage_key, content)
 
 
+def read_bytes(storage_key: str) -> bytes:
+    """Read all bytes for an adapter-relative key."""
+    if not storage_key:
+        raise ValueError("storage_key is required")
+    with default_storage.open(storage_key, "rb") as handle:
+        return handle.read()
+
+
 def signed_url(storage_key: str, ttl: int | None = None) -> str:
     """Return a fetchable URL (signed when using S3/R2; MEDIA_URL locally)."""
     if not storage_key:
