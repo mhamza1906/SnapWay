@@ -1,5 +1,9 @@
 # Map-authoring pipeline
 
+**Latest future workflow:** [Developer image editing, semantic graph, four-direction
+references and public photo/camera navigation](navigation-ai-workflow-plan.md).
+This is a feasibility/implementation plan, not a completed runtime replacement.
+
 **Current vectorization slice:** [Vectorizer.AI adapter and prebuilt demo assets](vectorizer-api-demo.md).
 Live calls are disabled with empty credentials. The mock is reserved for **IA floor 4**
 (asset pending); IA floor 1 belongs to the separate prebuilt navigation demo route.

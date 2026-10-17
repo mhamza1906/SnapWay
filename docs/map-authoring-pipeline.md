@@ -166,3 +166,17 @@ contract change was made. Nine offline tests pass; the full pipeline suite repor
 
 Implementation checkpoint: [f65ac91](https://github.com/mhamza1906/SnapWay/commit/f65ac91)
 (local commit; remote link becomes available when this branch is next pushed).
+
+## Future authoring and visual navigation workflow
+
+The member's seven-step update is assessed in the new
+[navigation/AI workflow plan](pipeline/navigation-ai-workflow-plan.md): Image 2.5
+optimization and developer edits; Gemini 4 semantic graph and asynchronous
+four-direction scene understanding; Flash-assisted graph editing; manual SVG
+prebuilds with the IA-4-only mock; and public static/photo or periodic-camera
+guidance without an indoor map UI. The plan defines frame/revision binding,
+deterministic wall checks, calibrated distances, interference exclusions,
+durable uploads, capture backpressure, review gates and proposed acceptance.
+Continuous world-registered AR remains a separate, unverified capability.
+This update changes documentation only; existing APIs/schema/dependencies and
+paid-call settings remain unchanged.

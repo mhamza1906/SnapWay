@@ -1,5 +1,9 @@
 # Floor-plan authoring pipeline redesign proposal
 
+**Planning update:** use the [latest navigation and AI workflow plan](navigation-ai-workflow-plan.md)
+for future product work. This document preserves the earlier experiment design;
+its direct-LLM vectorization comparisons are not the current implementation roadmap.
+
 **Date:** October 17, 2026. **Status:** proposed experiments; no runtime, dependency, application API or architecture migration has been implemented. Requesting-member approval remains required before changing architecture/dependencies under [AGENTS.md](../../AGENTS.md).
 
 The [real API trial](../audits/2026-10-17-map-authoring-pipeline.md) failed map acceptance. The [independent web artifact review](../audits/2026-10-17-chatgpt-web-floorplan.md) demonstrates a promising human-corrected visual workflow and also a reproducible second-version interaction failure. This proposal turns those observations into bounded experiments; it does not claim that the new chain already works or costs less.
