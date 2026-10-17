@@ -33,7 +33,7 @@ def ensure_demo_draft(user, target_id=None, *, force_new: bool = False) -> dict:
                 grant_membership(
                     target=target,
                     user=user,
-                    role=Membership.Role.ADMIN,
+                    role=Membership.Role.VOLUNTEER,
                     granted_by=user,
                 )
             else:
@@ -51,7 +51,7 @@ def ensure_demo_draft(user, target_id=None, *, force_new: bool = False) -> dict:
             Membership.objects.create(
                 target=target,
                 user=user,
-                role=Membership.Role.ADMIN,
+                role=Membership.Role.VOLUNTEER,
                 granted_by=user,
             )
 

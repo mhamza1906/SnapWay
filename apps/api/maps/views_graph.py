@@ -1,11 +1,11 @@
 """REST surfaces for draft bootstrap and graph Node/Edge editing."""
 
+from accounts.modes import IsDeveloperMode
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -40,7 +40,7 @@ def _error_response(exc: Exception):
 class EnsureDraftView(APIView):
     """POST /api/maps/drafts/ensure/ — create or resume editable draft."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDeveloperMode]
 
     @extend_schema(
         summary="Ensure demo draft contribution + unfrozen revision",

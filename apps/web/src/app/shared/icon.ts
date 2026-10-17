@@ -4,6 +4,7 @@ const paths: Record<string, string> = {
   map: 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z M9 3v15 M15 6v15',
   layers: 'm12 3 10 6-10 6L2 9z M2 13l10 6 10-6 M2 17l10 6 10-6',
   plus: 'M12 5v14 M5 12h14',
+  lock: 'M5 10h14v11H5z M8 10V6a4 4 0 0 1 8 0v4 M12 14v3',
   close: 'm6 6 12 12 M18 6 6 18',
   check: 'm5 12 4 4L19 6',
   'arrow-right': 'M4 12h16 m-6-6 6 6-6 6',

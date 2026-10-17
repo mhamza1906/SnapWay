@@ -11,8 +11,8 @@ User = get_user_model()
 
 class Command(BaseCommand):
     help = (
-        "Grant or revoke a map Membership. Staff may bootstrap the first admin "
-        "on a target; afterward prefer an existing map admin as --granted-by."
+        "Grant or revoke a map Membership. Only a database-provisioned staff operator "
+        "may grant admin; map admins may manage volunteer membership."
     )
 
     def add_arguments(self, parser):

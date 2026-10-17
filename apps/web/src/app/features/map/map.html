@@ -4,13 +4,16 @@
     <nav aria-label="Account navigation">
       @if (contributorEnabled) {
         @if (auth.signedIn()) {
-          <a class="btn secondary small" routerLink="/overview">Open workspace</a>
-          <a class="account-link" routerLink="/settings">{{ auth.name() }}</a>
+          @if (auth.isDeveloper()) {
+            <a class="btn secondary small" routerLink="/overview">Open workspace</a>
+          }
+          <a class="btn secondary small" routerLink="/welcome">Switch experience</a>
+          <a class="account-link" routerLink="/welcome">{{ auth.name() }}</a>
           <button class="btn ghost small" (click)="auth.signOut()" [disabled]="auth.busy()">
             Sign out
           </button>
         } @else {
-          <a class="btn secondary small" routerLink="/welcome">Sign in</a>
+          <a class="btn secondary small" routerLink="/sign-in">Sign in</a>
         }
       } @else {
         <a class="btn secondary small" routerLink="/navigate">Navigation preview</a>

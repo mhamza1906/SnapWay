@@ -59,7 +59,11 @@ describe('Public building discovery', () => {
   });
 
   it('uses published server coordinates for markers and walking directions', async () => {
-    TestBed.inject(AuthService).session.set({ authenticated: true, username: 'Mapper' });
+    TestBed.inject(AuthService).session.set({
+      authenticated: true,
+      username: 'Mapper',
+      mode: 'developer',
+    });
     const fixture = TestBed.createComponent(PublicMapPage);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('a[href="/overview"]').textContent).toContain(

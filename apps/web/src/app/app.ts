@@ -26,8 +26,10 @@ export class App implements OnInit {
     ),
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
-  readonly fullScreen = computed(() =>
-    /^\/(map|auth|navigate|welcome|graph-editor)(\/|\?|$)/.test(this.url()),
+  readonly fullScreen = computed(
+    () =>
+      !this.auth.isDeveloper() ||
+      /^\/(map|auth|navigate|welcome|sign-in|graph-editor)(\/|\?|$)/.test(this.url()),
   );
   readonly mobileOpen = signal(false);
   readonly query = signal('');
@@ -58,21 +60,27 @@ export class App implements OnInit {
         help: 'Getting started',
       })[this.url().split('/')[1]] ?? 'Workspace',
   );
-  readonly links = [
-    { path: '/map', label: 'Explore buildings', icon: 'compass' },
-    { path: '/overview', label: 'Overview', icon: 'grid' },
-    { path: '/targets', label: 'Mapping targets', icon: 'map' },
-    { path: '/graph-editor', label: 'Graph editor', icon: 'edit' },
-    { path: '/contributions', label: 'Contributions', icon: 'layers' },
-    { path: '/authoring', label: 'Map authoring (AI)', icon: 'map' },
-    { path: '/review', label: 'Review queue', icon: 'review' },
-    { path: '/activity', label: 'Activity', icon: 'activity' },
-  ];
+  readonly links = computed(() =>
+    [
+      { path: '/map', label: 'Explore buildings', icon: 'compass' },
+      { path: '/overview', label: 'Overview', icon: 'grid' },
+      { path: '/targets', label: 'Mapping targets', icon: 'map' },
+      { path: '/graph-editor', label: 'Graph editor', icon: 'edit' },
+      { path: '/contributions', label: 'Contributions', icon: 'layers' },
+      { path: '/authoring', label: 'Map authoring (AI)', icon: 'map' },
+      { path: '/review', label: 'Review queue', icon: 'review' },
+      { path: '/activity', label: 'Activity', icon: 'activity' },
+    ].filter((link) => link.path !== '/review' || this.auth.canAdmin()),
+  );
   ngOnInit() {
     void this.auth.refresh().catch(() => undefined);
   }
 
   async signOut() {
-    if (await this.auth.signOut()) await this.router.navigateByUrl('/map');
+    if (await this.auth.signOut()) await this.router.navigateByUrl('/sign-in');
+  }
+
+  async switchToPublic() {
+    if (await this.auth.switchMode('public')) await this.router.navigateByUrl('/welcome');
   }
 }

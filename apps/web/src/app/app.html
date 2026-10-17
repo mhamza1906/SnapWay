@@ -20,7 +20,7 @@
     </div>
     <p class="nav-label">WORKSPACE</p>
     <nav aria-label="Main navigation">
-      @for (item of links; track item.path) {
+      @for (item of links(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" (click)="mobileOpen.set(false)"
           ><app-icon [name]="item.icon" />{{ item.label }}
           @if (item.path === '/review' && pending()) {
@@ -33,9 +33,9 @@
       <span class="visitor-icon"><app-icon name="compass" /></span
       ><strong>A fresh perspective</strong>
       <p>Walk through your published maps as a visitor.</p>
-      <a routerLink="/navigate" class="btn secondary small" (click)="mobileOpen.set(false)"
-        >Open visitor preview<app-icon name="arrow"
-      /></a>
+      <button class="btn secondary small" (click)="switchToPublic()" [disabled]="auth.busy()">
+        Switch to Public User<app-icon name="arrow" />
+      </button>
     </div>
     <nav class="bottom-nav" aria-label="Workspace tools">
       <a routerLink="/help" routerLinkActive="active" (click)="mobileOpen.set(false)"

@@ -26,6 +26,8 @@ describe('Workspace shell routing', () => {
             initials: () => 'TS',
             name: () => 'Test',
             role: () => 'No map membership',
+            isDeveloper: () => true,
+            canAdmin: () => false,
             busy: () => false,
             error: () => '',
           },

@@ -1,6 +1,10 @@
 # Frontend iteration: Google Maps and session integration
 
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
+The latest [authentication modes](authentication-modes.md) update defines the new
+`/sign-in` card entry, authenticated `/welcome`, session-mode API and controlled
+administrator provisioning. It supersedes the earlier login-entry behavior recorded
+below; workspace layout redesign remains deferred at the contributor's request.
 Merged remote main through PR #10 (`67db1fe`, graph editor / R2 media) into this
 branch after the earlier PR #9 single-env baseline. Main's later schema-map
 commit `7c8ea30` was also merged without conflicts as `e753f57`. Personal execution history
@@ -52,6 +56,23 @@ the external private channel; do not blindly upload the laptop env or replace
 production database/Django secrets. Reload the browser after restart and run a
 production map/login smoke test. The remote private env was not inspected or
 modified during this merge. Local credentials remain only in ignored `local/.env`.
+
+Production OAuth follow-up at the time of diagnosis: the contributor reported credentials on the
+server, and the Console screenshot includes the correct HTTPS callback. Public
+checks still return `google_enabled: false` and HTTP 500 at
+`/accounts/google/login/`. The failure occurs before a Google consent round trip.
+Check the running API unit's `EnvironmentFiles` path, the exact
+`GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` key names and nonempty
+values, then restart the running API unit after any private-file edit. Production
+settings depend on systemd-injected variables; they do not read a release-local
+`.env` or `local/.env`. Do not print the private file or process environment.
+If failure persists, inspect the server traceback privately; its exception type
+and sanitized stack are needed to establish the cause of HTTP 500. File presence
+alone does not prove the current process loaded its values. No remote shell
+session or server configuration change was performed in this check.
+The contributor subsequently confirmed repair; a fresh public configuration check
+now reports Google login and Maps enabled. No remote configuration was changed by
+this frontend authentication iteration.
 
 ## Scope
 

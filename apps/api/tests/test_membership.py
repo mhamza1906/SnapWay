@@ -116,16 +116,25 @@ def test_access_endpoint_admin_vs_volunteer_vs_stranger(world):
     client = APIClient()
 
     client.force_login(world["admin_user"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.get(url)
     assert response.status_code == 200
     assert response.json()["role"] == "admin"
 
     client.force_login(world["volunteer"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.get(url)
     assert response.status_code == 200
     assert response.json()["role"] == "volunteer"
 
     client.force_login(world["stranger"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     assert client.get(url).status_code == 403
 
     assert (
@@ -159,6 +168,9 @@ def test_me_lists_active_memberships(world):
     )
     client = APIClient()
     client.force_login(world["admin_user"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     payload = client.get(reverse("auth-me")).json()
     assert payload["authenticated"] is True
     assert payload["memberships"] == [{"target_id": str(world["target"].id), "role": "admin"}]

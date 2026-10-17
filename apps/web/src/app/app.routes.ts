@@ -1,9 +1,13 @@
 import { Routes } from '@angular/router';
-import { sessionGuard } from './core/auth.service';
+import { adminGuard, developerGuard, sessionGuard } from './core/auth.service';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'map' },
   { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
+  {
+    path: 'sign-in',
+    loadComponent: () => import('./features/sign-in/sign-in').then((m) => m.SignInPage),
+  },
   {
     path: 'auth/complete',
     loadComponent: () => import('./features/welcome/auth-complete').then((m) => m.AuthCompletePage),
@@ -62,6 +66,7 @@ export const routes: Routes = [
   { path: 'help', loadComponent: () => import('./features/help/help').then((m) => m.HelpPage) },
   {
     path: 'welcome',
+    canActivate: [sessionGuard],
     loadComponent: () => import('./features/welcome/welcome').then((m) => m.WelcomePage),
   },
   {
@@ -87,6 +92,6 @@ export const routes: Routes = [
     'settings',
     'connection-check',
   ].includes(route.path ?? '')
-    ? { ...route, canActivate: [sessionGuard] }
+    ? { ...route, canActivate: [route.path?.startsWith('review') ? adminGuard : developerGuard] }
     : route,
 ) as Routes;

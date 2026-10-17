@@ -17,9 +17,11 @@ exports the whole file. Start it from the root with
 Google OAuth uses the existing Django session flow, not a client-side secret.
 
 The real application starts at `/map`. Start Django with `python scripts/dev.py api`
-from the repository root, then run the frontend command below. `/welcome` starts
-Google sign-in and restores the requested route after callback; the account menu
-supports server logout. Public discovery reads current publications and real
+from the repository root, then run the frontend command below. `/sign-in` offers
+Developer and Public User cards that start Google login; `/welcome` is now the
+authenticated landing page and supports same-account mode switching and logout.
+See [authentication modes](../../docs/authentication-modes.md) for the API and
+administrator provisioning rules. Public discovery reads current publications and real
 Building coordinates from Django, not local prototype targets. The visitor bundle
 also starts at the map, retaining `/navigate` as a labeled sample preview.
 See the iteration guide for acceptance results and native/production setup still
