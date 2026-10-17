@@ -1,0 +1,210 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: block;
+  background: #11191d;
+  color: white;
+}
+.capture-mode {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+.mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.mode-bar .eyebrow {
+  color: #b9c6c9;
+  margin: 0;
+}
+.mode-bar h2 {
+  margin: 2px 0 0;
+  font-size: 17px;
+}
+.mode-bar small {
+  font-weight: 500;
+  color: #b9c6c9;
+  font-size: 12px;
+}
+.btn {
+  min-height: 44px;
+}
+.btn.secondary {
+  background: #ffffff14;
+  border-color: #ffffff33;
+  color: white;
+}
+.viewer {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 160px;
+  background: black;
+  overflow: hidden;
+}
+.live,
+.still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.hidden {
+  visibility: hidden;
+}
+.camera-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  color: #e3eaec;
+}
+.camera-message app-icon {
+  width: 36px;
+  height: 36px;
+  opacity: 0.7;
+}
+.camera-message p {
+  max-width: 420px;
+  margin: 0;
+}
+.guide {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px 4px;
+}
+.mini {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  background: #e9eeec;
+}
+.mini-path {
+  fill: none;
+  stroke: #7d96a0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mini-arrow {
+  stroke: var(--accent);
+  stroke-linecap: round;
+}
+.arrow-head {
+  fill: var(--accent);
+}
+.mini-point {
+  fill: var(--blue);
+  stroke: white;
+}
+.guide-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.instruction {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+.guide-text .muted {
+  color: #aab8bc;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.extra-facing span {
+  color: #cfd8da;
+}
+.extra-facing select {
+  min-height: 44px;
+}
+.slot-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 14px;
+}
+.slot {
+  flex: 1 0 auto;
+  min-height: 48px;
+  min-width: 64px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #ffffff2e;
+  background: #ffffff0d;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+}
+.slot app-icon {
+  width: 16px;
+  height: 16px;
+}
+.slot.active {
+  border-color: var(--accent);
+  background: #df754c33;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.slot-uploaded .slot-icon {
+  color: #8fd3b3;
+}
+.slot-pending .slot-icon {
+  color: #f3c08f;
+}
+.slot-failed .slot-icon {
+  color: #f19a92;
+}
+.capture-error {
+  margin: 0 14px;
+  color: #f7b4ad;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 8px 14px 14px;
+}
+.controls .btn {
+  flex: 1;
+  min-height: 52px;
+  font-size: 14px;
+}
+.shutter {
+  flex: 2;
+}
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+label.btn {
+  position: relative;
+  cursor: pointer;
+}
+@media (min-width: 900px) {
+  .capture-mode {
+    max-width: 720px;
+    margin: auto;
+  }
+  .mini {
+    flex-basis: 120px;
+    width: 120px;
+    height: 120px;
+  }
+}

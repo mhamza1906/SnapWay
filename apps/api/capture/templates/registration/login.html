@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SnapWay contributor sign in</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+    form { width: 100%; max-width: 360px; display: grid; gap: 12px; }
+    label { display: grid; gap: 4px; font-size: 0.95rem; }
+    input { font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid #8888; }
+    button { font-size: 1rem; padding: 12px; border-radius: 8px; border: 0; background: #1a5fd0; color: #fff; }
+    .error { color: #c62828; }
+  </style>
+</head>
+<body>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <h1>Sign in to capture</h1>
+    {% if form.errors %}<p class="error">Username and password did not match.</p>{% endif %}
+    <label>Username <input name="username" autocomplete="username" autocapitalize="none" required autofocus value="{{ form.username.value|default:'' }}"></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <input type="hidden" name="next" value="{{ next|default:'/capture' }}">
+    <button type="submit">Sign in</button>
+  </form>
+</body>
+</html>

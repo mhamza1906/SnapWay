@@ -24,7 +24,7 @@ export class App {
     ),
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
-  readonly fullScreen = computed(() => /^\/(navigate|welcome)(\/|\?|$)/.test(this.url()));
+  readonly fullScreen = computed(() => /^\/(navigate|welcome|capture)(\/|\?|$)/.test(this.url()));
   readonly mobileOpen = signal(false);
   readonly query = signal('');
   readonly searchResults = computed(() =>
@@ -58,6 +58,7 @@ export class App {
     { path: '/targets', label: 'Mapping targets', icon: 'map' },
     { path: '/contributions', label: 'Contributions', icon: 'layers' },
     { path: '/authoring', label: 'Map authoring (AI)', icon: 'map' },
+    { path: '/capture', label: 'Photo capture', icon: 'camera' },
     { path: '/review', label: 'Review queue', icon: 'review' },
     { path: '/activity', label: 'Activity', icon: 'activity' },
   ];

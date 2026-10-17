@@ -40,6 +40,9 @@ const paths: Record<string, string> = {
   menu: 'M3 6h18 M3 12h18 M3 18h18',
   bell: 'M5 17V9a7 7 0 0 1 14 0v8l2 2H3z M9 22h6',
   archive: 'M3 3h18v5H3z M5 8v13h14V8 M9 12h6',
+  refresh: 'M20 11a8 8 0 1 0-2 6 M20 4v7h-7',
+  alert: 'M12 3 2 21h20z M12 10v5 M12 18h.01',
+  fit: 'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5',
 };
 @Component({
   selector: 'app-icon',

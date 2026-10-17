@@ -1,0 +1,190 @@
+<section
+  class="capture-mode"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="guided-title"
+  (keydown.escape)="close()"
+>
+  <header class="mode-bar">
+    <div>
+      <span class="eyebrow">Capture point {{ order() }} · position locked</span>
+      <h2 id="guided-title">
+        {{ slotLabel[slot()] }} photo
+        @if (slot() !== 'extra') {
+          <small>({{ requiredDone() }} of 4 directions saved)</small>
+        }
+      </h2>
+    </div>
+    <button class="btn secondary" (click)="close()" data-testid="close-capture">
+      <app-icon name="close" />Done
+    </button>
+  </header>
+
+  <div class="viewer">
+    <video
+      #video
+      class="live"
+      [class.hidden]="!!still() || !live()"
+      autoplay
+      muted
+      playsinline
+      aria-label="Rear camera preview"
+    ></video>
+    @if (still(); as s) {
+      <img class="still" [src]="s.url" alt="Photo preview before saving" />
+    }
+    @if (!still() && !live()) {
+      <div class="camera-message" role="status" data-testid="camera-message">
+        <app-icon name="camera" />
+        <p>{{ message() || 'Camera is off.' }}</p>
+        @if (canRestart()) {
+          <button class="btn secondary" (click)="startCamera()">
+            {{ status() === 'paused' ? 'Resume camera' : 'Try camera again' }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="guide">
+    <svg
+      class="mini"
+      [attr.viewBox]="mini().viewBox"
+      role="img"
+      [attr.aria-label]="'Mini map: capture point ' + order() + ' and the requested direction'"
+    >
+      <defs>
+        <marker
+          id="capture-requested-arrow"
+          viewBox="0 0 10 10"
+          refX="4"
+          refY="5"
+          markerWidth="3.5"
+          markerHeight="3.5"
+          orient="auto"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head" />
+        </marker>
+      </defs>
+      <g [attr.transform]="mini().rotate">
+        <polyline
+          class="mini-path"
+          [attr.points]="mini().path"
+          [attr.stroke-width]="mini().unit * 7"
+        />
+        <line
+          class="mini-arrow"
+          [attr.x1]="mini().arrow.x1"
+          [attr.y1]="mini().arrow.y1"
+          [attr.x2]="mini().arrow.x2"
+          [attr.y2]="mini().arrow.y2"
+          [attr.stroke-width]="mini().unit * 5"
+          marker-end="url(#capture-requested-arrow)"
+          data-testid="requested-arrow"
+        />
+        <circle
+          class="mini-point"
+          [attr.cx]="point().x"
+          [attr.cy]="point().y"
+          [attr.r]="mini().unit * 7"
+          [attr.stroke-width]="mini().unit * 2"
+        />
+      </g>
+    </svg>
+    <div class="guide-text">
+      <p class="instruction" data-testid="instruction">{{ instruction() }}</p>
+      @if (slot() === 'extra') {
+        <label class="field extra-facing"
+          ><span>I am facing</span
+          ><select
+            [value]="extraFacing()"
+            (change)="extraFacing.set($any($event.target).value)"
+            aria-label="Direction of the extra photo"
+          >
+            <option value="forward">Forward (towards {{ ends().towards }})</option>
+            <option value="left">Left side</option>
+            <option value="backward">Backward (towards {{ ends().from }})</option>
+            <option value="right">Right side</option>
+          </select></label
+        >
+      }
+      <small class="muted"
+        >Map turned so your walking direction points up. The arrow is the requested direction ({{
+          angleRounded()
+        }}° on the map); your phone's orientation is not measured.</small
+      >
+    </div>
+  </div>
+
+  <nav class="slot-row" aria-label="Photo directions">
+    @for (s of slots; track s) {
+      <button
+        class="slot"
+        [class.active]="slot() === s"
+        [class]="'slot-' + stateOf(s)"
+        [attr.aria-pressed]="slot() === s"
+        [attr.aria-label]="slotLabel[s] + ', ' + slotStateLabel(s)"
+        (click)="choose(s)"
+      >
+        <span class="slot-icon" aria-hidden="true">
+          @switch (stateOf(s)) {
+            @case ('uploaded') {
+              <app-icon name="check" />
+            }
+            @case ('pending') {
+              <app-icon name="clock" />
+            }
+            @case ('failed') {
+              <app-icon name="alert" />
+            }
+            @default {
+              <app-icon [name]="s === 'extra' ? 'plus' : 'camera'" />
+            }
+          }
+        </span>
+        {{ slotLabel[s] }}
+      </button>
+    }
+  </nav>
+
+  @if (error()) {
+    <p class="capture-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="controls">
+    @if (still()) {
+      <button class="btn secondary" (click)="retake()" data-testid="retake">
+        <app-icon name="undo" />Retake
+      </button>
+      <button class="btn primary" (click)="save()" data-testid="save-photo">
+        <app-icon name="check" />Save {{ slotLabel[slot()].toLowerCase() }} photo
+      </button>
+    } @else {
+      @if (live()) {
+        <button
+          class="btn primary shutter"
+          [disabled]="busy()"
+          (click)="take()"
+          data-testid="take-photo"
+        >
+          <app-icon name="camera" />Take photo
+        </button>
+      }
+      <label
+        class="btn"
+        [class.primary]="!live()"
+        [class.secondary]="live()"
+        data-testid="file-label"
+        ><app-icon name="image" />{{ live() ? 'Use camera app' : 'Take or choose photo'
+        }}<input
+          class="file-input"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          aria-label="Take or choose a photo"
+          (change)="fromFile($event)"
+          data-testid="file-input"
+      /></label>
+    }
+  </div>
+</section>

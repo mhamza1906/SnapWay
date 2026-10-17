@@ -6,7 +6,7 @@ payloads), Erfang (editor/read models). October 16, 2026.
 This implements the relational schema described by the [initial index](initial/README.md),
 [architecture §§4–9](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md),
 and AUTH/GOV/MAP/REF/JOB acceptance cases in the [test catalogue](initial/Indoor_Navigation_Test_Catalog_EN.md).
-It adds 24 domain tables through Django migrations. The existing `accounts_user`
+It adds 24 domain tables through Django migrations (plus four photo-capture tables, below). The existing `accounts_user`
 and Django authentication/session/admin tables remain in use. PostgreSQL is the
 product database; SQLite retains its limited onboarding role. No new dependencies,
 extensions or architecture choices are introduced.
@@ -80,6 +80,25 @@ attribute is listed, including inherited `id` and `created_at`.
 | navigation_capture(<u>id</u>, created_at, sequence, context_version, captured_at, idempotency_key, capture_context, asset_id, job_id, revision_id, session_id) | Session/revision, private image asset, job, capture time/context/version/sequence and per-session idempotency key |
 | navigation_localizationresult(<u>id</u>, created_at, outcome, heading_degrees, heading_confirmed, reason_code, evidence, retrieval_profile, capture_id, node_id, revision_id, session_id) | One immutable result per capture: accepted/ambiguous/rejected/error, accepted node, independently known/confirmed heading, reason/evidence/retrieval profile |
 | navigation_route(<u>id</u>, created_at, context_version, steps, restrictions, invalidated_at, arrived_at, destination_id, localization_id, revision_id, session_id) | Session/revision, localization and destination, context version, derived ordered steps/restrictions, arrival/invalidation times |
+
+## Photo capture tables
+
+Added October 17, 2026 for [photo capture](photo-capture.md) (Django app
+`capture`; migrations [`0001_initial`](../apps/api/capture/migrations/0001_initial.py)
+and PostgreSQL-only [`0002_postgresql_integrity`](../apps/api/capture/migrations/0002_postgresql_integrity.py)).
+Session, point and photo primary keys are client-generated UUIDs; all three
+have `updated_at` as well as `created_at`. No existing table is altered.
+
+| Relation (all attributes) | Purpose |
+| --- | --- |
+| capture_capturemaplink(<u>id</u>, created_at, map_building_id, map_floor_id, target_id) | One pipeline building/floor per MapTarget (unique both ways) |
+| capture_capturesession(<u>id</u>, created_at, updated_at, map_building_id, map_floor_id, map_revision, corridor_id, direction, spacing_m, contributor_id, target_id) | A contributor's walk along one corridor in one direction |
+| capture_capturepoint(<u>id</u>, created_at, updated_at, order, plan_id, map_revision, edge_id, node_id, reference_edge_id, fraction, corridor_distance_px, distance_m, forward_angle_deg, planned_x, planned_y, confirmed_x, confirmed_y, position_source, reason, status, review_reason, session_id) | Capture position referencing pipeline edge/node IDs (not a routing vertex) |
+| capture_capturephoto(<u>id</u>, created_at, updated_at, slot, viewing_angle_deg, direction_source, position_source, position_x, position_y, map_revision, captured_at, sha256, client_sha256, content_type, byte_size, width, height, upload_status, review_status, review_reason, display_asset_id, original_asset_id, point_id, replaced_by_id, session_id, target_id, thumbnail_asset_id, uploaded_by_id) | One reference photo with map-relative viewing angle; original/display/thumbnail are `maps_asset` rows of kind `photo` |
+
+PostgreSQL adds composite keys tying a photo's session, point and three assets
+to the same target, and a trigger requiring `photo` assets. A partial unique
+index keeps one current (non-`replaced`) photo per point and fixed slot.
 
 ## Integrity and revision rules
 

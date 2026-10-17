@@ -19,6 +19,7 @@ import { z } from "zod";
 import { startMapJob, getMapJob, resumeMapJob, cancelMapJob, applyMapJob } from "./map-jobs.js";
 import { libraryEntries, libraryEntry, saveCopy } from "./building-library.js";
 import { authoringRouter } from "./authoring-routes.js";
+import { captureMapRouter } from "./capture-map-routes.js";
 const coverageJobs = new Map(),
   accessJobs = new Map();
 const app = express(),
@@ -40,6 +41,8 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "150mb" }));
 // SnapWay Angular authoring screens (see docs/pipeline/api.md).
 app.use("/api/authoring", authoringRouter());
+// Mobile photo capture: corridors, capture-point plans and snapping (docs/photo-capture.md).
+app.use("/api/capture-map", captureMapRouter());
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 15 * 1024 * 1024 },

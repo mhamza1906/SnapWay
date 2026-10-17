@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "maps.apps.MapsConfig",
     "jobs.apps.JobsConfig",
     "navigation.apps.NavigationConfig",
+    "capture.apps.CaptureConfig",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -78,9 +79,14 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = False
 STATIC_URL = "/django-static/"
-MEDIA_URL = "/media/"
+MEDIA_URL = "/media/"  # never routed: capture images are served by authenticated views only
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+# Contributor sign-in (Django auth views at /accounts/; allauth is installed but not enabled).
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/capture"
+LOGOUT_REDIRECT_URL = "/accounts/login/"
+CAPTURE_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = None

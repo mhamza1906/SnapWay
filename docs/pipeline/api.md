@@ -491,6 +491,25 @@ Parsed buildings are cached by file mtime and size.
 | `GET /api/buildings/:key` | no | (none) | The full building, or `404 Unknown building.` |
 | `POST /api/buildings/copies` | no (writes a file) | The building itself as the body (not wrapped) | `{key, file, updated}`. Saving the same `building.id` again overwrites its copy. A schema failure returns `400 That building does not pass the schema; fix validation errors first.` |
 
+## Photo capture map (`/api/capture-map`)
+
+Read-only endpoints for the mobile photo capture screen; the contract (shapes,
+reasons, angle convention, errors) is the "Pipeline map API" section of
+[`docs/photo-capture.md`](../photo-capture.md). Buildings come from the
+building library above (IDs are library keys) plus the in-memory
+SYNTHETIC TEST FIXTURE `synthetic-capture-fixture`
+(`server/capture-fixture.js`). Corridor chains, nodes, landmarks and the floor
+SVG are cached per library file version (mtime and size) and floor, so the
+floor endpoint answers from memory after the first call (Sam Ibrahim Level 3:
+about 90 KB, no embedded images).
+
+| Method and path | Paid | Request | Response |
+| --- | --- | --- | --- |
+| `GET /api/capture-map/buildings` | no | (none) | `[{id, name, floors:[{id, label, revision, scaleVerified}]}]` |
+| `GET /api/capture-map/buildings/:buildingId/floors/:floorId` | no | (none) | Floor view with `svg`, `corridors`, `nodes`, `landmarks`; `404` if unknown |
+| `POST /api/capture-map/plan` | no | `{buildingId, floorId, revision, corridorId, direction, spacingM?}` | Capture points in walking order; `409 {error, currentRevision}` on a stale revision |
+| `POST /api/capture-map/snap` | no | `{buildingId, floorId, revision, corridorId, direction, x, y}` or `{…, corridorDistancePx}` | One centreline point (`reason: "adjusted"`) |
+
 ## Access and doorway investigation
 
 | Method and path | Paid | Request | Response |

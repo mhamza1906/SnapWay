@@ -1,0 +1,502 @@
+<div class="capture-page">
+  <header class="cap-bar">
+    <a routerLink="/overview" class="btn ghost icon-only" aria-label="Back to workspace"
+      ><app-icon name="arrow-left"
+    /></a>
+    <div class="cap-title">
+      <h1>Photo capture</h1>
+      <small data-testid="progress">{{
+        phase() === 'map' ? progressText() : floor()?.floorLabel || 'Choose where to capture'
+      }}</small>
+    </div>
+    @if (phase() === 'map') {
+      <button class="btn secondary small" (click)="backToSetup()">Change corridor</button>
+    }
+  </header>
+  @if (queue.warning()) {
+    <p class="cap-banner" role="alert" data-testid="storage-warning">
+      <app-icon name="alert" />{{ queue.warning() }}
+    </p>
+  }
+
+  <div class="cap-body">
+    <div class="cap-map">
+      @if (floor(); as f) {
+        <app-capture-map
+          [svg]="floorSvg()"
+          [width]="f.width"
+          [height]="f.height"
+          [corridors]="mapCorridors()"
+          [path]="walkPath()"
+          [markers]="markers()"
+          [preview]="preview()"
+          [placing]="placing() || sheet() !== 'point'"
+          [label]="'Floor plan of ' + f.floorLabel"
+          (pointTap)="select($event)"
+          (mapTap)="mapTap($event)"
+        />
+        @if (phase() === 'map') {
+          <ul class="legend" aria-label="Point states">
+            <li><span class="dot empty"></span>Not started</li>
+            <li><span class="dot partial"></span>In progress</li>
+            <li><span class="dot complete">✓</span>Uploaded</li>
+            <li><span class="dot review">!</span>Needs review</li>
+            <li><span class="dot selected"></span>Selected</li>
+          </ul>
+        }
+      } @else {
+        <div class="map-empty">
+          <app-icon name="map" />
+          <p>{{ busy() || 'The floor plan appears here once you choose a floor.' }}</p>
+        </div>
+      }
+    </div>
+
+    <section class="sheet" aria-label="Capture controls">
+      @if (busy()) {
+        <p class="busy" role="status">{{ busy() }}</p>
+      }
+      @if (error()) {
+        <p class="notice error" role="alert" data-testid="error">{{ error() }}</p>
+      }
+      @if (notice()) {
+        <p class="notice info" data-testid="notice">{{ notice() }}</p>
+      }
+
+      @if (phase() === 'setup') {
+        <section class="block" aria-labelledby="who-title">
+          <h2 id="who-title">Contributor</h2>
+          @if (meError()) {
+            <p class="notice error">{{ meError() }}</p>
+            <button class="btn secondary" (click)="load()">
+              <app-icon name="refresh" />Try again
+            </button>
+          } @else if (me(); as m) {
+            @if (!m.authenticated) {
+              <p>Sign in with your SnapWay account to capture photos for a mapping target.</p>
+              <a class="btn primary" [href]="loginHref()" data-testid="sign-in">Sign in</a>
+            } @else {
+              <p>
+                Signed in as <strong>{{ m.username }}</strong
+                >. You can capture for:
+              </p>
+              @if (targets().length) {
+                <ul class="targets">
+                  @for (t of targets(); track t.id) {
+                    <li>
+                      <strong>{{ t.title }}</strong> <span class="badge">{{ t.role }}</span>
+                      <small>{{ targetFloorLabel(t) }}</small>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="notice info">
+                  You are not an active admin or volunteer on an open mapping target yet, so there
+                  is nothing to capture.
+                </p>
+              }
+            }
+          }
+        </section>
+
+        @if (mapError()) {
+          <p class="notice error">{{ mapError() }}</p>
+        }
+        @if (me()?.authenticated && available().length) {
+          <section class="block" aria-labelledby="where-title">
+            <h2 id="where-title">Where</h2>
+            <label class="field"
+              ><span>Building</span
+              ><select
+                [value]="buildingId()"
+                (change)="selectBuilding($any($event.target).value)"
+                data-testid="building"
+              >
+                <option value="" disabled>Choose a building</option>
+                @for (b of available(); track b.id) {
+                  <option [value]="b.id">{{ b.name }}</option>
+                }
+              </select></label
+            >
+            @if (buildingId()) {
+              <label class="field"
+                ><span>Floor</span
+                ><select
+                  [value]="floorId()"
+                  (change)="selectFloor(buildingId(), $any($event.target).value)"
+                  data-testid="floor"
+                >
+                  <option value="" disabled>Choose a floor</option>
+                  @for (f of floors(); track f.id) {
+                    <option [value]="f.id">
+                      {{ f.label }}{{ f.scaleVerified ? '' : ' (scale not verified)' }}
+                    </option>
+                  }
+                </select></label
+              >
+            }
+            @if (floorTargets().length > 1) {
+              <label class="field"
+                ><span>Mapping target</span
+                ><select
+                  [value]="targetId()"
+                  (change)="targetId.set($any($event.target).value); loadSessions()"
+                >
+                  @for (t of floorTargets(); track t.id) {
+                    <option [value]="t.id">{{ t.title }}</option>
+                  }
+                </select></label
+              >
+            }
+          </section>
+
+          @if (floor(); as f) {
+            @if (resumable().length) {
+              <section class="block" aria-labelledby="resume-title">
+                <h2 id="resume-title">Resume a session</h2>
+                <ul class="sessions">
+                  @for (s of resumable(); track s.id) {
+                    <li>
+                      <span
+                        ><strong>{{ corridorLabel(s.corridorId) }}</strong>
+                        <small
+                          >Towards {{ towardsLabel(s.corridorId, s.direction) }}
+                          @if (s.when) {
+                            · {{ s.when.slice(0, 16).replace('T', ' ') }}
+                          }
+                          @if (s.local) {
+                            · on this phone only
+                          }
+                        </small></span
+                      >
+                      <button
+                        class="btn secondary"
+                        (click)="resume(s.id)"
+                        [disabled]="!!busy()"
+                        [attr.data-testid]="'resume-' + s.id"
+                      >
+                        Resume
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+
+            <section class="block" aria-labelledby="new-title">
+              <h2 id="new-title">New session</h2>
+              @if (f.corridors.length) {
+                <label class="field"
+                  ><span>Corridor <small>(or tap one on the map)</small></span
+                  ><select
+                    [value]="corridorId()"
+                    (change)="corridorId.set($any($event.target).value)"
+                    data-testid="corridor"
+                  >
+                    @for (c of f.corridors; track c.id) {
+                      <option [value]="c.id">
+                        {{ c.label || c.id }} ·
+                        {{ c.lengthM !== null ? c.lengthM.toFixed(0) + ' m' : 'length unknown' }}
+                      </option>
+                    }
+                  </select></label
+                >
+                @if (endsFor(); as e) {
+                  <fieldset class="direction">
+                    <legend>Walking direction</legend>
+                    <button
+                      type="button"
+                      [class.active]="direction() === 'forward'"
+                      [attr.aria-pressed]="direction() === 'forward'"
+                      (click)="direction.set('forward')"
+                      data-testid="dir-forward"
+                    >
+                      <app-icon name="arrow-right" /><span
+                        >Towards <strong>{{ e.forward.towards }}</strong
+                        ><small>from {{ e.forward.from }}</small></span
+                      >
+                    </button>
+                    <button
+                      type="button"
+                      [class.active]="direction() === 'reverse'"
+                      [attr.aria-pressed]="direction() === 'reverse'"
+                      (click)="direction.set('reverse')"
+                      data-testid="dir-reverse"
+                    >
+                      <app-icon name="arrow-left" /><span
+                        >Towards <strong>{{ e.reverse.towards }}</strong
+                        ><small>from {{ e.reverse.from }}</small></span
+                      >
+                    </button>
+                  </fieldset>
+                }
+                @if (scaleVerified()) {
+                  <label class="field"
+                    ><span>Spacing between points (metres)</span
+                    ><input
+                      type="number"
+                      inputmode="decimal"
+                      min="0.5"
+                      max="20"
+                      step="0.5"
+                      [value]="spacingM()"
+                      (change)="setSpacing($any($event.target).value)"
+                      data-testid="spacing"
+                  /></label>
+                } @else {
+                  <p class="notice info" data-testid="manual-explainer">
+                    <strong>Manual placement.</strong> This floor's scale is not verified, so
+                    distances in metres are not available. SnapWay suggests points at the start,
+                    end, junctions and turns; you add the rest by tapping the corridor.
+                  </p>
+                }
+                <button
+                  class="btn primary wide"
+                  [disabled]="!corridor() || !targetId() || !!busy()"
+                  (click)="startSession()"
+                  data-testid="start-session"
+                >
+                  <app-icon name="route" />Plan capture points
+                </button>
+              } @else {
+                <p class="notice info">This floor has no corridors to capture yet.</p>
+              }
+            </section>
+          }
+        } @else if (me()?.authenticated && targets().length && !busy() && !mapError()) {
+          <p class="notice info">None of your mapping targets has a floor map ready for capture.</p>
+        }
+      } @else if (phase() === 'map') {
+        <div class="session-head">
+          <span
+            ><strong>{{ corridor()?.label || 'Corridor' }}</strong>
+            <small>Walking towards {{ ends()?.towards }}</small></span
+          >
+          @if (session()?.mode === 'manual') {
+            <button
+              class="btn secondary small"
+              [class.active]="sheet() === 'add'"
+              (click)="sheet() === 'add' ? cancelEdit() : openAdd()"
+              data-testid="add-point"
+            >
+              <app-icon name="plus" />Add point
+            </button>
+          }
+        </div>
+        @if (syncError()) {
+          <p class="notice error" role="alert">
+            {{ syncError() }}
+            <button class="btn small secondary" (click)="syncAll()">Retry now</button>
+          </p>
+        }
+
+        @if (sheet() !== 'point') {
+          <div class="block">
+            <h2>
+              {{
+                sheet() === 'adjust'
+                  ? 'Adjust capture point ' + selected()?.order
+                  : 'Add a capture point'
+              }}
+            </h2>
+            <p class="muted">
+              Drag the slider or tap the corridor on the map. The point always stays on the corridor
+              centreline.
+            </p>
+            <input
+              class="slider"
+              type="range"
+              min="0"
+              [max]="corridorLength()"
+              step="1"
+              [value]="adjustPx()"
+              (input)="onSlider($any($event.target).value)"
+              aria-label="Position along the corridor"
+              data-testid="slider"
+            />
+            @if (preview(); as q) {
+              <p class="muted">{{ distanceLabel(q) }}</p>
+            }
+            <div class="actions">
+              <button class="btn secondary" (click)="cancelEdit()">Cancel</button>
+              <button
+                class="btn primary"
+                [disabled]="!preview()"
+                (click)="sheet() === 'adjust' ? saveAdjust() : saveAdd()"
+                data-testid="save-position"
+              >
+                {{ sheet() === 'adjust' ? 'Save position' : 'Add point here' }}
+              </button>
+            </div>
+          </div>
+        } @else if (selected(); as p) {
+          <div class="point-head">
+            <button
+              class="btn secondary icon-only"
+              aria-label="Previous point"
+              [disabled]="p.order <= 1"
+              (click)="step(-1)"
+            >
+              <app-icon name="arrow-left" />
+            </button>
+            <div>
+              <span class="eyebrow">Selected capture point</span>
+              <h2 data-testid="point-title">Point {{ p.order }} of {{ points().length }}</h2>
+            </div>
+            <button
+              class="btn secondary icon-only"
+              aria-label="Next point"
+              [disabled]="p.order >= points().length"
+              (click)="step(1)"
+            >
+              <app-icon name="arrow-right" />
+            </button>
+          </div>
+          @if (selectedProgress(); as pr) {
+            <p class="state-line">
+              <span class="state-badge" [class]="'state-badge s-' + pr.state" data-testid="state">
+                <app-icon
+                  [name]="
+                    pr.state === 'complete'
+                      ? 'check'
+                      : pr.state === 'needs-review'
+                        ? 'alert'
+                        : pr.state === 'partial'
+                          ? 'clock'
+                          : 'camera'
+                  "
+                />{{ stateLabel[pr.state] }}</span
+              >
+              <small
+                >{{ pr.uploaded.length }} of 4 directions uploaded
+                @if (pr.pending) {
+                  · {{ pr.pending }} pending
+                }
+                @if (pr.failed) {
+                  · {{ pr.failed }} failed
+                }
+              </small>
+            </p>
+            @if (pr.needsReviewReason) {
+              <p class="notice error">{{ pr.needsReviewReason }}</p>
+            }
+          }
+          <p class="muted meta">
+            {{ reasonLabel(p.reason) }} · {{ distanceLabel(p) }} ·
+            {{ sourceLabel(p) }}
+          </p>
+          @if (selectedNearby().length) {
+            <div class="nearby">
+              <h3>Nearby</h3>
+              <ul>
+                @for (n of selectedNearby(); track n.id) {
+                  <li>
+                    <app-icon [name]="n.kind === 'door' ? 'arrow' : 'building'" />{{ n.label }}
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+          <div class="point-actions">
+            @if (p.confirmedX === null) {
+              <button class="btn secondary" (click)="confirmHere()" data-testid="confirm">
+                <app-icon name="location" />I'm at this point
+              </button>
+            } @else {
+              <span class="confirmed"><app-icon name="check" />Position confirmed</span>
+            }
+            @if (!selectedProgress()?.hasPhotos) {
+              <button class="btn secondary" (click)="openAdjust()" data-testid="adjust">
+                <app-icon name="edit" />Adjust position
+              </button>
+            } @else {
+              <button class="btn secondary" (click)="openAdd()" data-testid="add-here">
+                <app-icon name="plus" />Add a new point here
+              </button>
+            }
+            <button
+              class="btn primary wide"
+              [disabled]="p.confirmedX === null"
+              (click)="startCapture()"
+              data-testid="start-capture"
+            >
+              <app-icon name="camera" />Start capture
+            </button>
+            @if (p.confirmedX === null) {
+              <small class="muted">Confirm or adjust the position before taking photos.</small>
+            }
+            @if (selectedProgress()?.hasPhotos) {
+              <small class="muted"
+                >This point has photos, so it can no longer be moved or removed. Add a new point
+                instead.</small
+              >
+            } @else {
+              <button class="btn ghost danger small" (click)="removePoint()" data-testid="remove">
+                <app-icon name="trash" />Remove point
+              </button>
+            }
+          </div>
+        } @else {
+          <p class="muted">Tap a numbered point on the map to select it.</p>
+        }
+
+        @if (waiting().length) {
+          <section class="uploads" aria-labelledby="uploads-title" data-testid="uploads">
+            <div class="uploads-head">
+              <h3 id="uploads-title">
+                Uploads · {{ waiting().length }} waiting
+                @if (failedCount()) {
+                  · {{ failedCount() }} failed
+                }
+              </h3>
+              <button class="btn small secondary" (click)="queue.retryAll()">
+                <app-icon name="refresh" />Retry all
+              </button>
+            </div>
+            <ul>
+              @for (r of waiting(); track r.id) {
+                <li [class.failed]="r.state === 'failed'">
+                  <span
+                    ><strong
+                      >Point {{ pointOrder(r.pointId) }} · {{ slotLabel[r.metadata.slot] }}</strong
+                    >
+                    <small
+                      >{{ queue.uploading() === r.id ? 'Uploading…' : uploadLabel[r.state] }}
+                      @if (r.error) {
+                        · {{ r.error }}
+                      }
+                    </small></span
+                  >
+                  @if (r.state === 'failed') {
+                    <button
+                      class="btn small secondary"
+                      (click)="retry(r)"
+                      [attr.data-testid]="'retry-' + r.id"
+                    >
+                      Retry
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      } @else {
+        <p class="muted">Loading…</p>
+      }
+    </section>
+  </div>
+
+  @if (capturing() && selected(); as p) {
+    <app-capture-camera
+      [point]="selectedPos() ?? pos(p)"
+      [order]="p.order"
+      [forwardDeg]="p.forwardAngleDeg"
+      [ends]="ends() ?? { towards: 'the end of the corridor', from: 'the start of the corridor' }"
+      [path]="walkPath()"
+      [slotStates]="slotStates()"
+      (saved)="onSaved($event)"
+      (closed)="capturing.set(false)"
+    />
+  }
+</div>

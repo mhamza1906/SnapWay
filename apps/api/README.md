@@ -6,7 +6,9 @@ supports internal inspection only.
 
 `maps/` provides map/contribution snapshots, assets/references, review and
 publication models. `jobs/` provides durable jobs/attempts; `navigation/` provides
-later N0 session/capture/result/route persistence. See the
+later N0 session/capture/result/route persistence. `capture/` provides the
+contributor photo-capture API at `/api/capture/` (see
+[photo capture](../../docs/photo-capture.md)). See the
 [database schema](../../docs/database-schema.md) for tables, PostgreSQL integrity
 rules, migration instructions and service boundaries.
 

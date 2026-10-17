@@ -1,0 +1,153 @@
+<div
+  #viewport
+  class="viewport"
+  [class.placing]="placing()"
+  role="group"
+  [attr.aria-label]="label()"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (wheel)="onWheel($event)"
+  data-testid="capture-map"
+>
+  <div
+    class="stage"
+    [style.width.px]="width()"
+    [style.height.px]="height()"
+    [style.transform]="transform()"
+  >
+    <div class="plan" [innerHTML]="svg()"></div>
+    <svg class="overlay" [attr.viewBox]="viewBox()" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker
+          id="capture-walk-arrow"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="5"
+          markerWidth="4"
+          markerHeight="4"
+          orient="auto"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" class="walk-arrow" />
+        </marker>
+      </defs>
+      @for (c of corridorLines(); track c.id) {
+        <polyline class="corridor" [attr.points]="c.points" [attr.stroke-width]="6 * k()" />
+      }
+      @if (pathPoints()) {
+        <polyline
+          class="walk-path"
+          [attr.points]="pathPoints()"
+          [attr.stroke-width]="7 * k()"
+          marker-end="url(#capture-walk-arrow)"
+          data-testid="walk-path"
+        />
+      }
+      @if (preview(); as p) {
+        <circle
+          class="preview"
+          [attr.cx]="p.x"
+          [attr.cy]="p.y"
+          [attr.r]="16 * k()"
+          [attr.stroke-width]="3 * k()"
+        />
+      }
+      @for (m of markers(); track m.id) {
+        <g
+          class="marker"
+          [class]="'state-' + m.state"
+          [class.selected]="m.selected"
+          [attr.data-point-id]="m.id"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="markerLabel(m)"
+          (keydown.enter)="pointTap.emit(m.id)"
+          (keydown.space)="$event.preventDefault(); pointTap.emit(m.id)"
+        >
+          <circle class="hit" [attr.cx]="m.x" [attr.cy]="m.y" [attr.r]="24 * k()" />
+          @if (m.selected) {
+            <circle
+              class="ring"
+              [attr.cx]="m.x"
+              [attr.cy]="m.y"
+              [attr.r]="21 * k()"
+              [attr.stroke-width]="4 * k()"
+            />
+          }
+          <circle
+            class="disc"
+            [attr.cx]="m.x"
+            [attr.cy]="m.y"
+            [attr.r]="14 * k()"
+            [attr.stroke-width]="2 * k()"
+          />
+          @if (m.state === 'partial') {
+            <path class="half" [attr.d]="halfDisc(m)" />
+          }
+          <text
+            class="num"
+            [attr.x]="m.x"
+            [attr.y]="m.y"
+            [attr.font-size]="12 * k()"
+            dominant-baseline="central"
+            text-anchor="middle"
+          >
+            {{ m.order }}
+          </text>
+          @if (m.state === 'complete' || m.state === 'needs-review') {
+            <circle
+              class="badge-bg"
+              [attr.cx]="m.x + 12 * k()"
+              [attr.cy]="m.y - 12 * k()"
+              [attr.r]="7 * k()"
+              [attr.stroke-width]="1.5 * k()"
+            />
+            @if (m.state === 'complete') {
+              <path
+                class="badge-mark"
+                [attr.stroke-width]="2 * k()"
+                [attr.d]="
+                  'M ' +
+                  (m.x + 9 * k()) +
+                  ' ' +
+                  (m.y - 12 * k()) +
+                  ' l ' +
+                  2.5 * k() +
+                  ' ' +
+                  2.5 * k() +
+                  ' l ' +
+                  4 * k() +
+                  ' ' +
+                  -5 * k()
+                "
+              />
+            } @else {
+              <text
+                class="badge-text"
+                [attr.x]="m.x + 12 * k()"
+                [attr.y]="m.y - 12 * k()"
+                [attr.font-size]="10 * k()"
+                dominant-baseline="central"
+                text-anchor="middle"
+              >
+                !
+              </text>
+            }
+          }
+        </g>
+      }
+    </svg>
+  </div>
+  <div class="map-controls">
+    <button class="btn secondary icon-only" aria-label="Zoom in" (click)="zoomBy(1.4)">
+      <app-icon name="zoom-in" />
+    </button>
+    <button class="btn secondary icon-only" aria-label="Zoom out" (click)="zoomBy(1 / 1.4)">
+      <app-icon name="zoom-out" />
+    </button>
+    <button class="btn secondary icon-only" aria-label="Show whole floor" (click)="fit()">
+      <app-icon name="fit" />
+    </button>
+  </div>
+</div>

@@ -41,6 +41,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/navigation/navigation').then((m) => m.NavigationPage),
   },
   {
+    path: 'capture',
+    loadComponent: () => import('./features/capture/capture').then((m) => m.CapturePage),
+  },
+  {
     path: 'activity',
     loadComponent: () => import('./features/activity/activity').then((m) => m.ActivityPage),
   },

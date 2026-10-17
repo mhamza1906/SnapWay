@@ -1,0 +1,449 @@
+# Photo capture mode (mobile browser)
+
+**Status:** implemented on `feature/map-authoring-pipeline` (October 17, 2026),
+requested by Arjun; not yet committed. Automated tests pass (pipeline 226 run,
+208 pass, 18 skipped; API 44 pass, 17 PostgreSQL-only skipped; web 103 pass),
+format/lint and the web build pass. **Not yet tested in a browser or on a
+phone** (deferred at Arjun's request). This document is the shared contract for
+the parts below; keep it current when an interface changes.
+
+Changed files:
+[capture-points.js](../apps/pipeline/shared/building/capture-points.js),
+[capture-map-routes.js](../apps/pipeline/server/capture-map-routes.js),
+[capture-fixture.js](../apps/pipeline/server/capture-fixture.js),
+[server/index.js](../apps/pipeline/server/index.js),
+[capture-points.test.js](../apps/pipeline/tests/capture-points.test.js);
+[apps/api/capture/](../apps/api/capture/),
+[settings/base.py](../apps/api/config/settings/base.py),
+[settings/development.py](../apps/api/config/settings/development.py),
+[urls.py](../apps/api/config/urls.py),
+[test_capture_api.py](../apps/api/tests/test_capture_api.py);
+[features/capture/](../apps/web/src/app/features/capture/),
+[app.routes.ts](../apps/web/src/app/app.routes.ts),
+[app.ts](../apps/web/src/app/app.ts),
+[icon.ts](../apps/web/src/app/shared/icon.ts),
+[index.html](../apps/web/src/index.html) (`viewport-fit=cover`),
+[package.json](../apps/web/package.json) (`start:phone`, `cert:phone`),
+[scripts/phone_https.mjs](../scripts/phone_https.mjs),
+[database-schema.md](database-schema.md), [pipeline/api.md](pipeline/api.md).
+
+Live test map: Sam Ibrahim Building **Level 3** (library key
+`copy-sam-ibrahim-building-27687113`, floor `floor-4`, no verified scale, so
+manual point placement). Calibrated test map: `synthetic-capture-fixture`
+floor `capture-fx-1` (labelled synthetic, 20 px/m).
+
+A map contributor opens `/capture` in Chrome on a phone, picks a building,
+floor, corridor and walking direction, walks to numbered capture points along
+the corridor centreline, confirms each position and takes reference photos in
+four directions. Every photo is stored with its confirmed position and its
+map-relative viewing angle for later visual localization (localization models
+and 3D generation are out of scope).
+
+## Parts and ownership
+
+| Part | Where | Owns |
+| --- | --- | --- |
+| Map and planner | `apps/pipeline` (Node, port 5175, proxied as `/pipeline`) | corridor chains, capture-point planning, snapping, synthetic fixture |
+| Storage and auth | `apps/api` (Django + DRF, port 8000, proxied as `/api`) | sessions, points, photos, images, membership checks, review flags |
+| Capture screen | `apps/web` (Angular, `/capture`) | map, bottom sheet, camera, upload queue (IndexedDB) |
+
+Capture points are **not** routing vertices: they are stored in Django and only
+reference pipeline edges and nodes by ID.
+
+## Conventions
+
+- **Map frame:** pixel coordinates of the floor's map image (`x` right, `y` down),
+  the same frame as the pipeline floor geometry.
+- **Map revision:** the pipeline floor's integer `revision`. Every point and
+  photo stores the revision it was planned and captured on.
+- **Viewing angle** (`viewingAngleDeg`): map-relative, degrees in `[0, 360)`,
+  `0` = facing `+x` (right on the plan), increasing **clockwise on screen**
+  (`90` = facing `+y`, down on the plan). It is `atan2(dy, dx)` in the map frame.
+  It is not a compass bearing.
+- **Slots:** `forward` = the local corridor direction in the selected walking
+  direction (`forwardAngleDeg`), `right` = forward + 90, `backward` = forward + 180,
+  `left` = forward + 270 (mod 360). `extra` is any additional photo.
+- **Reference segment:** forward is taken from the outgoing corridor segment in
+  the walking direction (`referenceEdgeId`); at the last point, the incoming
+  segment. At junctions the plan names the reference edge explicitly.
+- **Sources:** `positionSource` is `planned`, `contributor-confirmed` (contributor
+  says they stand on the planned point), `contributor-adjusted` (moved along the
+  corridor) or `manual` (placed by tap on an uncalibrated map).
+  `directionSource` is always `manual-confirmed` (the arrow is the requested
+  direction; the phone's orientation is not measured). There is no GPS or
+  live tracking.
+- **Scale:** metres (`distanceM`, spacing) only when the floor's scale is
+  verified (`geometry.scale.pixelsPerMetre` set). Otherwise metre fields are
+  `null` and points are placed manually.
+
+## Pipeline map API (`/pipeline/api/capture-map`)
+
+Implemented in `apps/pipeline/server/capture-map-routes.js` (routes) and
+`apps/pipeline/shared/building/capture-points.js` (pure planner); tests in
+`apps/pipeline/tests/capture-points.test.js`. All endpoints are read-only.
+
+`GET /buildings` → `[{ id, name, floors: [{ id, label, revision, scaleVerified }] }]`
+(library buildings with a built graph, plus the labelled synthetic fixture).
+`id` is the **building-library key** (for example
+`copy-sam-ibrahim-building-27687113`), not `building.id`, because two library
+files can hold the same building. Only floors with corridor edges are listed.
+The SYNTHETIC TEST FIXTURE is `synthetic-capture-fixture` with floors
+`capture-fx-1` (20 px/m, auto mode) and `capture-fx-2` (same layout, no scale,
+manual mode); it is built in memory and never written to the library.
+
+`GET /buildings/:buildingId/floors/:floorId` →
+```
+{ buildingId, floorId, floorLabel, revision, width, height,
+  scale: { verified, pixelsPerMetre | null },
+  svg,                       // designed floor render, no embedded images
+  corridors: [{ id, label, lengthPx, lengthM | null,
+               path: [{x,y}],          // whole chain, forward orientation
+               segments: [{ edgeId, reversed, startPx, endPx }],
+               nodeIds: [..] }],
+  nodes: [{ id, kind: "junction"|"door"|"end", label, x, y }],
+  landmarks: [{ kind: "room"|"door", id, label, x, y }] }
+```
+`404` for an unknown building or floor.
+A corridor is a chain of graph edges with `traversal: "corridor"` joined
+through nodes with exactly two corridor edges (doorway edges do not count);
+chains end at junctions (three or more corridor edges), real door vertices,
+stair/lift landings and dead ends. They run through analytical joins between
+segmented corridor pieces (`coverage-open-*` or `decomposition-join`).
+Corridor `id` is `corridor-` + the first 12 hex digits of SHA-256 of the
+chain's sorted edge IDs (stable while the graph is unchanged). `label` is the
+walkable space the chain runs through longest; chains through the same space
+are `"<label>, part n"` in reading order (top to bottom, then left to right).
+Forward orientation runs +x for mostly horizontal chains, +y otherwise.
+
+`POST /plan` `{ buildingId, floorId, revision, corridorId, direction: "forward"|"reverse", spacingM = 2 }` →
+```
+{ revision, scaleVerified, mode: "auto"|"manual",
+  spacingM | null,                       // the spacing used (null in manual mode)
+  path: [{x,y}] (walking order),
+  points: [{ planId, order, x, y, edgeId, nodeId | null, referenceEdgeId,
+             fraction,            // along edgeId's stored polyline (from→to), 0..1
+             corridorDistancePx,  // along the walking path
+             distanceM | null, forwardAngleDeg,
+             reason: "start"|"spacing"|"turn"|"junction"|"door"|"end",
+             nearby: [{ kind, id, label, distancePx }] }] }
+```
+Auto mode: points every `spacingM` metres measured along the whole polyline,
+plus turns, junctions and important doors, merged when closer than half the
+spacing, with no duplicates at shared endpoints. Manual mode (no verified
+scale): only start, end, junction and turn suggestions, `distanceM: null`.
+`409` when `revision` is not the floor's current revision (body
+`{ error, currentRevision }`); `400` for an unknown corridor, a bad direction
+or `spacingM` outside 0.5–50.
+
+Planner details:
+- **Same points both ways.** Positions are computed on the forward chain
+  (spacing measured from the forward start), so `reverse` returns the same
+  points in reverse order; `corridorDistancePx` and `distanceM` are measured
+  from the walking start. `planId` is `<corridorId>:<f|r>:<forward distance ×10>`.
+- **Reasons.** Priority when merging: chain ends > `junction` > `door` >
+  `turn` > `spacing`. A chain end is `junction` when three or more corridor
+  edges meet there, `door` (auto mode only) at a real door vertex, otherwise
+  `start`/`end`. Both ends are always kept. Important doors are doors of rooms
+  whose doorway edge joins a vertex of the chain; the point is that vertex
+  (`nodeId`). Turns are bends over 30° measured over a short window
+  (auto: min(spacing/4, 0.75 m); manual: half the merge distance).
+- **Edge and angle.** At a vertex shared by two edges, `edgeId` and
+  `referenceEdgeId` are the outgoing edge in the walking direction (incoming at
+  the last point), so `fraction` is 0 or 1 there. `forwardAngleDeg` comes from
+  the outgoing walking segment, skipping segments shorter than max(0.5 m, 8 px)
+  (manual: 1% of the floor diagonal), which are corner chamfers on raster
+  centrelines. On straight stretches reverse = forward + 180; at a turn vertex
+  each direction uses its own outgoing segment.
+- **Manual mode** merges suggestions closer than 1% of the floor diagonal.
+- **`nearby`**: doors (midpoint) and rooms (polygon) within 3 m (manual: 2.5%
+  of the floor diagonal), nearest first, at most 6.
+
+`POST /snap` `{ buildingId, floorId, revision, corridorId, direction, x, y }` or
+`{ …, corridorDistancePx }` → one point object as in `/plan` (reason
+`"adjusted"`, `planId: null`, `order: null`) on the corridor centreline, so a
+point always stays in walkable space. `x, y` snaps to the nearest centreline
+point; `corridorDistancePx` (walking distance) is clamped to the corridor.
+`400` if the corridor is unknown or neither form is given; `409` on a stale
+revision as for `/plan`.
+
+## Django capture API (`/api/capture`)
+
+Implemented in [`apps/api/capture/`](../apps/api/capture/) (models, views, URLs,
+images, seed command) with tests in
+[`apps/api/tests/test_capture_api.py`](../apps/api/tests/test_capture_api.py).
+
+**Auth.** Django session authentication with CSRF. The CSRF cookie is
+`XSRF-TOKEN` and the header is `X-XSRF-TOKEN` (the project-wide setting in
+`config/settings/base.py`, Angular's default, so `HttpClient` sends it
+automatically). `GET /me` sets the cookie. Contributors sign in with username
+and password at `/accounts/login/?next=/capture` (Django's `LoginView`; allauth
+is installed but not enabled). Logout is `POST /accounts/logout/`. Not signed
+in → `401` (`WWW-Authenticate: Session`); signed in without access → `403`;
+bad input → `400`; conflicts → `409`; image over 20 MB → `413`. Error bodies
+are `{ "detail": "…" }` or DRF field errors `{ "field": ["…"] }`.
+
+**Authorization.** Every read and write needs an active (not revoked) `admin`
+or `volunteer` `Membership` on an open (not archived) `MapTarget`. A session,
+its points and photos are readable by its contributor and by target admins,
+and writable only by its contributor. Revoking a membership or archiving the
+target cuts off access to existing data too. A MapTarget is linked to one
+pipeline floor through `CaptureMapLink`, so `/me` lists exactly the floors a
+contributor may capture, and a session's `mapBuildingId`/`mapFloorId` must
+match its target's link (`400` otherwise).
+
+IDs of sessions, points and photos are client-generated UUIDs, so every write
+is an idempotent `PUT` (safe to retry). Paths take an optional trailing slash.
+Timestamps are UTC ISO-8601 (`…Z`).
+
+- `GET /me` → `{ authenticated, username, loginUrl, targets: [{ id, title, role, mapBuildingId, mapFloorId }] }`
+  (sets the `XSRF-TOKEN` cookie; anonymous: `authenticated: false`, `targets: []`;
+  `?next=/path` changes the `next` in `loginUrl`).
+- `PUT /sessions/:id` `{ targetId, mapBuildingId, mapFloorId, mapRevision, corridorId, direction, spacingM | null }`
+  → `201` session (created) or `200` (updated). Session JSON:
+  `{ id, targetId, contributor, mapBuildingId, mapFloorId, mapRevision, corridorId, direction, spacingM, createdAt, updatedAt }`.
+  Target, building and floor are fixed (`409` on change); corridor and
+  direction are fixed once the session has points (`409`).
+- `GET /sessions?targetId=&mapFloorId=` → `{ sessions: [session…] }`, the signed-in
+  contributor's own sessions on targets they can still access, latest first
+  (`403` for a `targetId` without membership).
+- `GET /sessions/:id` → `{ …session, points: [point…], photos: [photo…] }` (points by
+  `order`; photos include replaced ones, filter on `reviewStatus`).
+- `PUT /sessions/:id/points/:pointId` `{ order, planId | null, mapRevision, edgeId, nodeId | null, referenceEdgeId, fraction, corridorDistancePx, distanceM | null, forwardAngleDeg, plannedX, plannedY, confirmedX | null, confirmedY | null, positionSource, reason }`
+  → `201` (created) or `200` point:
+  `{ id, sessionId, …the input fields, status, reviewReason | null, createdAt, updatedAt }`.
+  `reason` is one of the planner reasons or `adjusted`/`manual`;
+  `forwardAngleDeg` in `[0, 360)`; `fraction` in `[0, 1]`.
+  Moving a point that already has photos is refused (`409`, with
+  `fields: [changed field names]`): add another point instead. "Moving" is a
+  change to any of `mapRevision`, `edgeId`, `nodeId`, `referenceEdgeId`,
+  `fraction`, `corridorDistancePx`, `distanceM`, `forwardAngleDeg`, planned or
+  confirmed coordinates or `positionSource`; `order`, `planId` and `reason` may
+  still change. A point without photos may be changed freely; re-planning it
+  on another `mapRevision` clears its `needs-review` flag.
+- `DELETE /sessions/:id/points/:pointId` → `204` (also when already gone);
+  `409` if it has photos.
+- `PUT /points/:pointId/photos/:photoId` (multipart: `image` file + `metadata` JSON
+  `{ slot, viewingAngleDeg, directionSource, positionSource, capturedAt, clientSha256 }`)
+  → `201` created or `200` when this photo ID already exists with the same
+  SHA-256 (retry); `409` on a different image for the same ID. A new photo for a
+  slot that already has one marks the older one `replaced` (never deleted;
+  `replacedBy` names the new photo). `extra` photos never replace each other.
+  Validation: `slot` ∈ `forward|right|backward|left|extra`; `viewingAngleDeg`
+  in `[0, 360)` and, for the four fixed slots, within 1° of the point's
+  `forwardAngleDeg` + slot offset; `directionSource` must be
+  `manual-confirmed`; `clientSha256` (optional) must match the received bytes;
+  the image must decode with Pillow as JPEG, PNG or WebP, ≤ 20 MB
+  (`CAPTURE_MAX_UPLOAD_BYTES`). Photo JSON:
+  `{ id, pointId, sessionId, slot, viewingAngleDeg, directionSource, positionSource, positionX, positionY, mapRevision, capturedAt, sha256, contentType, byteSize, width, height, uploadStatus, reviewStatus, reviewReason | null, replacedBy | null, thumbnailUrl, displayUrl, createdAt }`.
+  `positionX/Y` and `mapRevision` are copied from the point at upload
+  (confirmed position, else planned); `width`/`height` are upright.
+- `GET /photos/:id/thumbnail` and `/photos/:id/display` → JPEG bytes
+  (`Cache-Control: private`; same read rule as the session).
+- `POST /sessions/:id/revision-check` `{ currentRevision }` → points and photos
+  on an older revision become `needs-review` with reason `map revision changed`;
+  their coordinates and stored revision are kept. Replaced photos are left
+  alone. Response `{ currentRevision, flaggedPoints, flaggedPhotos, session: {…detail} }`
+  (counts of newly flagged rows; repeating the call flags nothing new).
+
+Point `status`: `empty`, `partial` (some of the four slots), `complete` (all
+four uploaded), `needs-review`. It is recomputed from uploaded, non-replaced
+photos in the four fixed slots after every upload, except that `needs-review`
+stays until reviewed or re-planned. Photo `uploadStatus` is `uploaded` (server
+confirmed) and `reviewStatus` is `pending`, `needs-review`, `accepted`,
+`replaced`. The client adds `captured-locally` and `upload-pending` before
+the server confirms.
+
+Images: EXIF orientation is applied (`ImageOps.exif_transpose`), the original
+bytes are kept unchanged, a display copy (long edge at most 2560 px, never
+upscaled or shrunk below that, JPEG quality 90 with 4:4:4 chroma so room signs
+stay readable) and a 320 px (long edge) JPEG thumbnail are stored through
+`default_storage` under `MEDIA_ROOT/capture/<target>/<session>/<photo>/`
+(`local/media` in development). `/media/` is never routed; images are served
+only by the authenticated endpoints above.
+
+### Storage model
+
+| Table | Holds |
+| --- | --- |
+| `capture_capturemaplink` | `target` (one-to-one `MapTarget`) ↔ pipeline `map_building_id` + `map_floor_id` (unique pair) |
+| `capture_capturesession` | client UUID, `target`, `contributor`, map building/floor/revision, `corridor_id`, `direction`, `spacing_m` |
+| `capture_capturepoint` | client UUID, `session`, `order`, `plan_id`, `map_revision`, edge/node/reference-edge IDs, `fraction`, `corridor_distance_px`, `distance_m`, `forward_angle_deg`, planned and confirmed `x`/`y`, `position_source`, `reason`, `status`, `review_reason` |
+| `capture_capturephoto` | client UUID, `target`, `session`, `point`, `uploaded_by`, `slot`, `viewing_angle_deg`, `direction_source`, `position_source`, `position_x/y`, `map_revision`, `captured_at`, original/display/thumbnail `Asset`s, `sha256`, `client_sha256`, `content_type`, `byte_size`, upright `width`/`height`, `upload_status`, `review_status`, `review_reason`, `replaced_by` |
+
+All have `created_at`/`updated_at`. Each image file is a `maps.Asset`
+(kind `photo`, target-scoped `storage_key`, SHA-256, size, dimensions,
+`provenance.variant` = `original`/`display`/`thumbnail`); display and
+thumbnail assets point to the original through `source_asset`. Assets stay
+append-only. Database checks cover enum values, angle and fraction ranges,
+paired confirmed coordinates, review reasons and at most one current photo per
+point and fixed slot. Migration `capture/0002_postgresql_integrity` adds
+PostgreSQL composite keys (photo, session, point and assets share one target)
+and a trigger requiring `photo` assets; SQLite skips it.
+
+### Seed and run (development)
+
+```sh
+# once: locked environment, private local/env/api.env (scripts/bootstrap.py creates it), migrations
+uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate
+# demo users + targets; repeatable; IDs are pipeline building/floor IDs
+uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py \
+  seed_capture_demo copy-sam-ibrahim-building-27687113 floor-4 \
+  --unjoined-floor floor-3 --building-name "Sam Ibrahim Building"
+uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py \
+  seed_capture_demo synthetic-capture-fixture capture-fx-1 capture-fx-2
+```
+
+`seed_capture_demo <mapBuildingId> <mapFloorId>… [--unjoined-floor ID]… [--building-name N] [--role volunteer|admin]`
+creates (or reuses) a Building, one Floor/MapTarget/CaptureMapLink per floor,
+the contributor `capture-demo` with a `volunteer` Membership on each listed
+floor, and `capture-outsider` with no membership. `--unjoined-floor` creates
+and links a target without a demo membership (floor-isolation checks).
+Passwords are random, written only to the git-ignored
+`local/capture-demo-credentials.json` (mode 600) and reused on later runs;
+they are never printed.
+
+Run Django with `python scripts/dev.py api` (127.0.0.1:8000). When port 8000
+is taken by another project, run
+`uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py runserver 127.0.0.1:8001`
+and point the web proxy's `/api`, `/admin` and `/accounts` entries at 8001.
+
+## Capture screen (`/capture`)
+
+Phone-first layout: zoomable and pannable plan, selected path, numbered points
+in walking order, progress, and a bottom sheet with nearby landmarks and
+"I'm at this point", "Adjust position", "Start capture". Guided camera with
+rear-camera live preview (`getUserMedia`), file-input fallback, mini map with
+the confirmed point and requested-direction arrow, four slots, preview, retake
+and save. Camera access stops on leaving capture. Pending photos are queued in
+IndexedDB and retried; nothing shows as uploaded before the server confirms.
+
+## Running and phone testing
+
+The camera preview uses `getUserMedia`, which exists only in a
+[secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts):
+HTTPS, or `http://localhost` / `127.0.0.0/8`. On plain `http://<LAN-IP>:4200`
+`navigator.mediaDevices` is `undefined`
+([MDN getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)),
+so the screen falls back to the file input. WebKit (Safari, and every iOS
+browser including Chrome, which uses WebKit) also requires HTTPS for camera
+access ([WebKit](https://webkit.org/blog/7763/a-closer-look-into-webrtc/)).
+
+### Start the three servers (separate terminals, from the repository root)
+
+```sh
+python scripts/dev.py api                      # Django on 127.0.0.1:8000 (run scripts/bootstrap.py once first)
+(cd apps/pipeline && npm run prod)             # pipeline on 127.0.0.1:5175; `npm run dev` also works
+(cd apps/web && npm start)                     # desktop: http://127.0.0.1:4200/capture (loopback only)
+(cd apps/web && npm run start:phone)           # phone: https://<LAN-IP>:4443/capture (0.0.0.0, HTTPS)
+```
+
+The capture-map API makes no model calls, so the pipeline's provider keys
+(read server-side from its env files; never commit or print them) are not
+needed for capture. Restart the pipeline after its route files change. Port
+8000 must be free for Django: another local project listening on 8000 makes
+`/api`, `/admin` and `/accounts` reach the wrong server (`/api/health/live/`
+must return `{"service":"snapway-api",…}`).
+
+`npm run start:phone` runs [`scripts/phone_https.mjs`](../scripts/phone_https.mjs):
+it creates a certificate in the git-ignored `local/certs/` for `localhost`,
+`127.0.0.1`, `::1` and every current LAN IPv4, then runs
+`ng serve --host 0.0.0.0 --port 4443 --ssl --ssl-cert … --ssl-key … --proxy-config proxy.conf.json`
+([Angular `ng serve`](https://angular.dev/cli/serve)) and prints the phone
+URLs. It uses `mkcert` when installed, otherwise `openssl` creates a local CA
+(`local/certs/snapway-dev-ca.crt`, key `snapway-dev-ca-key.pem` kept private)
+and a 397-day server certificate signed by it (RSA 2048, SAN, `serverAuth`, as
+[Apple requires](https://support.apple.com/en-us/103769)). The certificate is
+re-issued when the LAN IP changes; the CA is reused. Options:
+`--port N`, `--ip A.B.C.D`, `--host H`, `--proxy-config F`;
+`npm run cert:phone` only refreshes the certificate. Nothing is installed into
+any trust store. Only `start:phone` listens on all interfaces, so the dev
+server and everything it proxies (including Django admin with `DEBUG`) are
+reachable from the network: use it on a trusted network and stop it after
+testing.
+
+Vite allows IP-address hosts by default and skips the host check over HTTPS
+([Vite `allowedHosts`](https://vite.dev/config/server-options.html#server-allowedhosts)),
+so no `allowedHosts` change is needed for LAN IPs. The proxy keeps the
+original `Host` header (no `changeOrigin`) and talks plain HTTP to Django, so
+Django sees an `http` request for host `<LAN-IP>:4443` while the browser sends
+`Origin: https://<LAN-IP>:4443`. Django's CSRF origin check compares the Origin
+with `request.is_secure()` scheme plus host, then `CSRF_TRUSTED_ORIGINS`
+([Django CSRF](https://docs.djangoproject.com/en/5.2/ref/csrf/)). The
+development settings (`config/settings/development.py` only; production is
+unchanged) therefore add `DEV_EXTRA_ORIGINS` to `CSRF_TRUSTED_ORIGINS` and its
+hosts to `ALLOWED_HOSTS`. The default is `https://localhost:4443`,
+`https://127.0.0.1:4443` and `https://<primary LAN IPv4>:4443`, detected
+when Django starts (restart Django after the network changes;
+`DEV_PHONE_PORT` changes the port). Set
+`DEV_EXTRA_ORIGINS=https://a,https://b` to replace the list, for example for a
+tunnel. Session and CSRF cookies stay non-`Secure` in development, which
+browsers accept over HTTPS too.
+
+Verified from the Mac (October 17, 2026, LAN IP `100.102.93.140`, Django on a
+scratch database): `https://100.102.93.140:4443/capture` served the app with
+the certificate validating against the local CA; `/pipeline/api/health`,
+`/api/health/live/`, `/api/health/ready/` and `/api/capture/me` were proxied
+over HTTPS; a form `POST /accounts/login/` with
+`Origin: https://100.102.93.140:4443` passed CSRF (credentials rejected, no
+403) and a header-token `POST /accounts/logout/` (`X-XSRF-TOKEN`) returned 302;
+an untrusted Origin and a missing token were refused with 403. An
+authenticated capture upload over this route and any physical phone have not
+been tested yet.
+
+### Phone routes (best first)
+
+1. **Android Chrome over USB (`adb reverse`, no certificate).** Enable
+   Developer options and USB debugging
+   ([adb](https://developer.android.com/tools/adb)), connect the cable, then
+   on the Mac run `adb devices` and `adb reverse tcp:4200 tcp:4200`, start
+   `npm start`, and open `http://localhost:4200/capture` in Chrome on the
+   phone. `localhost` is a secure context and the request is same-origin for
+   Django, so no extra settings are needed. `chrome://inspect/#devices` →
+   Port forwarding does the same and adds remote DevTools
+   ([Chrome](https://developer.chrome.com/docs/devtools/remote-debugging/local-server)).
+   Remove with `adb reverse --remove-all`. Not available for iPhone.
+2. **LAN HTTPS with a trusted local CA** (phone and Mac on the same Wi-Fi;
+   campus or guest networks often isolate clients, then use route 1 or 4).
+   Run `npm run start:phone` and install the CA it prints on the phone (the
+   `.crt`/`rootCA.pem` only, never a `*-key.pem`). With mkcert instead of the
+   built-in openssl CA: `brew install mkcert`, run `npm run cert:phone`, and use
+   `$(mkcert -CAROOT)/rootCA.pem`; `mkcert -install` is only needed to trust it
+   on the Mac itself and changes the Mac's trust store, so run it yourself if
+   wanted ([mkcert](https://github.com/FiloSottile/mkcert)).
+   - **iPhone (Safari or Chrome):** AirDrop the CA file to the phone, then
+     Settings → General → VPN & Device Management → install the profile, then
+     Settings → General → About → Certificate Trust Settings → enable full
+     trust for "SnapWay local dev CA"
+     ([Apple](https://support.apple.com/en-us/102390)).
+   - **Android Chrome:** copy the file (for example
+     `adb push local/certs/snapway-dev-ca.crt /sdcard/Download/`), then
+     Settings → Security → Encryption & credentials → Install a certificate →
+     CA certificate (menu names vary by vendor). Chrome loads user-added roots
+     as trust anchors
+     ([Chromium trust_store_android.cc](https://chromium.googlesource.com/chromium/src.git/+/main/net/cert/internal/trust_store_android.cc));
+     other Android apps may not ([Android](https://developer.android.com/privacy-and-security/security-config)).
+   - Open `https://<LAN-IP>:4443/capture`; no warning should appear. Remove the
+     CA from the phone when testing ends.
+3. **Self-signed click-through** (no CA install). Open
+   `https://<LAN-IP>:4443/capture` and accept the warning (Chrome: Advanced →
+   Proceed; Safari: Show Details → visit this website). The page is still an
+   `https` origin, but neither Chrome nor WebKit documents camera access after
+   a certificate-error bypass, and permissions may not be remembered. Check
+   `window.isSecureContext` and whether the camera prompt appears; if not, use
+   route 1, 2 or 4. Android Chrome alternative without HTTPS:
+   `chrome://flags/#unsafely-treat-insecure-origin-as-secure` with
+   `http://<LAN-IP>:4200` (needs `npm start` reachable on the LAN, which the
+   default loopback binding is not)
+   ([Chromium](https://www.chromium.org/Home/chromium-security/deprecating-powerful-features-on-insecure-origins/)).
+4. **Tunnel (public HTTPS, works on iPhone and Android, any network).** ngrok
+   3 is installed on this Mac (cloudflared is not; Tailscale is installed but
+   stopped). Run `npm start`, then
+   `ngrok http 4200 --host-header=rewrite` and start Django with
+   `DEV_EXTRA_ORIGINS=https://<subdomain>.ngrok-free.app python scripts/dev.py api`.
+   Not exercised here. The tunnel URL is public: anyone with it reaches the dev server and its
+   proxied Django admin, so stop it right after testing.
+
+Browser device emulation and desktop webcams check layout and the code path
+only; they are not physical-device camera verification. Camera behaviour,
+rear-camera selection, EXIF orientation and upload retries must be checked on
+a real phone.

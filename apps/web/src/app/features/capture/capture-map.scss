@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: #eef1ee;
+  cursor: grab;
+}
+.viewport.placing {
+  cursor: crosshair;
+}
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.plan,
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.plan ::ng-deep > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.overlay {
+  overflow: visible;
+}
+.corridor {
+  fill: none;
+  stroke: #9fb3b9;
+  stroke-opacity: 0.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.walk-path {
+  fill: none;
+  stroke: var(--blue);
+  stroke-opacity: 0.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.walk-arrow {
+  fill: var(--blue);
+}
+.preview {
+  fill: #ffffffaa;
+  stroke: var(--accent);
+  stroke-dasharray: 4 3;
+}
+.marker {
+  cursor: pointer;
+  outline: none;
+}
+.hit {
+  fill: transparent;
+}
+.disc {
+  fill: white;
+  stroke: #5f6c70;
+}
+.num {
+  font-weight: 700;
+  fill: var(--ink);
+  pointer-events: none;
+}
+.state-empty .disc {
+  stroke-dasharray: 3 2;
+}
+.state-partial .disc {
+  fill: #fff0e6;
+  stroke: #b8653e;
+}
+.half {
+  fill: #f2c4a8;
+  pointer-events: none;
+}
+.state-complete .disc {
+  fill: var(--green);
+  stroke: #285a48;
+}
+.state-complete .num,
+.state-needs-review .num {
+  fill: white;
+}
+.state-needs-review .disc {
+  fill: var(--red);
+  stroke: #8a2f29;
+}
+.badge-bg {
+  fill: white;
+  stroke: var(--ink);
+}
+.badge-mark {
+  fill: none;
+  stroke: var(--green);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.badge-text {
+  font-weight: 800;
+  fill: var(--red);
+}
+.ring {
+  fill: none;
+  stroke: var(--accent);
+}
+.marker:focus-visible .ring,
+.marker:focus-visible .disc {
+  stroke: #e6a07f;
+}
+.map-controls {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: grid;
+  gap: 6px;
+  z-index: 2;
+}
+.map-controls .btn {
+  min-width: 44px;
+  min-height: 44px;
+  box-shadow: 0 2px 8px #1f2b3022;
+}
