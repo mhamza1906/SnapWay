@@ -134,3 +134,14 @@ still fail geometry/navigation acceptance. The report links all changed
 [experiment code and commands](../apps/pipeline/experiments/README.md), measured
 usage/cost, database mapping and portable evidence. Shared DB connectivity/import
 remains unresolved; application APIs and production schema are unchanged.
+
+## Figma tracing review
+
+The member-supplied [Figma SVG review](audits/2026-10-17-figma-vectorization.md)
+finds much stronger visual fidelity to the same optimized raster than the previous
+whole-map LLM outputs, but no exported room/door/route semantics. It links the
+original SVG, reproducible visual analysis, comparison/detail images and a pinned
+public API investigation. Dedicated tracing plus separate semantic extraction is
+proposed for the next controlled trial; VTracer and a commercial API remain
+untested. No runtime/API/dependency changes or additional model calls accompany
+this audit; Figma latency and credits were not instrumented.

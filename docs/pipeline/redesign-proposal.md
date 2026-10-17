@@ -238,3 +238,15 @@ Proposed acceptance gates to agree before paid runs:
 5. **Product integration:** real database/storage/job ownership, authorized MCP adapter and publication/navigation acceptance. Keep their gaps visible until integrated evidence exists.
 
 Review decisions still needed before implementation are the shared schema/API extension boundary, experiment spending ceiling, and any geometry threshold changes. The model preference is already specified by the user; it does not need to be asked again. This proposal changes no deployed architecture, dependencies, secrets or existing API contracts.
+
+## 10. Subsequent dedicated-tracing evidence
+
+The [Figma tracing audit](../audits/2026-10-17-figma-vectorization.md) supplies a
+new visual baseline on the actual GPT-optimized raster: dedicated vectorization
+retains considerably more linework than the earlier bounded whole-map LLM
+reconstructions, without producing navigation semantics. The next experiment
+should compare dedicated tracing for display assets plus bounded model-assisted
+semantic annotation, alongside direct tracing of the original source. Public
+Figma native-vectorize access was not found; local VTracer and the documented
+commercial API are candidates, not installed or integrated dependencies. Retain
+source registration, canonical geometry, topology, review and total-cost gates.
