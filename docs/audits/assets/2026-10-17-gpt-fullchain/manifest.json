@@ -1,0 +1,221 @@
+{
+  "date": "2026-10-17",
+  "scope": "Actual GPT image API -> GPT vector whole/crops + matched Gemini whole; local SQLite staging only",
+  "files": [
+    {
+      "name": "original-floor.png",
+      "bytes": 1830283,
+      "sha256": "5e3e0f9205b5b5f2687a9def142b7c105c29c1eaf1a096a3350f09b897e082fe",
+      "width": 1930,
+      "height": 900,
+      "format": "PNG"
+    },
+    {
+      "name": "optimized-floor.png",
+      "bytes": 1489633,
+      "sha256": "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+      "width": 1536,
+      "height": 1024,
+      "format": "PNG"
+    },
+    {
+      "name": "raster-prompt.txt",
+      "bytes": 1811,
+      "sha256": "e759b7542875fc4c064fa182dd323bf3a333a9a7a8b9c9d1b8effbfe134f7682"
+    },
+    {
+      "name": "image-ledger.json",
+      "bytes": 741,
+      "sha256": "133b28b47c824adaa346749d3ee223ac6952477a36aed347f722a4a754e99cdb"
+    },
+    {
+      "name": "image-response-metadata.json",
+      "bytes": 447,
+      "sha256": "b6bf62e27987c47c4f30237151821f7f581b1176123f93291e66c2dff7cb81bd"
+    },
+    {
+      "name": "input-provenance.json",
+      "bytes": 357,
+      "sha256": "9b8bc48ad6edbefb84b2cc1f7a06627aee48405500669ea4feb956a665b84df8"
+    },
+    {
+      "name": "staging-summary.json",
+      "bytes": 1555,
+      "sha256": "83970f7d48696bbbb59cfac4d56e06813d8d09edd7ccdecca75f31aec2647957"
+    },
+    {
+      "name": "comparison.json",
+      "bytes": 35599,
+      "sha256": "e04725dcb32fb27cdf1d68238cf6efb4d958e28dfdf96b07bee1b42ec620dc71"
+    },
+    {
+      "name": "inventory.json",
+      "bytes": 2995,
+      "sha256": "4aace7ba5079fe666263d6cb29d5cc8675f99c9b976dd062a7ad22adf9e75c07"
+    },
+    {
+      "name": "trace-schema.json",
+      "bytes": 4453,
+      "sha256": "112154f151c5b2e9e37d9806ef229c02318f3ed83ac827248a1530cfb5dfdd0c"
+    },
+    {
+      "name": "presentation-schema.json",
+      "bytes": 5516,
+      "sha256": "9a83c931f2f2ee63ac242ce185861697ac6a69328ee12d572745fbb75ab91056"
+    },
+    {
+      "name": "dashboard.jpg",
+      "bytes": 83221,
+      "sha256": "88126b2a6707827f4581ab97f660756a109b0362dbe622fcfa5c9b21954a873c",
+      "width": 1707,
+      "height": 932,
+      "format": "JPEG"
+    },
+    {
+      "name": "gpt-structure/vector.svg",
+      "bytes": 36047,
+      "sha256": "2a600f52ff35fa7f3d390d172b458deedbab1bac5e366e125bd485af259ee002"
+    },
+    {
+      "name": "gpt-structure/vector.png",
+      "bytes": 161525,
+      "sha256": "56302ab86ad3657875d1d46e62ac13bc2f6958827d649e4c53338aa2b10ea8bb",
+      "width": 1536,
+      "height": 1024,
+      "format": "PNG"
+    },
+    {
+      "name": "gpt-structure/validation.json",
+      "bytes": 13438,
+      "sha256": "fc7ddcbff3bef97b2804b5c990048ead9199fc04530f46cce7a96232fe82d052"
+    },
+    {
+      "name": "gpt-structure/frame.json",
+      "bytes": 226,
+      "sha256": "ea280cdf0140b20511139e6cd7224ab523ee572af55b80a7e8da25e94ead23be"
+    },
+    {
+      "name": "gpt-structure/trace.json",
+      "bytes": 19172,
+      "sha256": "4643d7bf16d30d3df4d7809ab4cdafd34ab8a98c1b197aaee0306e2e1b721927"
+    },
+    {
+      "name": "gpt-structure/presentation.json",
+      "bytes": 26882,
+      "sha256": "01addc2fcd483c8f63cc0ed47e45f0dc85ea516c00161ec803316ee27104dbb8"
+    },
+    {
+      "name": "gpt-structure/browser-all-labels.jpg",
+      "bytes": 80428,
+      "sha256": "595cc62bd84662307aab673777cf1c83f595bfd1aa9e7d154a578fa0282fd170",
+      "width": 1692,
+      "height": 924,
+      "format": "JPEG"
+    },
+    {
+      "name": "gemini-structure/vector.svg",
+      "bytes": 32025,
+      "sha256": "fad285b2e099738f5dabb401a69bad48b0272e3898841e2e7c5795689b97075f"
+    },
+    {
+      "name": "gemini-structure/vector.png",
+      "bytes": 169883,
+      "sha256": "610bd455518ca7060ec02b6aa4bfcac1dd14e207b7c5dca4a91f9e4bb84ce194",
+      "width": 1536,
+      "height": 1024,
+      "format": "PNG"
+    },
+    {
+      "name": "gemini-structure/validation.json",
+      "bytes": 12657,
+      "sha256": "3a5b4b8cb3927be51030fe4b0f6b1e397ffc37ab7fd28f6f32103703bf1825d6"
+    },
+    {
+      "name": "gemini-structure/frame.json",
+      "bytes": 226,
+      "sha256": "ea280cdf0140b20511139e6cd7224ab523ee572af55b80a7e8da25e94ead23be"
+    },
+    {
+      "name": "gemini-structure/trace.json",
+      "bytes": 18843,
+      "sha256": "a5a62426c0da089bc6d7086b45ed940e19e764d4b38a04221b8d5c4b2ade9664"
+    },
+    {
+      "name": "gemini-structure/presentation.json",
+      "bytes": 22408,
+      "sha256": "3e7c61bf38aad6f5e03cec1ba2394691c6ba29f19bf42ef89cb07fbd75ef46b0"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/vector.svg",
+      "bytes": 31302,
+      "sha256": "c38bde40ea24493d1fc6c4f5bbb91c98047bf57a29ba52b94fd9a79b6049d39a"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/vector.png",
+      "bytes": 93807,
+      "sha256": "bca64c01873624ace526b70514ed105303f4afd01e921192a2212a6bf994f07c",
+      "width": 896,
+      "height": 720,
+      "format": "PNG"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/validation.json",
+      "bytes": 13068,
+      "sha256": "28a752263525b10b61ca6d2c94958a283c74e7e6399bbb7a6ac3bc0d41068da8"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/frame.json",
+      "bytes": 292,
+      "sha256": "529b3c2cc91dcc38a5132fa48fc8efecf3ae996cf41aa3fe30b8d0529a277f78"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/trace.json",
+      "bytes": 17885,
+      "sha256": "9f751df8c5104604805d66ea25c1a2ab62e5d31b9372e09a3e8c7d020de1422d"
+    },
+    {
+      "name": "gpt-structure-roi-0-140/presentation.json",
+      "bytes": 21944,
+      "sha256": "783b643aba99a46eadb6a4db2d976c69bfd6dff96a6db179d183c751524f21d5"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/vector.svg",
+      "bytes": 32926,
+      "sha256": "6f98775ab02c3494d2994ef49c6d9525006eb710390890c317b81bc4ef447e03"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/vector.png",
+      "bytes": 94716,
+      "sha256": "96dfa746587b86310067ea550028afef7cf1e213543828b65b8c04d5ea9e33e9",
+      "width": 896,
+      "height": 720,
+      "format": "PNG"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/validation.json",
+      "bytes": 15169,
+      "sha256": "d2108c68d6cef63c30acdbca3a2e8dbbabce5926eb04fb808da1603276efe05c"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/frame.json",
+      "bytes": 294,
+      "sha256": "7350a1e209bc53c03448bbaad67d5ffd2ac3e28d391d8c124de83a4b0231541e"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/trace.json",
+      "bytes": 19247,
+      "sha256": "8158dcd68acd4f2f557d759cc2e56f696fb6f5e804b9ac53e9c6b884a3e40e71"
+    },
+    {
+      "name": "gpt-structure-roi-640-140/presentation.json",
+      "bytes": 22516,
+      "sha256": "45f5da2001980e9bcae5c19a3ae2620096db8ac0173d7d276037e0eca57cefe7"
+    }
+  ],
+  "private_only": [
+    "OPENAI_API_KEY and all environment files",
+    "Raw provider responses and prior local validator error trace",
+    "experiment.sqlite3",
+    "Unreviewed candidate application map snapshots"
+  ]
+}

@@ -25,6 +25,10 @@ export const routes: Routes = [
     canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
   },
   {
+    path: 'authoring',
+    loadComponent: () => import('./features/authoring/authoring').then((m) => m.AuthoringPage),
+  },
+  {
     path: 'review',
     loadComponent: () => import('./features/review/review').then((m) => m.ReviewPage),
   },

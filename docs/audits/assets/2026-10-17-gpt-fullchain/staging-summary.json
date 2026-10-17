@@ -1,0 +1,46 @@
+{
+  "experiments": 1,
+  "observations": 11,
+  "room_candidates": [
+    {
+      "name": "BRAINSTORM",
+      "attributes": {
+        "capacity": 24,
+        "capacity_source": "read from original photo",
+        "review_state": "unreviewed"
+      }
+    },
+    {
+      "name": "DARK MATTER",
+      "attributes": {
+        "capacity": 24,
+        "capacity_source": "read from original photo",
+        "review_state": "unreviewed"
+      }
+    },
+    {
+      "name": "THE CAVE",
+      "attributes": {
+        "capacity": 210,
+        "capacity_source": "read from original photo",
+        "review_state": "unreviewed"
+      }
+    }
+  ],
+  "vector_regions": 96,
+  "observation_region_links": 42,
+  "model_calls": 10,
+  "room_candidate_count": 3,
+  "shared_database_written": false,
+  "mapping": {
+    "room_candidates.name": "maps.Room.name",
+    "room_candidates.number": "maps.Room.number",
+    "room_candidates.purpose": "maps.Room.purpose",
+    "room_candidates.attributes_json": "maps.Room.attributes",
+    "room_candidates.provenance_json": "maps.Room.provenance",
+    "room_candidates.stable_id": "maps.MapObject.stable_id",
+    "vector_regions.polygon_json": "maps.Revision.geometry (through reviewed domain import)",
+    "target_revision_id": "unresolved; requires existing authorized target/contribution/revision"
+  },
+  "staging_reason": "Existing Room schema supports metadata; shared DB read-only probe failed (OperationalError), and authorized target/revision/domain import is not established. No shared schema migration or fake actor created."
+}

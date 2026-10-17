@@ -5,13 +5,20 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy main after all checks (server setup must be complete)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Do not cancel a main run while its migration/promotion may be in progress.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   changes:
@@ -19,13 +26,26 @@ jobs:
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
       web: ${{ steps.changes.outputs.web }}
+      pipeline: ${{ steps.changes.outputs.pipeline }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+      - name: Find the last successful main baseline
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+            -f branch=main -f event=push -f status=success -f per_page=1 \
+            --jq '.workflow_runs[0].head_sha // ""' || true)
+          if [[ "$base" =~ ^[0-9a-f]{40}$ ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "sha=$base" >> "$GITHUB_OUTPUT"
+          fi
       - id: changes
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BASE_SHA: ${{ steps.baseline.outputs.sha || github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.sha }}
         run: python3 scripts/ci_changes.py
 
@@ -44,11 +64,14 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - run: uv sync --locked --extra ai --extra geometry --extra mcp
+      - run: python scripts/env_contract.py template
+      - run: python scripts/check_audit_evidence.py
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
       - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py check --settings=config.settings.test
       - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py makemigrations --check --dry-run --settings=config.settings.test
       - run: uv run --locked --extra ai --extra geometry --extra mcp pytest
+      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest infra/tests
 
   postgresql:
     needs: changes
@@ -75,7 +98,7 @@ jobs:
 
   web:
     needs: changes
-    if: needs.changes.outputs.web == 'true'
+    if: needs.changes.outputs.web == 'true' || (github.ref == 'refs/heads/main' && needs.changes.outputs.backend == 'true')
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -88,16 +111,57 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm install --global npm@11.12.1
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        id: dependencies
+        with:
+          path: apps/web/node_modules
+          key: web-deps-${{ runner.os }}-${{ runner.arch }}-npm11.12.1-${{ hashFiles('.node-version', 'apps/web/package.json', 'apps/web/package-lock.json') }}
+      - if: steps.dependencies.outputs.cache-hit != 'true'
+        run: npm ci --no-fund --no-audit
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        id: browser
+        with:
+          path: apps/web/dist/snapway/browser
+          key: browser-${{ runner.os }}-${{ runner.arch }}-npm11.12.1-${{ hashFiles('.node-version', 'apps/web/src/**', 'apps/web/public/**', 'apps/web/*.json', 'apps/web/*.ts', 'contracts/**', '.github/workflows/ci.yml') }}
+      - if: needs.changes.outputs.web == 'true' || steps.browser.outputs.cache-hit != 'true'
+        run: npm run format:check
+      - if: needs.changes.outputs.web == 'true' || steps.browser.outputs.cache-hit != 'true'
+        run: npm test
+      - if: steps.browser.outputs.cache-hit != 'true'
+        run: npm run build
+      - if: needs.changes.outputs.web == 'true'
+        run: npm run build:visitor
+      - if: needs.changes.outputs.web == 'true'
+        run: npx cap sync android
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          name: browser
+          path: apps/web/dist/snapway/browser
+          if-no-files-found: error
+
+  # Map-authoring pipeline service (Node). Offline tests only: synthetic
+  # providers, no keys and no paid calls.
+  pipeline:
+    needs: changes
+    if: needs.changes.outputs.pipeline == 'true'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/pipeline
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/pipeline/package-lock.json
       - run: npm ci --no-fund --no-audit
-      - run: npm run format:check
       - run: npm test
-      - run: npm run build
-      - run: npm run build:visitor
-      - run: npx cap sync android
 
   required:
     if: always()
-    needs: [changes, backend, postgresql, web]
+    needs: [changes, backend, postgresql, web, pipeline]
     runs-on: ubuntu-24.04
     steps:
       - env:
@@ -106,3 +170,35 @@ jobs:
           if [[ "$RESULTS" == *failure* || "$RESULTS" == *cancelled* ]]; then
             exit 1
           fi
+
+  package:
+    needs: [changes, required, web]
+    if: >-
+      always() && needs.required.result == 'success' &&
+      github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
+      (github.event_name == 'push' || inputs.deploy) &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.web == 'true')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: browser
+          path: apps/web/dist/snapway/browser
+      - name: Package committed source and browser artifact
+        env:
+          RELEASE: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: python3 scripts/package_release.py "$RELEASE"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            local/release.tar.gz
+            local/release.tar.gz.sha256
+          if-no-files-found: error
+
+  deploy:
+    needs: [package]
+    if: vars.PRODUCTION_DEPLOY_ENABLED == 'true'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

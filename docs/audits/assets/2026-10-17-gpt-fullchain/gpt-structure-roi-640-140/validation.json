@@ -1,0 +1,553 @@
+{
+  "schemaValid": true,
+  "basicPolygonValid": true,
+  "basicError": null,
+  "provider": "openai",
+  "regions": 24,
+  "walls": 129,
+  "openingCandidates": 4,
+  "openingBoundaries": [
+    {
+      "id": "brainstorm-door",
+      "adjacency": [
+        {
+          "id": "brainstorm",
+          "maxEndpointDistancePixels": 0.03254519076567762
+        }
+      ]
+    },
+    {
+      "id": "dark-matter-east-door",
+      "adjacency": [
+        {
+          "id": "dark-matter",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "stair-d-upper-room-door",
+      "adjacency": [
+        {
+          "id": "stair-d-upper-room",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "south-service-door",
+      "adjacency": [
+        {
+          "id": "south-service-room",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    }
+  ],
+  "domainIssues": [
+    {
+      "code": "door",
+      "message": "BRAINSTORM: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "brainstorm"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "DARK MATTER: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "THE CAVE: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "the-cave"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR J: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-j-landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR C: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-c-landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR D: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-d-landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "stair-d-upper-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-d-upper-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR B: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-b-landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "south-service-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "south-service-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "southeast-service-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "southeast-service-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "south-service-upper-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "south-service-upper-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "dark-matter-west-vestibule: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter-west-vestibule"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "cave-northwest-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-northwest-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "cave-west-middle-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-middle-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "cave-west-lower-room: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-lower-room"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "main-circulation: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "main-circulation"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "overlap",
+      "message": "DARK MATTER overlaps dark-matter-west-vestibule",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "THE CAVE overlaps cave-west-middle-room",
+      "target": {
+        "kind": "spaces",
+        "id": "the-cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "THE CAVE overlaps main-circulation",
+      "target": {
+        "kind": "spaces",
+        "id": "the-cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "cave-west-middle-room overlaps cave-west-lower-room",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-middle-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "cave-west-middle-room overlaps main-circulation",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-middle-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "cave-west-lower-room overlaps main-circulation",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-lower-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "BRAINSTORM: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "brainstorm"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "DARK MATTER: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "THE CAVE: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "the-cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "northwest-shaft: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "northwest-shaft"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR J: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-j-flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR J: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-j-landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR C: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-c-flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR C: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-c-landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR D: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-d-flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR D: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-d-landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "stair-d-upper-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-d-upper-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR B: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-b-flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR B: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair-b-landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "southwest-shaft: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "southwest-shaft"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "south-service-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "south-service-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "southeast-service-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "southeast-service-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "south-service-upper-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "south-service-upper-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "northwest-open-stair: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "northwest-open-stair"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "dark-matter-west-flight: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter-west-flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "dark-matter-west-vestibule: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "dark-matter-west-vestibule"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "cave-northwest-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-northwest-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "cave-west-middle-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-middle-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "cave-west-lower-room: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "cave-west-lower-room"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "main-circulation: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "main-circulation"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "scale",
+      "message": "Unscaled map — distances are shown in pixels",
+      "target": null,
+      "severity": "info"
+    }
+  ],
+  "traceUnresolved": [
+    {
+      "target_ref": "room-1",
+      "code": "capacity",
+      "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+    },
+    {
+      "target_ref": "room-2",
+      "code": "capacity",
+      "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+    },
+    {
+      "target_ref": "room-3",
+      "code": "capacity",
+      "reason": "The labelled reference states 210 seats. Seating marks support an auditorium, but do not independently establish capacity."
+    },
+    {
+      "target_ref": "stair-1",
+      "code": "clipped",
+      "reason": "STAIR A is outside the image-1 crop. No polygon or location has been transferred from image 2."
+    },
+    {
+      "target_ref": "stair-j-landing",
+      "code": "clipped",
+      "reason": "The northwest stair core intersects the left crop boundary; only the visible landing portion is proposed."
+    },
+    {
+      "target_ref": "stair-c-landing",
+      "code": "clipped",
+      "reason": "The landing continues beyond the left crop boundary."
+    },
+    {
+      "target_ref": "northwest-open-stair",
+      "code": "clipped",
+      "reason": "The flight is cut by the left crop boundary. Its association with a named stair is not established."
+    },
+    {
+      "target_ref": "main-circulation",
+      "code": "ambiguous_geometry",
+      "reason": "This is a partial circulation trace. Western and southern continuations, local door recesses, and the eastern exit enclosure require further subdivision and verification."
+    },
+    {
+      "target_ref": "dark-matter-west-vestibule",
+      "code": "ambiguous_geometry",
+      "reason": "The boundary between the stair-side vestibule and DARK MATTER is partly unclear; the room association is restricted to the clearly enclosed eastern region."
+    },
+    {
+      "target_ref": "the-cave",
+      "code": "ambiguous_geometry",
+      "reason": "Tiered seating and internal aisle marks were not treated as room walls. The northwest entry recesses and southeast enclosure require local boundary verification."
+    },
+    {
+      "target_ref": "stair-b-landing",
+      "code": "ambiguous_geometry",
+      "reason": "Only the supported western landing strip and its visible return are traced; the eastern stair landing and adjoining service partitions need verification."
+    },
+    {
+      "target_ref": null,
+      "code": "missing_label",
+      "reason": "Unnamed service rooms, elevator shafts, and open stair flights have no supported inventory labels."
+    },
+    {
+      "target_ref": null,
+      "code": "ambiguous_geometry",
+      "reason": "The references have different crop and perspective geometry. Image 2 was used only for semantic associations; small partition and doorway correspondences remain uncertain."
+    },
+    {
+      "target_ref": null,
+      "code": "ambiguous_geometry",
+      "reason": "Opening candidates declare only boundaries directly traced here. Opposite-side adjacency is intentionally omitted where exact shared boundaries are not established."
+    }
+  ],
+  "presentationUnresolved": [
+    "The footprint is clipped at the left image boundary; no closing structural wall or unseen continuation is inferred there.",
+    "Decorative facade mesh and dashed reference lines are excluded. The southern angular perimeter and eastern vestibule junction remain locally uncertain.",
+    "STAIR A is outside this crop. The two unnamed open flights have no established inventory-label association.",
+    "Stair and seating parameters are presentation estimates clipped to their envelopes; landing areas are not filled with treads.",
+    "The stated capacities of 24, 24 and 210 are not independently verified. Seating grids neither establish capacity nor represent every auditorium seating tier.",
+    "Auditorium tier edges, aisles and seating marks are not treated as room walls. Small service partitions and several entry recesses remain unresolved.",
+    "Door symbols use only prior opening IDs. Swing sides remain unknown; no additional access is inferred from symbols."
+  ],
+  "navigationAccepted": false,
+  "acceptedDoors": 0,
+  "routeEdges": 0
+}

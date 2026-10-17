@@ -1,0 +1,142 @@
+{
+  "frame_id": "original-5e3e0f9205b5b5f2",
+  "observations": [
+    {
+      "id": "room-1",
+      "kind": "room",
+      "name": "BRAINSTORM",
+      "raw_text": "BRAINSTORM\n24 SEATS",
+      "capacity": 24,
+      "label_position": {
+        "x": 714,
+        "y": 229
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "room-2",
+      "kind": "room",
+      "name": "DARK MATTER",
+      "raw_text": "DARK\nMATTER\n24 SEATS",
+      "capacity": 24,
+      "label_position": {
+        "x": 581,
+        "y": 531
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "room-3",
+      "kind": "room",
+      "name": "THE CAVE",
+      "raw_text": "THE CAVE\n210 SEATS",
+      "capacity": 210,
+      "label_position": {
+        "x": 703,
+        "y": 569
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "stair-1",
+      "kind": "stair",
+      "name": "STAIR A",
+      "raw_text": "STAIR A",
+      "capacity": null,
+      "label_position": {
+        "x": 196,
+        "y": 736
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "stair-2",
+      "kind": "stair",
+      "name": "STAIR B",
+      "raw_text": "STAIR B",
+      "capacity": null,
+      "label_position": {
+        "x": 576,
+        "y": 726
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "stair-3",
+      "kind": "stair",
+      "name": "STAIR C",
+      "raw_text": "STAIR C",
+      "capacity": null,
+      "label_position": {
+        "x": 455,
+        "y": 291
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "stair-4",
+      "kind": "stair",
+      "name": "STAIR J",
+      "raw_text": "STAIR J",
+      "capacity": null,
+      "label_position": {
+        "x": 445,
+        "y": 180
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "stair-5",
+      "kind": "stair",
+      "name": "STAIR D",
+      "raw_text": "STAIR D",
+      "capacity": null,
+      "label_position": {
+        "x": 820,
+        "y": 273
+      },
+      "observation": "visible"
+    },
+    {
+      "id": "annotation-1",
+      "kind": "unknown",
+      "name": "",
+      "raw_text": "DN",
+      "capacity": null,
+      "label_position": {
+        "x": 936,
+        "y": 452
+      },
+      "observation": "ambiguous"
+    },
+    {
+      "id": "safety-1",
+      "kind": "safety",
+      "name": "",
+      "raw_text": "",
+      "capacity": null,
+      "label_position": {
+        "x": 921,
+        "y": 5
+      },
+      "observation": "unreadable"
+    },
+    {
+      "id": "safety-2",
+      "kind": "safety",
+      "name": "",
+      "raw_text": "FAA",
+      "capacity": null,
+      "label_position": {
+        "x": 971,
+        "y": 6
+      },
+      "observation": "ambiguous"
+    }
+  ],
+  "unresolved": [
+    "The small right-side direction label appears to read DN, but is blurred.",
+    "Safety callouts along the top edge are cropped; one abbreviation is unreadable and the rightmost appears to read FAA.",
+    "No readable floor title or elevator identifier is visible."
+  ]
+}

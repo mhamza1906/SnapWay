@@ -1,0 +1,112 @@
+{
+  "name": "door-detail",
+  "parentFrame": {
+    "parent": "candidate-8aaf2ca074bce958",
+    "crop_xyxy": [
+      630,
+      240,
+      880,
+      555
+    ],
+    "coordinate_conversion": "parent_x=left+local_x/1000*width; parent_y=top+local_y/1000*height"
+  },
+  "schema": "Validated by harness before geometric checks",
+  "basicPolygonValid": true,
+  "error": null,
+  "spaces": 9,
+  "openingCandidates": 7,
+  "geometryIssues": [],
+  "openingBoundaries": [
+    {
+      "id": "open_dm_south",
+      "adjacency": [
+        {
+          "id": "dark_matter_west_alcove",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "circ_between_dm_and_stair_b",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_stair_b_north",
+      "adjacency": [
+        {
+          "id": "circ_between_dm_and_stair_b",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "stair_b_landing",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_dm_internal",
+      "adjacency": [
+        {
+          "id": "dark_matter_room",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "dark_matter_west_alcove",
+          "maxEndpointDistancePixels": 11.448847103529681
+        }
+      ]
+    },
+    {
+      "id": "open_dm_northeast",
+      "adjacency": [
+        {
+          "id": "dark_matter_room",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_stair_b_south_mid",
+      "adjacency": [
+        {
+          "id": "stair_b_landing",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "stair_b_south_vestibule",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_circ_sw_north",
+      "adjacency": [
+        {
+          "id": "circ_south_west",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_east_corridor_north",
+      "adjacency": [
+        {
+          "id": "circ_between_dm_and_stair_b",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "circ_east_stair_b",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "target_ref": "circ_between_dm_and_stair_b",
+      "code": "clipped",
+      "reason": "Circulation space extends beyond the crop boundaries to the west, north, and east."
+    }
+  ],
+  "appliedToBaseline": false
+}

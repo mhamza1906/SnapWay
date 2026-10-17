@@ -1,0 +1,1072 @@
+{
+  "schema_version": 1,
+  "request_id": "optimized-bb897c1538b37a2b-trace",
+  "frame_id": "optimized-bb897c1538b37a2b",
+  "coordinate_space": "crop_n1000_xy",
+  "spaces": [
+    {
+      "local_id": "brainstorm",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 449,
+          "y": 128
+        },
+        {
+          "x": 609,
+          "y": 128
+        },
+        {
+          "x": 609,
+          "y": 258
+        },
+        {
+          "x": 427,
+          "y": 189
+        }
+      ],
+      "label_refs": [
+        "room-1"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "dark-matter",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 280,
+          "y": 397
+        },
+        {
+          "x": 329,
+          "y": 397
+        },
+        {
+          "x": 329,
+          "y": 607
+        },
+        {
+          "x": 223,
+          "y": 607
+        },
+        {
+          "x": 261,
+          "y": 465
+        }
+      ],
+      "label_refs": [
+        "room-2"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "the-cave",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 508,
+          "y": 375
+        },
+        {
+          "x": 764,
+          "y": 461
+        },
+        {
+          "x": 750,
+          "y": 512
+        },
+        {
+          "x": 761,
+          "y": 528
+        },
+        {
+          "x": 806,
+          "y": 546
+        },
+        {
+          "x": 806,
+          "y": 724
+        },
+        {
+          "x": 714,
+          "y": 797
+        },
+        {
+          "x": 512,
+          "y": 814
+        },
+        {
+          "x": 532,
+          "y": 746
+        },
+        {
+          "x": 419,
+          "y": 694
+        },
+        {
+          "x": 420,
+          "y": 610
+        },
+        {
+          "x": 447,
+          "y": 471
+        },
+        {
+          "x": 462,
+          "y": 474
+        },
+        {
+          "x": 493,
+          "y": 401
+        }
+      ],
+      "label_refs": [
+        "room-3"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "northwest-shaft",
+      "role": "elevator_shaft",
+      "polygon": [
+        {
+          "x": 116,
+          "y": 197
+        },
+        {
+          "x": 151,
+          "y": 197
+        },
+        {
+          "x": 151,
+          "y": 260
+        },
+        {
+          "x": 116,
+          "y": 260
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-j-flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 31,
+          "y": 104
+        },
+        {
+          "x": 73,
+          "y": 104
+        },
+        {
+          "x": 73,
+          "y": 189
+        },
+        {
+          "x": 31,
+          "y": 189
+        }
+      ],
+      "label_refs": [
+        "stair-4"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-j-landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 0,
+          "y": 110
+        },
+        {
+          "x": 29,
+          "y": 104
+        },
+        {
+          "x": 29,
+          "y": 191
+        },
+        {
+          "x": 0,
+          "y": 191
+        }
+      ],
+      "label_refs": [
+        "stair-4"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-c-flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 22,
+          "y": 197
+        },
+        {
+          "x": 87,
+          "y": 197
+        },
+        {
+          "x": 87,
+          "y": 260
+        },
+        {
+          "x": 22,
+          "y": 260
+        }
+      ],
+      "label_refs": [
+        "stair-3"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-c-landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 0,
+          "y": 197
+        },
+        {
+          "x": 20,
+          "y": 197
+        },
+        {
+          "x": 20,
+          "y": 262
+        },
+        {
+          "x": 112,
+          "y": 262
+        },
+        {
+          "x": 112,
+          "y": 283
+        },
+        {
+          "x": 0,
+          "y": 283
+        }
+      ],
+      "label_refs": [
+        "stair-3"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-d-flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 706,
+          "y": 188
+        },
+        {
+          "x": 766,
+          "y": 188
+        },
+        {
+          "x": 766,
+          "y": 258
+        },
+        {
+          "x": 706,
+          "y": 258
+        }
+      ],
+      "label_refs": [
+        "stair-5"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-d-landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 676,
+          "y": 108
+        },
+        {
+          "x": 708,
+          "y": 104
+        },
+        {
+          "x": 708,
+          "y": 185
+        },
+        {
+          "x": 794,
+          "y": 185
+        },
+        {
+          "x": 794,
+          "y": 258
+        },
+        {
+          "x": 768,
+          "y": 258
+        },
+        {
+          "x": 768,
+          "y": 187
+        },
+        {
+          "x": 704,
+          "y": 187
+        },
+        {
+          "x": 704,
+          "y": 261
+        },
+        {
+          "x": 697,
+          "y": 261
+        },
+        {
+          "x": 697,
+          "y": 282
+        },
+        {
+          "x": 676,
+          "y": 282
+        }
+      ],
+      "label_refs": [
+        "stair-5"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-d-upper-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 713,
+          "y": 128
+        },
+        {
+          "x": 794,
+          "y": 128
+        },
+        {
+          "x": 794,
+          "y": 183
+        },
+        {
+          "x": 713,
+          "y": 183
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-b-flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 248,
+          "y": 685
+        },
+        {
+          "x": 303,
+          "y": 685
+        },
+        {
+          "x": 303,
+          "y": 751
+        },
+        {
+          "x": 248,
+          "y": 751
+        }
+      ],
+      "label_refs": [
+        "stair-2"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair-b-landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 222,
+          "y": 685
+        },
+        {
+          "x": 246,
+          "y": 685
+        },
+        {
+          "x": 246,
+          "y": 753
+        },
+        {
+          "x": 328,
+          "y": 753
+        },
+        {
+          "x": 328,
+          "y": 755
+        },
+        {
+          "x": 246,
+          "y": 755
+        },
+        {
+          "x": 246,
+          "y": 826
+        },
+        {
+          "x": 222,
+          "y": 826
+        }
+      ],
+      "label_refs": [
+        "stair-2"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "southwest-shaft",
+      "role": "elevator_shaft",
+      "polygon": [
+        {
+          "x": 183,
+          "y": 667
+        },
+        {
+          "x": 216,
+          "y": 667
+        },
+        {
+          "x": 216,
+          "y": 767
+        },
+        {
+          "x": 183,
+          "y": 767
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "south-service-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 250,
+          "y": 758
+        },
+        {
+          "x": 356,
+          "y": 758
+        },
+        {
+          "x": 356,
+          "y": 792
+        },
+        {
+          "x": 411,
+          "y": 792
+        },
+        {
+          "x": 411,
+          "y": 821
+        },
+        {
+          "x": 250,
+          "y": 821
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "southeast-service-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 335,
+          "y": 688
+        },
+        {
+          "x": 374,
+          "y": 688
+        },
+        {
+          "x": 374,
+          "y": 736
+        },
+        {
+          "x": 411,
+          "y": 736
+        },
+        {
+          "x": 411,
+          "y": 791
+        },
+        {
+          "x": 358,
+          "y": 791
+        },
+        {
+          "x": 358,
+          "y": 755
+        },
+        {
+          "x": 335,
+          "y": 755
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "south-service-upper-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 377,
+          "y": 667
+        },
+        {
+          "x": 411,
+          "y": 667
+        },
+        {
+          "x": 411,
+          "y": 731
+        },
+        {
+          "x": 377,
+          "y": 731
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "northwest-open-stair",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 0,
+          "y": 303
+        },
+        {
+          "x": 133,
+          "y": 350
+        },
+        {
+          "x": 94,
+          "y": 477
+        },
+        {
+          "x": 0,
+          "y": 375
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "dark-matter-west-flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 162,
+          "y": 450
+        },
+        {
+          "x": 179,
+          "y": 467
+        },
+        {
+          "x": 145,
+          "y": 600
+        },
+        {
+          "x": 125,
+          "y": 600
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "dark-matter-west-vestibule",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 179,
+          "y": 470
+        },
+        {
+          "x": 256,
+          "y": 489
+        },
+        {
+          "x": 218,
+          "y": 605
+        },
+        {
+          "x": 148,
+          "y": 605
+        }
+      ],
+      "label_refs": [],
+      "observation": "ambiguous"
+    },
+    {
+      "local_id": "cave-northwest-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 450,
+          "y": 353
+        },
+        {
+          "x": 504,
+          "y": 374
+        },
+        {
+          "x": 474,
+          "y": 423
+        },
+        {
+          "x": 430,
+          "y": 402
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "cave-west-middle-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 425,
+          "y": 418
+        },
+        {
+          "x": 460,
+          "y": 434
+        },
+        {
+          "x": 444,
+          "y": 489
+        },
+        {
+          "x": 411,
+          "y": 455
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "cave-west-lower-room",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 410,
+          "y": 463
+        },
+        {
+          "x": 442,
+          "y": 480
+        },
+        {
+          "x": 425,
+          "y": 545
+        },
+        {
+          "x": 393,
+          "y": 539
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "main-circulation",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 214,
+          "y": 128
+        },
+        {
+          "x": 447,
+          "y": 128
+        },
+        {
+          "x": 426,
+          "y": 189
+        },
+        {
+          "x": 612,
+          "y": 261
+        },
+        {
+          "x": 673,
+          "y": 283
+        },
+        {
+          "x": 839,
+          "y": 285
+        },
+        {
+          "x": 839,
+          "y": 376
+        },
+        {
+          "x": 823,
+          "y": 371
+        },
+        {
+          "x": 797,
+          "y": 474
+        },
+        {
+          "x": 834,
+          "y": 489
+        },
+        {
+          "x": 833,
+          "y": 535
+        },
+        {
+          "x": 808,
+          "y": 535
+        },
+        {
+          "x": 808,
+          "y": 583
+        },
+        {
+          "x": 765,
+          "y": 564
+        },
+        {
+          "x": 763,
+          "y": 528
+        },
+        {
+          "x": 750,
+          "y": 512
+        },
+        {
+          "x": 765,
+          "y": 460
+        },
+        {
+          "x": 429,
+          "y": 332
+        },
+        {
+          "x": 428,
+          "y": 340
+        },
+        {
+          "x": 445,
+          "y": 346
+        },
+        {
+          "x": 426,
+          "y": 401
+        },
+        {
+          "x": 407,
+          "y": 450
+        },
+        {
+          "x": 420,
+          "y": 458
+        },
+        {
+          "x": 392,
+          "y": 543
+        },
+        {
+          "x": 379,
+          "y": 544
+        },
+        {
+          "x": 368,
+          "y": 583
+        },
+        {
+          "x": 416,
+          "y": 610
+        },
+        {
+          "x": 416,
+          "y": 661
+        },
+        {
+          "x": 112,
+          "y": 661
+        },
+        {
+          "x": 112,
+          "y": 615
+        },
+        {
+          "x": 333,
+          "y": 615
+        },
+        {
+          "x": 333,
+          "y": 370
+        },
+        {
+          "x": 380,
+          "y": 342
+        },
+        {
+          "x": 380,
+          "y": 332
+        },
+        {
+          "x": 367,
+          "y": 332
+        },
+        {
+          "x": 161,
+          "y": 440
+        },
+        {
+          "x": 142,
+          "y": 331
+        },
+        {
+          "x": 156,
+          "y": 288
+        }
+      ],
+      "label_refs": [],
+      "observation": "ambiguous"
+    }
+  ],
+  "opening_candidates": [
+    {
+      "local_id": "brainstorm-door",
+      "a": {
+        "x": 560,
+        "y": 239.4
+      },
+      "b": {
+        "x": 578,
+        "y": 246.2
+      },
+      "adjacent_local_ids": [
+        "brainstorm"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 555,
+          "y": 215
+        },
+        {
+          "x": 583,
+          "y": 223
+        },
+        {
+          "x": 583,
+          "y": 255
+        },
+        {
+          "x": 555,
+          "y": 248
+        }
+      ]
+    },
+    {
+      "local_id": "dark-matter-east-door",
+      "a": {
+        "x": 329,
+        "y": 407
+      },
+      "b": {
+        "x": 329,
+        "y": 430
+      },
+      "adjacent_local_ids": [
+        "dark-matter"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 310,
+          "y": 402
+        },
+        {
+          "x": 337,
+          "y": 402
+        },
+        {
+          "x": 337,
+          "y": 437
+        },
+        {
+          "x": 310,
+          "y": 437
+        }
+      ]
+    },
+    {
+      "local_id": "stair-d-upper-room-door",
+      "a": {
+        "x": 794,
+        "y": 161
+      },
+      "b": {
+        "x": 794,
+        "y": 181
+      },
+      "adjacent_local_ids": [
+        "stair-d-upper-room"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 774,
+          "y": 157
+        },
+        {
+          "x": 802,
+          "y": 157
+        },
+        {
+          "x": 802,
+          "y": 189
+        },
+        {
+          "x": 774,
+          "y": 189
+        }
+      ]
+    },
+    {
+      "local_id": "south-service-door",
+      "a": {
+        "x": 292,
+        "y": 821
+      },
+      "b": {
+        "x": 309,
+        "y": 821
+      },
+      "adjacent_local_ids": [
+        "south-service-room"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 286,
+          "y": 798
+        },
+        {
+          "x": 316,
+          "y": 798
+        },
+        {
+          "x": 316,
+          "y": 830
+        },
+        {
+          "x": 286,
+          "y": 830
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "target_ref": "room-1",
+      "code": "capacity",
+      "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+    },
+    {
+      "target_ref": "room-2",
+      "code": "capacity",
+      "reason": "The labelled reference states 24 seats; capacity is not independently verifiable from the optimized drawing."
+    },
+    {
+      "target_ref": "room-3",
+      "code": "capacity",
+      "reason": "The labelled reference states 210 seats. Seating marks support an auditorium, but do not independently establish capacity."
+    },
+    {
+      "target_ref": "stair-1",
+      "code": "clipped",
+      "reason": "STAIR A is outside the image-1 crop. No polygon or location has been transferred from image 2."
+    },
+    {
+      "target_ref": "stair-j-landing",
+      "code": "clipped",
+      "reason": "The northwest stair core intersects the left crop boundary; only the visible landing portion is proposed."
+    },
+    {
+      "target_ref": "stair-c-landing",
+      "code": "clipped",
+      "reason": "The landing continues beyond the left crop boundary."
+    },
+    {
+      "target_ref": "northwest-open-stair",
+      "code": "clipped",
+      "reason": "The flight is cut by the left crop boundary. Its association with a named stair is not established."
+    },
+    {
+      "target_ref": "main-circulation",
+      "code": "ambiguous_geometry",
+      "reason": "This is a partial circulation trace. Western and southern continuations, local door recesses, and the eastern exit enclosure require further subdivision and verification."
+    },
+    {
+      "target_ref": "dark-matter-west-vestibule",
+      "code": "ambiguous_geometry",
+      "reason": "The boundary between the stair-side vestibule and DARK MATTER is partly unclear; the room association is restricted to the clearly enclosed eastern region."
+    },
+    {
+      "target_ref": "the-cave",
+      "code": "ambiguous_geometry",
+      "reason": "Tiered seating and internal aisle marks were not treated as room walls. The northwest entry recesses and southeast enclosure require local boundary verification."
+    },
+    {
+      "target_ref": "stair-b-landing",
+      "code": "ambiguous_geometry",
+      "reason": "Only the supported western landing strip and its visible return are traced; the eastern stair landing and adjoining service partitions need verification."
+    },
+    {
+      "target_ref": null,
+      "code": "missing_label",
+      "reason": "Unnamed service rooms, elevator shafts, and open stair flights have no supported inventory labels."
+    },
+    {
+      "target_ref": null,
+      "code": "ambiguous_geometry",
+      "reason": "The references have different crop and perspective geometry. Image 2 was used only for semantic associations; small partition and doorway correspondences remain uncertain."
+    },
+    {
+      "target_ref": null,
+      "code": "ambiguous_geometry",
+      "reason": "Opening candidates declare only boundaries directly traced here. Opposite-side adjacency is intentionally omitted where exact shared boundaries are not established."
+    }
+  ]
+}

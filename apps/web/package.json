@@ -13,7 +13,8 @@
     "test": "ng test --watch=false",
     "build:visitor": "ng build --configuration visitor",
     "format:check": "prettier --check src angular.json package.json capacitor.config.ts proxy.conf.json",
-    "android:sync": "npm run build:visitor && cap sync android"
+    "android:sync": "npm run build:visitor && cap sync android",
+    "ios:sync": "npm run build:visitor && cap sync ios"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
@@ -24,8 +25,9 @@
     "@angular/forms": "~21.2.0",
     "@angular/platform-browser": "~21.2.0",
     "@angular/router": "~21.2.0",
-    "@capacitor/core": "8.4.3",
     "@capacitor/android": "8.4.3",
+    "@capacitor/core": "8.4.3",
+    "@capacitor/ios": "8.4.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

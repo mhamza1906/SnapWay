@@ -1,0 +1,142 @@
+{
+  "source_sha256": "7b8edc60e54b1b0840cd16231666afa27f557b7166eb17c66f4f5040d76b7c45",
+  "svg_sha256": "c7ec1165be27096017ab4f2a5b9aac9aaf5f0f1407845bd28c0aeeed0fc6f53e",
+  "svg_bytes": 440127,
+  "canvas": [
+    1536,
+    1024
+  ],
+  "tags": {
+    "svg": 1,
+    "path": 1321
+  },
+  "attributes": {
+    "width": 1,
+    "height": 1,
+    "viewBox": 1,
+    "fill": 1322,
+    "d": 1321,
+    "fill-opacity": 196
+  },
+  "unique_path_fills": 44,
+  "path_commands": {
+    "M": 1349,
+    "C": 6546,
+    "L": 4227,
+    "Z": 1349,
+    "V": 2,
+    "H": 1
+  },
+  "compound_paths": 14,
+  "paths_with_closed_subpaths": 1321,
+  "roi_xyxy": [
+    15,
+    140,
+    1530,
+    835
+  ],
+  "method": "Native pixel frame, no registration/resize; composite RGBA on white; max(R,G,B)<threshold; Euclidean tolerance 2px. Visual dark-paint metric only; prior LLM render includes labels and presentation colors. Not semantic or navigation accuracy.",
+  "conditions": {
+    "figma": {
+      "80": {
+        "input_dark_pixels": 86660,
+        "candidate_dark_pixels": 81747,
+        "iou": 0.7402990627163658,
+        "precision_within_2px": 0.9935655131075146,
+        "recall_within_2px": 0.9261712439418417,
+        "f1_within_2px": 0.9586854070834905,
+        "input_to_candidate_distance_px_median": 0.0,
+        "input_to_candidate_distance_px_p95": 5.830951690673828
+      },
+      "96": {
+        "input_dark_pixels": 95983,
+        "candidate_dark_pixels": 88127,
+        "iou": 0.7627121889570787,
+        "precision_within_2px": 0.9985021616530688,
+        "recall_within_2px": 0.9259348009543357,
+        "f1_within_2px": 0.9608502832434122,
+        "input_to_candidate_distance_px_median": 0.0,
+        "input_to_candidate_distance_px_p95": 7.0
+      },
+      "128": {
+        "input_dark_pixels": 111420,
+        "candidate_dark_pixels": 105573,
+        "iou": 0.817879463163715,
+        "precision_within_2px": 0.999156981425175,
+        "recall_within_2px": 0.9674295458625023,
+        "f1_within_2px": 0.9830373302909411,
+        "input_to_candidate_distance_px_median": 0.0,
+        "input_to_candidate_distance_px_p95": 1.0
+      }
+    },
+    "gpt_whole": {
+      "80": {
+        "input_dark_pixels": 86660,
+        "candidate_dark_pixels": 32859,
+        "iou": 0.20454934843735828,
+        "precision_within_2px": 0.8865151100155209,
+        "recall_within_2px": 0.4518578352180937,
+        "f1_within_2px": 0.5986056426593739,
+        "input_to_candidate_distance_px_median": 3.0,
+        "input_to_candidate_distance_px_p95": 52.0
+      },
+      "96": {
+        "input_dark_pixels": 95983,
+        "candidate_dark_pixels": 34950,
+        "iou": 0.20866065411847243,
+        "precision_within_2px": 0.8910157367668097,
+        "recall_within_2px": 0.44355771334507155,
+        "f1_within_2px": 0.592274486985528,
+        "input_to_candidate_distance_px_median": 3.1622776985168457,
+        "input_to_candidate_distance_px_p95": 53.0
+      },
+      "128": {
+        "input_dark_pixels": 111420,
+        "candidate_dark_pixels": 43328,
+        "iou": 0.22153722283179275,
+        "precision_within_2px": 0.8928868168389956,
+        "recall_within_2px": 0.4878029079159935,
+        "f1_within_2px": 0.6309205868410563,
+        "input_to_candidate_distance_px_median": 2.2360680103302,
+        "input_to_candidate_distance_px_p95": 44.94440841674805
+      }
+    },
+    "gemini_whole": {
+      "80": {
+        "input_dark_pixels": 86660,
+        "candidate_dark_pixels": 36070,
+        "iou": 0.2460151475156856,
+        "precision_within_2px": 0.9244524535625174,
+        "recall_within_2px": 0.5438379875375029,
+        "f1_within_2px": 0.6848132329226255,
+        "input_to_candidate_distance_px_median": 2.0,
+        "input_to_candidate_distance_px_p95": 52.0
+      },
+      "96": {
+        "input_dark_pixels": 95983,
+        "candidate_dark_pixels": 37801,
+        "iou": 0.2500373747944386,
+        "precision_within_2px": 0.9324356498505331,
+        "recall_within_2px": 0.5274371503287041,
+        "f1_within_2px": 0.6737589767569848,
+        "input_to_candidate_distance_px_median": 2.0,
+        "input_to_candidate_distance_px_p95": 53.0
+      },
+      "128": {
+        "input_dark_pixels": 111420,
+        "candidate_dark_pixels": 46164,
+        "iou": 0.2579146510848221,
+        "precision_within_2px": 0.9145004765618231,
+        "recall_within_2px": 0.544579070184886,
+        "f1_within_2px": 0.6826465634722887,
+        "input_to_candidate_distance_px_median": 2.0,
+        "input_to_candidate_distance_px_p95": 52.77309799194336
+      }
+    }
+  },
+  "timing": {
+    "figma_vectorization_seconds": null,
+    "figma_credits": null,
+    "note": "User-supplied output, no instrumented Figma run; render time is not vectorization time."
+  }
+}

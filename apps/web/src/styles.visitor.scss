@@ -1,0 +1,234 @@
+// Phone shell for the visitor build (iOS and Android Capacitor apps).
+// Loaded only by the `visitor` configuration; the contributor workspace build
+// never includes it. Phone rules are scoped under `#visitor` (the visitor
+// <body>) so they outrank Angular's emulated component selectors, which add
+// attribute specificity.
+
+html,
+body.visitor-shell {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+// With viewport-fit=cover the page scrolls under the status bar; keep the
+// clock and indicators on a solid strip.
+body.visitor-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top);
+  background: var(--canvas);
+  z-index: 100;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  #visitor {
+    // Inputs below 16px make iOS zoom the page on focus.
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+
+    .btn {
+      min-height: 44px;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+
+    .navigation-page.page {
+      padding: calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 14px)
+        calc(env(safe-area-inset-bottom) + 20px) calc(env(safe-area-inset-left) + 14px);
+    }
+
+    // Compact app header in place of the web hero.
+    .navigation-heading {
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .navigation-heading .eyebrow {
+      margin-bottom: 2px;
+    }
+    .navigation-heading h1 {
+      font-size: 22px;
+      letter-spacing: -0.6px;
+      margin: 0;
+    }
+    .navigation-heading .muted {
+      display: none;
+    }
+
+    // Building and floor as a two-column bar.
+    .context-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+    }
+    .context-bar label span {
+      font-size: 12px;
+    }
+    .context-bar select {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      border-radius: 10px;
+    }
+    .context-bar .revision-label {
+      grid-column: 1 / -1;
+      font-size: 12px;
+    }
+
+    .notice {
+      font-size: 14px;
+      border-radius: 12px;
+    }
+
+    // Map first, journey below; nothing clips the sticky route card.
+    .navigation-layout {
+      overflow: visible;
+      border-radius: 16px;
+    }
+    .map-panel {
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+    }
+    .map-heading {
+      padding: 14px 14px 6px;
+    }
+    .map-heading strong {
+      font-size: 15px;
+    }
+    .map-heading span,
+    .map-caption {
+      font-size: 12px;
+    }
+    .view-switch button {
+      min-height: 36px;
+      font-size: 13px;
+    }
+    // The shared canvas has no zoom; render the plan wider and let it
+    // scroll sideways so room labels stay legible on a phone.
+    .visitor-map {
+      overflow-x: auto;
+      padding: 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .visitor-map::-webkit-scrollbar {
+      display: none;
+    }
+    .visitor-map app-map-canvas {
+      min-width: 600px;
+    }
+    .map-caption {
+      padding: 10px 14px;
+      gap: 8px 14px;
+    }
+    .mobile-next {
+      font-size: 14px;
+    }
+
+    .destination-picker,
+    .start-picker {
+      padding: 16px;
+    }
+    .destination-picker h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .search-input {
+      padding: 0 12px;
+      min-height: 46px;
+      border-radius: 12px;
+    }
+    .search-input input {
+      font-size: 16px;
+    }
+    .destination-list {
+      max-height: 40vh;
+      -webkit-overflow-scrolling: touch;
+    }
+    .destination-option {
+      min-height: 52px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .destination-option strong {
+      font-size: 15px;
+    }
+    .destination-option small {
+      font-size: 12px;
+    }
+    .start-picker h3 {
+      font-size: 16px;
+    }
+    .start-picker .field span {
+      font-size: 13px;
+    }
+    .start-picker select {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 10px;
+    }
+    .accessibility-toggle,
+    .heading-check {
+      min-height: 44px;
+      font-size: 14px;
+    }
+    .accessibility-toggle input,
+    .heading-check input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--accent);
+    }
+
+    .route-status {
+      padding: 16px;
+      font-size: 14px;
+      border-radius: 0 0 16px 16px;
+    }
+    .route-status h2 {
+      font-size: 22px;
+    }
+    .route-status h3 {
+      font-size: 17px;
+      margin: 10px 0;
+    }
+    .route-summary span {
+      font-size: 13px;
+    }
+
+    .status-message {
+      font-size: 13px;
+    }
+    .device-controls {
+      font-size: 13px;
+    }
+    .device-controls summary {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    // Photo localization opens as a bottom sheet.
+    .capture-backdrop {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .capture-dialog {
+      width: 100%;
+      max-height: calc(100dvh - env(safe-area-inset-top) - 12px);
+      border-radius: 20px 20px 0 0;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .capture-body {
+      font-size: 14px;
+    }
+  }
+}

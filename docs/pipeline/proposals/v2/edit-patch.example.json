@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "request_id": "synthetic-presentation-edit",
+  "base_revision": 12,
+  "operations": [
+    {"op": "set_stair_presentation", "target_id": "synthetic-stair-c", "tread_angle_deg": 90, "tread_count": 14}
+  ]
+}

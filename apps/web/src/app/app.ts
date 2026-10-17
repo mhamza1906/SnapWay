@@ -46,6 +46,7 @@ export class App {
         targets: 'Mapping targets',
         editor: 'Map editor',
         contributions: 'Contributions',
+        authoring: 'Map authoring',
         review: 'Review queue',
         activity: 'Activity',
         settings: 'Settings',
@@ -56,6 +57,7 @@ export class App {
     { path: '/overview', label: 'Overview', icon: 'grid' },
     { path: '/targets', label: 'Mapping targets', icon: 'map' },
     { path: '/contributions', label: 'Contributions', icon: 'layers' },
+    { path: '/authoring', label: 'Map authoring (AI)', icon: 'map' },
     { path: '/review', label: 'Review queue', icon: 'review' },
     { path: '/activity', label: 'Activity', icon: 'activity' },
   ];
