@@ -8,24 +8,27 @@ The [real API trial](../audits/2026-10-17-map-authoring-pipeline.md) failed map 
 has now run, with an isolated harness and four recorded requests. It supports
 bounded vector parameter extraction but exposes overlap, capacity, opening-anchor
 and polygon-representation defects. The member explicitly deferred the image API
-and fallback models; the full chain and production integration remain proposed.
+and alternative models during that run; the full chain and production integration
+remain proposed. After reviewing the results, the member closed this phase and
+promoted GPT 6.1 sol and Opus 5.5 to priority vectorization comparisons; see the
+[reviewed conclusion and comparison protocol](../audits/2026-10-17-gemini-vector-pilot.md#member-reviewed-stage-conclusion).
 
 ## 1. Model policy and verified capabilities
 
-Follow the requesting member's latest choice: **GPT Image 2.5 for image generation; Gemini 4 for other inference; Opus 5.5 or GPT 6.1 only as optional vectorization fallbacks.** Earlier preserved plans remain historical context.
+Follow the requesting member's latest review: **GPT Image 2.5 remains the image-generation preference; prioritize GPT 6.1 sol and Opus 5.5 for vectorization comparison, retaining Gemini 4 full-image and segmented baselines.** The earlier fallback-only priority is superseded for future vectorization experiments; no winner or production switch is established. Gemini 4 remains the proposed model for other inference tasks pending their own evidence.
 
 | Task | Proposed adapter/model | Execution rule |
 | --- | --- | --- |
 | Clean raster candidate | OpenAI Image API, `gpt-image-2.5-sunburst` | One initial image edit/generation; immutable output and provenance |
-| Original label inventory, floor/region understanding, bounded geometry, semantic checks and natural-language edits | Existing Vertex transport, `gemini-4-argon` | Gemini remains primary; tune effort within this model rather than silently changing model family |
-| Difficult residual vectorization | Explicitly selected `claude-opus-5-5` **or** `gpt-6.1-sol` | Opt-in, one bounded region, same contract; no automatic calls to both alternatives |
+| Original label inventory, non-vector semantic checks and natural-language edits | Existing Vertex transport, `gemini-4-argon` | Existing proposal for these tasks; assess their quality separately from vectorization |
+| Vectorization: whole image and segmented image | Priority candidates `gpt-6.1-sol` and `claude-opus-5-5`; comparison baseline `gemini-4-argon` | Matched inputs, response contract, renderer and quality gates; separately budget each condition; no automatic multi-provider fan-out |
 | Rendering, layout, geometry validation, graph and ordinary UI actions | Existing local deterministic code | No model call |
 
 The [image model capability page](https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst) lists image output without structured output/function calling. Request the bitmap through the image API; application code records its metadata. A separate semantic model returns JSON. Do not request an image and strict geometry JSON from one image-model response.
 
 [Gemini 4's model page](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon) lists image understanding, structured output and function calling, but no image generation. The [Vertex Gemini 4 guide](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/start/get-started-with-gemini-4) documents LOW/MEDIUM/HIGH thinking and implicit caching; custom temperature/top-p/top-k are ignored. Optimize task size, effort and schemas rather than temperature. Do not design an explicit `cached_content` dependency for this model.
 
-Only the existing Gemini/Vertex path has been exercised with the team's credentials. Catalog availability is not account access: OpenAI image and optional fallback authorization, exact returned model version, billing and limits must be probed before their experiment. Do not silently substitute an accessible model. The [GPT 6.1 model page](https://developers.openai.com/api/docs/models/gpt-6.1-sol) supports structured output/tools for the optional adapter; its suitability still needs the same fixture evaluation.
+Only the existing Gemini/Vertex path has been exercised with the team's credentials. Catalog availability is not account access: OpenAI image and priority vector-candidate authorization, exact returned model version, billing and limits must be probed before their experiment. Do not silently substitute an accessible model. The [GPT 6.1 model page](https://developers.openai.com/api/docs/models/gpt-6.1-sol) supports structured output/tools for its candidate adapter; suitability and value still need the same fixture evaluation.
 
 ## 2. Proposed flow and human review gates
 
@@ -36,14 +39,14 @@ flowchart TD
     B --> D[GPT Image 2.5 raster candidate]
     C --> E[Review labels and register candidate to original]
     D --> E
-    E --> F[Gemini 4 bounded semantic extraction]
+    E --> F[Selected comparison model bounded vector extraction]
     F --> G[Validate coordinates IDs geometry and evidence]
     G --> H[Local parameterized SVG and Angular preview]
     H --> I[Review actual openings and navigation graph]
     I --> J[Authorized versioned apply and publication]
     G --> K[Unresolved regions only]
     K --> F
-    K --> L[Optional selected vector fallback]
+    K --> L[Budgeted candidate local repair]
     L --> G
     H --> M[Gemini 4 small edit proposal]
     M --> G
@@ -64,7 +67,11 @@ Send the normalized target floor as the geometry reference and any second image 
 
 Register source/candidate landmarks across the whole floor and difficult areas. Compare footprints, room positions and critical openings against the original, not merely the generated raster. A candidate may be pretty but structurally wrong; queue drift or reject it. A homography cannot undo arbitrary nonlinear changes introduced by generation. Do not assume same dimensions, crop, orientation or pixel alignment because the prompt requested preservation. Image generation has acknowledged precision/placement limitations in the [official guide](https://developers.openai.com/api/docs/guides/image-generation).
 
-### C. Extract semantics with Gemini 4 in bounded requests
+### C. Extract semantics in bounded requests
+
+Gemini 4 supplies the recorded baseline below. Future vectorization trials should
+also run the priority GPT 6.1 sol and Opus 5.5 candidates under the same task and
+quality contract, rather than assuming Gemini remains the winning extractor.
 
 Start with global floor/label inventory, then extract bounded groups with original + registered candidate + only useful source crops. Return rooms/circulation, stair flights versus landings, elevator shafts, voids, observed openings and unresolved evidence. Use local temporary IDs and resolve them to stable server-owned IDs after validation.
 
@@ -189,7 +196,7 @@ The goal is lower **cost per accepted map**, including failures and human correc
 
 Cache normalized assets, generated raster, valid extraction batches and render artifacts separately. Key by ownership/access scope, source+reference hashes, floor/ROI/transforms, exact model/config, prompt/schema version and renderer version. A cache hit does not waive authorization. Structural changes invalidate relevant extraction/graph; label display changes should not rerun image generation. Provider implicit prompt caching is separate from our durable artifact cache.
 
-Initial **proposed** paid trial ceiling per fixture: one raster call, at most six Gemini attempts total (including retries, inventory, extraction and semantic checks), at most two local repair requests within that six, and at most one explicitly selected fallback call. If decomposition needs more calls, stop with usable partial evidence and review the budget. No paid trial is being run as part of this documentation task. Set a dollar ceiling and price snapshot before executing, using the applicable [OpenAI pricing](https://developers.openai.com/api/docs/pricing) and provider billing data; do not infer costs from ChatGPT subscription use.
+The original pilot ceiling was six Gemini attempts with at most two local repairs; four attempts were actually used. For the next matched comparison, freeze a separate call/spending ceiling for each model/input condition, counting retries and repairs, before executing. Reuse the frozen raster for vector-only trials; do not regenerate it per candidate. The earlier single-fallback allowance is not a comparison budget or authorization for automatic calls to every provider. If decomposition needs more calls, stop with usable partial evidence and review the budget. No paid trial is being run as part of this phase closure. Set a dollar ceiling and price snapshot using the applicable [OpenAI pricing](https://developers.openai.com/api/docs/pricing) and provider billing data; do not infer costs from ChatGPT subscription use.
 
 Use request deadlines, cancellation between stages, persisted stage checkpoints and one bounded split/retry policy. A complete valid batch may be cached; incomplete JSON never becomes a valid cache result. Rate-limit/auth/safety errors need their own non-geometric recovery, not repeated geometry retries. User text/style edits should cost zero raster calls and at most one Gemini patch call; pan/zoom/toggles cost zero model calls.
 
@@ -199,8 +206,9 @@ Use request deadlines, cancellation between stages, persisted stage checkpoints 
 | --- | --- | --- |
 | E0: offline contract/replay | Existing failed IA-1 request/response artifacts and supplied web SVG/HTML | Reproduce coordinate conversions/truncation handling; detect v2 SVG ownership failure; no paid calls |
 | E1: isolate vectorization | Freeze the supplied web raster; Gemini 4 bounded contract, same original evidence | Compare region/label alignment and review effort; explicitly does not test the API image stage |
-| E2: full selected chain | New GPT Image 2.5 API raster followed by the identical E1 extractor | Verify account access, transformations, structural preservation and complete cost ledger |
-| E3: targeted repair/fallback | Only unresolved E2 regions; Gemini local patch, then one approved alternative if needed | Measure incremental accepted quality against cost and human repair, with all attempts retained |
+| E1 comparison follow-up: priority vector candidates | Same frozen image/crops and response contract for GPT 6.1 sol, Opus 5.5 and Gemini 4 baselines | Matched quality, total latency, all-attempt cost and repair effort; no winner assumed |
+| E2: full selected chain | New GPT Image 2.5 API raster followed by an extractor selected from comparison evidence | Verify account access, transformations, structural preservation and complete cost ledger |
+| E3: targeted repair | Only unresolved regions, using the selected candidate and versioned patch/representation contract | Measure incremental accepted quality against cost and human repair, with all attempts retained |
 | E4: editing and app integration | Accepted map data, fixed Angular renderer, domain commands | Working label/tread/door-style edits, stale revision/authorization rejection, undo and route invariants |
 
 After one constrained pilot, compare at least three cold repetitions and warm-edit runs over IA-1 plus oblique, multi-floor/inset and difficult stair/door fixtures. Hold out at least one fixture from prompt tuning. A manually approved web raster is a useful frozen fixture, not proof that the end-to-end API chain succeeds. Report failure rates and human correction time alongside average cost; do not discard unsuccessful trials.
@@ -219,7 +227,7 @@ Proposed acceptance gates to agree before paid runs:
 
 1. **Coordinate/recovery baseline:** frozen fixtures, frame registry, DTO validation, requested/effective effort, partial review display. Existing endpoints stay compatible; no paid model call required for replay.
 2. **Raster experiment adapter:** server-only OpenAI image credentials and separate settings template, immutable raster artifacts and source comparison gate. Confirm access and budget before E2.
-3. **Semantic vectorization and local renderer:** Gemini extraction adapter → existing building draft; parameterized presentation and marker ownership checks. Compare E1/E2 before expanding scope.
+3. **Semantic vectorization and local renderer:** matched candidate extraction adapters → existing building draft; parameterized presentation and marker ownership checks. Compare candidates on frozen E1 inputs before the E2 full chain or scope expansion.
 4. **Typed edits and tools:** one display-edit path first; revision/permission/idempotency/undo tests; reuse domain apply. Add structural commands only with agreed API contracts.
 5. **Product integration:** real database/storage/job ownership, authorized MCP adapter and publication/navigation acceptance. Keep their gaps visible until integrated evidence exists.
 

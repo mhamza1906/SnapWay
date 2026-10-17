@@ -102,8 +102,7 @@ The [web artifact review](audits/2026-10-17-chatgpt-web-floorplan.md) independen
 checks both supplied SVG/HTML versions and records a second-version regression:
 all hotspots/labels were inserted into the Logo SVG. The
 [redesign proposal](pipeline/redesign-proposal.md) specifies GPT Image 2.5 raster
-generation, Gemini 4 semantic extraction/edits, optional Opus 5.5 or GPT 6.1
-vector fallback, bounded example schemas, coordinate/review gates and staged
+generation, bounded example schemas, coordinate/review gates and staged
 cost experiments. Evidence and examples are linked there; this is a proposal,
 not a completed pipeline or an application API change.
 
@@ -112,3 +111,15 @@ frozen-raster vector stage with four real requests and a replayable
 [isolated experiment harness](../apps/pipeline/experiments/README.md). It produces
 a useful partial map but fails full geometry/navigation acceptance; the member
 deferred GPT image API and fallback-model testing. Application APIs remain unchanged.
+
+The member has now [closed this stage and confirmed the next comparison priorities](audits/2026-10-17-gemini-vector-pilot.md#member-reviewed-stage-conclusion):
+whole-image Gemini 4 vectorization is unsatisfactory; segmentation shows local
+improvement but needs more evidence. GPT 6.1 sol and Opus 5.5 are priority
+vectorization candidates, with Gemini retained as a matched baseline; future
+selection must compare accepted quality, total time and cost. No winning model
+has been selected. Work awaits the next update; no additional tests, runtime
+provider switch or API change accompanies this closeout.
+
+Published checkpoints accompanying this conclusion: [web review and proposal
+8d159aa](https://github.com/mhamza1906/SnapWay/commit/8d159aa) and
+[Gemini pilot, harness and evidence 71a5a17](https://github.com/mhamza1906/SnapWay/commit/71a5a17).

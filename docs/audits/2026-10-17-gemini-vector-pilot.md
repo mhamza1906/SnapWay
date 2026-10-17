@@ -2,6 +2,11 @@
 
 **Date:** October 17, 2026 (America/Toronto). **Verdict:** useful partial vector reconstruction; **not a complete or navigation-ready map**. The three named rooms are now visibly in their expected broad locations, but overlaps, incomplete coverage and detached opening candidates remain. One local retry improves boundary consistency; another produces invalid geometry and is rejected.
 
+**Phase closure:** the requesting member reviewed the evidence and confirmed the
+[stage conclusion and next comparison priorities](#member-reviewed-stage-conclusion)
+below. Acceptance remains failed/incomplete; closing this investigation does not
+approve the map or select a winning model. Recorded experiment checkpoint: `71a5a17`.
+
 The member's latest instruction limits this experiment to **Gemini 4**, using the already downloaded GPT web image as the simulated image-generation output. No OpenAI image API, Opus, alternate model, backend job/apply, database/R2 mutation or publication was performed. This executes the vector portion of [E1 in the proposal](../pipeline/redesign-proposal.md), not the full selected-model chain.
 
 Runtime baseline: acceptance branch `8d159aa`; production modules remain unchanged.
@@ -85,5 +90,41 @@ The earlier full photo trial used nine attempts, HIGH effort and broader access/
 Gemini 4 can produce useful bounded semantic/vector parameters from this raster without writing full SVG. The normalized frame is coherent and the gross room placement is substantially more usable than the previous failed photo overlay. Nevertheless, clean input plus JSON Schema does not ensure non-overlap, correct openings, full coverage or source fidelity.
 
 Before spending on the image API, prioritize: splitting global extraction by evidence-backed coverage; enforcing shared opening anchors; testing enclosure/exclusion decomposition for stairs; and reconciling reviewed local patches into global IDs/revisions. Keep the original as separate evidence. A later GPT Image 2.5 API experiment must be measured independently, after keys are supplied, rather than counted as completed by this frozen-input test.
+
+## Member-reviewed stage conclusion
+
+Following review on October 17, the member concluded:
+
+1. **Gemini 4 whole-image vectorization is unsatisfactory in the tested workflow.** Receiving the complete GPT Image 2.5 web-generated floor image still produces missing regions, overlapping geometry and detached openings. A cleaner raster and strict JSON response alone do not meet the application's fidelity or navigation requirements. This conclusion concerns the recorded fixture/configuration, not an exhaustive evaluation of every Gemini setting.
+2. **Segmenting the generated image shows a useful but unproven improvement.** The door crop improves the two targeted boundary relationships, while the Stair C crop fails polygon validation. More fixtures, crop boundaries and repeated trials are needed before treating segmentation as a reliable general solution; seam reconciliation and global coverage remain unresolved.
+3. **Promote GPT 6.1 sol and Opus 5.5 to priority vectorization candidates.** They should be evaluated as alternatives for the vectorization workflow, rather than reserved solely for rare fallback repairs after a Gemini-first chain. Gemini 4 remains a comparison baseline, including the segmented variant. Neither alternative has been called in this investigation, and no performance winner is established.
+4. **Select for accepted quality, time and total cost together.** The next evaluation must retain unsuccessful calls and human repair effort as well as successful outputs. The cheapest request or shortest response is not sufficient evidence of the best value per accepted map.
+
+The image-generation preference remains GPT Image 2.5; this review changes the
+priority of future vectorization comparisons. It does not switch production
+providers, change application APIs/dependencies, or establish image API access.
+
+### Required comparison record for the next phase
+
+| Dimension | Matched evaluation requirement |
+| --- | --- |
+| Candidate models | GPT 6.1 sol (`gpt-6.1-sol`), Opus 5.5 (`claude-opus-5-5`), Gemini 4 (`gemini-4-argon`); verify actual account access and returned versions before inference |
+| Input conditions | Same frozen full image and same predeclared crop set for every candidate; identical label inventory, coordinate contract, local renderer and quality gates. Keep the full-image and segmented conditions separate |
+| Representation | Compare the same task/response contract first. If enclosure/exclusion or another representation is introduced, version it and rerun the baseline; do not attribute schema improvements to a model change |
+| Quality | Coverage, source-registered geometry, overlaps/self-intersections, opening-to-boundary consistency, stair/landing roles, cross-crop seams, manual corrections and accepted/rejected verdict. Schema compliance is only one check |
+| Time | Per-call latency, total workflow elapsed time including sequential crop/repair work, retries/timeouts and human repair time. Record concurrency and warm/cold cache conditions |
+| Cost | Actual reported input/output/thinking/cached/image usage where available, all attempts, applicable provider price/date/currency and later invoice reconciliation. Missing usage stays unknown; do not compare models by raw token counts alone |
+| Reliability | Begin with a bounded matched pilot, then repeat promising conditions across multiple fixtures and held-out examples. Report sample counts and failures; do not present a single successful crop as a stable success rate or latency percentile |
+| Value decision | First require the same acceptance threshold; among passing conditions compare total cost and time per accepted map, including repairs. If quality, latency and cost trade off, report the alternatives instead of declaring an unsupported universal winner |
+
+Keep image-generation cost outside the isolated vectorization comparison because
+all candidates reuse the same raster; include it again in any later complete-chain
+cost. Freeze per-condition call/spending limits before execution; do not spend on
+all candidates automatically or assume that one provider's effort label equals
+another's compute budget. New calls await the next update and required keys.
+
+The four-call evidence and its USD 0.279416 undiscounted estimate remain the
+historical baseline. **No GPT/Opus comparison, new paid request or further model
+selection was performed during this phase closure.**
 
 The [experiment README](../../apps/pipeline/experiments/README.md) documents offline replay and explicit live commands. [Portable evidence and hashes](assets/2026-10-17-gemini-vector-pilot/manifest.json), [summary](assets/2026-10-17-gemini-vector-pilot/pilot-summary.json), [trace](assets/2026-10-17-gemini-vector-pilot/trace.json) and [presentation response](assets/2026-10-17-gemini-vector-pilot/structure.json) support review without credentials. Full provider responses remain ignored in `local/test-results/pipeline-v2-pilot/`.
