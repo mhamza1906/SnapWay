@@ -56,9 +56,11 @@ uv run python manage.py build_reference_index <revision_uuid> --email you@exampl
 
 ## Still later
 
-- Load stored index zip into `serve-mobile` for visitor match
+- Visitor match against this index — draft:
+  [localization-visitor-match.md](localization-visitor-match.md)
+  (`feature/visitor-localization-match`)
 - `LocalizationResult` / Capture persistence
-- Multi-angle authoring UX / visitor loop
+- Multi-angle authoring UX / full visitor navigation loop
 - Auto-build on photo upload; Celery; publish gates
 
 ## Env
