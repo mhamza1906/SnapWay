@@ -17,7 +17,8 @@ Python dependency. Architecture baseline:
 Google establishes identity. The database decides map membership and roles
 (`maps.Membership`). A Google account, email domain, or client-supplied role never
 grants administrator powers. New social users are created with `is_staff=False`
-and `is_superuser=False` via `accounts.adapters.SocialAccountAdapter`.
+and `is_superuser=False` via `accounts.adapters.SocialAccountAdapter`. Map role
+enforcement is documented in [backend-permissions.md](backend-permissions.md).
 
 ### Database (Tiger Data PostgreSQL)
 

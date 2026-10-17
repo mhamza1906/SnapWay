@@ -2,6 +2,7 @@
 
 from django.contrib.auth import logout
 from drf_spectacular.utils import extend_schema
+from maps.services.membership import list_active_memberships
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -10,6 +11,9 @@ from .serializers import SessionIdentitySerializer
 
 
 def _user_payload(user):
+    memberships = [
+        {"target_id": row.target_id, "role": row.role} for row in list_active_memberships(user)
+    ]
     return {
         "authenticated": True,
         "id": user.pk,
@@ -17,6 +21,7 @@ def _user_payload(user):
         "email": user.email or "",
         "is_staff": user.is_staff,
         "is_superuser": user.is_superuser,
+        "memberships": memberships,
     }
 
 
@@ -24,8 +29,8 @@ def _user_payload(user):
     summary="Current session identity",
     description=(
         "Returns the authenticated Django user for the browser session, or "
-        "`authenticated: false` when anonymous. Map roles are not included; "
-        "they remain in maps.Membership."
+        "`authenticated: false` when anonymous. Active map Membership roles are "
+        "listed read-only; clients must never send a role to authorize writes."
     ),
     responses={200: SessionIdentitySerializer},
 )

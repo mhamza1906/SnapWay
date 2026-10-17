@@ -5,7 +5,8 @@ private Redis + private MCP, with Tiger Data as the production PostgreSQL servic
 Docker is excluded. No cloud account, DNS, server, production database or
 deployment has been created by repository initialization.
 
-Add reviewed Caddy/systemd/release/restore configuration when the actual domain,
-runtime paths, service users and account profiles are known. Keep writable
-assets and credentials outside immutable releases. The current GitHub workflow
-checks builds and tests; it has no deployment credentials or promotion step.
+The [deployment guide](../docs/deployment.md) records the SnapWay target, one-time
+server setup, protected configuration, gated Actions deployment, versioned
+releases, health checks and rollback. Keep writable assets and credentials outside
+immutable releases. Deployment stays disabled until server setup is complete and
+the production Actions variable is enabled; no live release has been verified.
