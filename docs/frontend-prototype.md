@@ -2,7 +2,9 @@
 
 Interactive prototype on `feature/frontend-prototype`. This is the one shared feature
 record for the frontend prototype; personal execution history is in ignored
-`local/ACTIONS.md`.
+`local/ACTIONS.md`. The [remote branch](https://github.com/mhamza1906/SnapWay/tree/feature/frontend-prototype)
+is available for team testing; the [complete change set](https://github.com/mhamza1906/SnapWay/compare/main...feature/frontend-prototype)
+links every implementation and documentation change against the baseline.
 
 ## Approved scope and design
 
@@ -73,7 +75,7 @@ permissions or providers are invoked by this demo.
 | `/targets/:id` | Latest/history maps, contribution creation, archive/reopen | [target detail](../apps/web/src/app/features/targets/target-detail.ts) |
 | `/contributions` | Own contributions by state, feedback and stale-base warning | [contributions](../apps/web/src/app/features/contributions/contributions.ts) |
 | `/editor/:id` | Source comparison, SVG editing, AI proposals, references, undo/redo, save and submit | [editor](../apps/web/src/app/features/editor/) |
-| `/review` | Admin queue, search, target/status filters | [review queue](../apps/web/src/app/features/review/review.ts) |
+| `/review` | Admin queue, search and target filter, stale/archived readiness badges | [review queue](../apps/web/src/app/features/review/review.ts) |
 | `/review/:id` | Current/starting comparison, object diff, evidence, decisions and reconciliation | [review detail](../apps/web/src/app/features/review/review-detail.ts) |
 | `/navigate?target=innovation` | Published floors, search, positioning simulation, route and guidance | [navigation](../apps/web/src/app/features/navigation/) |
 | `/activity` | Latest 20 local events, target/text filters | [activity](../apps/web/src/app/features/activity/activity.ts) |
@@ -158,7 +160,8 @@ or authoritative accessibility measurements.
    check turns, current position and arrival. Toggle Map/Guided. Arrows are
    schematic, not world-anchored AR.
 4. Select **Workshop 106** and enable step-free routing to exercise an unavailable
-   route. Block an edge in a draft and publish it to test a new restriction.
+   route. To publish a blocked-edge restriction, add an alternate connection first
+   and block a redundant edge: every room must remain connected for publication.
 5. Test Offline and Background/Resume. Capture jobs cancel and stale observations
    are discarded. Manual navigation on the loaded snapshot remains available;
    this does not supply an offline app/service worker.
@@ -172,7 +175,8 @@ accept up to 4 MiB and are neither persisted nor transmitted.
 
 ### 4. Conflicts and recovery
 
-- Publish seeded `innovation-review`, then open `innovation-draft`, now stale.
+- Reset the demo first, exporting any work to keep. Publish seeded
+  `innovation-review`, then open `innovation-draft`, now stale.
   Save it and follow **Compare revisions**. Reconcile objects manually, acknowledge
   that the complete draft replaces the latest document, then update its base.
   Submitted stale work first needs Request changes. No automatic merge occurs.
@@ -266,6 +270,7 @@ checkpoint hashes are recorded below as each milestone completes.
 
 - Initial scope and Figma smoke-test record: commit `d0711db`.
 - Interactive application and first Figma sync: commit `984b00d`.
+- Final navigation/upload regressions and validation: commit `80f985d`.
 - First screen sync: [Overview, frame 8:2](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-2).
   Readback: 100 editable text nodes, 84 vectors, 248 frames and 3 shared-component
   instances, with zero missing fonts or UI raster images. Screenshot inspected.
@@ -295,3 +300,36 @@ checkpoint hashes are recorded below as each milestone completes.
 - The backend, dependency manifests/locks and preserved initial documentation are
   unchanged. CI configuration remains as initialized; these are local validation
   results, not a claim that a new remote CI run passed.
+
+### Final Figma synchronization
+
+The 15 review frames below cover the main journeys and selected interaction states.
+Text, vectors and layout layers are editable. Shared foundations use the app's
+Inter typography and CSS color tokens. Desktop navigation and the 390 px mobile
+view include an active route; the AI frame shows the explicit Apply/Discard gate.
+Screenshots were inspected, including correction of mobile map scaling after
+import. Figma snapshots do not execute the Local Storage workflows; use the local
+app for behavior testing.
+
+| View or state | Editable Figma frame |
+| --- | --- |
+| Workspace overview | [8:2](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-2) |
+| Mapping targets | [21:828](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-828) |
+| Target detail | [21:1232](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1232) |
+| Map editor | [21:1794](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1794) |
+| Contributions | [21:2713](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2713) |
+| Review queue | [21:2938](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2938) |
+| Review comparison | [21:3248](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-3248) |
+| Activity | [21:4060](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4060) |
+| Settings | [21:4359](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4359) |
+| Getting started | [21:4697](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4697) |
+| Welcome | [27:3154](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3154) |
+| Desktop visitor with active route | [27:3451](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3451) |
+| Scene reference and simulated analysis | [27:3915](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3915) |
+| AI proposal awaiting application | [33:2406](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-2406) |
+| Mobile visitor with active route | [33:3324](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-3324) |
+
+For the next iteration, provide the affected route/frame and desired behavior.
+Update source and relevant regression checks, synchronize the changed Figma
+frames, then record the commit and a concise feature note here; retain detailed
+execution history in each contributor's `local/ACTIONS.md`.
