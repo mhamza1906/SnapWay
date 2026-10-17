@@ -138,4 +138,4 @@ or mutate Tiger Data.
 
 - `45b3089` — Enable Google OAuth via allauth with local SQLite session identity.
 - `b64aa70` / `8da383f` — feature-record commit links.
-- (uncommitted locally) — Tiger Postgres via `api.env` only; docs + `api-env-only` rule.
+- `6874fcf` — Use api.env only for Tiger DB and keep OAuth feature docs current.
