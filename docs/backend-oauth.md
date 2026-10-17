@@ -133,9 +133,11 @@ or mutate Tiger Data.
 4. After Tiger DB came online: applied account/socialaccount migrations on Tiger
    Postgres; moved all secrets into `local/env/api.env` only (no root `.env`);
    Tiger CLI/MCP installed locally (optional; not required to run the app).
+5. Applied `ruff format` to `development.py` and `test_auth.py` so CI
+   `ruff format --check` passes (this repo uses Ruff, not Black).
 
 ## Commits
 
 - `45b3089` — Enable Google OAuth via allauth with local SQLite session identity.
 - `b64aa70` / `8da383f` — feature-record commit links.
-- `6874fcf` — Use api.env only for Tiger DB and keep OAuth feature docs current.
+- `6874fcf` / `1e7f090` — api.env-only + feature-doc SHA.

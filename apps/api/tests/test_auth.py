@@ -80,8 +80,6 @@ def test_social_adapter_strips_staff_flags():
         is_superuser=True,
     )
     adapter = SocialAccountAdapter()
-    populated = adapter.populate_user(
-        request, SocialLogin(user=user), {"email": "n@example.com"}
-    )
+    populated = adapter.populate_user(request, SocialLogin(user=user), {"email": "n@example.com"})
     assert populated.is_staff is False
     assert populated.is_superuser is False

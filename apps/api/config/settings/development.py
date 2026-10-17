@@ -12,9 +12,7 @@ _database_url = env("DATABASE_URL", default="").strip()
 if _database_url:
     DATABASES = {"default": env.db_url_config(_database_url)}
 else:
-    DATABASES = {
-        "default": env.db_url_config(f"sqlite:///{ROOT / 'local' / 'dev.sqlite3'}")
-    }
+    DATABASES = {"default": env.db_url_config(f"sqlite:///{ROOT / 'local' / 'dev.sqlite3'}")}
 STATIC_ROOT = ROOT / "local" / "static"
 MEDIA_ROOT = ROOT / "local" / "media"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
