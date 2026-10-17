@@ -195,3 +195,15 @@ periodic queries, Android/Capacitor boundaries, clock/coordinate/epoch handling,
 native camera ownership, fallback states, source-code references and real-device
 acceptance. No sensor reading or new SDK installation is claimed by this
 documentation update; existing API contracts and paid-call settings are unchanged.
+
+## Latest main integration and gap audit
+
+Latest `origin/main` `2dfd1ef` was merged into this acceptance branch in `1922769`,
+preserving the already committed plans. The [new categorized audit](audits/2026-10-17-main-sync-gaps.md)
+credits working OAuth/membership foundations and verified Web/API deployment,
+then separates environment/assets, missing features and refactoring/integration
+work against the current navigation plan. It records seven CI-classifier test
+failures and 89 Ruff diagnostics on this merged branch, while main's deployed CI
+and the local Node/Angular suites pass. IA-4 mock asset preparation is an external
+dependency; purchasing Vectorizer.AI is explicitly excluded. No product fixes,
+paid calls, PR, deployment or push accompany this audit.

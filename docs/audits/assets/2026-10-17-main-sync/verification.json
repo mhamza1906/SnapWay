@@ -1,0 +1,128 @@
+{
+  "observed_at_utc": "2026-10-17T15:08:10.356839+00:00",
+  "timezone_for_report": "America/Toronto",
+  "branch": "acceptance/map-authoring-pipeline",
+  "pre_merge_commit": "3bb9ab1",
+  "origin_main_commit": "2dfd1efcfd6a2008b5c4c6d3e6b43cb26202fd32",
+  "merge_commit": "1922769",
+  "github_main_run": {
+    "id": 39038792613,
+    "url": "https://github.com/mhamza1906/SnapWay/actions/runs/39038792613",
+    "conclusion": "success",
+    "deploy_job": "success",
+    "production_deploy_enabled": true
+  },
+  "public_http": [
+    {
+      "path": "/api/health/live/",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "service": "snapway-api",
+        "status": "ok",
+        "release": "2dfd1efcfd6a2008b5c4c6d3e6b43cb26202fd32"
+      }
+    },
+    {
+      "path": "/api/health/ready/",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "status": "ready",
+        "checks": {
+          "database": "ok"
+        }
+      }
+    },
+    {
+      "path": "/api/auth/me/",
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "authenticated": false
+      }
+    },
+    {
+      "path": "/pipeline/api/health",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/pipeline/api/vectorization/status",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8"
+    }
+  ],
+  "local_database": {
+    "vendor": "postgresql",
+    "select_1": false,
+    "error_class": "OperationalError"
+  },
+  "local_broker_tcp": "unreachable",
+  "configuration_presence_only": {
+    "local_google_client_id": "missing-or-empty",
+    "local_google_client_secret": "missing-or-empty",
+    "local_openai_key": "present-not-verified",
+    "node_vertex_key": "present-not-verified",
+    "r2_values": "all four present; not tested"
+  },
+  "prebuilt_assets": [
+    {
+      "floor_id": "ia-1",
+      "sha256": "c7ec1165be27096017ab4f2a5b9aac9aaf5f0f1407845bd28c0aeeed0fc6f53e",
+      "bytes": 440127,
+      "width": 1536,
+      "height": 1024
+    }
+  ],
+  "local_tests": {
+    "python_api_mcp_infra": {
+      "passed": 67,
+      "skipped": 16,
+      "failed": 7,
+      "seconds": 23.07,
+      "failure_group": "CI classifier returns 3 results; infra parameterized tests expect 2"
+    },
+    "node_pipeline": {
+      "passed": 151,
+      "skipped": 18,
+      "failed": 0,
+      "seconds": 4.517
+    },
+    "angular": {
+      "test_files": 11,
+      "passed": 59,
+      "failed": 0,
+      "browser_production_build": "passed"
+    },
+    "django_system_check": "passed",
+    "migration_drift": "none under config.settings.test"
+  },
+  "lint": {
+    "ruff_exit_code": 1,
+    "diagnostics": 89,
+    "files": {
+      "apps/pipeline/experiments/meter_image_cli.py": 41,
+      "apps/pipeline/experiments/stage_fullchain.py": 36,
+      "docs/audits/assets/2026-10-17-figma-vectorization/analyze.py": 12
+    },
+    "codes": {
+      "I001": 3,
+      "E401": 3,
+      "E701": 13,
+      "E501": 33,
+      "E702": 35,
+      "UP022": 1,
+      "F401": 1
+    },
+    "format_exit_code": 1,
+    "format_summary": [
+      "3 files would be reformatted, 106 files already formatted"
+    ]
+  },
+  "model_requests": 0,
+  "remote_db_writes": 0,
+  "provider_validity_tested": false,
+  "hardware_tested": false,
+  "deployment_triggered_by_audit": false
+}

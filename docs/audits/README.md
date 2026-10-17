@@ -7,6 +7,7 @@ does not replace real-fixture acceptance.
 
 | Date | Scope | Result |
 | --- | --- | --- |
+| 2026-10-17 | [Latest main sync and environment/function/refactoring gaps](2026-10-17-main-sync-gaps.md) | main OAuth/membership and Web/API deployment confirmed; merged branch still has CI compatibility/lint failures, missing IA-4 fixture and unintegrated product/navigation workflows |
 | 2026-10-17 | [Figma native vectorization of the GPT-optimized IA raster](2026-10-17-figma-vectorization.md) | Pure SVG preserves substantially more input linework; semantic navigation data remains absent; public Figma vectorize API not found, VTracer / commercial API proposed for comparison |
 | 2026-10-17 | [Map-authoring models, pipeline and IA-1 real-photo trial](2026-10-17-map-authoring-pipeline.md) | IA-1 failed; required raster stage and integrated authoring loop remain incomplete |
 | 2026-10-17 | [ChatGPT web chain and supplied SVG/HTML artifacts](2026-10-17-chatgpt-web-floorplan.md) | Useful staged visual proof; v2 embeds hotspots/labels in the Logo SVG and fails interaction acceptance; [redesign proposed](../pipeline/redesign-proposal.md) |
