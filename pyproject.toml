@@ -1,0 +1,50 @@
+[project]
+name = "snapway"
+version = "0.1.0"
+description = "Collaborative indoor map platform and reviewed visual navigation"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "django>=5.2,<5.3",
+  "djangorestframework>=3.16,<4",
+  "django-allauth[socialaccount]>=65,<66",
+  "django-environ>=0.12,<1",
+  "django-cors-headers>=4.7,<5",
+  "drf-spectacular>=0.28,<1",
+  "psycopg[binary]>=3.2,<4",
+  "celery[redis]>=5.5,<6",
+  "gunicorn>=23,<24; sys_platform != 'win32'",
+  "pydantic>=2.11,<3",
+  "httpx>=0.28,<1",
+  "pillow>=11,<13",
+]
+
+[project.optional-dependencies]
+ai = ["google-genai>=1,<3", "openai>=2,<3", "numpy>=2,<3", "beautifulsoup4>=4.13,<5"]
+geometry = ["numpy>=2,<3", "opencv-python-headless>=4.11,<5", "shapely>=2,<3", "networkx>=3.4,<4", "defusedxml>=0.7,<1"]
+mcp = ["mcp[cli]>=2,<3", "uvicorn>=0.34,<1"]
+ai-backup = ["anthropic>=0.70,<1"]
+storage = ["django-storages[s3]>=1.14,<2"]
+vector = ["pgvector>=0.4,<1"]
+
+[dependency-groups]
+dev = ["ruff>=0.12,<1", "pytest>=8,<10", "pytest-django>=4.11,<5"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["docs/initial", "local", "apps/web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+pythonpath = ["apps/api", "packages", "."]
+testpaths = ["apps/api/tests", "apps/mcp/tests"]
+addopts = "-ra"

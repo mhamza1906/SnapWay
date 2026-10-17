@@ -1,0 +1,20 @@
+{
+  "source": "Hackathon-Plan",
+  "migrated_on": "2026-10-16",
+  "files": {
+    ".env.example": "c824e330adcd9793dc154b17f00bd322d9c4945c27ac14b5fe473eb379b7d03b",
+    ".gitignore": "589f008b31f862db71f37912aae0799e40e9b66844c9ba82a1771107b9581bd6",
+    "archive/Indoor_Visual_Navigation_Detailed_Plan_EN.md": "fccd7a929939e76c52a78bd0b1c61dfae173cf4d2d6a3e5b29722b05c862b753",
+    "archive/Previous Research": "d93432159046fa429113b01f36e55572ca68cd3775186f86c09d216e632db233",
+    "Indoor_Navigation_Acceptance_and_Test_Plan_EN.md": "de7bfffd686cc84fb78ee119fa2b91119e7a447b283416ad2370a932bf5179ac",
+    "Indoor_Navigation_AI_and_Maps_Integration_EN.md": "a933b5c7efab9bab4501bc36bc7e1724e3320249548caa866dfc254dc17c9f87",
+    "Indoor_Navigation_Android_Architecture_EN.md": "529d118083d4d7842daa9a64a7bc014daace231364796236afc29891c8fc9246",
+    "Indoor_Navigation_Architecture_and_Dependencies_EN.md": "5b3058e90b4645d46fe606067bc24f10ad5efdaf7a4b650a921607239fb53812",
+    "Indoor_Navigation_Infrastructure_Integration_EN.md": "44aadc18912c6eb041ff1108f43cb350f91400605c432ac7fe9dfdc46711ae13",
+    "Indoor_Navigation_Open_Source_Reuse_Plan_EN.md": "0142ceda36cf20074697e79eaa837209e53aad492e9ceb744c19d43fc2f69148",
+    "Indoor_Navigation_Stage_1_Assignment_Plan_EN.md": "05a806fb9296e99219dab304e6a468925b57672c32e526f05cad4046c876b0d2",
+    "Indoor_Navigation_Stakeholders_and_Workflows_Review_EN.md": "e67a68a12ac5805d9120930ae7fd08b929ca30985918592fed969a9178ece548",
+    "Indoor_Navigation_Test_Catalog_EN.md": "8548a7d95912a2935908afc357dc63c9d96edfebce262d14a5f9fc1dfa9d2bc1",
+    "README.md": "f1047ecb46b535b506f7c96a974614bc33c89637f178d8597c94b14d4f647858"
+  }
+}

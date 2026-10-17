@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SnapWay</string>
+    <string name="title_activity_main">SnapWay</string>
+    <string name="package_name">org.snapway.app</string>
+    <string name="custom_url_scheme">org.snapway.app</string>
+</resources>

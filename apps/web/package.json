@@ -1,0 +1,43 @@
+{
+  "name": "snapway",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=24.15.0 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --host 127.0.0.1 --proxy-config proxy.conf.json",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test --watch=false",
+    "build:visitor": "ng build --configuration visitor",
+    "format:check": "prettier --check src angular.json package.json capacitor.config.ts proxy.conf.json",
+    "android:sync": "npm run build:visitor && cap sync android"
+  },
+  "private": true,
+  "packageManager": "npm@11.12.1",
+  "dependencies": {
+    "@angular/common": "~21.2.0",
+    "@angular/compiler": "~21.2.0",
+    "@angular/core": "~21.2.0",
+    "@angular/forms": "~21.2.0",
+    "@angular/platform-browser": "~21.2.0",
+    "@angular/router": "~21.2.0",
+    "@capacitor/core": "8.4.3",
+    "@capacitor/android": "8.4.3",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "21.2.27",
+    "@angular/cli": "21.2.27",
+    "@angular/compiler-cli": "~21.2.0",
+    "@capacitor/cli": "8.4.3",
+    "@types/node": "^24.0.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

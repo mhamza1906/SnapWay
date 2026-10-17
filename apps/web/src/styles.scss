@@ -1,0 +1,147 @@
+* {
+  box-sizing: border-box;
+}
+:root {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  color: #17342e;
+  background: #f7f8f2;
+}
+body {
+  margin: 0;
+}
+.site-header,
+main,
+footer {
+  width: min(1100px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: 28px;
+  border-bottom: 1px solid #d8dfd5;
+  gap: 20px;
+}
+.brand {
+  color: inherit;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  text-decoration: none;
+}
+.brand span {
+  color: #547b4c;
+  margin-left: 5px;
+}
+.stage {
+  font-size: 12px;
+  border: 1px solid #d8dfd5;
+  border-radius: 24px;
+  padding: 8px 14px;
+}
+main {
+  padding-block: 72px;
+  min-height: 78vh;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #55734e;
+}
+h1 {
+  font-size: clamp(36px, 6vw, 66px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -2px;
+  margin-block: 20px;
+}
+.intro {
+  max-width: 670px;
+  color: #54675f;
+  font-size: 17px;
+  line-height: 1.75;
+}
+.connection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 45px;
+  border: 1px solid #ced9c8;
+  border-radius: 16px;
+  background: #eef3e8;
+  padding: 26px 30px;
+}
+h2 {
+  margin-block: 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.connection p:last-child,
+article p {
+  line-height: 1.6;
+  color: #54675f;
+  font-size: 14px;
+}
+button {
+  cursor: pointer;
+  border: none;
+  background: #214e3b;
+  color: white;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+}
+button:hover {
+  background: #143c2a;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #74884d;
+  outline-offset: 4px;
+}
+.principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px;
+  margin-top: 45px;
+}
+article {
+  border-top: 1px solid #d8dfd5;
+  padding-top: 20px;
+}
+article span {
+  color: #74846c;
+  font-size: 12px;
+}
+footer {
+  border-top: 1px solid #d8dfd5;
+  padding-block: 22px;
+  font-size: 12px;
+  color: #54675f;
+}
+@media (max-width: 640px) {
+  main {
+    padding-block: 40px;
+  }
+  .connection {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 24px;
+  }
+  .principles {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .stage {
+    font-size: 10px;
+  }
+}

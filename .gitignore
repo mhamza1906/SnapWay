@@ -205,6 +205,24 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# SnapWay team workspace
+/local/
+.env.*
+!.env.example
+!.env.*.example
+node_modules/
+.angular/
+/apps/web/dist/
+/apps/web/coverage/
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/android/.gradle/
+/apps/web/android/**/build/
+/apps/web/android/local.properties
+*.jks
+*.keystore
+.secrets/
+
 # Ruff stuff:
 .ruff_cache/
 

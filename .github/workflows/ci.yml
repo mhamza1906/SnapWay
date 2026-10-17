@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      web: ${{ steps.changes.outputs.web }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/check_docs.py
+      - id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: python3 scripts/ci_changes.py
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: '0.12.15'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv sync --locked --extra ai --extra geometry --extra mcp
+      - run: uv run --locked --extra ai --extra geometry --extra mcp ruff check .
+      - run: uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
+      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py check --settings=config.settings.test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py makemigrations --check --dry-run --settings=config.settings.test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm install --global npm@11.12.1
+      - run: npm ci --no-fund --no-audit
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+      - run: npm run build:visitor
+      - run: npx cap sync android
+
+  required:
+    if: always()
+    needs: [changes, backend, web]
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          if [[ "$RESULTS" == *failure* || "$RESULTS" == *cancelled* ]]; then
+            exit 1
+          fi
