@@ -6,16 +6,19 @@ For setup, see the [README](README.md). For cost and limits, see
 [operations.md](operations.md).
 
 > [!IMPORTANT]
-> **Everyone on the team uses `.env.prod`.** It runs Gemini on Vertex AI. Start
-> the service with `npm run prod`.
+> **Everyone on the team uses `.env.prod`.** Production runs **Claude
+> (Anthropic), `claude-sonnet-5-5` at `high` effort**, for planning and mapping,
+> and Gemini image models on Vertex AI for the clean-plan redraws. Start the
+> service with `npm run prod`.
 >
-> **Only Arjun uses `.env.dev`.** It runs Claude through the Anthropic API, and
-> he is the only person with a Claude API key.
+> **Switching:** set `AI_PROVIDER=vertex` in `.env.prod` to map with Gemini
+> (`gemini-4-argon`) instead. The change takes effect on restart; there is no
+> automatic fallback between providers.
 >
-> Teammates must **not** create `apps/pipeline/.env.dev`. Do not put an Anthropic
-> key anywhere shared: not in `.env`, not in `.env.prod`, not in any
-> `*.example` file, not in the root `.env.example`, not in CI secrets and not in
-> chat or issues. If you need a provider other than Vertex AI, ask Arjun.
+> Keys live only in your local, git-ignored `apps/pipeline/.env.prod` (get the
+> Anthropic key from Arjun). Never put a real key in `.env`, any `*.example`
+> file, the root `.env.example`, CI secrets, chat or issues. `.env.dev` remains
+> Arjun's personal development file.
 
 ## How `APP_ENV` selects the file
 
@@ -60,14 +63,15 @@ the wrong place.
 `createProvider()` in `server/provider.js` reads `AI_PROVIDER` at service
 startup, on every request that needs a model, and on every `/api/health` call:
 
-- In prod (`APP_ENV=prod`), any `AI_PROVIDER` other than `vertex` throws
-  `APP_ENV=prod requires AI_PROVIDER=vertex.` An unset value counts as "other",
-  because the code default is `openai`.
+- In prod (`APP_ENV=prod`), `AI_PROVIDER` must be `anthropic` (the default in
+  `.env.prod.example`) or `vertex`. Anything else throws
+  `APP_ENV=prod requires AI_PROVIDER=anthropic or vertex.` An unset value
+  counts as "other", because the code default is `openai`.
 - **The service checks this at startup.** Before it starts listening,
   `server/index.js` builds the provider once and makes no network call. If the
   settings are invalid, it prints
   `Pipeline provider settings are invalid for APP_ENV=<env>: <reason>` and
-  exits with status 1. Examples are prod without `AI_PROVIDER=vertex`, or an
+  exits with status 1. Examples are prod with `AI_PROVIDER=openai`, or an
   invalid `VERTEX_EFFORT` or `ANTHROPIC_EFFORT`. Missing keys are not caught
   here: `/api/health` shows them as `"configured": false`.
 - The CLI scripts do not run this startup check. They report the same error
@@ -76,8 +80,9 @@ startup, on every request that needs a model, and on every `/api/health` call:
   Any other value throws
   `AI_PROVIDER must be vertex, anthropic, openai, or gemini.`
 
-`.env.prod.example` already sets `AI_PROVIDER=vertex`, and `.env.dev.example`
-sets `AI_PROVIDER=anthropic`.
+`.env.prod.example` sets `AI_PROVIDER=anthropic` (Claude Sonnet 5.5, high
+effort) and keeps the Vertex variables for images and for switching back.
+`.env.dev.example` also sets `AI_PROVIDER=anthropic`.
 
 **There is no automatic fallback.** No adapter switches to another provider or
 model when a request fails, is refused or is cut off. The request fails, and the
@@ -99,11 +104,19 @@ Never put a key in `.env`: both environments read it.
 | `PORT` | Port the service listens on. It always binds to `127.0.0.1`. The Angular proxy targets `127.0.0.1:5175`, so if you change this, change the proxy too. | `5175` |
 | `PIPELINE_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the service, in addition to `http://localhost:<PORT>` and `http://127.0.0.1:<PORT>`, which are always allowed. If set to an empty value, only the service's own origins are allowed. | `http://localhost:4200,http://127.0.0.1:4200` |
 
-### Vertex AI (`.env.prod`, team)
+### Anthropic (`.env.prod` default, and `.env.dev`)
 
 | Variable | Meaning | Default |
 | --- | --- | --- |
-| `AI_PROVIDER` | Must be `vertex` in prod | `openai` in code, which prod rejects |
+| `AI_PROVIDER` | `anthropic` (prod default) or `vertex` | `openai` in code, which prod rejects |
+| `ANTHROPIC_API_KEY` | Claude API key, sent as `x-api-key` to `api.anthropic.com` | none |
+| `ANTHROPIC_MODEL` | Claude model ID | `claude-sonnet-5-5` |
+| `ANTHROPIC_EFFORT` | Effort level: `low`, `medium`, `high`, `xhigh` or `max`. Any other value throws an error. | `high` |
+
+### Vertex AI (`.env.prod`: images always, mapping when `AI_PROVIDER=vertex`)
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
 | `VERTEX_API_KEY` | Google Cloud API key, sent as the `x-goog-api-key` header | none |
 | `VERTEX_PROJECT` | Google Cloud project ID used in the endpoint path | none |
 | `VERTEX_LOCATION` | Vertex location. `global` uses `aiplatform.googleapis.com`; any other value uses `<location>-aiplatform.googleapis.com` | `global` |
@@ -120,14 +133,9 @@ a live project here:
 - which Google Cloud API key types and restrictions Vertex accepts this way,
 - whether `gemini-4-argon` is available in your project and location.
 
-### Anthropic (`.env.dev`, Arjun only)
-
-| Variable | Meaning | Default |
-| --- | --- | --- |
-| `AI_PROVIDER` | `anthropic` | `openai` |
-| `ANTHROPIC_API_KEY` | Claude API key, sent as `x-api-key` to `api.anthropic.com` | none |
-| `ANTHROPIC_MODEL` | Claude model ID | `claude-sonnet-5-5` |
-| `ANTHROPIC_EFFORT` | Effort level: `low`, `medium`, `high`, `xhigh` or `max`. Any other value throws an error. | `high` |
+`VERTEX_IMAGE_MODEL` (default `gemini-nano-banana-2.1`) and `VERTEX_IMAGE_SIZE`
+(default `2K`) select the clean-plan image model; see
+[clean-plans.md](clean-plans.md).
 
 ### Optional dev-only adapters
 
@@ -188,11 +196,13 @@ curl -s http://127.0.0.1:5175/api/health
 | `model` | Exact model ID that requests will use |
 | `effort` | Effort level, included only for Vertex AI and Anthropic |
 
-A teammate should see `"environment":"prod"`, `"provider":"Vertex AI"` and
-`"configured":true` before starting any job. If `"configured"` is `false`,
-fill in `VERTEX_API_KEY` and `VERTEX_PROJECT` in `.env.prod` and restart. If
-the service exits at startup with
-`Pipeline provider settings are invalid for APP_ENV=prod: APP_ENV=prod requires AI_PROVIDER=vertex.`,
+A teammate should see `"environment":"prod"`, `"provider":"Anthropic"`,
+`"model":"claude-sonnet-5-5"`, `"effort":"high"`, `"configured":true` and
+`imageModel.configured: true` before starting any job. If `"configured"` is
+`false`, fill in `ANTHROPIC_API_KEY` (or the Vertex variables when
+`AI_PROVIDER=vertex`) in `.env.prod` and restart. If the service exits at
+startup with
+`Pipeline provider settings are invalid for APP_ENV=prod: APP_ENV=prod requires AI_PROVIDER=anthropic or vertex.`,
 fix `AI_PROVIDER` in `.env.prod`. Also check whether your shell exports
 `AI_PROVIDER`, because shell variables take precedence over the files.
 

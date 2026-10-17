@@ -19,7 +19,7 @@ original upload and the floor's crop are kept as assets for comparison.
 
 ### Floor splitter (building plan, one image)
 
-The text model (Gemini 4 in prod, Claude in dev) receives a gridded 0–1000
+The text model (Claude Sonnet 5.5 in prod by default; Gemini 4 when `AI_PROVIDER=vertex`) receives a gridded 0–1000
 overview of the original and three tools:
 
 - `crop_region(label, level, x0, y0, x1, y1)`: crops one floor from the
@@ -38,7 +38,7 @@ same time** (`floorConcurrency`, default 6), each with its own request budget.
 
 ## Configuration
 
-Same Vertex key and project as the team's prod setup (`apps/pipeline/.env.prod`):
+Same Vertex key and project as the team's prod setup (`apps/pipeline/.env.prod`), whichever `AI_PROVIDER` maps the floors:
 
 ```sh
 VERTEX_IMAGE_MODEL=gemini-nano-banana-2.1   # default; gemini-3-pro-image for Nano Banana Pro
@@ -65,7 +65,7 @@ third-party list prices per output image, not invoices.
 One floor is not a benchmark: compare more floors before settling on a model.
 
 
-Dev (Claude) also needs `VERTEX_API_KEY` and `VERTEX_PROJECT` in `.env.dev`
+Dev also needs `VERTEX_API_KEY` and `VERTEX_PROJECT` in `.env.dev`
 for this stage. `GET /api/health` reports `imageModel {model, size, configured}`.
 
 ## Interfaces

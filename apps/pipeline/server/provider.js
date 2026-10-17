@@ -281,7 +281,7 @@ export class AnthropicProvider extends StructuredVisionProvider {
   }
 }
 
-// Production provider: Gemini on Vertex AI with a server-side API key.
+// Gemini on Vertex AI with a server-side API key (prod alternative to Claude).
 export class VertexProvider extends StructuredVisionProvider {
   constructor({
     apiKey = process.env.VERTEX_API_KEY,
@@ -413,11 +413,13 @@ export class GeminiProvider {
     return valid.data;
   }
 }
+export const PROD_PROVIDERS = ["anthropic", "vertex"];
 export function createProvider() {
   const provider = process.env.AI_PROVIDER || "openai";
-  // Production runs only on Vertex AI; never fall back to a development provider.
-  if (process.env.APP_ENV === "prod" && provider !== "vertex")
-    throw new Error("APP_ENV=prod requires AI_PROVIDER=vertex.");
+  // Production runs on Claude (Anthropic) by default, or Gemini on Vertex AI when
+  // switched explicitly. Never fall back from one provider to another.
+  if (process.env.APP_ENV === "prod" && !PROD_PROVIDERS.includes(provider))
+    throw new Error("APP_ENV=prod requires AI_PROVIDER=anthropic or vertex.");
   if (provider === "vertex") return new VertexProvider();
   if (provider === "anthropic") return new AnthropicProvider();
   if (provider === "openai") return new OpenAIProvider();

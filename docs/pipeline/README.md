@@ -13,7 +13,7 @@ other work runs locally and deterministically.
 
 | Work | Where it runs |
 | --- | --- |
-| Reading labels, proposing room polygons, judging whether a candidate opening is a door, wall or glazing | Vision model (Gemini on Vertex AI for the team, Claude for Arjun) |
+| Reading labels, proposing room polygons, judging whether a candidate opening is a door, wall or glazing | Vision model (Claude Sonnet 5.5 in prod by default; Gemini on Vertex AI when `AI_PROVIDER=vertex`) |
 | PDF decoding and vector extraction, cropping, coordinate mapping, reconciling tiles, cutting wall gaps, building the graph, routing, rendering | Local code (`server/pipelines/`, `shared/building/`) |
 
 Model output never reaches a map without local checks. Each response must pass
@@ -60,8 +60,8 @@ Things this service does not do yet:
   database job rows.
 - Its model choice differs from the plan. The plan names Gemini as primary
   (`gemini-4-argon`) and Claude Opus 5.5 as the vector-modelling backup. Here,
-  Gemini on Vertex AI is used in prod and Claude Sonnet 5.5 in Arjun's dev
-  setup.
+  Claude Sonnet 5.5 (high effort) is used in prod by default, with Gemini on
+  Vertex AI selectable; Gemini image models on Vertex redraw the plans.
 
 Moving the work into Django jobs, or porting the geometry and vision code to the
 Python packages, is **future work**. The plan's own rule still applies: the
@@ -84,12 +84,12 @@ Requirements:
   `node apps/pipeline/server/start.js prod` from the repository root. Run the
   plain `node server/...` CLI scripts from `apps/pipeline/` (see
   [environments.md](environments.md)).
-- A Vertex AI project and API key from the team.
+- An Anthropic API key (from Arjun) and the team's Vertex AI project and API key (used for the clean-plan images, and for mapping if you switch to Gemini).
 
 ```sh
 cd apps/pipeline
 npm ci
-cp .env.prod.example .env.prod   # then fill in VERTEX_API_KEY and VERTEX_PROJECT
+cp .env.prod.example .env.prod   # then fill in ANTHROPIC_API_KEY, VERTEX_API_KEY and VERTEX_PROJECT
 npm run prod                     # prints: SnapWay map-authoring pipeline (prod): http://127.0.0.1:5175
 ```
 
@@ -97,7 +97,8 @@ Before running any job, confirm which provider is live. This check is free:
 
 ```sh
 curl -s http://127.0.0.1:5175/api/health
-# {"ok":true,"environment":"prod","provider":"Vertex AI","configured":true,"model":"gemini-4-argon","effort":"high"}
+# {"ok":true,"environment":"prod","provider":"Anthropic","configured":true,"model":"claude-sonnet-5-5","effort":"high",
+#  "imageModel":{"model":"gemini-nano-banana-2.1","size":"2K","configured":true}}
 ```
 
 Then start the Angular workspace from the repository root in a second terminal:

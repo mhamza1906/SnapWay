@@ -5,7 +5,7 @@ How to run the map-authoring pipeline (`apps/pipeline/`) safely: its limits, cac
 Related pages:
 
 - [README.md](README.md): overview.
-- [environments.md](environments.md): `.env.prod` (Vertex Gemini, the default for everyone) and `.env.dev` (Claude, Arjun only).
+- [environments.md](environments.md): `.env.prod` (everyone: Claude Sonnet 5.5 for mapping by default, Gemini on Vertex selectable, Vertex image models) and `.env.dev` (Arjun's development file).
 - [stages.md](stages.md): what each stage does internally.
 - [api.md](api.md): HTTP endpoints.
 
@@ -136,7 +136,7 @@ In the floor 1 breakdown, detail tiles used about 58% of the tokens, and thinkin
 
 These figures are **estimates from reported usage, not invoices**. They leave out earlier or interrupted invocations. Warm reruns (for example 11 calls and 94k tokens for floor 1, round 3) reuse earlier work and are not cold-run costs. The trial summary priced the 1.67M tokens at roughly $7 using list prices. That estimate has not been checked against billing. An exact audit has to reconcile these figures with the provider's usage records.
 
-**Vertex Gemini costs have not been measured on this pipeline.** No paid Vertex run has been recorded. Do not apply the Sonnet figures to `.env.prod`.
+**Production now defaults to Claude Sonnet 5.5 (high)**, so the Sonnet figures above apply to `.env.prod` unless it is switched to `AI_PROVIDER=vertex`. Gemini mapping figures are in the clean-plan trial below.
 
 ## 4. Measured trial results
 
@@ -254,7 +254,7 @@ That path is not git-ignored. Do not commit the file, and remove it after the ru
 | Rooms listed under "Needs attention" in the Doorways panel | These are walkable regions with no usable doorway. Use **Place assumed doorways**, **Make it a room** or **Not a room**, or add a doorway. |
 | A disconnected wing or cluster | A real link was never detected (for example 1155 ↔ 1157 on 003E3). Check the original PDF, then use **Add a doorway to any room**, choose the edge and add it. The pipeline never bridges a wall or glazing verdict. |
 | `403 {"error":"Only local app requests are accepted."}` | The browser origin is not allowed. Allowed origins are `localhost` and `127.0.0.1` on `PORT` (5175), plus `PIPELINE_ALLOWED_ORIGINS`. Setting that variable **replaces** its default (`http://localhost:4200,http://127.0.0.1:4200`), so list every origin you need. Restart after editing. |
-| The service exits at startup with "Pipeline provider settings are invalid for APP_ENV=…" | The provider settings failed validation before the server listened. For example, "APP_ENV=prod requires AI_PROVIDER=vertex", an unknown `AI_PROVIDER`, or `VERTEX_EFFORT` or `ANTHROPIC_EFFORT` out of range. `APP_ENV` defaults to `prod`, and prod never reads `.env.dev`. Fix `.env.prod`, or use `npm run dev` with `.env.dev` (Arjun only). There is no automatic fallback. See [environments.md](environments.md). |
+| The service exits at startup with "Pipeline provider settings are invalid for APP_ENV=…" | The provider settings failed validation before the server listened. For example, "APP_ENV=prod requires AI_PROVIDER=anthropic or vertex", an unknown `AI_PROVIDER`, or `VERTEX_EFFORT` or `ANTHROPIC_EFFORT` out of range. `APP_ENV` defaults to `prod`, and prod never reads `.env.dev`. Fix `.env.prod`, or use `npm run dev` with `.env.dev` (Arjun only). There is no automatic fallback. See [environments.md](environments.md). |
 | "AI requests need VERTEX_API_KEY and VERTEX_PROJECT…" | The provider is selected but has no credential. Add the credential to `.env.prod`, which is server-only and never printed. |
 | Job status `limited` | A call, token or deadline limit was reached. Resume the job (optionally with larger options). Completed stages are reused. |
 | "A mapping job is already running" | Only one job runs at a time. Wait for it, or cancel it. |

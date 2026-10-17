@@ -97,8 +97,8 @@ for (const [name, response, expected] of [
   assert.equal(calls, 1);
 });
 
-test("provider factory uses Vertex in prod and refuses development providers there", () => {
-  const names = ["APP_ENV", "AI_PROVIDER", "VERTEX_API_KEY", "VERTEX_PROJECT", "VERTEX_MODEL", "VERTEX_EFFORT"];
+test("prod uses Claude or Vertex as configured and refuses the other providers", () => {
+  const names = ["APP_ENV", "AI_PROVIDER", "VERTEX_API_KEY", "VERTEX_PROJECT", "VERTEX_MODEL", "VERTEX_EFFORT", "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_EFFORT"];
   const before = Object.fromEntries(names.map(k => [k, process.env[k]]));
   try {
     Object.assign(process.env, { APP_ENV: "prod", AI_PROVIDER: "vertex", VERTEX_API_KEY: "fixture",
@@ -108,8 +108,15 @@ test("provider factory uses Vertex in prod and refuses development providers the
     assert.equal(provider.model, "gemini-4-argon");
     assert.equal(provider.effort, "high");
     assert.equal(provider.configured, true);
-    process.env.AI_PROVIDER = "anthropic";
-    assert.throws(() => createProvider(), /APP_ENV=prod requires AI_PROVIDER=vertex/);
+    Object.assign(process.env, { AI_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "fixture", ANTHROPIC_MODEL: "claude-sonnet-5-5", ANTHROPIC_EFFORT: "high" });
+    const claude = createProvider();
+    assert.equal(claude.name, "Anthropic");
+    assert.equal(claude.model, "claude-sonnet-5-5");
+    assert.equal(claude.effort, "high");
+    for (const other of ["openai", "gemini", ""]) {
+      process.env.AI_PROVIDER = other;
+      assert.throws(() => createProvider(), /APP_ENV=prod requires AI_PROVIDER=anthropic or vertex/);
+    }
     process.env.APP_ENV = "dev";
     process.env.AI_PROVIDER = "vertex";
     process.env.VERTEX_EFFORT = "max";
