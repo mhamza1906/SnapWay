@@ -118,4 +118,4 @@ empty-credential provider settings, and staff-stripping adapter behavior. They d
 
 ## Commits
 
-Update this section after commits on `feature/backend-oauth` (SHA + short subject).
+- `45b3089` — Enable Google OAuth via allauth with local SQLite session identity.
