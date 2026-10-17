@@ -19,8 +19,8 @@ acceptance **failed** on October 17, 2026. See the
   - preview a route
   - save a copy
 - **Providers:**
-  - **Everyone uses `.env.prod`**: Gemini on Vertex AI (`npm run prod`).
-  - **Only Arjun uses `.env.dev`**: Claude via the Anthropic API (`npm run dev`).
+  - **Team default in `local/.env`**: Gemini on Vertex AI (`npm run prod`).
+  - **Authorized local experiments use the same file plus explicit overrides**: Claude via the Anthropic API (`npm run dev`).
   - `APP_ENV` defaults to `prod`. Prod refuses any provider except Vertex and fails at startup if misconfigured.
 - **Docs:** [docs/pipeline/](pipeline/README.md) covers the overview, [environments](pipeline/environments.md), [stages](pipeline/stages.md), the [HTTP API and CLI](pipeline/api.md), and [operations, costs and trial results](pipeline/operations.md).
 
@@ -69,7 +69,7 @@ confirmed gaps, hypotheses and catalogue status are maintained once in the
 ## Run and configuration boundaries
 
 From `apps/pipeline`, install the existing lockfile with `npm ci`, fill ignored
-`.env.prod` from [.env.prod.example](../apps/pipeline/.env.prod.example), then
+`local/.env` from the root [.env.example](../.env.example), then
 run `npm run prod`. The team file needs `VERTEX_API_KEY` and `VERTEX_PROJECT`;
 keys remain server-side. A configured `/api/health` is only a settings check,
 not proof of successful model inference. See the [pipeline quick start](pipeline/README.md)
@@ -79,7 +79,7 @@ Start Angular separately with `python scripts/dev.py web` from the root and
 open `/authoring`. Restart its dev server after a proxy configuration change.
 The Node service uses local files under `apps/pipeline/.local/`; it does not use
 Django accounts, PostgreSQL jobs, R2 or reviewed product publications. Django
-loads private settings from `local/env/api.env`. R2 variables there are reserved
+loads private settings from `local/.env`. R2 variables there are reserved
 placeholders with no runtime storage adapter in this checkout.
 
 ## Branch and history checkpoints
@@ -236,3 +236,13 @@ release/rollback and acceptance gates. The [deployment guide](deployment.md)
 and [workflow delivery plan](pipeline/navigation-ai-workflow-plan.md#11-delivery-sequence-costs-and-acceptance)
 link to this conclusion. No runtime/API/dependency change, service installation,
 main merge, data deletion or deployment accompanies the document.
+
+## Single environment synchronization
+
+The [environment sync contract](environment-sync.md) consolidates Django/Node
+and active experiments into ignored `local/.env`, with one root public template
+and externally distributed private updates. It links all loader/tool/deployment
+changes and offline verification. Release activation gains a schema/version gate;
+the live controller/env still need owner synchronization before deployment.
+Agents must flag changed keys and required member updates immediately under
+[AGENTS.md](../AGENTS.md). No shared credentials were published or rotated.

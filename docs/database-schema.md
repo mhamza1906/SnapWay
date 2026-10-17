@@ -173,7 +173,7 @@ TLS, backup/restore exercises and activation of optional extensions remain open.
 ## Apply and verify
 
 Install the existing lockfile with the [development guide](development.md).
-Django development settings load ignored `local/env/api.env`; process environment
+Django development settings load ignored `local/.env`; process environment
 variables take precedence. The root `.env` is not loaded automatically.
 
 Use the `snapway_runtime` connection URL for normal API/worker operation. To run
@@ -197,7 +197,7 @@ Tiger MCP on another machine does not transfer the maintainer's saved credential
 Keep URLs/passwords out of this document, Git and `.env.example`.
 
 With the migration URL supplied through the process environment or temporarily
-in `local/env/api.env`, inspect and apply pending migrations:
+in `local/.env`, inspect and apply pending migrations:
 
 ```sh
 uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate --plan

@@ -1,7 +1,7 @@
 from config.environment import ROOT, env
 
-# Sole private env source for development (never repo-root .env).
-env.read_env(ROOT / "local" / "env" / "api.env", overwrite=False)
+# Sole private env source for development; process environment takes precedence.
+env.read_env(ROOT / "local" / ".env", overwrite=False)
 
 from .base import *  # noqa: E402, F403
 

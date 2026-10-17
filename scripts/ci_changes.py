@@ -52,7 +52,7 @@ def classify_changes(paths):
         p.startswith("apps/web/") or p in {".node-version", ".editorconfig"} for p in paths
     )
     pipeline = shared or any(
-        p.startswith("apps/pipeline/") or p in {".node-version"} for p in paths
+        p.startswith("apps/pipeline/") or p in {".node-version", ".env.example"} for p in paths
     )
     return backend, web, pipeline
 

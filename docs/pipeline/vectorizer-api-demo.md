@@ -24,7 +24,7 @@ The implementation provides callable Node routes and an import utility. **It is 
 
 ## Local configuration
 
-Use the repository's Node 24 profile, including built-in `node:sqlite`; no npm dependency was added. Server settings belong in `apps/pipeline/.env.prod`, following the [example](../../apps/pipeline/.env.prod.example):
+Use the repository's Node 24 profile, including built-in `node:sqlite`; no npm dependency was added. Server settings belong in the single ignored `local/.env`, following the root [example](../../.env.example) and [sync guide](../environment-sync.md):
 
 ```dotenv
 VECTORIZER_API_ID=

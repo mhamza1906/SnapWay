@@ -72,6 +72,47 @@ def assert_previous_survives(host):
     assert not any("snapway-api-blue.service" in call.args for call in deploy.run.call_args_list)
 
 
+def test_environment_contract_failure_precedes_migrations_and_service_changes(host):
+    deploy.run.side_effect = RuntimeError("Environment contract rejected")
+    with pytest.raises(RuntimeError, match="Environment contract rejected"):
+        deploy.activate(NEW)
+    deploy.django.assert_not_called()
+    deploy.start_api.assert_not_called()
+    assert_previous_survives(host)
+
+
+def test_pre_contract_rollback_uses_installer_contract(host):
+    _, config, _, _, _ = host
+    deploy.activate(NEW, rollback=True)
+    deploy.run.assert_any_call(
+        "/usr/bin/python3",
+        str(config / "env_contract.py"),
+        "check",
+        "--template",
+        str(config / ".env.example"),
+        "--file",
+        str(config / "api.env"),
+        "--profile",
+        "production",
+    )
+
+
+def test_activation_executes_only_admin_installed_validator(host):
+    _, config, _, _, release = host
+    deploy.activate(NEW)
+    deploy.run.assert_any_call(
+        "/usr/bin/python3",
+        str(config / "env_contract.py"),
+        "check",
+        "--template",
+        str(release / "source/.env.example"),
+        "--file",
+        str(config / "api.env"),
+        "--profile",
+        "production",
+    )
+
+
 def test_failed_migration_does_not_start_candidate_or_switch(host):
     def command(state, args, **kwargs):
         if args[0] == "migrate":

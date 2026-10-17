@@ -37,6 +37,8 @@ def main():
             "pyproject.toml",
             "uv.lock",
             ".python-version",
+            ".env.example",
+            "scripts/env_contract.py",
         ]
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)

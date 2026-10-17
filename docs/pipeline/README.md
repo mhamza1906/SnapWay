@@ -59,7 +59,8 @@ breakdown, see [stages.md](stages.md).
   at port 5175: if you change `PORT`, update the proxy too. See
   [api.md](api.md) for the routes.
 - **Keys stay on the server.** Provider credentials are read from
-  `apps/pipeline/.env.*` files on the server only. They are never sent to
+  the single ignored `local/.env` locally and the protected process environment
+  on the server. They are never sent to
   Angular, Capacitor or any browser bundle.
 
 ### Relationship to the planned architecture
@@ -107,7 +108,9 @@ Requirements:
 ```sh
 cd apps/pipeline
 npm ci
-cp .env.prod.example .env.prod   # then fill in VERTEX_API_KEY and VERTEX_PROJECT
+# First, from the repo root: python scripts/env_contract.py migrate (old checkout)
+# or: python scripts/env_contract.py init (fresh checkout).
+# Fill VERTEX_API_KEY and VERTEX_PROJECT in repo-root local/.env.
 npm run prod                     # prints: SnapWay map-authoring pipeline (prod): http://127.0.0.1:5175
 ```
 
@@ -129,11 +132,11 @@ Open http://127.0.0.1:4200/authoring. In the sidebar it is
 needed for this screen. To work without Angular, use the HTTP API and CLI in
 [api.md](api.md).
 
-Use `.env.prod` and `npm run prod` (`npm start` is the same). If the provider
-settings are invalid, for example `AI_PROVIDER` is not `vertex`, the service
-exits at startup with `Pipeline provider settings are invalid for APP_ENV=prod: ...`.
-Do not create `.env.dev`; it is for Arjun
-only. [environments.md](environments.md) explains the rule and every variable.
+Use the single `local/.env` and `npm run prod` (`npm start` is the same).
+Prod still requires `AI_PROVIDER=vertex`; local provider experiments require
+explicit dev policy and provider selection. Do not create provider-specific env
+files. [environments.md](environments.md) and the
+[shared sync guide](../environment-sync.md) describe precedence and updates.
 
 Run the offline tests with `npm test`. They make no paid calls; one test starts
 the server on port 5174 with a fake key. [operations.md](operations.md) covers
@@ -155,7 +158,7 @@ the tests in more detail.
 | Document | Read it for |
 | --- | --- |
 | [README.md](README.md) (this file) | What the pipeline is, how it fits SnapWay, quick start |
-| [environments.md](environments.md) | Who uses `.env.prod` and who uses `.env.dev`, every variable, how to check the live provider, security |
+| [environments.md](environments.md) | Single-file configuration, provider policy, synchronization and health checks |
 | [stages.md](stages.md) | How the pipeline works internally, stage by stage |
 | [api.md](api.md) | HTTP endpoints (`/api/...`, `/api/authoring/...`) and the CLI scripts |
 | [operations.md](operations.md) | Limits, cost, caching, testing, trial results and troubleshooting |

@@ -20,15 +20,17 @@ install -d -m 700 -o snapway -g snapway \
 install -d -m 700 /etc/indoor-nav
 
 install -m 755 -o root -g root infra/deploy.py /usr/local/sbin/snapway-activate
+install -m 644 -o root -g root scripts/env_contract.py /etc/indoor-nav/env_contract.py
+install -m 644 -o root -g root .env.example /etc/indoor-nav/.env.example
 if [ ! -e /etc/indoor-nav/domain ]; then
     printf '%s\n' snapway.work > /etc/indoor-nav/domain
 fi
 # Never overwrite existing credentials or the working Caddy configuration.
 if [ ! -e /etc/indoor-nav/api.env ]; then
-    install -m 600 -o root -g root infra/api.env.example /etc/indoor-nav/api.env
+    install -m 600 -o root -g root .env.example /etc/indoor-nav/api.env
 fi
 printf '%s\n' 'snapwaydeploy ALL=(root) NOPASSWD: /usr/local/sbin/snapway-activate' \
     > /etc/sudoers.d/snapway-deploy
 chmod 440 /etc/sudoers.d/snapway-deploy
 visudo -cf /etc/sudoers.d/snapway-deploy
-echo 'Controller installed. Configure DATABASE_URL and DATABASE_MIGRATOR in api.env before deployment.'
+echo 'Controller installed. Follow docs/environment-sync.md to apply the production profile in api.env.'

@@ -16,8 +16,9 @@ def main():
     live='--live' in sys.argv
     if not live: raise SystemExit('Explicit --live required')
     if (OUT/'optimized-floor.png').exists(): raise SystemExit('Image output exists; refusing paid rerun')
-    config=dotenv_values(ROOT/'local/env/api.env');key=config.get('OPENAI_API_KEY')
-    if not key: raise SystemExit('Fill OPENAI_API_KEY in ignored local/env/api.env')
+    config=dotenv_values(ROOT/'local/.env')
+    key=os.environ.get('OPENAI_API_KEY',config.get('OPENAI_API_KEY'))
+    if not key: raise SystemExit('Fill OPENAI_API_KEY in ignored local/.env')
     token='local-meter-'+uuid.uuid4().hex
     record={'stage':'image-edit','requestedModel':'gpt-image-2.5-sunburst','quality':'high','size':'1536x1024','startedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'status':'started','maximumUpstreamRequests':1,'usage':None}
     attempted=False

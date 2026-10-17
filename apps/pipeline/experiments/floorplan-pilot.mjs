@@ -163,7 +163,7 @@ async function main() {
   if(live) {
     try {await access(output);throw Error('Output exists; replay instead of repeating paid request');} catch(e){if(e.code!=='ENOENT')throw e;}
     await save(join(out,stage+'-schema.json'),schema);await writeFile(join(out,stage+'-prompt.txt'),prompt);
-    dotenv.config({path:join(root,'apps/pipeline/.env.prod')});
+    dotenv.config({path:join(root,'local/.env')});
     const ledgerDir=resolve(root,args.find(a=>a.startsWith('--ledger-dir='))?.slice(13)||out);
     if(isAbsolute(relative(root,ledgerDir)) || relative(root,ledgerDir).startsWith('..'))throw Error('Ledger must stay within workspace');
     const ledgerPath=join(ledgerDir,'attempt-ledger.json');let ledger=[];try{ledger=await json(ledgerPath);}catch(e){if(e.code!=='ENOENT')throw e;}

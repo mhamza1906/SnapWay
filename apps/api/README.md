@@ -14,6 +14,12 @@ Map membership helpers and DRF permission classes are documented in
 [backend-permissions.md](../../docs/backend-permissions.md). Broader map/contribution
 product APIs remain to be implemented; REST, jobs and MCP should call the same
 authorized services. Google OAuth and session identity:
-[backend-oauth.md](../../docs/backend-oauth.md) (credentials in `local/env/api.env`).
+[backend-oauth.md](../../docs/backend-oauth.md) (credentials in `local/.env`).
 
 See [development instructions](../../docs/development.md).
+
+Configuration: use only ignored `local/.env` and the root
+[`.env.example`](../../.env.example). Follow the
+[sync guide](../../docs/environment-sync.md) after pulling env changes: obtain
+private values through the external channel, validate, clear stale shell
+overrides and restart affected services. Never create an API-specific env file.

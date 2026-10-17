@@ -56,7 +56,7 @@ async function infer(name,prompt,schema,images,providerName) {
   return value;
  }
  if(!argv.includes('--live'))throw Error('No cached result; --live is required for a paid request');
- dotenv.config({path:join(root,'local/env/api.env')});dotenv.config({path:join(root,'apps/pipeline/.env.prod')});
+ dotenv.config({path:join(root,'local/.env')});
  const ledgerFile=join(out,'ledger.json'),ledger=await fileExists(ledgerFile)?await json(ledgerFile):[];
  if(ledger.length>=9)throw Error('Text/vision attempt cap reached');
  const spent=ledger.reduce((s,a)=>s+(a.estimatedUndiscountedUsd??0),0);

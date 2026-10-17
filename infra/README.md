@@ -1,5 +1,12 @@
 # Native deployment boundary
 
+Follow the [shared environment contract](../docs/environment-sync.md): the root
+[`.env.example`](../.env.example) is the only active template; production retains
+one protected `/etc/indoor-nav/api.env`. New activation code validates that file
+against the release contract before changing services. Install the reviewed
+controller/validator together and reconcile the server file first; this branch
+has not installed or deployed those changes.
+
 The selected deployment remains Vultr Ubuntu + Caddy + Gunicorn + Celery +
 private Redis + private MCP, with Tiger Data as the production PostgreSQL service.
 Docker is excluded. No cloud account, DNS, server, production database or

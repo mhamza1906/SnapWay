@@ -36,7 +36,8 @@ This installs locked Python/frontend dependencies, creates ignored `local/`
 directories and a private development secret, and migrates a local SQLite
 database. SQLite supports onboarding only; PostgreSQL remains required for
 database integration and product acceptance. Bootstrap preserves an existing
-`local/env/api.env`.
+`local/.env`; follow the [single-env sync guide](docs/environment-sync.md) for
+existing-checkout migration and externally distributed configuration updates.
 
 Start two terminals from the root:
 
@@ -82,8 +83,9 @@ local/                 Ignored private settings, database, logs and research
 
 The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
 `apps/pipeline/`. Run it with `npm ci && npm run prod` from `apps/pipeline`
-(Gemini on Vertex AI). Everyone uses `.env.prod`; only Arjun uses `.env.dev`
-(Claude). See [docs/pipeline](docs/pipeline/README.md) and the
+(Gemini on Vertex AI). Django and Node share ignored `local/.env`, using the root
+`.env.example`; provider experiments use explicit process overrides without
+creating another env file. See [docs/pipeline](docs/pipeline/README.md) and the
 [feature record](docs/map-authoring-pipeline.md).
 
 **IA-1 real-photo acceptance failed.** Read the

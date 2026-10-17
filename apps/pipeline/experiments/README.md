@@ -28,7 +28,7 @@ This writes a draft, validation JSON, SVG, PNG and an interactive `index.html`. 
 
 ## Explicit live experiment
 
-Live calls require the teammate-authorized ignored `apps/pipeline/.env.prod` with `VERTEX_API_KEY` and `VERTEX_PROJECT`. Never copy credentials into this directory, shared docs or frontend code. Access is checked before calling; health configuration alone is not an inference test.
+Live calls require the teammate-authorized ignored `local/.env` with `VERTEX_API_KEY` and `VERTEX_PROJECT`. Never copy credentials into this directory, shared docs or frontend code. Access is checked before calling; health configuration alone is not an inference test.
 
 ```powershell
 node apps/pipeline/experiments/floorplan-pilot.mjs --prepare --out=local/test-results/pipeline-v2-new
@@ -46,9 +46,9 @@ Price estimates use an explicitly documented conservative token basis, not a pro
 
 The [full-chain pilot](../../../docs/audits/2026-10-17-gpt-fullchain-pilot.md) adds
 an independent fixture-specific harness. The earlier Gemini-only run above remains
-unchanged historical evidence. Use the existing ignored `local/env/api.env`
+unchanged historical evidence. Use the existing ignored `local/.env`
 `OPENAI_API_KEY` for both explicitly requested OpenAI models. Vertex settings stay
-in `apps/pipeline/.env.prod`; no key belongs in source, browser code or this README.
+in `local/.env`; no key belongs in source, browser code or this README.
 
 ```powershell
 node apps/pipeline/experiments/fullchain-pilot.mjs --stage=prepare

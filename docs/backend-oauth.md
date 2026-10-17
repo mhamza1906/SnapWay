@@ -23,9 +23,9 @@ enforcement is documented in [backend-permissions.md](backend-permissions.md).
 ### Database (Tiger Data PostgreSQL)
 
 Development prefers the shared **Tiger Data** PostgreSQL URL from ignored
-`local/env/api.env` (`DATABASE_URL`). That file is the **only** private env
+`local/.env` (`DATABASE_URL`). That file is the **only** private env
 source for this project — do not use a repo-root `.env`.
-`config.settings.development` loads `local/env/api.env` exclusively.
+`config.settings.development` loads `local/.env` exclusively.
 
 Allauth `account` / `socialaccount` migrations have been applied on the Tiger
 service (in addition to the earlier local SQLite spike). SQLite at
@@ -46,9 +46,9 @@ service (in addition to the earlier local SQLite spike). SQLite at
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Google Cloud Web client secret (private) |
 | `LOGIN_REDIRECT_URL` | Optional; default `/api/auth/me/` |
 | `ACCOUNT_LOGOUT_REDIRECT_URL` | Optional; default `/api/auth/me/` |
-| `DATABASE_URL` | Tiger / Postgres URL (`sslmode=require` for cloud) in `local/env/api.env` |
+| `DATABASE_URL` | Tiger / Postgres URL (`sslmode=require` for cloud) in `local/.env` |
 
-Never commit real secrets. Put all private values in `local/env/api.env`.
+Never commit real secrets. Put all private values in `local/.env`.
 Placeholders are in [.env.example](../.env.example). Until both Google vars are
 set, Django boots and session APIs work; `/accounts/google/login/` cannot
 complete live consent.
@@ -66,7 +66,7 @@ Scopes: `openid`, `email`, `profile` only.
 
 ### Drop-in when Google credentials arrive
 
-1. Set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in `local/env/api.env`.
+1. Set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in `local/.env`.
 2. Restart `python scripts/dev.py api`.
 3. Open `http://127.0.0.1:8000/accounts/google/login/`.
 4. Confirm `GET /api/auth/me/` returns the Google-linked user with no map roles until granted.
@@ -77,14 +77,14 @@ Windows install (PowerShell): `irm https://cli.tigerdata.com/install.ps1 | iex`
 
 Then: `tiger auth login`, `tiger db save-password <service-id>`, `tiger mcp install cursor`.
 Restart Cursor after MCP install. This does **not** change application runtime; the
-app uses `DATABASE_URL` in `local/env/api.env`. `save-password` only works if the
+app uses `DATABASE_URL` in `local/.env`. `save-password` only works if the
 Tiger Cloud project you logged into owns that service (teammate-owned DBs may fail
 here without blocking SnapWay).
 
 ## Run locally
 
 ```sh
-# Requires DATABASE_URL in ignored local/env/api.env (Tiger Postgres).
+# Requires DATABASE_URL in ignored local/.env (Tiger Postgres).
 python scripts/dev.py api
 ```
 
@@ -112,7 +112,7 @@ or mutate Tiger Data.
 | Path | Role |
 | --- | --- |
 | [apps/api/config/settings/base.py](../apps/api/config/settings/base.py) | allauth apps, middleware, backends, Google provider |
-| [apps/api/config/settings/development.py](../apps/api/config/settings/development.py) | Load `local/env/api.env` only; Postgres preferred |
+| [apps/api/config/settings/development.py](../apps/api/config/settings/development.py) | Load `local/.env` only; Postgres preferred |
 | [apps/api/config/urls.py](../apps/api/config/urls.py) | `/accounts/`, `/api/auth/` |
 | [apps/api/accounts/adapters.py](../apps/api/accounts/adapters.py) | Safe redirects; strip staff on social signup |
 | [apps/api/accounts/views.py](../apps/api/accounts/views.py) | `me` / `logout` |
@@ -132,7 +132,7 @@ or mutate Tiger Data.
 2. Enabled allauth + Google provider (settings-based `APP` only when both env vars set).
 3. Mounted allauth URLs and session `me`/`logout` API; tests without live Google.
 4. After Tiger DB came online: applied account/socialaccount migrations on Tiger
-   Postgres; moved all secrets into `local/env/api.env` only (no root `.env`);
+   Postgres; moved all secrets into `local/.env` only (no root `.env`);
    Tiger CLI/MCP installed locally (optional; not required to run the app).
 5. Applied `ruff format` to `development.py` and `test_auth.py` so CI
    `ruff format --check` passes (this repo uses Ruff, not Black).

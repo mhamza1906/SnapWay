@@ -63,6 +63,12 @@ Sharp provides independent cache and thread controls ([official documentation](h
 
 ## 4. Persistence and configuration
 
+The [single-env synchronization contract](environment-sync.md) now implements
+one root public template, one ignored `local/.env`, coordinated private updates
+and a release-specific server validation gate. The protected server path remains
+`/etc/indoor-nav/api.env`; optional keys remain present and empty. This configuration
+increment does not deploy the Node/worker topology selected here.
+
 - Keep provider and internal-service credentials in protected server environment configuration, outside Git/releases. Define the exact variable contract before adding services; inject only the subset each process requires. Node needs model credentials, not `DATABASE_URL`, `DATABASE_MIGRATOR` or Django's secret key.
 - Retain Django-owned media/index storage under the existing shared persistent root. Add a distinct writable pipeline workspace there, with per-job/attempt paths, asset hashes, private permissions and explicit cleanup. Node's current relative `.local`/`output` paths must be made configurable before using immutable release directories.
 - PostgreSQL remains metadata authority. The IA-4 prebuilt catalog/SQLite is an internal fixture/import mechanism, not another shared business database. Import accepted demo assets through Django's asset contract and preserve original SVG bytes/provenance.

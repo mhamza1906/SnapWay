@@ -5,6 +5,10 @@ Start with the [root setup instructions](../../README.md) and
 [development guide](../../docs/development.md). Run bootstrap from the root before
 the npm commands below.
 
+Backend configuration follows the [single-env sync guide](../../docs/environment-sync.md).
+Do not copy server/provider secrets from `local/.env` into Angular or Capacitor
+build configuration; the browser uses backend APIs and receives no private env.
+
 ## Development server
 
 To start a local development server, run:

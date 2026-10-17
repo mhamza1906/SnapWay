@@ -1,12 +1,16 @@
 ---
-description: SnapWay uses only local/env/api.env for private development secrets
+description: SnapWay uses one private local/.env and the root .env.example contract
 alwaysApply: true
 ---
 
 # Private environment file
 
-- Load secrets **only** from ignored `local/env/api.env`.
+- Load private local values **only** from ignored `local/.env`; process overrides take precedence.
 - Do **not** use, create, or read a repo-root `.env` for application settings.
 - Do not teach teammates to put `DATABASE_URL` or provider keys in root `.env`.
-- Bootstrap / docs / `config.settings.development` must stay aligned with this rule.
-- Root `.env.example` is a public template only; real values go in `local/env/api.env`.
+- Bootstrap, Django, Node, scripts and READMEs must share the root `.env.example` contract.
+- Root `.env.example` contains empty secret placeholders; no per-service env templates.
+- After env-related changes, update ENV_SCHEMA_VERSION and the English sync guide, then tell
+  the member which keys changed and to obtain private updates through the external channel.
+- Validate with `python scripts/env_contract.py check`; never print private values.
+- See docs/environment-sync.md for production profile exceptions and deployment validation.

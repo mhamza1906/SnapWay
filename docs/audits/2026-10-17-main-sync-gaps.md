@@ -93,6 +93,15 @@ No Google consent, shared DB migration/write, model/Vectorizer request, R2 write
 
 ## 7. Recommended order
 
+**Subsequent configuration increment:** the [single-env sync contract](../environment-sync.md)
+now addresses the local part of R-04 and adds a deploy-time contract gate;
+server/member synchronization remains pending. Its packaging/classifier tests
+also resolve the seven recorded two-result/three-result failures under R-01.
+The subsequent API/MCP/infra run passed 88 tests with 16 PostgreSQL-only skips;
+20 controller tests passed after the final validator boundary change. Historical
+results above remain the original audit snapshot. Existing root Ruff experiment/
+evidence debt, Node/worker deployment and product integration remain open.
+
 1. **Restore integration readiness:** R-01; concurrently prepare E-01/E-02, actual IA-4 assets E-04 and a short IA-1 route E-05. Reuse the existing backend/delivery foundations.
 2. **Connect identity and one data authority:** F-01/F-03 plus R-02; resolve R-03/R-04 before F-04/F-05. Start with one target/contribution loop rather than all pages.
 3. **Complete references to static navigation:** E-03 plus F-06/F-07; confirm real publication, references, position/heading, walkability and arrival in the field.
