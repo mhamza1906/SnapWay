@@ -65,3 +65,33 @@ Not verified:
 ## Commits
 
 - `9ce073e` feat(pipeline): integrate map-authoring AI pipeline with Angular authoring screen
+
+## Local acceptance setup — October 17, 2026
+
+- Local branch: `acceptance/map-authoring-pipeline`, created from
+  `origin/feature/map-authoring-pipeline` at `b2939be`; latest local `main`
+  (`71f24ab`, equal to `origin/main`) was merged **into this acceptance branch**
+  without conflicts in `b83e87c`. Main was not modified by the merge. The
+  acceptance branch has not been pushed.
+- Prepared ignored `apps/pipeline/.env.prod` from the existing
+  [.env.prod.example](../apps/pipeline/.env.prod.example), preserving provider,
+  model, location and effort defaults; `VERTEX_API_KEY` and `VERTEX_PROJECT`
+  are blank for the requester to fill. This follows the explicitly requested
+  pipeline path; Django continues to use `local/env/api.env`. No loader,
+  dependency declaration or API contract was changed.
+- Installed the existing pipeline lockfile with `npm ci --no-audit --no-fund`.
+  On Node 24, pipeline tests: **142 passed / 18 skipped** (missing Waterloo
+  fixture); Angular tests: **59 passed across 11 files**. These are offline tests,
+  not evidence that the configured Vertex model/key works in a real project.
+- Started `npm run prod`'s launcher and checked local `/api/health`:
+  `environment=prod`, `provider=Vertex AI`, `configured=false`. The temporary
+  service was stopped afterward; no real provider requests were made.
+- Next: fill both values locally, run `npm run prod` from `apps/pipeline`,
+  confirm health, then manually validate `/authoring` per the
+  [pipeline guide](pipeline/README.md). A populated-key health result only checks
+  local settings; a real job is still needed to verify provider access.
+
+The [main smoke-check record](main-workflow-smoke-check.md) remains tied to its
+original main SHA; it does not describe the newly added Node service as missing
+from this acceptance branch. Manual review, revised audit structure and the final
+gap document remain pending. Detailed contributor history is in `local/ACTIONS.md`.
