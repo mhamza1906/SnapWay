@@ -106,6 +106,59 @@ never a guess. Responses carry `backend_used`, `fallback_used`, `second_opinion_
 From `apps/web` with Node 24.15+ and npm 11: `npm ci`, `npm run ios:sync`,
 `npx cap open ios`, then Run in Xcode (simulator or a signed iPhone; Xcode 26+).
 
+On a physical iPhone: Xcode › Settings › Accounts with your Apple ID, target **App** ›
+Signing & Capabilities › your Personal Team (change the bundle id if `org.snapway.app` is
+taken), connect the phone, enable Developer Mode, Run, then on the phone trust the
+certificate under Settings › General › VPN & Device Management. Free provisioning
+expires after 7 days. The simulator has no camera: use **Import a video** there.
+
+Endpoint, request/response and plugin details: [mobile-ios-api.md](mobile-ios-api.md).
+
+## Physical-device test checklist (§9 of the brief)
+
+Not yet run. Record each result (device, iOS version, build, date) in `local/ACTIONS.md`
+and summarize here.
+
+| Area | Check | Expected |
+| --- | --- | --- |
+| Permission | First open of **Locate with camera** | Explanation screen, no system prompt until **Allow camera** |
+| | Deny, then reopen | Blocked screen with **Open Settings**, **Import a video**, manual start |
+| | Screen Time camera restriction | "restricted" text, no Settings button |
+| | Re-enable in Settings, return | Capture view after reopening the sheet |
+| Capture | 0.5 / 1 / 2 / 5 fps for 30 s | Frame count ≈ fps × 30; `timestamp_s` increases evenly |
+| | Portrait, both landscapes, upside down | Preview and uploaded JPEG upright; `orientation` matches |
+| | Dark room, fast pan | `underexposed` / `blurry` flags; engine `quality.flags` agree |
+| | Lock the phone / switch app / incoming call | Capture stops with the matching message |
+| | 31+ frames | Only the newest 30 kept; **Delete captured frames** removes all |
+| Video | 10 s and 2 min clips, HEVC and H.264 | Frames at the chosen fps, `source: "video"`, stops at 120 |
+| Upload | Wi-Fi and cellular through ngrok | 200 with outcome, backend, thresholds id; note round trip |
+| | Airplane mode | "Offline" note, nothing sent, no location |
+| | Wrong token / stopped engine / stopped tunnel | Error message (401 / 503 / connection), never a location |
+| Matching | Standing at each reference location | `likely_match` at the right `location_id`, or `uncertain` — never a wrong accept |
+| | Unmapped corridor | `uncertain` or `no_supported_match` |
+| | Second opinion on, MegaLoc uncertain | `backend_used: "megaloc+vertex"`; accepts only with verification |
+| Start | `likely_match` on a mapped checkpoint | "Use … as start" sets the route start; manual choice still works |
+
+Latency to note per frame: app round trip vs. `timings_ms.total`, `embed_megaloc`,
+`verify_*`. Expect ~0.3 s MegaLoc on the M3 plus network; verification adds ~1.2 s.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| "Use an https:// address" when saving | Plain `http://` to a LAN or tunnel address | Use the `https://…ngrok-free.app` address; `http` is accepted only for `localhost` in the Simulator |
+| **Test** fails with a connection error | Tunnel or `serve-mobile` not running, or campus Wi-Fi isolates devices | Check `curl https://<tunnel>/v1/health -H "Authorization: Bearer …"` from the Mac; use cellular or a Personal Hotspot |
+| HTTP 401 | Token mismatch, or the dev token used with `DEBUG` off | Paste the token again (Settings › Clear, then Save); for SnapWay mode check `PLACEMATCH_DEV_TOKEN` and `DEBUG` |
+| HTTP 502 (SnapWay mode) | `PLACEMATCH_ENGINE_TOKEN` differs from the engine's `MOBILE_API_TOKEN` | Copy the engine token into `local/env/api.env` and restart the API |
+| HTTP 503 `not_configured` | `PLACEMATCH_ENGINE_URL` empty | Set it to `http://127.0.0.1:8790` |
+| HTTP 503 `no_backend_available` | No index for the set, or MegaLoc weights missing and Vertex disabled | **Test** lists ready backends; run `build-references` for the missing backend |
+| Always `uncertain` | `thresholds_id: "uncalibrated"` or iPhone frames differ from the calibration images | Check `data/calibration/current.json`; recalibrate on iPhone captures (§8) |
+| HTTP 429 | Rate limit | Lower fps or turn off auto-send; raise `MOBILE_RATE_LIMIT_PER_MIN` only for local tests |
+| "The server returned an unexpected response." | Ngrok free-tier interstitial or a wrong address (native requests normally skip the interstitial) | Check the address; if it persists, the plugin would need an `ngrok-skip-browser-warning` header (not added) |
+| Camera never starts | Permission denied, simulator, or another app holds the camera | Blocked screen explains; use a device or **Import a video** |
+| "Developer App Certificate is not trusted" | First install with a Personal Team | Settings › General › VPN & Device Management › trust |
+| Settings icon missing | Release build | Run the Debug scheme; Release cannot upload until visitor sessions exist |
+
 ## Verification
 
 - Engine: `pytest` 94 passed, 10 skipped (data/weights absent), including 11 new offline
@@ -134,11 +187,13 @@ From `apps/web` with Node 24.15+ and npm 11: `npm ci`, `npm run ios:sync`,
   `tests/test_localization.py`, `.env.example`
 - Engine: `apps/place-match/` (first commit) with new `mobile_api.py`, `mobile_decide.py`,
   `reference_sets.py`, CLI commands and `tests/test_mobile_api.py`
-- Docs: this file, [place-match-production.md](place-match-production.md),
-  [visual-place-matching.md](visual-place-matching.md)
+- Docs: this file, [mobile-ios-api.md](mobile-ios-api.md),
+  [place-match-production.md](place-match-production.md),
+  [visual-place-matching.md](visual-place-matching.md), README pointers
 
 ## Commits
 
 - `4dd1045` feat(ios): add Capacitor iOS visitor app with phone layout
 - `75870f6` Merge origin/main into feature/mobile-ios
 - `03ea4da` feat(ios): camera capture and MegaLoc-first place matching
+- docs(ios): API/plugin reference, device test checklist, troubleshooting

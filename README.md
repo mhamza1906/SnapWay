@@ -65,6 +65,7 @@ apps/web/android/       Generated Capacitor Android project and Gradle wrapper
 apps/web/ios/           Generated Capacitor iOS project (Xcode, Swift Package Manager)
 apps/api/               Django/DRF, domain schema, custom user, health and Celery setup
 apps/mcp/               Official MCP v2 read-only local stdio scaffold
+apps/place-match/       Photo place-matching engine (MegaLoc, Vertex AI) and mobile API
 packages/geometry/     Geometry boundary; algorithms follow later
 packages/vision/       AI adapter boundary; provider calls follow later
 contracts/             PostgreSQL DDL reference; future payload schemas and fixtures
@@ -75,6 +76,9 @@ scripts/               Portable bootstrap, development and verification tools
 local/                 Ignored private settings, database, logs and research
 .venv/                 Ignored machine-local Python environment
 ```
+
+iOS visitor app and photo localization: [docs/mobile-ios.md](docs/mobile-ios.md)
+(API reference: [docs/mobile-ios-api.md](docs/mobile-ios-api.md)).
 
 ## Dependencies and collaboration
 
