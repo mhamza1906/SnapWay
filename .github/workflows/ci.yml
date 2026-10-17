@@ -51,6 +51,29 @@ jobs:
       - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py makemigrations --check --dry-run --settings=config.settings.test
       - run: uv run --locked --extra ai --extra geometry --extra mcp pytest
 
+  postgresql:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      TEST_DATABASE_URL: postgresql://snapway_ci:snapway-ci-local@127.0.0.1:5432/snapway_ci
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: '0.12.15'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      # Native PostgreSQL preserves the selected deployment/testing profile.
+      - name: Start isolated native PostgreSQL
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE ROLE snapway_ci LOGIN CREATEDB PASSWORD 'snapway-ci-local';"
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE snapway_ci OWNER snapway_ci;"
+      - run: uv sync --locked --extra ai --extra geometry --extra mcp
+      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate --noinput --settings=config.settings.postgresql_test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest --ds=config.settings.postgresql_test
+
   web:
     needs: changes
     if: needs.changes.outputs.web == 'true'
@@ -75,7 +98,7 @@ jobs:
 
   required:
     if: always()
-    needs: [changes, backend, web]
+    needs: [changes, backend, postgresql, web]
     runs-on: ubuntu-24.04
     steps:
       - env:

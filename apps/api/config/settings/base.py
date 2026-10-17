@@ -18,6 +18,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "accounts.apps.AccountsConfig",
+    "maps.apps.MapsConfig",
+    "jobs.apps.JobsConfig",
+    "navigation.apps.NavigationConfig",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

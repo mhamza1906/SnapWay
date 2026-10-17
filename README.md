@@ -5,6 +5,10 @@ Collaborative indoor mapping and reviewed visual navigation. The current work is
 foundation; map editing, contribution review, AI authoring and visitor navigation
 are not implemented yet.
 
+The [PostgreSQL schema](docs/database-schema.md) now defines map authoring,
+evidence, reviewed publications, jobs and navigation persistence through Django
+migrations. Product workflows and APIs remain separate implementation work.
+
 Start with the [initial documentation index](docs/initial/README.md), then follow
 the [development guide](docs/development.md). The original planning files and
 two historical references were copied intact from Hackathon-Plan; their source
@@ -51,11 +55,11 @@ python scripts/dev.py check
 ```text
 apps/web/               Angular contributor workspace + separate visitor entry
 apps/web/android/       Generated Capacitor Android project and Gradle wrapper
-apps/api/               Django/DRF, custom user, health checks and Celery setup
+apps/api/               Django/DRF, domain schema, custom user, health and Celery setup
 apps/mcp/               Official MCP v2 read-only local stdio scaffold
 packages/geometry/     Geometry boundary; algorithms follow later
 packages/vision/       AI adapter boundary; provider calls follow later
-contracts/             Future agreed schemas and sanitized fixtures
+contracts/             PostgreSQL DDL reference; future payload schemas and fixtures
 infra/                 Native deployment boundary and future configuration
 evals/                 Future shared evaluation assets and evidence
 docs/initial/          Preserved current plans and historical references
