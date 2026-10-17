@@ -24,10 +24,11 @@ not its unresolved product acceptance results.
   `1e-12`. A new [CI integrity check](../../scripts/check_audit_evidence.py) validates
   all ten archived artifacts. This is an explicit evidence boundary, not a blanket
   experiment or documentation-code exclusion.
-- **Frontend formatting:** 80 existing files failed the newly integrated format
-  gate. Applied the same checked Prettier configuration; no intentional UI,
-  animation or business behavior changes. Both Angular production builds and the
-  complete frontend test suite pass afterward.
+- **Frontend formatting:** 80 files in the Windows checkout failed Prettier's
+  local newline/style check. Normalized the working files with the checked
+  formatter; Git's normalized content had no remaining frontend source change.
+  No UI, animation or business behavior change is committed. Both Angular
+  production builds and the complete frontend suite pass.
 - **Shared env integration:** the new engine still used its own `.env`. Updated
   [engine loading](../../apps/place-match/placematch/env.py),
   [token command](../../apps/place-match/placematch/cli.py),
