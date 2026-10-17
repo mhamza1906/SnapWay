@@ -99,3 +99,5 @@ uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
 ## Commits
 
 - `1f79869` — Add map Membership permission layer for admin and volunteer roles.
+- `224e5ca` — Record membership permissions commit SHA in feature doc.
+- Merged `origin/main` at `62bb39d` (OAuth on main + CI/deployment) into this branch.
