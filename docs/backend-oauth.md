@@ -141,3 +141,4 @@ or mutate Tiger Data.
 - `45b3089` — Enable Google OAuth via allauth with local SQLite session identity.
 - `b64aa70` / `8da383f` — feature-record commit links.
 - `6874fcf` / `1e7f090` — api.env-only + feature-doc SHA.
+- `7686d5f` — Apply ruff format so CI format check passes.
