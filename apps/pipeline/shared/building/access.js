@@ -527,13 +527,30 @@ export function routeAccessResults(built, floorId, spaceIds) {
     if (!s) return { spaceId: id, passed: false, message: "Region missing" };
     if (s.access === "nonwalkable")
       return { spaceId: id, passed: true, message: "Non-walkable; no route" };
-    const starts = built.nodes.filter(
+    // Rooms start at their doorways. Corridors and lobbies are crossed by the
+    // centreline, so any of their reviewed junctions is a valid start.
+    const circulation = ["corridor", "lobby"].includes(s.kind);
+    let starts = built.nodes.filter(
       (n) =>
         n.floorId === floorId &&
-        n.doorId &&
+        (n.doorId || (circulation && n.type === "junction")) &&
         n.spaceIds.includes(id) &&
         n.status === "reviewed",
     );
+    // A corridor piece can be crossed by the spine without holding a vertex.
+    if (!starts.length && circulation) {
+      const through = built.edges.filter(
+        (e) => e.floorId === floorId && e.path.some((p, i) => {
+          if (!i) return false;
+          const m = midpoint(e.path[i - 1], p);
+          // The merged area's centreline can run along the seam between pieces.
+          return inside(m, s.polygon) || s.polygon.some((v, k) => pointSegment(m, v, s.polygon[(k + 1) % s.polygon.length]) <= 1.5);
+        }),
+      );
+      starts = built.nodes.filter(
+        (n) => n.status === "reviewed" && through.some((e) => e.from === n.id || e.to === n.id),
+      );
+    }
     if (!starts.length)
       return { spaceId: id, passed: false, message: "No valid doorway node" };
     const bad = built.edges.filter(

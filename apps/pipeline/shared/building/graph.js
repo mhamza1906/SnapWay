@@ -6,6 +6,7 @@ import {
   nodeProblem,
 } from "./validation.js";
 import { doorNodeProblem } from "./access-state.js";
+import { buildCirculation, pathClearance, wallClearance } from "./nav-network.js";
 export function pathInside(floor, space, start, end) {
   const valid = (a, b) => {
     for (let j = 0; j <= 20; j++) {
@@ -21,16 +22,26 @@ export function pathInside(floor, space, start, end) {
     return !segmentProblem(floor, a, b);
   };
   if (valid(start, end)) return [start, end];
+  // Detours bend around corners; keep them well off the walls when the room
+  // allows it, and only fall back to a tight inset when nothing else fits.
+  for (const inset of [10, 2]) {
+    const path = detour(space, start, end, inset, valid);
+    if (path) return path;
+  }
+  return null;
+}
+function detour(space, start, end, inset, valid) {
   const c = centre(space.polygon),
     points = [
       start,
       end,
       ...space.polygon
         .map((p) => {
-          const l = distance(p, c) || 1;
+          const l = distance(p, c) || 1,
+            k = Math.min(inset, l / 3);
           return {
-            x: p.x + ((c.x - p.x) * 2) / l,
-            y: p.y + ((c.y - p.y) * 2) / l,
+            x: p.x + ((c.x - p.x) * k) / l,
+            y: p.y + ((c.y - p.y) * k) / l,
           };
         })
         .filter((p) => inside(p, space.polygon)),
@@ -62,6 +73,35 @@ export function pathInside(floor, space, start, end) {
       }
   }
   return null;
+}
+// A point a short way into `space` straight in from a doorway node, so walking
+// paths cross an opening head-on instead of grazing the wall beside it.
+function doorApproach(floor, space, node) {
+  const door = node.doorId && floor.geometry.doors.find((d) => d.id === node.doorId);
+  if (!door) return null;
+  const len = distance(door.a, door.b) || 1,
+    n = { x: -(door.b.y - door.a.y) / len, y: (door.b.x - door.a.x) / len },
+    depth = Math.max(4, Math.min(16, len * 0.6));
+  for (const sign of [1, -1]) {
+    const p = { x: node.position.x + sign * n.x * depth, y: node.position.y + sign * n.y * depth };
+    if (inside(p, space.polygon) && !segmentProblem(floor, node.position, p)) return p;
+  }
+  return null;
+}
+// Path inside a room between two graph nodes, entering and leaving doorways
+// head-on. Falls back to the plain path when an approach does not fit.
+export function roomPath(floor, space, from, to) {
+  const plain = () => pathInside(floor, space, from.position, to.position),
+    a = doorApproach(floor, space, from),
+    z = doorApproach(floor, space, to);
+  if ((!a && !z) || distance(from.position, to.position) < 24) return plain();
+  const middle = pathInside(floor, space, a || from.position, z || to.position);
+  if (!middle) return plain();
+  const path = [...(a ? [from.position] : []), ...middle, ...(z ? [to.position] : [])]
+    .filter((p, i, all) => !i || distance(p, all[i - 1]) > 0.5);
+  for (let i = 1; i < path.length; i++)
+    if (segmentProblem(floor, path[i - 1], path[i])) return plain();
+  return path;
 }
 export function newNode(
   id,
@@ -116,8 +156,10 @@ export function boundedId(id, max = 150) {
   return id.slice(0, max - tag.length) + tag;
 }
 
-export function newEdge(id, floor, a, b, path, extra = {}) {
-  path = simplifyPath(floor, path);
+export function newEdge(id, floor, a, b, path, { simplify = true, ...extra } = {}) {
+  // Centreline paths are already simplified inside walkable space; shortcutting
+  // them again could pull a route against a wall at a turn.
+  if (simplify) path = simplifyPath(floor, path);
   return {
     id: boundedId(id),
     from: a.id,
@@ -165,8 +207,12 @@ export function buildGraph(building, floorId) {
           { doorId: d.id },
         ),
       );
+  // Corridors, lobbies and large halls get a centreline network; rooms keep
+  // door-to-door links below. Developer overrides are replayed on rebuild.
+  const circulation = buildCirculation(b, f, { newNode, newEdge, overrides: (f.navOverrides || []).map((o, i) => ({ ...o, i })) });
+  f.navOverrides = (f.navOverrides || []).map((o, i) => ({ ...o, applied: circulation.report.some((r) => r.i === i && r.applied) }));
   for (const s of f.geometry.spaces) {
-    if (s.access === "nonwalkable") continue;
+    if (s.access === "nonwalkable" || circulation.handled.has(s.id)) continue;
     const doors = b.nodes.filter(
       (n) =>
         n.floorId === f.id &&
@@ -416,7 +462,7 @@ export function buildGraph(building, floorId) {
       // openings, retain valid door-to-door traversal without a centre hub.
       for (let i = 0; i < doors.length; i++)
         for (let j = i + 1; j < doors.length; j++) {
-          const path = pathInside(f, s, doors[i].position, doors[j].position);
+          const path = roomPath(f, s, doors[i], doors[j]);
           if (path && pathLength(path) > 0.01)
             b.edges.push(
               newEdge(
@@ -425,7 +471,7 @@ export function buildGraph(building, floorId) {
                 doors[i],
                 doors[j],
                 path,
-                { traversal: "doorway" },
+                { traversal: "doorway", simplify: false },
               ),
             );
         }
@@ -450,11 +496,12 @@ export function buildGraph(building, floorId) {
     if (!retained) b.nodes.push(hub);
     for (const d of doors) {
       if (d.id === hub.id) continue;
-      const path = pathInside(f, s, position, d.position);
+      const path = roomPath(f, s, hub, d);
       if (path)
         b.edges.push(
           newEdge(`${hub.id}:${d.id}`, f, hub, d, path, {
             traversal: d.doorId ? "doorway" : "corridor",
+            simplify: false,
           }),
         );
     }
@@ -481,6 +528,12 @@ export function buildGraph(building, floorId) {
     b.edges.push(newEdge(`${a.id}:via:${z.id}`, f, a, z, path));
     b.nodes = b.nodes.filter((n) => n.id !== node.id);
   }
+  // Doorway vertices of analytical joins inside a centreline area carry no edges.
+  b.nodes = b.nodes.filter((n) => n.floorId !== floorId || !n.doorId || !n.spaceIds.every((id) => circulation.handled.has(id)) ||
+    b.edges.some((e) => e.from === n.id || e.to === n.id));
+  // Physical clearance for every walking edge, turns included.
+  for (const e of b.edges.filter((e) => e.floorId === floorId && !e.clearance))
+    e.clearance = pathClearance(f, e.path, (p) => wallClearance(f, p));
   for (const p of b.photos) {
     const edge = b.edges.find((e) => e.id === p.edgeId),
       old = oldEdges.get(p.edgeId);

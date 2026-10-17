@@ -21,9 +21,14 @@ export const SmartOptions = z.object({
   floorIds: z.array(z.string()).min(1).max(20),
   rebuild: z.boolean().default(false),
   concurrency: z.number().int().min(1).max(3).default(2),
+  // Floors run as independent pipelines at the same time, each with its own
+  // request, token and time budget (the limits below apply per floor).
+  floorConcurrency: z.number().int().min(1).max(8).default(6),
   maxCalls: z.number().int().min(1).max(100).default(40),
   maxTokens: z.number().int().min(1000).max(2000000).default(500000),
   deadlineMs: z.number().int().min(1000).max(3600000).default(1200000),
+  // One model request; several floors in flight make each reply slower.
+  requestTimeoutMs: z.number().int().min(1000).max(600000).default(300000),
   maxDetailTiles: z.number().int().min(1).max(30).default(8),
   maxSemanticBatches: z.number().int().min(0).max(10).default(4),
   maxRepairTiles: z.number().int().min(0).max(10).default(2),
@@ -97,7 +102,7 @@ export function budgetProvider(provider, options, { signal, stats, cacheDir, cha
           let alive = !!owner;
           if (owner) try { process.kill(owner.pid, 0); } catch (e) { if (e.code === "ESRCH") alive = false; }
           const age = Date.now() - info.mtimeMs;
-          if ((!alive && age > 2000) || age > 2 * (request.timeout || 180000) + 10000) {
+          if ((!alive && age > 2000) || age > 2 * (request.timeout || options.requestTimeoutMs || 300000) + 10000) {
             await unlink(lockPath).catch(e => { if (e.code !== "ENOENT") throw e; });
             continue;
           }
@@ -118,13 +123,18 @@ export function budgetProvider(provider, options, { signal, stats, cacheDir, cha
           const data = await provider.respond({ ...body,
             max_output_tokens: Math.max(1, Math.min(body.max_output_tokens || 8000, options.maxTokens - stats.tokens)),
           }, { ...request, signal: request.signal ? AbortSignal.any([combined, request.signal]) : combined,
-            timeout: Math.max(1, Math.min(request.timeout || 180000, end - Date.now())) });
+            timeout: Math.max(1, Math.min(request.timeout || options.requestTimeoutMs || 300000, end - Date.now())) });
           stats.tokens += data.usage?.total_tokens || 0;
           await atomicJson(path, data); responsePaths.set(data, path); changed(); return data;
         } catch (e) {
           stats.tokens += e.usage?.total_tokens || 0;
           if (combined.aborted) throw stopError(signal?.aborted ? "Cancelled" : "Job deadline reached");
-          if (request.signal?.aborted || attempt >= 1 || !(e.status === 429 || e.status >= 500 || transientNetworkError(e))) throw e;
+          // A slow reply that hit the per-request timeout (not the job deadline) gets the same single retry.
+          const timedOut = e.name === "TimeoutError" || /aborted due to timeout/i.test(e.message || "");
+          if (request.signal?.aborted || attempt >= 1 || !(e.status === 429 || e.status >= 500 || transientNetworkError(e) || timedOut)) throw e;
+          // Back off before the single retry: with several floors in flight an
+          // immediate retry lands in the same congestion.
+          await new Promise(resolve => setTimeout(resolve, retryDelay(e)));
         }
       }
     } finally {
@@ -134,6 +144,10 @@ export function budgetProvider(provider, options, { signal, stats, cacheDir, cha
   };
   return wrapped;
 }
+const retryDelay = e => {
+  const after = Number(e.headers?.get?.("retry-after"));
+  return Number.isFinite(after) && after > 0 ? Math.min(after * 1000, 20000) : Number(process.env.PIPELINE_RETRY_MS ?? 1500) * (1 + Math.random());
+};
 // Connection resets and DNS/socket failures surface from fetch without an HTTP
 // status; they get the same single, budgeted retry as 429/5xx.
 export const transientNetworkError = e => !e.status && e.name !== "AbortError" && e.name !== "TimeoutError" &&
@@ -318,6 +332,67 @@ async function verifyOpeningQueue(building, floor, source, map, doors, provider,
   if (failed) throw failed.reason;
 }
 
+// Applies a run's checked proposals to a building snapshot (local, no API).
+export function applyProposals(building, proposals) {
+  let next = building;
+  for (const p of proposals.filter((p) => p.appliedPreview)) {
+    const decisions = p.mode === "access" ? p.decisions : [{ op: "replace-source", sourceId: p.sourceId, map: p.map, records: p.records, coverage: p.coverage, classifications: p.classifications }];
+    for (const transaction of p.transactions?.length ? p.transactions : [decisions])
+      next = applyAccessDecisions(next, p.floorId, transaction, { reviewer: "Hybrid API pipeline", reviewStatus: "agent-inspected" }).building;
+  }
+  return next;
+}
+
+// Several floors: one independent pipeline per floor, run concurrently. Each
+// floor has its own model-request budget, cache-aware provider wrapper and
+// deadline; results are merged and the paths are built locally afterwards.
+async function runFloorsInParallel(building, options, { provider, signal, cacheDir, progress }) {
+  const started = Date.now(), ids = options.floorIds, results = new Array(ids.length),
+    floors = Object.fromEntries(ids.map((id) => [id, { label: building.floors.find((f) => f.id === id)?.label || id, stage: "queued", message: "Waiting for a worker", stats: null, done: false }]));
+  const total = () => {
+    const t = { calls: 0, tokens: 0, cacheHits: 0, localMs: 0, openingCacheHits: 0 };
+    for (const f of Object.values(floors)) for (const k of Object.keys(t)) t[k] += f.stats?.[k] || 0;
+    return t;
+  };
+  const report = () => {
+    const done = Object.values(floors).filter((f) => f.done).length;
+    progress({ stage: done === ids.length ? "graph" : "parallel", message: `${done} of ${ids.length} floors finished · ${Object.values(floors).filter((f) => !f.done && f.stage !== "queued").length} running in parallel`,
+      stats: total(), floors: JSON.parse(JSON.stringify(floors)) });
+  };
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(options.floorConcurrency, ids.length) }, async () => {
+    while (next < ids.length) {
+      const i = next++, id = ids[i], floorStarted = Date.now();
+      floors[id].stage = "starting"; report();
+      try {
+        results[i] = await runSmartMap(building, { ...options, floorIds: [id], floorConcurrency: 1 }, { provider, signal, cacheDir,
+          progress: (p) => { Object.assign(floors[id], { stage: p.stage, message: p.message, stats: p.stats }); report(); } });
+      } catch (e) {
+        results[i] = { status: "failed", stats: floors[id].stats || {}, proposals: [{ floorId: id, sourceId: null, appliedPreview: false, queue: [{ reason: e.message, type: "failure" }] }] };
+      }
+      Object.assign(floors[id], { done: true, status: results[i].status, elapsedMs: Date.now() - floorStarted, stats: results[i].stats });
+      report();
+    }
+  }));
+  const result = { version: SMART_MAP_VERSION, provider: provider.name, model: provider.model, effort: provider.effort,
+    stats: total(), proposals: results.flatMap((r) => r.proposals), status: "running",
+    parallel: { floorConcurrency: Math.min(options.floorConcurrency, ids.length),
+      floors: ids.map((id, i) => ({ floorId: id, label: floors[id].label, status: results[i].status, elapsedMs: floors[id].elapsedMs, stats: results[i].stats, summary: results[i].summary })) } };
+  result.queue = result.proposals.flatMap((p) => (p.queue || []).map((q) => ({ floorId: p.floorId, sourceId: p.sourceId, ...q })));
+  const draft = applyProposals(building, result.proposals),
+    rooms = roomAvailability(draft).filter((r) => ids.includes(r.floorId)),
+    elapsedMs = Date.now() - started;
+  result.summary = { regions: draft.floors.filter((f) => ids.includes(f.id)).reduce((n, f) => n + f.geometry.spaces.length, 0),
+    ready: rooms.filter((r) => r.ready).length, destinations: rooms.length, reviewItems: result.queue.length, elapsedMs,
+    sequentialMs: result.parallel.floors.reduce((n, f) => n + (f.elapsedMs || 0), 0),
+    validationErrors: validateBuilding(draft).filter((i) => i.severity === "error").length };
+  const statuses = results.map((r) => r.status);
+  result.status = statuses.includes("cancelled") ? "cancelled" : statuses.includes("limited") ? "limited"
+    : statuses.includes("failed") ? "needs-review" : result.queue.length ? "needs-review" : "complete";
+  progress({ stage: "finished", message: `Pipeline ${result.status}; ${ids.length} floors in parallel; ${result.summary.reviewItems} review items`, stats: result.stats, floors: JSON.parse(JSON.stringify(floors)) });
+  return result;
+}
+
 // Works on a snapshot. The saved building is never written by a running job.
 export async function runSmartMap(building, inputOptions, {
   provider = createProvider(), signal, cacheDir = ".local/map-pipeline", progress = () => {},
@@ -326,6 +401,8 @@ export async function runSmartMap(building, inputOptions, {
     stats = { calls: 0, tokens: 0, cacheHits: 0, localMs: 0 }, result = { version: SMART_MAP_VERSION,
       provider: provider.name, model: provider.model, effort: provider.effort, stats, proposals: [], queue: [], status: "running" };
   if (!provider.configured || !provider.respond) throw new Error("The configured provider must support structured vision and doorway tools.");
+  if (options.floorIds.length > 1 && options.floorConcurrency > 1)
+    return runFloorsInParallel(building, options, { provider, signal, cacheDir, progress });
   const notify = (stage, message, extra = {}) => progress({ stage, message, stats: { ...stats }, ...extra }),
     api = budgetProvider(provider, options, { signal, stats, cacheDir, changed: () => notify("api", "Processing model request or cached response") });
   let draft = clone(building);

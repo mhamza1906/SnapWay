@@ -21,6 +21,8 @@ Its output is a set of proposals, one per floor source, plus a review queue.
 ```
  upload (PDF / PNG / JPEG)
    |
+ [0] cleanPlan (optional) ... floor/building plan; planner crops floors, image
+   |                         model redraws them in parallel (clean-plans.md)
  [1] preparePlan ............ one normalized PNG per page; the "source frame"
    |
  [L] extractLocalVectors .... PDF line segments and text labels (no model call)

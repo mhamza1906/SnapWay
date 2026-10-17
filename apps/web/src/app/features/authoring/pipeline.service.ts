@@ -76,6 +76,7 @@ export interface Health {
   model: string;
   effort?: string;
   environment?: string;
+  imageModel?: { model: string; size: string; configured: boolean };
 }
 export interface MapJob {
   id: string;
@@ -90,6 +91,33 @@ export interface MapJob {
     status: string;
     stats: { calls: number; tokens: number };
     summary: Record<string, number>;
+  };
+}
+export type PlanType = 'floor' | 'building';
+export interface CleanFloor {
+  label: string;
+  level: number;
+  crop: { left: number; top: number; width: number; height: number };
+  cached: boolean;
+  latencyMs?: number;
+  model: string;
+  originalPreview: string;
+  cleanPreview: string;
+}
+export interface CleanJob {
+  id: string;
+  status: 'running' | 'complete' | 'failed' | 'cancelled';
+  mode: PlanType;
+  floors: number;
+  error?: string;
+  progress?: { stage: string; message: string };
+  result?: {
+    building: PipelineBuilding;
+    summary: BuildingSummary;
+    elapsedMs: number;
+    imageModel: string;
+    usage: { calls: number; tokens: number; images: number; cachedImages: number };
+    floors: CleanFloor[];
   };
 }
 export interface Edited {
@@ -126,6 +154,25 @@ export class PipelineService {
     if (name) form.append('name', name);
     if (floorLabel) form.append('floorLabel', floorLabel);
     return this.post('/authoring/plans', form);
+  }
+  /** Redraws each floor with the image model before mapping (paid). */
+  startClean(
+    file: File,
+    opts: { mode: PlanType; floors: number; labels: string; name: string },
+  ): Promise<{ id: string }> {
+    const form = new FormData();
+    form.append('plan', file);
+    form.append('mode', opts.mode);
+    form.append('floors', String(opts.floors));
+    if (opts.labels) form.append('labels', opts.labels);
+    if (opts.name) form.append('name', opts.name);
+    return this.post('/authoring/clean-plans', form);
+  }
+  cleanJob(id: string): Promise<CleanJob> {
+    return this.get(`/authoring/clean-plans/${id}`);
+  }
+  cancelClean(id: string): Promise<unknown> {
+    return this.post(`/authoring/clean-plans/${id}/cancel`, {});
   }
   summary(building: PipelineBuilding): Promise<BuildingSummary> {
     return this.post('/authoring/summary', { building });

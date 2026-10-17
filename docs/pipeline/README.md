@@ -141,6 +141,7 @@ the tests in more detail.
 | [stages.md](stages.md) | How the pipeline works internally, stage by stage |
 | [api.md](api.md) | HTTP endpoints (`/api/...`, `/api/authoring/...`) and the CLI scripts |
 | [operations.md](operations.md) | Limits, cost, caching, testing, trial results and troubleshooting |
+| [clean-plans.md](clean-plans.md) | Floor vs building plans, the Nano Banana Pro redraw stage, the floor splitter and parallel floors |
 
 Related SnapWay documents:
 

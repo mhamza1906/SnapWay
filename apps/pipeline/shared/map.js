@@ -127,7 +127,32 @@ export const MapSchema = z.object({
     notes: z.string(),
   }),
 });
-export const clone = (x) => JSON.parse(JSON.stringify(x));
+// Same result as JSON.parse(JSON.stringify(x)) (undefined dropped, non-finite
+// numbers become null, toJSON honoured) without re-serialising strings.
+// Strings are immutable, so large image data URLs are shared, not copied:
+// a multi-floor building no longer pays for every image on every edit.
+function cloneValue(v) {
+  if (v === null) return null;
+  const t = typeof v;
+  if (t === "string" || t === "boolean") return v;
+  if (t === "number") return Number.isFinite(v) ? v : null;
+  if (t !== "object") return undefined;
+  if (typeof v.toJSON === "function") return cloneValue(v.toJSON());
+  if (Array.isArray(v)) return v.map((x) => { const c = cloneValue(x); return c === undefined ? null : c; });
+  const o = {};
+  for (const k of Object.keys(v)) {
+    const c = cloneValue(v[k]);
+    if (c === undefined) continue;
+    if (k === "__proto__") Object.defineProperty(o, k, { value: c, enumerable: true, writable: true, configurable: true });
+    else o[k] = c;
+  }
+  return o;
+}
+export const clone = (x) => {
+  const c = cloneValue(x);
+  if (c === undefined) throw new TypeError("Cannot clone an undefined value.");
+  return c;
+};
 export const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 export const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 export function pointSegment(p, a, b) {

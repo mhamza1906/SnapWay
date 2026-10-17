@@ -31,9 +31,16 @@ function inlineImage(url) {
 
 export function vertexContents(input) {
   const contents = [], calls = new Map();
+  // Function responses get a turn of their own: Vertex rejects a turn that
+  // mixes functionResponse parts with text or images ("Requests ending with a
+  // model turn are not supported"), so images sent after tool results follow
+  // in a separate user turn.
+  const isResponse = (part) => !!part.functionResponse;
   const append = (role, parts) => {
     if (!parts.length) return;
-    if (contents.at(-1)?.role === role) contents.at(-1).parts.push(...parts);
+    const last = contents.at(-1);
+    if (last?.role === role && (role !== "user" || last.parts.every(isResponse) === parts.every(isResponse)))
+      last.parts.push(...parts);
     else contents.push({ role, parts });
   };
   for (const item of input || []) {

@@ -230,26 +230,37 @@ export function placeAssumedDoorways(building, floorId, { spaceIds = null, roomi
   }
   // A door must connect its room to another room. Drop rooms whose hallway is
   // itself cut off, report them, and re-check the rest (removals only shrink).
+  // The transaction re-checks both sides of every new door, so the pre-check
+  // does too: a door onto an isolated corridor is dropped, not fatal.
+  const sides = (p) => decisions.find((d) => d.record.doorId === p.doorId)?.record.adjacentIds || [p.spaceId];
   for (let round = 0; decisions.length && round < 5; round++) {
-    const check = checkRouteAccess(building, floorId, work.geometry, placed.map((p) => p.spaceId)),
+    const check = checkRouteAccess(building, floorId, work.geometry, [...new Set(placed.flatMap(sides))]),
       failed = new Map((check.results || []).filter((r) => !r.passed).map((r) => [r.spaceId, r.message]));
     if (check.passed || !failed.size) break;
     for (const [spaceId, message] of failed) {
-      const i = placed.findIndex((p) => p.spaceId === spaceId);
-      if (i < 0) continue;
+      for (let i; (i = placed.findIndex((p) => sides(p).includes(spaceId))) >= 0;) {
       const [gone] = placed.splice(i, 1);
       decisions.splice(decisions.findIndex((d) => d.record.doorId === gone.doorId), 1);
       work.geometry.doors = work.geometry.doors.filter((d) => d.id !== gone.doorId);
-      const draftRoom = work.geometry.spaces.find((s) => s.id === spaceId), original = floor.geometry.spaces.find((s) => s.id === spaceId);
+      const draftRoom = work.geometry.spaces.find((s) => s.id === gone.spaceId), original = floor.geometry.spaces.find((s) => s.id === gone.spaceId);
       if (original.access) draftRoom.access = original.access;
-      skipped.push({ spaceId, label: gone.label, reason: `The space it would open onto does not reach other rooms (${message})` });
+      skipped.push({ spaceId: gone.spaceId, label: gone.label, reason: `The space it would open onto does not reach other rooms (${message})` });
+      }
     }
   }
   if (!decisions.length) return { building, placed, skipped, roomed, enabled: enabled.doors };
-  const result = applyAccessDecisions(building, floorId, decisions, {
-    reviewer: ASSUMED_REVIEWER, reviewStatus: "agent-inspected",
-    reason: `Assumed doorways for ${placed.length} room(s) without a source-established opening`,
-  });
+  let result;
+  try {
+    result = applyAccessDecisions(building, floorId, decisions, {
+      reviewer: ASSUMED_REVIEWER, reviewStatus: "agent-inspected",
+      reason: `Assumed doorways for ${placed.length} room(s) without a source-established opening`,
+    });
+  } catch (e) {
+    // Nothing is forced: if the whole set still fails its route check, report
+    // every room for manual editing and leave the floor as it was.
+    skipped.push(...placed.map((p) => ({ spaceId: p.spaceId, label: p.label, reason: `Assumed doorways were not applied: ${e.message.slice(0, 200)}` })));
+    return { building, placed: [], skipped, roomed, enabled: enabled.doors };
+  }
   // Some supported openings only pass the route check once neighbouring regions
   // have doors; try them again, then drop assumed doors they make redundant.
   const again = enableSupportedDoors(result.building, floorId, floor.geometry.spaces.filter((s) => pick(s) && s.access !== "nonwalkable").map((s) => s.id));

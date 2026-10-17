@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { SmartOptions, runSmartMap, atomicJson, sourceSignature } from "./pipelines/smart-map.js";
-import { applyAccessDecisions } from "../shared/building/access.js";
+import { SmartOptions, runSmartMap, atomicJson, sourceSignature, applyProposals } from "./pipelines/smart-map.js";
 import { clone } from "../shared/map.js";
 const active = new Map();
 const root = ".local/map-jobs";
@@ -57,11 +56,5 @@ export async function applyMapJob(id, building) {
     if (!source || sourceSignature(building, floor, source) !== p.signature)
       throw new Error("The source or geometry changed after this run. Start a new run before applying.");
   }
-  let next = building;
-  for (const p of proposals) {
-    const decisions = p.mode === "access" ? p.decisions : [{ op: "replace-source", sourceId: p.sourceId, map: p.map, records: p.records, coverage: p.coverage, classifications: p.classifications }];
-    for (const transaction of p.transactions?.length ? p.transactions : [decisions])
-      next = applyAccessDecisions(next, p.floorId, transaction, { reviewer: "Hybrid API pipeline", reviewStatus: "agent-inspected" }).building;
-  }
-  return { building: next };
+  return { building: applyProposals(building, proposals) };
 }

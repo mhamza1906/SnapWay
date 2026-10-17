@@ -12,6 +12,8 @@ import { Icon } from '../../shared/icon';
 import {
   AssumedDoor,
   BuildingSummary,
+  CleanFloor,
+  CleanJob,
   EdgeOption,
   Edited,
   FloorSummary,
@@ -20,6 +22,7 @@ import {
   MapJob,
   PipelineBuilding,
   PipelineService,
+  PlanType,
   Point,
 } from './pipeline.service';
 
@@ -62,6 +65,19 @@ export class AuthoringPage implements OnInit {
   readonly routeFrom = signal('');
   readonly routeTo = signal('');
   readonly routeNote = signal('');
+  // Plan type: a floor plan is one floor; a building plan needs its floor count.
+  readonly planType = signal<PlanType | ''>('');
+  readonly floorCount = signal<number | null>(null);
+  readonly floorNames = signal('');
+  readonly cleanFirst = signal(true);
+  readonly cleanJob = signal<CleanJob | null>(null);
+  readonly cleanFloors = signal<CleanFloor[]>([]);
+  readonly cleanRunning = computed(() => this.cleanJob()?.status === 'running');
+  readonly uploadReady = computed(
+    () =>
+      this.planType() === 'floor' ||
+      (this.planType() === 'building' && (this.floorCount() ?? 0) >= 2),
+  );
   private overlay: { segments?: { a: Point; b: Point; color?: string }[]; routes?: Point[][] } = {};
 
   readonly floor = computed<FloorSummary | null>(
@@ -82,17 +98,66 @@ export class AuthoringPage implements OnInit {
   }
 
   // --- loading a building ---------------------------------------------------
+  setFloorCount(event: Event): void {
+    const n = Number(this.value(event));
+    this.floorCount.set(Number.isInteger(n) && n > 0 ? n : null);
+  }
+
   async upload(event: Event, nameInput: HTMLInputElement): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+    if (!this.planType()) {
+      this.error.set('First say whether this is a floor plan or a building plan.');
+      return;
+    }
+    if (this.planType() === 'building' && (this.floorCount() ?? 0) < 2) {
+      this.error.set('How many floors does this building plan show? Enter the number of floors.');
+      return;
+    }
+    if (this.cleanFirst()) return this.uploadClean(file, nameInput.value.trim());
     await this.run(async () => {
       this.load(await this.pipeline.uploadPlan(file, nameInput.value.trim()));
       this.say(
         `${file.name} uploaded: ${this.summary()!.floors.length} floor(s). Next, build the map with AI.`,
       );
     });
+  }
+
+  /** Image model redraws each floor (in parallel), then the floors are loaded. */
+  private async uploadClean(file: File, name: string): Promise<void> {
+    const mode = this.planType() as PlanType,
+      floors = mode === 'floor' ? 1 : (this.floorCount() ?? 0);
+    this.cleanFloors.set([]);
+    await this.run(async () => {
+      const { id } = await this.pipeline.startClean(file, {
+        mode,
+        floors,
+        labels: this.floorNames().trim(),
+        name,
+      });
+      let state = await this.pipeline.cleanJob(id);
+      this.cleanJob.set(state);
+      while (state.status === 'running' && !this.destroyRef.destroyed) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        state = await this.pipeline.cleanJob(id);
+        this.cleanJob.set(state);
+      }
+      if (state.status !== 'complete' || !state.result)
+        throw new Error(state.error ?? `Cleaning ${state.status}.`);
+      this.cleanFloors.set(state.result.floors);
+      this.load({ building: state.result.building, summary: state.result.summary });
+      this.say(
+        `${state.result.floors.length} clean floor(s) from ${state.result.imageModel} in ` +
+          `${Math.round(state.result.elapsedMs / 1000)} s. Check them below, then build the map.`,
+      );
+    });
+  }
+
+  async cancelClean(): Promise<void> {
+    const id = this.cleanJob()?.id;
+    if (id) await this.pipeline.cancelClean(id);
   }
 
   async open(key: string): Promise<void> {
@@ -315,6 +380,9 @@ export class AuthoringPage implements OnInit {
   }
   value(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
+  }
+  seconds(ms: number | undefined): string {
+    return `${Math.round((ms ?? 0) / 1000)} s`;
   }
   num(event: Event): number {
     return Number((event.target as HTMLInputElement).value);

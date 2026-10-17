@@ -5,6 +5,7 @@ import { accessInventory, newAccessRecord } from "../shared/building/access.js";
 import { spaceAccessState } from "../shared/building/access-state.js";
 import { roomAvailability, routeBuilding } from "../shared/building/routing.js";
 import { validateBuilding } from "../shared/building/validation.js";
+import { buildGraph } from "../shared/building/graph.js";
 import {
   addAssumedDoor, assumedDoors, bridgeComponents, defineAsRoom, doorEdgeOptions, defineNotRoom, editAssumedDoor, placeAssumedDoorways, removeAssumedDoor, roomsNeedingDoors,
 } from "../shared/building/assumed-doors.js";
@@ -168,10 +169,11 @@ test("a detected opening the visual check called unclear is assumed only when it
     openingType: "decomposition-join", adjacentIds: join.spaceIds, segment: { a: join.a, b: join.b }, reason: "Synthetic",
     evidence: { method: "ai-agent", description: "Synthetic", crops: [], verifier: { verdict, observed: `${verdict}: synthetic`, provider: "t", model: "t" } },
     review: { status: "agent-inspected", reviewer: "t", at: null, notes: "" }, geometryRevision: f.revision });
+  // The pipeline rebuilds the graph whenever records change; do the same here.
   const wall = clone(b); wall.floors[0].access.records.push(held("not-supported"));
-  assert.deepEqual(bridgeComponents(wall, "fx").doors, [], "a wall verdict is never overridden");
+  assert.deepEqual(bridgeComponents(buildGraph(wall, "fx"), "fx").doors, [], "a wall verdict is never overridden");
   f.access.records.push(held("uncertain"));
-  const r = bridgeComponents(b, "fx");
+  const r = bridgeComponents(buildGraph(b, "fx"), "fx");
   assert.deepEqual(r.doors, ["fx:join"]);
   const g = r.building.floors[0], rec = g.access.records.findLast(x => x.doorId === "fx:join");
   assert.equal(rec.evidence.method, "assumed");

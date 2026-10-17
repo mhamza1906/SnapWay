@@ -131,6 +131,22 @@ Turns an uploaded plan into a new building, with one draft floor per page.
   - More than 20 pages: `Import up to 20 PDF pages at a time.`
   - A file over 15 MB is rejected.
 
+### `POST /api/authoring/clean-plans` (local, paid)
+
+Redraws each floor with the image model before mapping. See
+[clean-plans.md](clean-plans.md).
+
+- **Request:** multipart `plan` (file), `mode` (`floor` or `building`),
+  `floors` (required for `building`, 2–20), optional `labels`
+  (comma-separated, one per floor, bottom to top) and `name`.
+- **Response:** `202 {id}`. Poll `GET /api/authoring/clean-plans/:id` for
+  `{id, status: running|complete|failed|cancelled, progress, result?, error?}`.
+  `result` is `{building, summary, elapsedMs, imageModel, usage, floors[]}` with
+  per-floor `originalPreview` and `cleanPreview` JPEG data URLs.
+  `POST /api/authoring/clean-plans/:id/cancel` stops it. One job at a time.
+- **Errors:** missing plan type, missing floor count, a label count that does
+  not match the floor count, or a multi-page PDF for a floor plan.
+
 ### `POST /api/authoring/summary` (local)
 
 - **Request:** `{building}`.

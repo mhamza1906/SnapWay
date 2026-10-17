@@ -118,3 +118,21 @@ test("provider factory uses Vertex in prod and refuses development providers the
     for (const k of names) if (before[k] === undefined) delete process.env[k]; else process.env[k] = before[k];
   }
 });
+
+test("images sent after tool results go in their own user turn (Vertex rejects mixing them with function responses)", () => {
+  const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const contents = vertexContents([
+    { role: "user", content: [{ type: "input_text", text: "split" }, { type: "input_image", image_url: png }] },
+    { type: "function_call", call_id: "a", name: "crop_region", arguments: "{}" },
+    { type: "function_call", call_id: "b", name: "crop_region", arguments: "{}" },
+    { type: "function_call_output", call_id: "a", output: '{"ok":true}' },
+    { type: "function_call_output", call_id: "b", output: '{"ok":true}' },
+    { role: "user", content: [{ type: "input_text", text: "crops" }, { type: "input_image", image_url: png }] },
+  ]);
+  assert.deepEqual(contents.map((c) => [c.role, c.parts.map((p) => Object.keys(p)[0])]), [
+    ["user", ["text", "inlineData"]],
+    ["model", ["functionCall", "functionCall"]],
+    ["user", ["functionResponse", "functionResponse"]],
+    ["user", ["text", "inlineData"]],
+  ]);
+});

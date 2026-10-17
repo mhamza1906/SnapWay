@@ -38,18 +38,81 @@
         <span class="badge blue">{{ b.name }}</span>
       }
     </div>
+    <div class="panel-body plan-type" role="radiogroup" aria-label="Plan type">
+      <p class="hint">What does the upload show?</p>
+      <label class="choice">
+        <input
+          type="radio"
+          name="plan-type"
+          value="floor"
+          [checked]="planType() === 'floor'"
+          (change)="planType.set('floor')"
+          data-testid="plan-floor"
+        />
+        Floor plan · one floor
+      </label>
+      <label class="choice">
+        <input
+          type="radio"
+          name="plan-type"
+          value="building"
+          [checked]="planType() === 'building'"
+          (change)="planType.set('building')"
+          data-testid="plan-building"
+        />
+        Building plan · several floors in one image or PDF
+      </label>
+      @if (planType() === 'building') {
+        <label class="field"
+          >How many floors does it show?
+          <input
+            type="number"
+            min="2"
+            max="20"
+            required
+            [value]="floorCount() ?? ''"
+            (input)="setFloorCount($event)"
+            data-testid="floor-count"
+          />
+        </label>
+        <label class="field"
+          >Floor names, bottom to top (optional, comma-separated)
+          <input
+            placeholder="Level B, Level 1, Level 2"
+            [value]="floorNames()"
+            (input)="floorNames.set(value($event))"
+            data-testid="floor-names"
+          />
+        </label>
+        @if ((floorCount() ?? 0) < 2) {
+          <p class="hint warn" data-testid="floor-prompt">
+            Enter the number of floors before uploading.
+          </p>
+        }
+      }
+      <label class="choice">
+        <input
+          type="checkbox"
+          [checked]="cleanFirst()"
+          (change)="cleanFirst.set(!cleanFirst())"
+          data-testid="clean-first"
+        />
+        Redraw each floor as a clean plan first ({{ health()?.imageModel?.model ?? 'image model' }},
+        paid; floors run in parallel)
+      </label>
+    </div>
     <div class="panel-body source-row">
       <label class="field"
         >Building name
         <input #nameInput placeholder="Optional; defaults to the file name" />
       </label>
-      <label class="btn primary" [class.disabled]="busy() || !!offline()">
+      <label class="btn primary" [class.disabled]="busy() || !!offline() || !uploadReady()">
         <app-icon name="map" /> Upload PDF / PNG / JPEG
         <input
           type="file"
           accept="application/pdf,image/png,image/jpeg"
           hidden
-          [disabled]="busy() || !!offline()"
+          [disabled]="busy() || !!offline() || !uploadReady()"
           (change)="upload($event, nameInput)"
           data-testid="plan-input"
         />
@@ -69,6 +132,47 @@
       }
     </div>
   </section>
+
+  @if (cleanJob(); as cj) {
+    <section class="panel" aria-labelledby="clean-title">
+      <div class="panel-heading">
+        <h2 id="clean-title">Clean floor plans</h2>
+        <span
+          class="badge"
+          [class.green]="cj.status === 'complete'"
+          [class.red]="cj.status === 'failed'"
+        >
+          {{ cj.status }}
+        </span>
+      </div>
+      <div class="panel-body">
+        <p class="job" data-testid="clean-job">{{ cj.progress?.message }}</p>
+        @if (cleanRunning()) {
+          <button class="btn danger small" (click)="cancelClean()">Cancel</button>
+        }
+        @if (cleanFloors().length) {
+          <p class="hint">
+            Generated images can move walls or drop doors. Compare each redraw with its original
+            before building the map.
+          </p>
+          <div class="clean-grid" data-testid="clean-floors">
+            @for (f of cleanFloors(); track f.label) {
+              <figure class="clean-floor">
+                <figcaption>
+                  <strong>{{ f.label }}</strong>
+                  <small>{{ f.cached ? 'cached' : seconds(f.latencyMs) }}</small>
+                </figcaption>
+                <div class="pair">
+                  <img [src]="f.originalPreview" [alt]="f.label + ' original'" />
+                  <img [src]="f.cleanPreview" [alt]="f.label + ' clean redraw'" />
+                </div>
+              </figure>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
 
   @if (summary(); as s) {
     <nav class="floor-tabs" aria-label="Floors">
@@ -96,7 +200,8 @@
       <div class="panel-body">
         <p class="hint">
           This step calls the AI provider shown above (paid, usually 15–20 calls per floor, a few
-          minutes). Re-running an unchanged plan reuses cached answers.
+          minutes). All floors run as separate pipelines at the same time. Re-running an unchanged
+          plan reuses cached answers.
         </p>
         <div class="button-row">
           <button

@@ -17,10 +17,12 @@ base.floors[0].sources[0].geometryIds = ["spaces", "walls", "doors", "pois"].fla
 const cache = () => join(tmpdir(), `smart-map-${crypto.randomUUID()}`);
 const message = body => ({ status: "completed", usage: { total_tokens: 100 }, output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(body) }] }] });
 const response = body => new Response(JSON.stringify(body), { status: 200 });
-function fake({ misread = false } = {}) {
+function fake({ misread = false, delay = 0, starts = [] } = {}) {
   let calls = 0, extractions = 0;
   const provider = new OpenAIProvider({ apiKey: "fixture-key", fetchImpl: async (_, { body }) => {
     calls++; const request = JSON.parse(body), name = request.text.format.name;
+    starts.push({ name, at: Date.now() });
+    if (delay) await new Promise(r => setTimeout(r, delay));
     if (name === "space_inventory") return response(message({ items: [
       { label: "101", kind: "room", position: { x: 50, y: 50 } }, { label: "103", kind: "room", position: { x: 250, y: 50 } },
     ], footprints: [[{ x: 0, y: 0 }, { x: 400, y: 0 }, { x: 400, y: 140 }, { x: 0, y: 140 }]], notes: [] }));
@@ -225,6 +227,18 @@ test("a transient network failure gets one budgeted retry; a second failure is r
   assert.equal(stats2.calls, 2);
 });
 
+test("a reply that hits the per-request timeout is retried once within the budget", async () => {
+  const stats = { calls: 0, tokens: 0, cacheHits: 0 };
+  let n = 0;
+  const slow = { name: "Synthetic", model: "m", async respond(_, options) {
+    if (n++ === 0) throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+    assert.equal(options.timeout, 300000);
+    return message({ ok: true });
+  } };
+  await budgetProvider(slow, { deadlineMs: 600000, maxCalls: 4, maxTokens: 10000 }, { stats, cacheDir: cache() }).respond({ input: "slow" });
+  assert.equal(stats.calls, 2);
+});
+
 test("detail tiles are ranked by newly covered labels, so clamped near-duplicates cannot crowd out distinct area", () => {
   // Rows at y=0 and a clamped y=50 both contain the dense west labels; a sparse
   // east area is only in the x=650 column and must be detailed before the duplicate.
@@ -277,4 +291,34 @@ test("a tile crowded with labels is split before any request, and edge labels pu
   assert.ok(tiles.some(t => t.y <= 640));
   const [a, b] = splitTile({ x: 0, y: 0, width: 600, height: 400 });
   assert.deepEqual([a.x, a.width, b.x, b.width], [0, 360, 240, 360]);
+});
+
+test("several floors run as independent pipelines at the same time, each with its own request budget", async () => {
+  const { default: sharp } = await import("sharp");
+  const b = clone(base), f = b.floors[0];
+  for (const key of ["spaces", "doors", "walls", "pois"]) f.geometry[key] = [];
+  b.nodes = []; b.edges = []; f.geometryStatus = "draft";
+  const second = JSON.parse(JSON.stringify(f).replaceAll('"fx"', '"fy"').replaceAll("fx:", "fy:").replaceAll("fx-source", "fy-source").replaceAll("fx-plan", "fy-plan"));
+  second.label = "Second floor"; second.level = 2;
+  // Same drawing with one corner pixel changed, so the floors do not share cached responses.
+  const png = Buffer.from(b.assets["fx-plan"].dataUrl.split(",")[1], "base64"),
+    dot = await sharp({ create: { width: 1, height: 1, channels: 3, background: "#777" } }).png().toBuffer(),
+    copy = await sharp(png).composite([{ input: dot, left: 0, top: 0 }]).png().toBuffer();
+  b.assets["fy-plan"] = { ...b.assets["fx-plan"], id: "fy-plan", dataUrl: `data:image/png;base64,${copy.toString("base64")}`, hash: "fy-" + (b.assets["fx-plan"].hash || "") };
+  b.floors.push(second);
+  const starts = [], { provider } = fake({ delay: 120, starts }), progress = [];
+  const result = await runSmartMap(b, { floorIds: ["fx", "fy"], rebuild: true, maxCalls: 3, maxDetailTiles: 2 },
+    { provider, cacheDir: cache(), progress: p => progress.push(p) });
+  const inventories = starts.filter(s => s.name === "space_inventory");
+  assert.equal(inventories.length, 2);
+  assert.ok(Math.abs(inventories[0].at - inventories[1].at) < 100, "both floors start together");
+  // maxCalls is per floor: together they exceed it, but no floor does.
+  assert.ok(result.stats.calls > 3, `${result.stats.calls} requests`);
+  assert.ok(result.parallel.floors.every(x => x.stats.calls <= 3 && x.stats.calls >= 2));
+  assert.notEqual(result.status, "limited");
+  assert.deepEqual(result.parallel.floors.map(x => x.floorId), ["fx", "fy"]);
+  assert.ok(result.proposals.every(p => p.appliedPreview), JSON.stringify(result.queue));
+  assert.equal(result.summary.ready, 4);
+  assert.ok(result.summary.elapsedMs < result.summary.sequentialMs * 0.8, "wall clock beats running floors one after another");
+  assert.ok(progress.some(p => p.floors && Object.keys(p.floors).length === 2));
 });

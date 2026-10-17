@@ -91,6 +91,17 @@ export const EdgeSchema = z.object({
   status,
   photoIds: z.array(id),
   geometryRevision: z.number().int().nonnegative(),
+  // Narrowest clear width along the whole path (turns included). widthM only
+  // when the floor has a scale; `issue` flags wall contact or < 0.9 m.
+  clearance: z
+    .object({
+      widthPx: z.number().nullable(),
+      widthM: z.number().nullable(),
+      at: Point.nullable(),
+      issue: z.string().nullable(),
+    })
+    .nullable()
+    .default(null),
 });
 export const PhotoSchema = z.object({
   id,
@@ -124,6 +135,21 @@ export const FloorSchema = z.object({
   reviewer: z.string(),
   reviewNotes: z.string(),
   graphRevision: z.number().int(),
+  // Developer corrections to the centreline network, replayed on every rebuild.
+  navOverrides: z
+    .array(
+      z.object({
+        op: z.enum(["move-node", "edge-path", "door-link"]),
+        spaceId: id.nullable().default(null),
+        at: Point.optional(),
+        to: Point.optional(),
+        from: Point.optional(),
+        path: z.array(Point).optional(),
+        doorId: id.optional(),
+        applied: z.boolean().default(true),
+      }),
+    )
+    .default([]),
   history: z.array(
     z.object({
       revision: z.number(),
