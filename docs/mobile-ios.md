@@ -9,8 +9,8 @@ Work lives on branch `feature/mobile-ios` (cut from `main` at `71f24ab`, `main` 
 
 The [architecture plan](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)
 lists native iOS as outside the present scope. Arjun requested this branch (2026-10-17),
-the camera/matching work, and committing `apps/place-match` here; team agreement is still
-needed before merging into `main`.
+the camera/matching work, committing `apps/place-match` here, and merging it into `main`
+(2026-10-17, pull request without other team review).
 
 - Same Angular visitor entry and UI that Android ships, with a phone layout.
 - Dependencies: `@capacitor/ios` **8.4.3** (pinned like core/android/cli). The camera
