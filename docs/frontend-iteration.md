@@ -227,6 +227,41 @@ user model is not evidence those policies are complete.
   localization result, and do not fabricate a geographic entrance from floor-plan
   pixels.
 
+## Billing preference and project-end behavior
+
+The requester prefers **Maps pay-as-you-go**, with no optional monthly Maps
+subscription. A Paid Cloud Billing account is not itself a Maps subscription.
+Keep the project on usage pricing; do not enroll in Maps Starter/Essentials/Pro
+subscription plans as part of the integration.
+
+Some Postpay payment methods require an activation prepayment. This is separate
+from Maps pricing and from the time-limited Cloud Free Trial. Maps has recurring
+monthly free usage allowances per SKU; exceeding one can create automatic charges.
+Consult the live official pricing table rather than treating the activation
+payment as a monthly fee or as a hard spending cap.
+
+With Maps usage pricing, no new billable map requests means no new map usage
+charges. The end of development does not automatically stop requests from a
+public deployment, older builds or background work. Existing costs can settle
+after usage stops; unrelated persistent Cloud resources can also accrue costs.
+No automatic project-end shutdown is configured at this checkpoint.
+
+Integration should avoid repeated unnecessary map initialization or polling,
+restrict browser keys by website and API, and use sensible request quotas plus
+budget notifications. Alerts-only budgets do not enforce a hard spending cap.
+If a fixed project-end cutoff is required, agree an end date and an explicit
+provider-side shutdown automation; a frontend date check alone is not a guarantee
+that the key can no longer be used. This note makes no Cloud account changes.
+
+Official billing references checked October 17, 2026:
+[Postpay activation prepayments](https://docs.cloud.google.com/billing/docs/how-to/payment-methods),
+[Cloud Free Trial](https://docs.cloud.google.com/free/docs/free-cloud-features),
+[Maps pay-as-you-go](https://developers.google.com/maps/billing-and-pricing/pay-as-you-go),
+[optional Maps subscriptions](https://developers.google.com/maps/billing-and-pricing/subscriptions),
+[current SKU prices](https://developers.google.com/maps/billing-and-pricing/pricing),
+[payment timing](https://docs.cloud.google.com/billing/docs/how-to/billing-cycle),
+[Maps cost controls](https://developers.google.com/maps/billing-and-pricing/manage-costs).
+
 ## Verification at this checkpoint
 
 Provider credentials have not been supplied, so authenticated map loading and
