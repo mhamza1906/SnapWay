@@ -256,3 +256,9 @@ experiments conditional on a supported API contract and written clarification
 of downstream AI/ML processing and comparison rights. Public Vector Magic and
 Vectorizer.AI terms do not establish permission for the planned workflow; no
 commercial trial is authorized by this proposal alone.
+
+The subsequent [personal Figma bridge assessment](figma-demo-bridge-proposal.md)
+offers a bounded operator-assisted hackathon path using supported plugin import
+and export around native Vectorize. It keeps an explicit manual conversion step;
+external UI automation and the separate Weave path require their own feasibility
+checks. The assessment introduces no runtime dependency or API change.

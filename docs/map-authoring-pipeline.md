@@ -152,3 +152,11 @@ Current API onboarding is unverified; published Vector Magic and Vectorizer.AI
 terms require clarification/authorization for downstream AI processing and the
 planned comparisons. Commercial candidates remain conditional, with no purchase,
 upload, software installation or supplier message made for this investigation.
+
+The [personal-Figma demo bridge assessment](pipeline/figma-demo-bridge-proposal.md)
+proposes user-run image import, one native Vectorize operation, and a second
+plugin command to export/return the result. Native Vectorize remains unavailable
+through the public Plugin API; unattended UI control is unverified. An available
+Weave connector catalogue check returned an account-link requirement, with no
+generation or credit consumption. The proposal details storage mapping, resume
+checks, measured costs and demo acceptance without implementing or changing APIs.
