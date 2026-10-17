@@ -298,6 +298,43 @@ Models are foundations, not proof of completed services. ReferencePhoto lacks a 
 
 Use the existing asset-storage boundary for photos and database identities/references/descriptors. Interference exclusion requires neither deleting original evidence nor identifying people. Bind indexes to descriptor/model/rule/revision/review versions; future embedding comparisons must use compatible spaces, dimensions and normalization.
 
+### 10.1 Node/Django responsibility and integration proposal
+
+**Member clarification:** browser Local Storage prototype records are personal test data and may be discarded when the real services replace them; a legacy-data migration is not a requirement. No clearing is performed by this planning update. Source evidence and prebuilt demo assets are outside that browser store.
+
+Node and Django can retain different internal representations. The current problem is the missing authority/adapter boundary, not their implementation languages. The Node pipeline evolved as an independently runnable authoring/AI tool while the Django team developed relational identity, permission, revision and publication foundations; their product integration has not yet been implemented.
+
+| Boundary | Current mismatch | Proposed responsibility |
+|---|---|---|
+| Saved building and revisions | Node `PUT /api/building` writes `.local/building.json`; Django has MapTarget/Contribution/Revision, but no adapter imports the saved building | Django owns shared revisions/publications; Node files become computation artifacts/caches, not a second shared publication database |
+| Geometry, graph and assets | Node building JSON aggregates floors, string IDs, inline `dataUrl` assets and `both/forward` edges; Django uses scoped UUID records, revision geometry, storage keys and directed edge records | A versioned adapter maps IDs, floor/revision scopes, node kinds, coordinates/units, polylines, access evidence and edge direction; split bidirectional edges where required and store binaries privately |
+| Identity and review | Django checks Membership; Node authoring receives the building and reviewer text from its caller and does not enforce the Django session/membership | Django derives the acting user and authorizes each target/write/review. A private compute call cannot grant membership, impersonate human review or publish |
+| Jobs and recovery | Node keeps active jobs in memory and snapshots in `.local/map-jobs`; Django Job/JobAttempt are separate records | Django owns public job identity/state and idempotency; workers invoke Node, map progress/results and record attempts. Node execution IDs are subordinate implementation details |
+| Runtime delivery | Angular currently calls `/pipeline/api` directly; current deployment packages Django/Web without the Node service | Browser-facing business APIs terminate at Django. Deploy a private Node compute service for required modules and invoke it from workers; define startup/readiness/persistence without exposing the entire local-tool API |
+
+Recommended initial design, preserving useful JavaScript geometry/model code:
+
+```mermaid
+flowchart LR
+  Web[Angular client] --> API[Django API and Membership checks]
+  API --> DB[PostgreSQL jobs revisions and metadata]
+  API --> Queue[Durable background dispatch]
+  Queue --> Worker[Celery worker]
+  Worker --> Node[Private Node computation]
+  Node --> Worker
+  Worker --> Store[Private media storage]
+  Worker --> DB
+  Web -->|Read job or accepted revision| API
+```
+
+1. Define one bounded input/output contract before changing public routes: target/source revision identity, frame/scale, asset references, operation/options, result graph proposals, artifacts, issues and provenance. Map Node-internal IDs deterministically; do not match rooms only by display name. Unknown metric scale stays unknown, and cross-floor associations must respect existing constraints.
+2. Django authenticates and authorizes the request, persists a job tied to its actor/target/source, then dispatches after commit. The worker prepares the Node input and invokes an internal operation with service-scoped access; long model requests do not block the API process. Do not forward provider keys or rely on a caller-supplied reviewer string as identity.
+3. Node performs extraction/geometry/rendering and returns proposals/artifacts. The worker validates output and source revision/hash freshness before storing private files and associated Django records. Model checks remain agent-inspected; human review/publication stays in Django-authorized domain services.
+4. Expose job status and the resulting draft through Django, preserving idempotency and rejecting stale write-back. Move frontend authoring to this boundary one operation at a time; keep the old Node endpoints local for diagnosis until replaced. Browser state may still hold temporary unsaved edits without becoming shared persistent authority.
+5. Prove a small input -> authorized job -> Node result -> stored draft -> review/publication loop, including denied target, duplicate request, worker failure and intervening manual edit. Then migrate additional operations and deploy the internal runtime under R-03.
+
+This avoids rewriting the complete tested Node implementation in Python or letting Node independently write shared tables and bypass Django business rules. A later Python consolidation may reduce operational overhead if justified by measurements, but it is not the first repair requirement. The design is a recommendation only: no public API, runtime topology, dependency, database record or Node persistence behavior changes in this documentation update.
+
 ## 11. Delivery sequence, costs and acceptance
 
 ### 11.1 Implementation slices

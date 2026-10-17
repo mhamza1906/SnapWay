@@ -217,3 +217,11 @@ and recorded outcomes preserved; the [web-artifact review](audits/2026-10-17-cha
 now explains the translated control label, and the [earlier smoke-check link](main-workflow-smoke-check.md)
 points to the current setup section. Original evidence and `docs/initial/` remain
 unchanged. Personal execution history stays in ignored `local/ACTIONS.md`.
+
+The member clarified that browser Local Storage test records may be discarded,
+so no legacy prototype-data migration is required. The [Node/Django responsibility
+proposal](pipeline/navigation-ai-workflow-plan.md#101-nodedjango-responsibility-and-integration-proposal)
+documents the remaining persistence, schema, permission, job and delivery gaps,
+recommending Django-owned shared state with private Node computation through
+background workers. This is an integration recommendation, not an implemented
+runtime change or a request to delete source evidence/prebuilt assets.
