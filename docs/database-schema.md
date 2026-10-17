@@ -3,7 +3,7 @@
 Owner: Eric. Handoff: Hamza (authorized services/APIs), Arjun (job/provenance
 payloads), Erfang (editor/read models). Updated October 17, 2026.
 
-**Deployment status:** migrated to the Tiger Cloud DEV database `db-snap-way`
+**Initial deployment record:** migrated to the Tiger Cloud DEV database `db-snap-way`
 on October 17, 2026: **26 migrations applied, zero pending**, with **24 domain
 tables** in the `snapway` schema. See the [cloud migration record](#tiger-cloud-migration--completed-october-17-2026)
 for PostgreSQL version, role permissions, verification and the scoped TLS exception.
@@ -23,6 +23,72 @@ generated from local PostgreSQL 17.11 in `public`; the deployed PostgreSQL 18.6
 database uses the dedicated `snapway` schema. It is not a cloud database dump.
 
 ## Relationships
+
+### Live Tiger Data map — October 17, 2026
+
+Read-only inspection at **18:26 UTC (14:26 Toronto)** confirmed service
+`db-snap-way` (`DEV`/`READY`), database `tsdb`, schema `snapway`, PostgreSQL
+**18.6**, using `snapway_runtime`. The live namespace has **39 tables**, **329
+columns**, **124 foreign keys** (including **36 composite scope keys**), **196
+indexes**, **62 CHECK constraints**, and **20 custom triggers**. These are catalog
+object counts, not application row counts. No application records, migration
+history rows, or data-derived statistics were read.
+
+The original 34-table migration record below is historical. The live inventory
+also contains `account_emailaddress`, `account_emailconfirmation`,
+`socialaccount_socialaccount`, `socialaccount_socialapp`, and
+`socialaccount_socialtoken`: **24 domain tables and 15 identity/framework tables**
+in total. This inspection does not establish when those five tables were added
+or whether further Django migrations are pending.
+
+Open the [interactive schema map](assets/database-schema/snapway-schema-map.html)
+in a browser. Search by table or column, select a table for every physical column
+and incoming/outgoing foreign key, and switch from the domain overview to all
+39 tables. Primary-key, foreign-key and nullable-column tags are explicit;
+constraint, index and trigger definitions are available in the inspector.
+The map is self-contained and works offline; it is a dated snapshot, not a live
+database connection. Arrows point **from child to referenced parent**. Lines
+between the same pair of tables are combined; the inspector lists each physical
+constraint, including composite keys. No relationship cardinality is inferred
+from table names.
+
+![Live domain schema overview](assets/database-schema/snapway-overview.svg)
+
+The overview shows all 24 domain tables with selected backbone foreign keys;
+the [complete SVG](assets/database-schema/snapway-full.svg) includes every table
+and foreign-key relationship. Identity and framework tables are in the full view.
+
+Source and reproduction:
+
+- [Unmodified catalog snapshot](assets/database-schema/2026-10-17-snapway-catalog.json)
+  preserves returned column, constraint, index and trigger definitions without
+  application data or credentials.
+- [Read-only catalog query](assets/database-schema/catalog-query.sql) was executed
+  through Tiger MCP with `snapway_runtime`. It uses `BEGIN READ ONLY` and scopes
+  detailed metadata to `snapway`; provider-internal schemas are excluded.
+- [Renderer](assets/database-schema/render.py) and [source template](assets/database-schema/viewer.html.template)
+  regenerate the [interactive HTML](assets/database-schema/snapway-schema-map.html),
+  [overview SVG](assets/database-schema/snapway-overview.svg), and
+  [full SVG](assets/database-schema/snapway-full.svg) offline with Python's standard
+  library and an existing Graphviz `dot` installation. Run
+  `python docs/assets/database-schema/render.py` from the repository root.
+  [Overview DOT](assets/database-schema/snapway-overview.dot) and
+  [full DOT](assets/database-schema/snapway-full.dot) retain editable graph sources.
+  The legacy [viewer entry](assets/database-schema/viewer.html) redirects to the
+  generated map. The `.template` file is renderer input and is not a viewable map.
+
+This documentation task changes no application schema, architecture, dependencies,
+or environment settings. The local environment check could not run because
+`local/.env` is absent. Application work requires the team's private configuration
+for root template contract **2026-10-17.4**, obtained through the external private
+channel, retaining documented host exceptions and passing
+`python scripts/env_contract.py check`. The connected Tiger MCP session was used
+for this inspection independently of the application environment.
+
+### Conceptual relationship summary
+
+This earlier summary describes the core workflow; the live map above provides
+physical table and foreign-key definitions.
 
 ```mermaid
 erDiagram
@@ -299,6 +365,24 @@ specified by the infrastructure plan. The root `.env` and application connection
 settings have not been switched automatically to the cloud database.
 
 ## Change record
+
+Live schema-map follow-up (October 17, 2026): inspected the cloud catalog in a
+read-only transaction, retained the source snapshot and query, generated the
+offline interactive map and SVG/DOT views linked above, and distinguished the
+39-table live inventory from the original 34-table migration record. Verified
+all 39 inspectors against saved column and incoming/outgoing FK counts in real
+Chromium, plus overview/full views, search, empty results/reset, zoom, keyboard
+selection, responsive mobile layout, and absence of page errors/network requests.
+Both SVGs parse and the snapshot records a read-only transaction with all 124
+FKs validated. Commit pending. Suggested commit:
+`docs(db): add verified Tiger Data schema maps`.
+Personal verification/history: ignored `local/ACTIONS.md`.
+
+Viewer-entry correction: renamed the unfilled source to `viewer.html.template`
+and made `viewer.html` redirect to the generated map, preventing a blank diagram
+when opening the former template path. Regeneration rejects unresolved template
+tokens. Verified the redirect and all 39 table inspectors in Chromium. Suggested
+commit: `fix(docs): open generated schema map from viewer entry`.
 
 Personal development history is maintained in ignored `local/ACTIONS.md`.
 This is the single shared feature record. Base scaffold commit: `e79a65b`.
