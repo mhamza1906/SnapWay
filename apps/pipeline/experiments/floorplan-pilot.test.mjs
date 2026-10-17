@@ -37,3 +37,11 @@ test('recorded door-detail response passes basic polygon checks without implying
   const t=JSON.parse(await readFile(new URL('../../../docs/audits/assets/2026-10-17-gemini-vector-pilot/door-detail/trace.json',import.meta.url),'utf8'));
   assert.equal(validateTrace(t,'candidate-71a4013b353db9b2-trace','candidate-71a4013b353db9b2'),true);
 });
+test('dynamic original-photo label registry supports new IDs without relaxing unknown-label checks',()=>{
+  const t=trace();t.spaces[0].label_refs=['source-room-1'];
+  const registry=[{id:'source-room-1',text:'Read from original'}];
+  assert.equal(validateTrace(t,'request','frame',registry),true);
+  assert.throws(()=>validateTrace(t,'request','frame'));
+  const s={footprint:t.spaces[0].polygon,walls:[],stairs:[],seating:[],door_symbols:[]};
+  assert.match(renderSvg(t,s,1405,625,registry),/Read from original/);
+});

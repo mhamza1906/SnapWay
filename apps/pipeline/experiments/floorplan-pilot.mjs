@@ -34,13 +34,13 @@ export function convertPoint(p,width,height) {
   return {x:p.x*width/1000,y:p.y*height/1000};
 }
 
-export function validateTrace(trace, requestId, frameId) {
+export function validateTrace(trace, requestId, frameId, labelRegistry = labels) {
   if (trace.request_id !== requestId || trace.frame_id !== frameId || trace.coordinate_space !== 'crop_n1000_xy') throw Error('Mismatched request/frame');
   const ids = new Set();
   for (const s of trace.spaces) {
     if (ids.has(s.local_id)) throw Error('Duplicate region ID');
     ids.add(s.local_id);
-    if (s.label_refs.some(id => !labels.some(l => l.id === id))) throw Error('Unknown label reference');
+    if (s.label_refs.some(id => !labelRegistry.some(l => l.id === id))) throw Error('Unknown label reference');
     const area = s.polygon.reduce((sum,p,i) => { const q=s.polygon[(i+1)%s.polygon.length]; return sum+p.x*q.y-q.x*p.y; },0)/2;
     if (Math.abs(area)<1) throw Error('Degenerate polygon');
     for(let i=0;i<s.polygon.length;i++) {
@@ -76,11 +76,11 @@ export const structureSchema = object({
 });
 
 function validateLocal(schema,value) {
-  const code = 'import sys,json; from jsonschema import Draft202012Validator; d=json.load(sys.stdin); e=list(Draft202012Validator(d["schema"]).iter_errors(d["value"])); print("\\n".join(str(x)[:300] for x in e)); sys.exit(bool(e))';
+  const code = 'import sys,json; from jsonschema import Draft202012Validator; d=json.load(sys.stdin.buffer); e=list(Draft202012Validator(d["schema"]).iter_errors(d["value"])); print("\\n".join(str(x)[:300] for x in e)); sys.exit(bool(e))';
   execFileSync(join(root,'.venv/Scripts/python.exe'),['-c',code],{input:JSON.stringify({schema,value}),stdio:['pipe','pipe','pipe']});
 }
 
-export function renderSvg(trace,structure,width,height) {
+export function renderSvg(trace,structure,width,height,labelRegistry = labels,modelName = 'Gemini') {
   const p = q => {const c=convertPoint(q,width,height);return `${c.x.toFixed(2)},${c.y.toFixed(2)}`;};
   const poly = points => points.map(p).join(' ');
   const palette={room:'#dbeafe',circulation:'#f1f5f9',stair_flight:'#fde68a',stair_landing:'#fef3c7',elevator_shaft:'#a5f3fc',void:'#e2e8f0',unknown:'#fce7f3'};
@@ -110,15 +110,15 @@ export function renderSvg(trace,structure,width,height) {
   drawing+='<g id="map-labels">';
   for(const s of trace.spaces.filter(s=>s.label_refs.length)) {
     const cx=s.polygon.reduce((n,p)=>n+p.x,0)/s.polygon.length,cy=s.polygon.reduce((n,p)=>n+p.y,0)/s.polygon.length;
-    const pos=convertPoint({x:cx,y:cy},width,height);const text=s.label_refs.map(id=>labels.find(l=>l.id===id)?.text||id).join(' / ');
+    const pos=convertPoint({x:cx,y:cy},width,height);const text=s.label_refs.map(id=>labelRegistry.find(l=>l.id===id)?.text||id).join(' / ');
     drawing+=`<g class="poi" role="button" tabindex="0" aria-label="Toggle ${escape(text)}" aria-pressed="false" data-target="label-${escape(s.local_id)}" transform="translate(${pos.x} ${pos.y})"><circle r="8" fill="#2563eb" stroke="white" stroke-width="2"/><text id="label-${escape(s.local_id)}" class="map-label" x="12" y="-12" style="display:none" font-family="sans-serif" font-size="14" fill="#111827" stroke="white" stroke-width="4" paint-order="stroke">${escape(text)}</text></g>`;
   }
   drawing+='</g>';
-  return `<svg xmlns="http://www.w3.org/2000/svg" id="floorMap" viewBox="0 0 ${width} ${height}" role="group" aria-label="Gemini vector proposal"><rect width="${width}" height="${height}" fill="white"/><defs>${defs}</defs>${drawing}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" id="floorMap" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(modelName)} vector proposal"><rect width="${width}" height="${height}" fill="white"/><defs>${defs}</defs>${drawing}</svg>`;
 }
 
-function page(svg) {
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gemini 4 vector pilot</title><style>body{font:15px system-ui;margin:20px;background:#f1f5f9;color:#0f172a}button{padding:10px;margin:4px}#viewport{background:white;border:1px solid #cbd5e1;overflow:hidden}svg{display:block;width:100%;height:65vh;touch-action:none}.poi{cursor:pointer}pre{white-space:pre-wrap}img{width:100%}</style><h1>Gemini 4 — vector proposal</h1><p>Experimental reconstruction. Red dashed lines are unverified opening candidates; navigation is disabled.</p><button id="all">Show labels</button><button id="none">Hide labels</button><button id="plus">Zoom +</button><button id="minus">Zoom −</button><button id="reset">Reset</button><span id="count">0 labels</span><div id="viewport">${svg}</div><h2>Raster input</h2><img src="web-floor.png" alt="Frozen image-generation result"><h2>Validation and scope</h2><pre id="report"></pre><script>
+export function page(svg,modelName = 'Gemini 4') {
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(modelName)} vector pilot</title><style>body{font:15px system-ui;margin:20px;background:#f1f5f9;color:#0f172a}button{padding:10px;margin:4px}#viewport{background:white;border:1px solid #cbd5e1;overflow:hidden}svg{display:block;width:100%;height:65vh;touch-action:none}.poi{cursor:pointer}pre{white-space:pre-wrap}img{width:100%}</style><h1>${escape(modelName)} — vector proposal</h1><p>Experimental reconstruction. Red dashed lines are unverified opening candidates; navigation is disabled.</p><button id="all">Show labels</button><button id="none">Hide labels</button><button id="plus">Zoom +</button><button id="minus">Zoom −</button><button id="reset">Reset</button><span id="count">0 labels</span><div id="viewport">${svg}</div><h2>Raster input</h2><img src="web-floor.png" alt="Frozen image-generation result"><h2>Validation and scope</h2><pre id="report"></pre><script>
 const svg=document.getElementById('floorMap'),initial=svg.getAttribute('viewBox').split(' ').map(Number);let view=[...initial],drag=null;
 function count(){document.getElementById('count').textContent=[...svg.querySelectorAll('.map-label')].filter(l=>l.style.display!=='none').length+' labels'}
 function toggle(e){const l=document.getElementById(e.dataset.target),on=l.style.display==='none';l.style.display=on?'inline':'none';e.setAttribute('aria-pressed',String(on));count()}

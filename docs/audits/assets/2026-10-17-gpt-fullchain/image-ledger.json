@@ -1,0 +1,31 @@
+{
+  "stage": "image-edit",
+  "requestedModel": "gpt-image-2.5-sunburst",
+  "quality": "high",
+  "size": "1536x1024",
+  "startedAt": "2026-10-17T09:25:59Z",
+  "status": "completed",
+  "maximumUpstreamRequests": 1,
+  "usage": {
+    "input_tokens": 1822,
+    "input_tokens_details": {
+      "image_tokens": 1456,
+      "text_tokens": 366
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3194
+  },
+  "httpStatus": 200,
+  "latencyMs": 31325,
+  "returnedModel": null,
+  "returnedSize": "1536x1024",
+  "returnedQuality": "high",
+  "estimatedUndiscountedUsd": 0.054638,
+  "cliExitCode": 0,
+  "outputExists": true,
+  "finishedAt": "2026-10-17T09:26:54Z"
+}

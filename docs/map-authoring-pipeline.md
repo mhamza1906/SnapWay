@@ -123,3 +123,14 @@ provider switch or API change accompanies this closeout.
 Published checkpoints accompanying this conclusion: [web review and proposal
 8d159aa](https://github.com/mhamza1906/SnapWay/commit/8d159aa) and
 [Gemini pilot, harness and evidence 71a5a17](https://github.com/mhamza1906/SnapWay/commit/71a5a17).
+
+## Original-photo GPT full-chain experiment
+
+The subsequent [real GPT image/vector API trial](audits/2026-10-17-gpt-fullchain-pilot.md)
+preserves source labels and capacities in local SQLite before one GPT Image 2.5
+edit, then compares GPT 6.1 sol/Gemini 4 whole-image vectors and two GPT crops.
+Image labels are removed, but exterior cleanup is incomplete; whole maps and crops
+still fail geometry/navigation acceptance. The report links all changed
+[experiment code and commands](../apps/pipeline/experiments/README.md), measured
+usage/cost, database mapping and portable evidence. Shared DB connectivity/import
+remains unresolved; application APIs and production schema are unchanged.

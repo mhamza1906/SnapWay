@@ -1,0 +1,14 @@
+{
+  "frameId": "optimized-bb897c1538b37a2b",
+  "width": 896,
+  "height": 720,
+  "parentWidth": 1536,
+  "parentHeight": 1024,
+  "roi": {
+    "left": 640,
+    "top": 140,
+    "width": 896,
+    "height": 720
+  },
+  "inputHash": "bb897c1538b37a2bd968830967787f0f5c3bbea0ca6a7af37c403c0d31de7320"
+}

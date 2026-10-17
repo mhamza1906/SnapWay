@@ -41,3 +41,58 @@ These explicit `--live` commands incur provider usage. Existing stage output pre
 Inspect `attempt-ledger.json`, stage prompts/schemas, raw provider responses, `trace-validation.json` and `validation.json`. A response saved successfully can still fail geometry validation. Local JSON schema is stricter than the provider projection; frame equality, object references and polygon checks run after response parsing. Overlap and opening-boundary results remain review obligations. The harness never converts opening proposals into accepted doors or route edges, never self-approves a reviewer and never publishes a map.
 
 Price estimates use an explicitly documented conservative token basis, not a provider spending limit or confirmed invoice. The six-attempt cap is per ledger, not a Cloud account quota. This is a fixture-specific research tool, not a resumable production scheduler or general API adapter.
+
+## Original-photo GPT image and vector comparison experiment
+
+The [full-chain pilot](../../../docs/audits/2026-10-17-gpt-fullchain-pilot.md) adds
+an independent fixture-specific harness. The earlier Gemini-only run above remains
+unchanged historical evidence. Use the existing ignored `local/env/api.env`
+`OPENAI_API_KEY` for both explicitly requested OpenAI models. Vertex settings stay
+in `apps/pipeline/.env.prod`; no key belongs in source, browser code or this README.
+
+```powershell
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=prepare
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=inventory --live
+.venv/Scripts/python.exe apps/pipeline/experiments/stage_fullchain.py
+.venv/Scripts/python.exe apps/pipeline/experiments/meter_image_cli.py --live
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=trace --live
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=structure --live
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=trace --gemini --live
+node apps/pipeline/experiments/fullchain-pilot.mjs --stage=structure --gemini --live
+```
+
+These are paid commands, not CI steps. Reuse cached outputs for offline replay by
+omitting `--live`. Completed raw responses can be revalidated locally without a
+new inference. Calls are sequential because the ledger is not concurrency-safe.
+Inventory is read and staged before label removal; geometry uses the optimized
+image's explicit frame, with the original supplied separately as semantic evidence.
+
+`meter_image_cli.py` invokes the installed, unmodified imagegen skill CLI through
+a loopback relay that permits exactly one upstream image edit and records usage
+and latency. The relay holds the real key; its child receives a disposable local
+token. It requires the imagegen skill at `CODEX_HOME/skills/.system/imagegen/`, or
+the equivalent under the current user's `.codex` directory. It installs nothing
+and refuses to overwrite an existing `optimized-floor.png` with another paid call.
+
+If needed, the same GPT trace/structure stages accept `--roi=left,top,width,height`.
+The recorded overlapping halves use `--roi=0,140,896,720` and
+`--roi=640,140,896,720`. They remain independent proposals; they are not silently
+stitched or accepted. The shared text/vision ledger caps nine requests with
+16,384 output tokens each and reserves against a USD 5 estimate before a call;
+the one image call is additional. These are research guards, not an account-level
+spending cap. Actual usage, cache writes and service tiers are retained.
+
+```powershell
+.venv/Scripts/python.exe apps/pipeline/experiments/stage_fullchain.py
+node apps/pipeline/experiments/analyze-fullchain.mjs
+node --test apps/pipeline/experiments/floorplan-pilot.test.mjs apps/pipeline/experiments/fullchain-pilot.test.mjs
+```
+
+`stage_fullchain.py` persists all observations, three room candidates, associations
+and model-call metadata to ignored
+`local/test-results/gpt-fullchain-2026-10-17/experiment.sqlite3`, with an explicit
+mapping to existing Room/MapObject/Revision fields. This is staging, not a Django
+schema migration or a shared-database import. It does not invent an owner or target.
+`basic_polygon_valid` is not source fidelity or navigation approval. The analysis
+script writes comparison JSON and a local HTML dashboard; serve its artifact
+directory on loopback HTTP. Neither script calls a model.

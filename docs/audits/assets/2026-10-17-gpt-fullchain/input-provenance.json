@@ -1,0 +1,12 @@
+{
+  "source": "local/test-source/IA-1-floor-original.jpg",
+  "sourceSha256": "d3f1726c7abdd467482ac36c70a8b305fd764e5214bd17416550d1c0da2b6b2b",
+  "crop": {
+    "left": 20,
+    "top": 250,
+    "width": 1930,
+    "height": 900
+  },
+  "originalByteSize": 223829,
+  "scope": "Upper IA Level 1 only; lower inset excluded; not a new surveyed coordinate frame"
+}

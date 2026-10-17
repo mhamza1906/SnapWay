@@ -13,6 +13,12 @@ remain proposed. After reviewing the results, the member closed this phase and
 promoted GPT 6.1 sol and Opus 5.5 to priority vectorization comparisons; see the
 [reviewed conclusion and comparison protocol](../audits/2026-10-17-gemini-vector-pilot.md#member-reviewed-stage-conclusion).
 
+The subsequent [original-photo GPT API experiment](../audits/2026-10-17-gpt-fullchain-pilot.md)
+now exercises real image generation, source-inventory staging, whole-image GPT /
+Gemini comparison and two GPT crops. It does not establish a winning vector model:
+image exterior cleanup remains partial and every map condition fails acceptance.
+Production integration and shared database import remain incomplete.
+
 ## 1. Model policy and verified capabilities
 
 Follow the requesting member's latest review: **GPT Image 2.5 remains the image-generation preference; prioritize GPT 6.1 sol and Opus 5.5 for vectorization comparison, retaining Gemini 4 full-image and segmented baselines.** The earlier fallback-only priority is superseded for future vectorization experiments; no winner or production switch is established. Gemini 4 remains the proposed model for other inference tasks pending their own evidence.
