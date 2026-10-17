@@ -1,9 +1,21 @@
 import { Routes } from '@angular/router';
-import { adminGuard, developerGuard, sessionGuard } from './core/auth.service';
+import { adminGuard, developerGuard, publicGuard, sessionGuard } from './core/auth.service';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'map' },
-  { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
+  { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
+  {
+    path: 'map',
+    canActivate: [developerGuard],
+    loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage),
+  },
+  {
+    path: 'public',
+    canActivate: [publicGuard],
+    loadComponent: () =>
+      import('./features/public-placeholder/public-placeholder').then(
+        (m) => m.PublicPlaceholderPage,
+      ),
+  },
   {
     path: 'sign-in',
     loadComponent: () => import('./features/sign-in/sign-in').then((m) => m.SignInPage),
@@ -53,6 +65,7 @@ export const routes: Routes = [
   },
   {
     path: 'navigate',
+    canActivate: [developerGuard],
     loadComponent: () => import('./features/navigation/navigation').then((m) => m.NavigationPage),
   },
   {

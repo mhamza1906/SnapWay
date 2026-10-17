@@ -1,8 +1,9 @@
 # Backend Google OAuth
 
 Current integration: `/sign-in` starts Google authentication with a selected
-Developer or Public User experience, and `/auth/complete` opens the retained
-authenticated `/welcome` page. See [authentication modes](authentication-modes.md)
+Developer or Public User experience, and `/auth/complete` checks the server session
+before opening `/overview` or the temporary `/public` placeholder directly.
+The retained `/welcome` is now an account page. See [authentication modes](authentication-modes.md)
 for session switching, API permissions, controlled administrator provisioning and
 current verification. `/api/auth/me/` sets the CSRF cookie and is uncached.
 The original backend-only scope and non-goals below describe that earlier slice;

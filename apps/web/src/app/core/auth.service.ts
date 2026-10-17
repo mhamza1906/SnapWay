@@ -20,7 +20,7 @@ export type ExperienceMode = 'developer' | 'public';
 
 export function safeReturnPath(value: string | null): string {
   return value &&
-    /^\/(map|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
+    /^\/(map|public|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
       value,
     ) &&
     !/[\\\r\n]/.test(value)
@@ -39,6 +39,7 @@ export class AuthService {
   readonly signedIn = computed(() => this.session()?.authenticated === true);
   readonly mode = computed<ExperienceMode>(() => this.session()?.mode ?? 'public');
   readonly isDeveloper = computed(() => this.signedIn() && this.mode() === 'developer');
+  readonly landingPath = computed(() => (this.isDeveloper() ? '/overview' : '/public'));
   readonly canAdmin = computed(() => this.isDeveloper() && this.session()?.can_admin === true);
   readonly name = computed(() => this.session()?.username || 'Guest');
   readonly initials = computed(() => this.name().slice(0, 2).toUpperCase());
@@ -46,7 +47,7 @@ export class AuthService {
     const user = this.session();
     if (!user?.authenticated) return 'Guest';
     if (!this.isDeveloper()) return 'Public User';
-    return this.canAdmin() ? 'Developer · Admin' : 'Developer';
+    return 'Developer';
   });
 
   refresh(): Promise<SessionIdentity> {
@@ -157,7 +158,15 @@ export const developerGuard = (async (route, state) => {
   const router = inject(Router);
   const result = await sessionGuard(route, state);
   if (result !== true) return result;
-  return auth.isDeveloper() ? true : router.createUrlTree(['/welcome']);
+  return auth.isDeveloper() ? true : router.createUrlTree(['/public']);
+}) satisfies CanActivateFn;
+
+export const publicGuard = (async (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const result = await sessionGuard(route, state);
+  if (result !== true) return result;
+  return auth.isDeveloper() ? router.createUrlTree(['/overview']) : true;
 }) satisfies CanActivateFn;
 
 export const adminGuard = (async (route, state) => {

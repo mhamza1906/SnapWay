@@ -2,8 +2,9 @@
 
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
 The latest [authentication modes](authentication-modes.md) update defines the new
-`/sign-in` card entry, authenticated `/welcome`, session-mode API and controlled
-administrator provisioning. It supersedes the earlier login-entry behavior recorded
+`/sign-in` card entry, direct Developer workspace/Public User placeholder landing,
+retained `/welcome` account page, session-mode API and controlled administrator
+provisioning. It supersedes the earlier login-entry behavior recorded
 below; workspace layout redesign remains deferred at the contributor's request.
 Merged remote main through PR #10 (`67db1fe`, graph editor / R2 media) into this
 branch after the earlier PR #9 single-env baseline. Main's later schema-map

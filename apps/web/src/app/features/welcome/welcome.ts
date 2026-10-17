@@ -46,7 +46,6 @@ import { Icon } from '../../shared/icon';
       @if (auth.error()) {
         <p class="notice error" role="alert">{{ auth.error() }}</p>
       }
-      <p class="footnote">Administrator access is assigned by the SnapWay team.</p>
       <button class="btn ghost" (click)="signOut()" [disabled]="auth.busy()">Sign out</button>
     </section>
   </main>`,
@@ -55,11 +54,11 @@ import { Icon } from '../../shared/icon';
 export class WelcomePage {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  readonly destination = computed(() => (this.auth.isDeveloper() ? '/overview' : '/map'));
+  readonly destination = computed(() => this.auth.landingPath());
 
   async switchMode() {
     const mode: ExperienceMode = this.auth.isDeveloper() ? 'public' : 'developer';
-    await this.auth.switchMode(mode);
+    if (await this.auth.switchMode(mode)) await this.router.navigateByUrl(this.auth.landingPath());
   }
 
   async signOut() {

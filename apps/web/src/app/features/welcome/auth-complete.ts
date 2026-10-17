@@ -27,7 +27,7 @@ export class AuthCompletePage {
         this.error.set('No signed-in session was found. Please try again.');
         return;
       }
-      await this.router.navigateByUrl('/welcome', { replaceUrl: true });
+      await this.router.navigateByUrl(this.auth.landingPath(), { replaceUrl: true });
     } catch {
       this.error.set(this.auth.error());
     }

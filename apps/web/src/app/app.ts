@@ -29,7 +29,7 @@ export class App implements OnInit {
   readonly fullScreen = computed(
     () =>
       !this.auth.isDeveloper() ||
-      /^\/(map|auth|navigate|welcome|sign-in|graph-editor)(\/|\?|$)/.test(this.url()),
+      /^\/(map|auth|navigate|public|welcome|sign-in|graph-editor)(\/|\?|$)/.test(this.url()),
   );
   readonly mobileOpen = signal(false);
   readonly query = signal('');
@@ -81,6 +81,7 @@ export class App implements OnInit {
   }
 
   async switchToPublic() {
-    if (await this.auth.switchMode('public')) await this.router.navigateByUrl('/welcome');
+    if (await this.auth.switchMode('public'))
+      await this.router.navigateByUrl(this.auth.landingPath());
   }
 }

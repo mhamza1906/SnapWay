@@ -8,8 +8,8 @@ public configuration now independently reports both Google login and Maps enable
 
 ## User flow and presentation
 
-The public map remains the application's default view. Its sign-in link opens
-`/sign-in`, a full-screen entry with a SnapWay header and a responsive small title.
+The web application's `/` opens `/sign-in`, a full-screen entry with a SnapWay
+header and a responsive small title.
 Two large stacked cards fill the remaining viewport: pale red **Developer** above
 pale green **Public User**. They slide in together from opposite sides over
 **2.4 seconds**, three times the initial entrance duration. The first SVG places
@@ -53,19 +53,41 @@ The verified selection survives allauth replacing an existing signed-in session.
 Browser back/forward cache restoration re-enables the cards for another attempt.
 
 The callback stays `/accounts/google/login/callback/`; no Google Console change
-is needed. `/auth/complete` verifies the new session and opens `/welcome`. The
-former login page retains its existing two-column visual layout as an authenticated
-welcome/account page. Continue enters `/overview` for Developer or `/map` for
-Public User. Switching there uses the same account and needs no second Google
-login. Workspace and signed-in map entry points also expose the experience switch.
-Signing out returns to `/sign-in`; anonymous access to `/welcome` is guarded.
+is needed. `/auth/complete` verifies the server session and directly replaces the
+callback history entry with `/overview` for Developer or `/public` for Public User.
+There is no intermediate welcome/Continue step. Query parameters cannot override
+the destination. The existing workspace layout and features are retained; its
+profile and header display **Developer**, including for manually privileged accounts.
+The sidebar can scroll on short viewports so its existing logout control stays
+reachable; no workspace layout redesign is included.
+
+`/public` is a deliberately isolated, authenticated placeholder while another
+contributor rebuilds the Public User experience. It shows the signed-in identity,
+same-account switching to Developer, and logout; it loads no map or navigation
+workflow. A Public User opening old web `/map`, `/navigate`, or developer URLs
+is redirected here. Developers can still preview the existing map/navigation
+from the unchanged workspace. Anonymous protected URLs lead to `/sign-in`.
+The separate native visitor entry retains its existing map/navigation routes.
+
+The retained `/welcome` two-column account page is still available from existing
+account links; Continue and successful mode switches go directly to the selected
+experience. Workspace-to-Public and placeholder-to-Developer switches use the
+existing server mode endpoint without another Google login. Failed switches stay
+on the current page with an error. Signing out returns to `/sign-in`.
+
+Handoff: replace the route's lazy component at `/public` in
+[app.routes.ts](../apps/web/src/app/app.routes.ts) when the teammate's Public User
+page is merged. Keep its session/mode guard and the shared `AuthService.landingPath`
+contract; no callback, API, schema, environment or Google Console change is needed.
+The old map/navigation implementations are preserved to avoid rewriting the
+teammate's integration surface during this temporary stage.
 
 ## Mode is not administrator authority
 
 | Session | Visible experience | Server authority |
 | --- | --- | --- |
-| Anonymous | Public discovery and sign-in cards | Existing public APIs only |
-| Public User | Welcome, public map and navigation preview | No draft, graph, underlay, photo or target-access API access, even for an account with admin membership |
+| Anonymous | Web sign-in cards; existing native visitor map | Existing public APIs only |
+| Public User | Authenticated `/public` placeholder and retained account page | No draft, graph, underlay, photo or target-access API access, even for an account with admin membership |
 | Developer | Existing workspace and graph editing | Existing target-specific membership checks still apply; creating a draft grants only volunteer membership |
 | Developer with manually provisioned privileges | Existing administrator-capable entry points | Database staff flags and/or active target admin memberships; never card selection |
 
@@ -121,8 +143,10 @@ the [single-env contract](environment-sync.md): local `local/.env`, production
 for this feature. Deploy the web and Django updates together; legacy browser
 sessions may need to select a mode after deployment.
 
-Acceptance: 74 frontend tests across 16 files; 134 backend/MCP/deployment tests
-passed with 16 PostgreSQL-only checks skipped in the local SQLite profile. The
+Current routing acceptance: 79 frontend tests across 17 files passed. Backend
+behavior is unchanged in this update; the preceding authentication implementation
+passed 134 backend/MCP/deployment tests with 16 PostgreSQL-only checks skipped in
+the local SQLite profile. The
 eight new mode tests also passed after fixing the existing-session OAuth edge case.
 Tests cover anonymous/CSRF rejection, invalid Admin/extra-field requests, same-account
 switching, public-mode private-map read/write denial, preserved database privileges,
@@ -131,10 +155,12 @@ replacement. Frontend checks cover both cards, native form fields, route guards,
 mode switching and back/forward restoration. Production Web and Visitor builds,
 Android asset sync, format/lint and environment-contract checks passed.
 
-Live localhost browser acceptance completed both Google card flows to the retained
-welcome page, Developer-to-Public-to-Developer switching, public-session graph-editor
-route rejection, Developer entry into the existing overview, logout back to the
-new entry, and anonymous rejection from `/welcome`. The final desktop
+Live localhost browser acceptance completed both Google card flows directly to
+their selected experience, Developer-to-Public-to-Developer switching, logout back
+to sign-in, and anonymous `/public` rejection. Public sessions opening old web
+`/map`, `/navigate` or `/overview` URLs reached the placeholder. Developer profile
+and header both show only Developer; the sidebar logout works with short viewports.
+The earlier card-layout desktop
 layout was measured at a 1707 × 876 viewport: both cards are 374 px high, entrance
 durations are 2.4 seconds, and there is no horizontal or vertical page overflow.
 Responsive CSS is implemented; a physical mobile-device OAuth/camera test is not
@@ -165,14 +191,17 @@ Web and Visitor production builds pass without style-budget warnings.
   [session service/guards](../apps/web/src/app/core/auth.service.ts),
   [routes](../apps/web/src/app/app.routes.ts),
   [welcome](../apps/web/src/app/features/welcome/welcome.ts),
+  [temporary Public User page](../apps/web/src/app/features/public-placeholder/public-placeholder.ts),
   [callback](../apps/web/src/app/features/welcome/auth-complete.ts).
 - Integration: [shell](../apps/web/src/app/app.ts), [shell template](../apps/web/src/app/app.html),
+  [sidebar scroll styles](../apps/web/src/app/app.scss),
   [map account navigation](../apps/web/src/app/features/map/map.html),
   [icons](../apps/web/src/app/shared/icon.ts),
   [provider-error recovery](../apps/api/accounts/templates/socialaccount/authentication_error.html),
   [cancellation recovery](../apps/api/accounts/templates/socialaccount/login_cancelled.html).
 - Regression coverage: [mode tests](../apps/api/tests/test_experience_modes.py),
   [entry tests](../apps/web/src/app/features/sign-in/sign-in.spec.ts),
+  [direct callback landing tests](../apps/web/src/app/features/welcome/auth-complete.spec.ts),
   [session tests](../apps/web/src/app/core/auth.service.spec.ts),
   [shell tests](../apps/web/src/app/app.spec.ts), [map tests](../apps/web/src/app/features/map/map.spec.ts).
   Existing backend graph, media and membership fixtures now select Developer mode

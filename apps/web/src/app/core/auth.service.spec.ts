@@ -13,6 +13,7 @@ import {
   sessionGuard,
   developerGuard,
   adminGuard,
+  publicGuard,
 } from './auth.service';
 
 describe('Django session authentication', () => {
@@ -90,7 +91,7 @@ describe('Django session authentication', () => {
     http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public', can_admin: true });
     expect(
       TestBed.inject(Router).serializeUrl((await developer) as ReturnType<Router['createUrlTree']>),
-    ).toBe('/welcome');
+    ).toBe('/public');
     expect(auth.canAdmin()).toBe(false);
     const admin = TestBed.runInInjectionContext(() =>
       adminGuard({} as ActivatedRouteSnapshot, { url: '/review' } as RouterStateSnapshot),
@@ -121,6 +122,39 @@ describe('Django session authentication', () => {
     expect(auth.name()).toBe('Same account');
     expect(auth.isDeveloper()).toBe(true);
     expect(auth.canAdmin()).toBe(false);
+  });
+
+  it('separates experiences while retaining server privileges behind the Developer identity', async () => {
+    const publicPage = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public' });
+    expect(await publicPage).toBe(true);
+    expect(auth.landingPath()).toBe('/public');
+
+    const developerPage = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http
+      .expectOne('/api/auth/me/')
+      .flush({ authenticated: true, mode: 'developer', can_admin: true });
+    expect(
+      TestBed.inject(Router).serializeUrl(
+        (await developerPage) as ReturnType<Router['createUrlTree']>,
+      ),
+    ).toBe('/overview');
+    expect(auth.role()).toBe('Developer');
+    expect(auth.canAdmin()).toBe(true);
+  });
+
+  it('requires a server session for the public placeholder', async () => {
+    const pending = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http.expectOne('/api/auth/me/').flush({ authenticated: false });
+    expect(
+      TestBed.inject(Router).serializeUrl((await pending) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/sign-in?returnUrl=%2Fpublic');
   });
 
   it('submits the selected mode with a CSRF token in the native Google start form', async () => {
