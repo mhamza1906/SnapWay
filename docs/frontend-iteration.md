@@ -347,6 +347,19 @@ No map role or administrator privilege was granted. Angular proxy login on port
 session was retained for further development. Maps interaction/GPS acceptance
 remain separate from this OAuth result.
 
+Subsequent frontend diagnosis inspected another live Google error: its rejected
+callback was `http://localhost:4200/accounts/google/login/callback/`. The earlier
+successful frontend session used `127.0.0.1:4200`; that registration does not cover
+`localhost:4200`. Add the exact localhost callback to the same running OAuth
+client's **Authorized redirect URIs**, preserve the existing entries, save, and
+start a fresh login from `http://localhost:4200/welcome`. Alternatively, keep
+development on the already validated `http://127.0.0.1:4200/` origin. These hosts
+also have separate browser sessions. No application, env-template, private-env or
+Console setting was changed during this diagnosis. The contributor subsequently
+confirmed the callback configuration was repaired and authorized pushing and
+merging these updates. This is contributor-reported resolution; the previously
+recorded agent-observed login acceptance remains specific to 127.0.0.1.
+
 The earlier local env validator separately reported shared-default drift for
 `S3_ENDPOINT_URL` and `S3_BUCKET_NAME`. Values were not printed or overwritten.
 The `.6` classification fix above resolves this false-positive drift while
