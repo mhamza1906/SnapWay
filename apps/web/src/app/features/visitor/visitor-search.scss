@@ -1,0 +1,102 @@
+.options {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: calc(100% - 13px);
+  background: white;
+  border: 1px solid #dbe2d7;
+  border-radius: 16px;
+  padding: 5px;
+  box-shadow: 0 14px 28px #233d3018;
+  max-height: 260px;
+  overflow: auto;
+}
+.demo-badge {
+  border: 1px solid #d5dfce;
+  border-radius: 12px;
+  padding: 3px 6px;
+  color: #5b7351;
+  font-size: 10px;
+}
+.options button {
+  display: flex;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: white;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 9px;
+  border-radius: 11px;
+  min-height: 60px;
+}
+.options button:hover,
+.options button.highlighted {
+  background: #f0f4ed;
+}
+.options button > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.options strong,
+.options small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.options strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+.options small {
+  font-size: 10px;
+  margin-top: 4px;
+  color: #7b877d;
+}
+.option-icon {
+  color: #6d856e;
+}
+.options button > app-icon {
+  width: 15px;
+}
+.empty {
+  padding: 12px;
+  font-size: 12px;
+  color: #7b877d;
+  margin: 0;
+}
+.building-chip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: -6px 0 17px;
+  font-size: 12px;
+}
+.building-chip span {
+  flex: 1;
+}
+.building-chip button {
+  border: 0;
+  background: #e9eee4;
+  border-radius: 50%;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+}
+.selected-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  padding: 11px 4px 0;
+}
+.selected-summary > span:last-child {
+  color: #83907d;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #67865c;
+  flex-shrink: 0;
+}

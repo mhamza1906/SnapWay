@@ -11,11 +11,14 @@ from maps.models import (
     Building,
     Contribution,
     Floor,
+    MapObject,
     MapTarget,
+    Node,
     Publication,
     Review,
     Revision,
     RevisionArtifact,
+    Room,
 )
 from rest_framework.test import APIClient
 
@@ -120,6 +123,45 @@ def test_discovery_hides_drafts_archived_invalid_and_unlocated_buildings():
     assert buildings[0]["floors"][0]["target_id"] == str(visible.target_id)
     assert "never-disclose" not in response.content.decode()
     assert str(missing.target.floor.building_id) not in response.content.decode()
+
+
+def test_public_destinations_use_only_published_revision_and_safe_room_fields():
+    user = get_user_model().objects.create_user(username="room-publisher")
+    publication = publish(user)
+    revision = publication.revision
+    obj = MapObject.objects.create(revision=revision, kind="room")
+    room = Room.objects.create(
+        revision=revision,
+        map_object=obj,
+        number="IA2021",
+        name="Classroom",
+        purpose="private-purpose",
+        provenance={"private": "never-show"},
+    )
+    node = Node.objects.create(
+        revision=revision,
+        kind="room",
+        room=room,
+        x=1,
+        y=2,
+        label="Room door",
+    )
+    draft = Revision.objects.create(
+        target=publication.target,
+        contribution=revision.contribution,
+        created_by=user,
+    )
+    Node.objects.create(revision=draft, kind="checkpoint", x=1, y=2, label="private-draft-node")
+    response = APIClient().get("/api/maps/public/buildings/")
+    floor = response.json()["buildings"][0]["floors"][0]
+    assert floor["destinations"] == [
+        {"id": str(node.stable_id), "label": "IA2021", "name": "Classroom"}
+    ]
+    assert floor["checkpoints"] == [{"id": str(node.stable_id), "label": "Room door"}]
+    body = response.content.decode()
+    assert "private-purpose" not in body
+    assert "never-show" not in body
+    assert "private-draft-node" not in body
 
 
 def test_session_get_bootstraps_csrf_and_logout_requires_it():

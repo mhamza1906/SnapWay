@@ -27,7 +27,7 @@ export class App implements OnInit {
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
   readonly fullScreen = computed(() =>
-    /^\/(map|auth|navigate|welcome|graph-editor)(\/|\?|$)/.test(this.url()),
+    /^\/(map|auth|navigate|welcome|graph-editor|app-preview)(\/|\?|$)/.test(this.url()),
   );
   readonly mobileOpen = signal(false);
   readonly query = signal('');

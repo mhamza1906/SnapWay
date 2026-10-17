@@ -2,6 +2,10 @@ import { Routes } from '@angular/router';
 import { sessionGuard } from './core/auth.service';
 
 export const routes: Routes = [
+  {
+    path: 'app-preview',
+    loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'map' },
   { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
   {
