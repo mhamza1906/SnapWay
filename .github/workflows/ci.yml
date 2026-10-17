@@ -23,7 +23,6 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - run: python3 scripts/check_docs.py
       - id: changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}

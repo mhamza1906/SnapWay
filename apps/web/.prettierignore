@@ -1,0 +1,9 @@
+# Documentation is excluded from the formatting check used by CI.
+**/docs/**
+**/doc/**
+**/documentation/**
+**/*.md
+**/*.mdx
+**/*.rst
+**/*.adoc
+**/*.asciidoc

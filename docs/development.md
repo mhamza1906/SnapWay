@@ -157,6 +157,11 @@ builds web/visitor plus Capacitor synchronization on Linux. An always-running
 aggregate `required` job handles skipped component jobs. CI action revisions are
 pinned. Hosting/release promotion and device acceptance are not implemented.
 
+CI excludes documentation from component change detection and frontend formatting,
+and does not run the initial-document hash check. Documentation-only updates skip
+application jobs while the aggregate check completes. See [CI behavior](ci.md).
+The document inventory check remains part of local bootstrap/development checks.
+
 Production settings require a strong secret, explicit hosts, PostgreSQL and
 `verify-full` TLS. `STATIC_ROOT` and `MEDIA_ROOT` must point outside releases.
 Enable `DJANGO_TRUST_PROXY=true` only behind a controlled proxy that strips
