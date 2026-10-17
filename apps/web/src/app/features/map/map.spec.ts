@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { GoogleMapsService } from '../../core/google-maps.service';
 import { PublicMapPage } from './map';
+import { AuthService } from '../../core/auth.service';
 
 describe('Public building discovery', () => {
   const originalGeolocation = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
@@ -58,8 +59,12 @@ describe('Public building discovery', () => {
   });
 
   it('uses published server coordinates for markers and walking directions', async () => {
+    TestBed.inject(AuthService).session.set({ authenticated: true, username: 'Mapper' });
     const fixture = TestBed.createComponent(PublicMapPage);
     fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/overview"]').textContent).toContain(
+      'Open workspace',
+    );
     const http = TestBed.inject(HttpTestingController);
     const building = {
       id: 'real-id',
