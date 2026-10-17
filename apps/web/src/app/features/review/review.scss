@@ -1,0 +1,75 @@
+.review-page {
+  max-width: 1320px;
+}
+.review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 27px;
+}
+.review-metrics section {
+  padding: 21px 24px;
+}
+.review-metrics span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+.review-metrics strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 500;
+  margin: 15px 0 9px;
+  letter-spacing: -1px;
+}
+.review-metrics small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.target-filter select {
+  font-size: 12px;
+  min-width: 210px;
+}
+.search-input {
+  min-width: 300px;
+}
+.review-tip {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  max-width: 850px;
+  color: var(--muted);
+}
+.review-tip app-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.review-tip p {
+  font-size: 11px;
+  margin-bottom: 0;
+}
+@media (max-width: 700px) {
+  .review-metrics {
+    gap: 8px;
+  }
+  .review-metrics section {
+    padding: 16px 12px;
+  }
+  .review-metrics span {
+    font-size: 10px;
+    min-height: 28px;
+  }
+  .review-metrics strong {
+    margin-top: 8px;
+  }
+  .review-metrics small {
+    font-size: 9px;
+  }
+  .search-input,
+  .target-filter,
+  .target-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+}

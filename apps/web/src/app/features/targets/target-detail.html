@@ -1,0 +1,206 @@
+<div class="page">
+  @if (target(); as place) {
+    <a routerLink="/targets" class="link back"><app-icon name="arrow-left" />All mapping targets</a>
+    <div class="page-heading">
+      <div>
+        <span class="subtle-label">{{ place.building }} · {{ place.floor }}</span>
+        <h1>{{ place.name }}</h1>
+        <p>A shared view of this floor, one contribution at a time.</p>
+      </div>
+      <div class="actions">
+        @if (repo.profile().role === 'admin') {
+          <button class="btn secondary" (click)="archiveDialog.showModal()">
+            <app-icon name="archive" />{{
+              place.status === 'archived' ? 'Reopen target' : 'Archive'
+            }}
+          </button>
+        }
+        <button class="btn primary" [disabled]="place.status === 'archived'" (click)="start()">
+          <app-icon name="plus" />Start contribution
+        </button>
+      </div>
+    </div>
+    @if (place.status === 'archived') {
+      <p class="notice">
+        This target is archived. Its last publication is available to view; reopen it to accept
+        contributions.
+      </p>
+    }
+    <div class="detail-columns">
+      <div>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Published map</h2>
+            <span class="badge" [class.green]="place.published">{{
+              displayedRevision()
+                ? 'Revision ' + displayedRevision()!.version
+                : 'No publication yet'
+            }}</span>
+          </div>
+          @if (displayedRevision(); as revision) {
+            @if (revision.version !== place.published?.version) {
+              <div class="notice info" style="margin: 16px">
+                Viewing an earlier immutable publication.
+                <button class="btn ghost small" (click)="chooseRevision(place.published!.version)">
+                  Return to latest
+                </button>
+              </div>
+            }
+            <div class="floor-map"><app-map-canvas [document]="revision.document" /></div>
+          } @else {
+            <div class="empty">
+              <app-icon name="map" />
+              <h3>Every map starts somewhere.</h3>
+              <p>Upload a floor plan or use our sample to create the first draft.</p>
+              <button
+                class="btn primary"
+                (click)="start()"
+                [disabled]="place.status === 'archived'"
+              >
+                Start the first contribution
+              </button>
+            </div>
+          }
+        </section>
+        @if (revisions().length) {
+          <section class="panel detail-section">
+            <div class="panel-heading">
+              <h2>Published revisions</h2>
+              <span class="count">{{ revisions().length }}</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>REVISION</th>
+                    <th>PUBLISHED BY</th>
+                    <th>DATE</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (revision of revisions().slice().reverse(); track revision.version) {
+                    <tr>
+                      <td>
+                        <strong>v{{ revision.version }}</strong>
+                        @if (revision.version === place.published?.version) {
+                          <span class="badge green">Current</span>
+                        }
+                      </td>
+                      <td>{{ revision.author }}</td>
+                      <td>{{ revision.publishedAt | date: 'MMM d, h:mm a' }}</td>
+                      <td>
+                        <button
+                          class="btn secondary small"
+                          [disabled]="displayedRevision()?.version === revision.version"
+                          (click)="chooseRevision(revision.version)"
+                        >
+                          {{
+                            displayedRevision()?.version === revision.version
+                              ? 'Viewing'
+                              : 'View map'
+                          }}
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="muted" style="font-size: 10px; padding: 0 20px">
+              This prototype retains the latest 20 publications. The seeded example starts at v3;
+              earlier revisions are not supplied.
+            </p>
+          </section>
+        }
+        <section class="panel detail-section">
+          <div class="panel-heading">
+            <h2>Contributions</h2>
+            <span class="count">{{ contributions().length }}</span>
+          </div>
+          <div class="panel-body">
+            @for (item of contributions(); track item.id) {
+              <a
+                class="contribution-link"
+                [routerLink]="[item.status === 'submitted' ? '/review' : '/editor', item.id]"
+                ><span
+                  ><strong>{{ item.title }}</strong
+                  ><small
+                    >{{ item.author }} · {{ item.updatedAt | date: 'MMM d, h:mm a' }}</small
+                  ></span
+                ><span [class]="'badge ' + item.status">{{ item.status.replace('-', ' ') }}</span
+                ><app-icon name="arrow-right"
+              /></a>
+            } @empty {
+              <p class="empty">Be the first to contribute to this floor.</p>
+            }
+          </div>
+        </section>
+      </div>
+      <aside>
+        <section class="panel brief">
+          <div class="panel-heading"><h2>Mapping brief</h2></div>
+          <div class="panel-body">
+            <p>{{ place.description }}</p>
+            <div class="detail-stats">
+              <div>
+                <strong>{{ place.published?.document?.rooms?.length ?? 0 }}</strong
+                ><span>SPACES</span>
+              </div>
+              <div>
+                <strong>{{ place.published?.document?.nodes?.length ?? 0 }}</strong
+                ><span>WAYPOINTS</span>
+              </div>
+              <div>
+                <strong>{{ place.published?.document?.references?.length ?? 0 }}</strong
+                ><span>REFERENCES</span>
+              </div>
+            </div>
+            @if (place.published) {
+              <p>
+                Published by {{ place.published.author }}<br />{{
+                  place.published.publishedAt | date: 'MMM d, y · h:mm a'
+                }}
+              </p>
+              <a class="btn secondary" routerLink="/navigate" [queryParams]="{ target: place.id }"
+                ><app-icon name="compass" />Preview navigation</a
+              >
+            }
+            <hr style="border: 0; border-top: 1px solid var(--line); margin: 22px 0" />
+            <span class="subtle-label">CONTRIBUTION CHECKLIST</span>
+            <p>
+              ① Name the spaces clearly.<br />② Connect each room to a waypoint.<br />③ Confirm
+              walkable routes and step-free access.<br />④ Review any scene references.
+            </p>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <dialog #archiveDialog class="modal" aria-labelledby="archive-target-title">
+      <div class="modal-header">
+        <h2 id="archive-target-title">
+          {{ place.status === 'open' ? 'Archive this target?' : 'Reopen this target?' }}
+        </h2>
+      </div>
+      <p>
+        {{
+          place.status === 'open'
+            ? 'Contributions will become read-only. Existing published data stays available for inspection.'
+            : 'Contributors will be able to start and update drafts again.'
+        }}
+      </p>
+      <div class="modal-footer">
+        <button class="btn secondary" (click)="archiveDialog.close()">Cancel</button
+        ><button class="btn primary" (click)="archive(archiveDialog)">
+          {{ place.status === 'open' ? 'Archive target' : 'Reopen target' }}
+        </button>
+      </div>
+    </dialog>
+  } @else {
+    <div class="empty panel">
+      <h1>We couldn’t find this target.</h1>
+      <p>It may have been removed when prototype data was reset.</p>
+      <a class="btn primary" routerLink="/targets">Browse targets</a>
+    </div>
+  }
+</div>

@@ -1,0 +1,145 @@
+.capture-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #182a35a6;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.capture-dialog {
+  background: white;
+  border-radius: 18px;
+  width: min(550px, 100%);
+  max-height: 95dvh;
+  overflow: auto;
+  box-shadow: 0 20px 90px #14293440;
+}
+.capture-dialog header {
+  justify-content: space-between;
+  padding: 24px;
+}
+.capture-dialog header h2 {
+  margin: 6px 0 0;
+}
+.capture-body {
+  padding: 24px;
+  font-size: 13px;
+}
+.capture-body .btn {
+  margin-top: 10px;
+  margin-right: 5px;
+}
+.scene-preview {
+  height: 220px;
+  background: #e7ecec;
+  position: relative;
+  overflow: hidden;
+}
+.scene-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.scene-label {
+  position: absolute;
+  left: 15px;
+  bottom: 13px;
+  color: white;
+  background: #20333dc4;
+  padding: 5px 9px;
+  font-size: 10px;
+  border-radius: 4px;
+}
+.scene-corridor {
+  height: 100%;
+  background: linear-gradient(140deg, #d8e4e9 25%, #c4d3da 25%, #edf2f1 50%, #d9e3df 75%);
+  display: grid;
+  place-items: center;
+}
+.scene-corridor div {
+  width: 90px;
+  height: 140px;
+  background: #e9eeec;
+  border: 8px solid #c0cfcf;
+  box-shadow: 30px 0 #d0dbd9;
+}
+.scene-corridor span {
+  position: absolute;
+  top: 14px;
+  left: 15px;
+  color: #576d73;
+  font-size: 11px;
+}
+.scan-line {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: #63c5ce;
+  box-shadow: 0 0 25px #63c5ce;
+  animation: scan 1.3s ease-in-out infinite;
+}
+.file-input {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  opacity: 0;
+}
+.capture-actions {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.upload-error {
+  color: #a43e36;
+}
+@keyframes scan {
+  to {
+    top: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .capture-backdrop {
+    padding: 10px;
+  }
+  .capture-dialog {
+    max-height: 96dvh;
+  }
+  .scene-preview {
+    height: 180px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+  }
+}
+.capture-dialog header,
+.capture-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.capture-body p {
+  line-height: 1.65;
+}
+h2 {
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+select {
+  font: inherit;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 28px 9px 10px;
+  max-width: 100%;
+}

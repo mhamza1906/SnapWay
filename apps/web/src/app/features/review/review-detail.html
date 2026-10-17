@@ -1,0 +1,460 @@
+<main class="page review-detail-page">
+  <a routerLink="/review" class="back"><app-icon name="arrow-left" /> Review queue</a>
+  @if (contribution(); as item) {
+    <header class="page-heading">
+      <div>
+        <p class="eyebrow">CONTRIBUTION REVIEW</p>
+        <h1>{{ item.title }}</h1>
+        <p>{{ target()?.name }} · {{ target()?.floor }} · by {{ item.author }}</p>
+      </div>
+      <span class="badge" [class]="'badge ' + item.status">{{
+        item.status.replace('-', ' ')
+      }}</span>
+    </header>
+    @if (error()) {
+      <p class="notice error" role="alert">{{ error() }}</p>
+    }
+    @if (target()?.status === 'archived') {
+      <div class="notice">
+        <app-icon name="archive" /><span
+          >This target is archived. An administrator must reopen it before edits or review decisions
+          can be saved.</span
+        >
+      </div>
+    }
+    @if (stale() && item.status !== 'merged') {
+      <div class="notice">
+        <app-icon name="layers" /><span
+          >A newer map is available. This contribution started at revision {{ item.baseRevision }},
+          while the current publication is revision {{ currentRevision() }}.
+          @if (item.status === 'submitted') {
+            Request changes so the author can compare and reconcile the draft before publication.
+          } @else {
+            Compare both maps below before recording a manual reconciliation.
+          }
+        </span>
+      </div>
+    }
+    @if (repository.profile().role !== 'admin' && item.status === 'submitted') {
+      <div class="notice info">
+        <app-icon name="eye" /><span
+          >You are inspecting this contribution as a volunteer. Review decisions require the
+          administrator demo role in <a routerLink="/settings" class="link">Settings</a>.</span
+        >
+      </div>
+    }
+    @if (item.status === 'merged') {
+      <div class="notice info">
+        <app-icon name="check" /><span
+          >This contribution has been published.
+          <a [routerLink]="['/targets', item.targetId]" class="link">View the latest publication</a>
+          or <a routerLink="/navigate" class="link">try visitor navigation</a>.</span
+        >
+      </div>
+    }
+
+    <section class="panel contribution-summary" aria-labelledby="summary-title">
+      <div>
+        <h2 id="summary-title">Contributor's summary</h2>
+        <p>{{ item.summary || 'This draft has not been submitted yet.' }}</p>
+      </div>
+      <dl>
+        <div>
+          <dt>Last updated</dt>
+          <dd>{{ item.updatedAt | date: 'MMM d, y · h:mm a' }}</dd>
+        </div>
+        <div>
+          <dt>Draft revision</dt>
+          <dd>{{ item.version }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <div class="comparison-heading">
+      <h2>Compare the maps</h2>
+      <div class="segmented" aria-label="Comparison baseline">
+        <button
+          type="button"
+          [class.active]="comparisonMode() === 'latest'"
+          [attr.aria-pressed]="comparisonMode() === 'latest'"
+          (click)="comparisonMode.set('latest')"
+        >
+          Latest revision</button
+        ><button
+          type="button"
+          [class.active]="comparisonMode() === 'base'"
+          [attr.aria-pressed]="comparisonMode() === 'base'"
+          [disabled]="!baseAvailable()"
+          (click)="comparisonMode.set('base')"
+        >
+          Starting revision {{ item.baseRevision }}
+        </button>
+      </div>
+    </div>
+    @if (!baseAvailable()) {
+      <p class="small-copy">
+        The starting revision is outside this prototype's retained history. Compare against the
+        latest map and your source evidence.
+      </p>
+    }
+    <div class="grid-2 comparison-grid">
+      <section class="panel map-panel" aria-labelledby="published-title">
+        <div class="panel-heading">
+          <div>
+            <h3 id="published-title">
+              {{ comparisonMode() === 'latest' ? 'Current publication' : 'Starting publication' }}
+            </h3>
+            <span class="subtle-label">{{
+              comparisonPublication()
+                ? 'Revision ' + comparisonPublication()?.version
+                : 'No publication at this point'
+            }}</span>
+          </div>
+          <span class="badge green">PUBLISHED</span>
+        </div>
+        <div class="comparison-map">
+          @if (comparisonPublication()) {
+            <app-map-canvas [document]="publishedMap()" />
+          } @else {
+            <div class="empty">
+              <app-icon name="map" />
+              <h3>A new map starts here</h3>
+              <p>No published map exists at this comparison point.</p>
+            </div>
+          }
+        </div>
+      </section>
+      <section class="panel map-panel proposed" aria-labelledby="proposed-title">
+        <div class="panel-heading">
+          <div>
+            <h3 id="proposed-title">Proposed contribution</h3>
+            <span class="subtle-label">Based on revision {{ item.baseRevision }}</span>
+          </div>
+          <span class="badge orange">PROPOSED</span>
+        </div>
+        <div class="comparison-map"><app-map-canvas [document]="item.document" /></div>
+      </section>
+    </div>
+
+    <section class="panel evidence-panel" aria-labelledby="evidence-title">
+      <div class="panel-heading">
+        <h2 id="evidence-title">Contribution evidence</h2>
+        <span class="count">{{ item.document.references.length }} scene references</span>
+      </div>
+      <div class="panel-body">
+        @if (item.document.sourceImage || item.document.standardizedImage) {
+          <div class="evidence-images">
+            @if (item.document.sourceImage) {
+              <figure>
+                <button
+                  type="button"
+                  class="evidence-image-button"
+                  aria-label="Enlarge original source image"
+                  (click)="
+                    openEvidence(item.document.sourceImage, 'Original source', evidenceDialog)
+                  "
+                >
+                  <img
+                    [src]="item.document.sourceImage"
+                    alt="Original floor-plan evidence supplied with this contribution"
+                  />
+                </button>
+                <figcaption>
+                  Original source <span class="subtle-label">Open image for closer inspection</span>
+                </figcaption>
+              </figure>
+            }
+            @if (item.document.standardizedImage) {
+              <figure>
+                <button
+                  type="button"
+                  class="evidence-image-button"
+                  aria-label="Enlarge standardized proposal"
+                  (click)="
+                    openEvidence(
+                      item.document.standardizedImage,
+                      'Standardized proposal',
+                      evidenceDialog
+                    )
+                  "
+                >
+                  <img
+                    [src]="item.document.standardizedImage"
+                    alt="Standardized floor plan proposed by the contributor"
+                  />
+                </button>
+                <figcaption>
+                  Standardized proposal
+                  <span class="subtle-label">Compare with the original source</span>
+                </figcaption>
+              </figure>
+            }
+          </div>
+        }
+        @if (item.document.references.length) {
+          <div class="reference-evidence">
+            @for (reference of item.document.references; track reference.id) {
+              <article>
+                <button
+                  type="button"
+                  class="evidence-image-button"
+                  [attr.aria-label]="'Enlarge ' + reference.name"
+                  (click)="openEvidence(reference.image, reference.name, evidenceDialog)"
+                >
+                  <img [src]="reference.image" [alt]="reference.name" />
+                </button>
+                <div>
+                  <div class="reference-heading">
+                    <h3>{{ reference.name }}</h3>
+                    <span
+                      class="badge"
+                      [class.green]="reference.reviewed"
+                      [class.orange]="!reference.reviewed"
+                      >{{ reference.reviewed ? 'Reviewed' : 'Needs review' }}</span
+                    >
+                  </div>
+                  <p class="reference-context">
+                    {{ referenceNode(reference.nodeId) }} · Facing {{ reference.direction }}
+                  </p>
+                  <p>{{ reference.description || 'No description provided.' }}</p>
+                  <time [attr.datetime]="reference.createdAt">{{
+                    reference.createdAt | date: 'MMM d, y · h:mm a'
+                  }}</time>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="small-copy evidence-empty">
+            No scene references are attached to this contribution.
+          </p>
+        }
+        @if (!item.document.sourceImage && !item.document.standardizedImage) {
+          <p class="small-copy evidence-empty">
+            No source or standardized image is attached. This draft uses manually defined map
+            objects.
+          </p>
+        }
+      </div>
+    </section>
+
+    <div class="review-bottom">
+      <section class="panel" aria-labelledby="changes-title">
+        <div class="panel-heading">
+          <h2 id="changes-title">What's changed</h2>
+          <app-icon name="layers" />
+        </div>
+        <div class="table-wrap">
+          <table class="diff-table">
+            <thead>
+              <tr>
+                <th scope="col">ELEMENT</th>
+                <th scope="col">ADDED</th>
+                <th scope="col">EDITED</th>
+                <th scope="col">REMOVED</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (difference of differences(); track difference.label) {
+                <tr>
+                  <td>{{ difference.label }}</td>
+                  <td [class.positive]="difference.added > 0">
+                    {{ difference.added ? '+' + difference.added : '—' }}
+                  </td>
+                  <td>{{ difference.modified || '—' }}</td>
+                  <td [class.text-danger]="difference.removed > 0">
+                    {{ difference.removed ? '−' + difference.removed : '—' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="change-notes">
+          @for (room of renamedRooms(); track room.id) {
+            <p>
+              <app-icon name="edit" /><span
+                >{{ room.before }} <span aria-label="renamed to">→</span>
+                <strong>{{ room.after }}</strong></span
+              >
+            </p>
+          }
+          @if (imagesChanged()) {
+            <p><app-icon name="image" /><span>Source or standardized image changed.</span></p>
+          }
+          <p class="muted">
+            Differences use stable object IDs and compare with the
+            {{ comparisonMode() === 'latest' ? 'latest' : 'starting' }} publication.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel decision-panel" aria-labelledby="decision-title">
+        <div class="panel-heading">
+          <h2 id="decision-title">Review decision</h2>
+          <app-icon name="review" />
+        </div>
+        <div class="panel-body">
+          @if (item.feedback) {
+            <div class="existing-feedback">
+              <span class="eyebrow">RECORDED FEEDBACK</span>
+              <p>{{ item.feedback }}</p>
+            </div>
+          }
+          @if (reviewable()) {
+            <label class="field" for="review-feedback"
+              >Feedback<textarea
+                id="review-feedback"
+                [formControl]="feedback"
+                maxlength="3000"
+                rows="4"
+                placeholder="Be specific about what works and what needs another pass."
+              ></textarea
+              ><small>Required when requesting changes or rejecting a contribution.</small></label
+            >
+            @if (publicationProblem()) {
+              <p class="notice">{{ publicationProblem() }}</p>
+            }
+            <div class="decision-actions">
+              <button
+                type="button"
+                class="btn primary"
+                [disabled]="!canPublish()"
+                (click)="preparePublish(publishDialog)"
+              >
+                <app-icon name="check" /> Publish revision {{ currentRevision() + 1 }}
+              </button>
+              <div>
+                <button type="button" class="btn secondary" (click)="decide('changes-requested')">
+                  Request changes</button
+                ><button type="button" class="btn danger" (click)="decide('rejected')">
+                  Reject
+                </button>
+              </div>
+            </div>
+          } @else if (editable()) {
+            <p class="small-copy">
+              This contribution is ready for its author to edit. Review decisions become available
+              after submission.
+            </p>
+            <a class="btn primary" [routerLink]="['/editor', item.id]"
+              ><app-icon name="edit" /> Edit contribution</a
+            >
+          } @else {
+            <p class="small-copy">
+              {{
+                item.status === 'submitted'
+                  ? 'Review decisions are unavailable in your current role or for this target.'
+                  : 'This contribution has no pending review decision.'
+              }}
+            </p>
+            <a class="btn secondary" [routerLink]="['/targets', item.targetId]"
+              >View mapping target <app-icon name="arrow-right"
+            /></a>
+          }
+        </div>
+      </section>
+    </div>
+
+    @if (stale() && editable()) {
+      <section class="panel reconciliation-panel" aria-labelledby="reconcile-title">
+        <div class="panel-heading">
+          <h2 id="reconcile-title">Reconcile with revision {{ currentRevision() }}</h2>
+          <app-icon name="layers" />
+        </div>
+        <div class="panel-body">
+          <p>
+            Compare your draft with the latest published map above. Make any needed adjustments in
+            the editor before continuing. This action keeps your complete draft and updates its base
+            revision; it does not merge objects automatically.
+          </p>
+          @if (comparisonMode() !== 'latest') {
+            <p class="notice">
+              You are inspecting the starting revision.
+              <button
+                type="button"
+                class="btn secondary small"
+                (click)="comparisonMode.set('latest')"
+              >
+                Compare latest revision
+              </button>
+            </p>
+          }
+          <label class="check-row"
+            ><input
+              type="checkbox"
+              [checked]="acknowledged()"
+              [disabled]="comparisonMode() !== 'latest'"
+              (change)="acknowledged.set($any($event.target).checked)"
+            /><span
+              >I compared both maps and understand that publishing this contribution will replace
+              the latest map with my complete draft, including any omissions.</span
+            ></label
+          >
+          <div class="reconcile-actions">
+            <button
+              type="button"
+              class="btn primary"
+              [disabled]="!acknowledged() || comparisonMode() !== 'latest'"
+              (click)="reconcile()"
+            >
+              Record manual reconciliation</button
+            ><a class="btn secondary" [routerLink]="['/editor', item.id]">Continue editing</a>
+          </div>
+        </div>
+      </section>
+    }
+
+    <dialog
+      #publishDialog
+      class="modal"
+      aria-labelledby="publish-title"
+      aria-describedby="publish-description"
+    >
+      <h2 id="publish-title">Publish revision {{ preparedRevision() + 1 }}?</h2>
+      <p id="publish-description">
+        The complete draft for <strong>{{ target()?.name }}</strong> will become the published map,
+        replacing revision {{ preparedRevision() }} for new visitor sessions. Draft revision
+        {{ preparedVersion() }} is being reviewed.
+      </p>
+      <p class="small-copy">
+        The contribution will become read-only. Future changes start as a new contribution.
+      </p>
+      <div class="modal-footer">
+        <button autofocus type="button" class="btn secondary" (click)="publishDialog.close()">
+          Keep reviewing</button
+        ><button type="button" class="btn primary" (click)="publish(publishDialog)">
+          <app-icon name="check" /> Confirm publication
+        </button>
+      </div>
+    </dialog>
+    <dialog #evidenceDialog class="modal evidence-dialog" aria-labelledby="evidence-preview-title">
+      <div class="modal-header">
+        <h2 id="evidence-preview-title">{{ evidencePreview()?.title }}</h2>
+        <button
+          type="button"
+          class="btn icon-only"
+          aria-label="Close image preview"
+          (click)="evidenceDialog.close()"
+        >
+          <app-icon name="close" />
+        </button>
+      </div>
+      @if (evidencePreview(); as preview) {
+        <img [src]="preview.image" [alt]="preview.title" />
+      }
+      <div class="modal-footer">
+        <button autofocus type="button" class="btn secondary" (click)="evidenceDialog.close()">
+          Close preview
+        </button>
+      </div>
+    </dialog>
+  } @else {
+    <section class="panel empty">
+      <app-icon name="review" />
+      <h1>Contribution not found</h1>
+      <p>This link may refer to data from another browser or an earlier demo session.</p>
+      <a routerLink="/review" class="btn primary">Back to review queue</a>
+    </section>
+  }
+</main>

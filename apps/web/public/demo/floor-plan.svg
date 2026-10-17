@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640">
+  <rect width="1000" height="640" fill="#faf9f2"/>
+  <g fill="none" stroke="#54665d" stroke-width="4">
+    <rect x="65" y="90" width="870" height="470"/>
+    <path d="M65 280H935M65 370H935M350 90V280M635 90V280M350 370V560M635 370V560"/>
+  </g>
+  <g stroke="#faf9f2" stroke-width="8"><path d="M180 280H220M460 280H500M740 280H780M180 370H220M460 370H500M740 370H780"/></g>
+  <g fill="#52645a" font-family="Arial,sans-serif" text-anchor="middle">
+    <text x="500" y="51" font-size="24">Innovation Centre · First floor</text>
+    <g font-size="20"><text x="207" y="180">Studio 101</text><text x="492" y="180">Meeting 102</text><text x="785" y="180">Lab 103</text><text x="207" y="465">Office 104</text><text x="492" y="465">Student lounge</text><text x="785" y="465">Washroom 106</text></g>
+    <text x="500" y="332" font-size="16">Main corridor</text><text x="100" y="332" font-size="14">Entry →</text>
+    <text x="500" y="606" font-size="13">Synthetic plan for prototype testing — verify all geometry against real site evidence</text>
+  </g>
+</svg>

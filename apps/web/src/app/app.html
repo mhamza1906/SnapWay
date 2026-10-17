@@ -1,6 +1,138 @@
-<header class="site-header">
-  <a class="brand" href="/" aria-label="SnapWay home">SnapWay<span>↗</span></a>
-  <span class="stage">Project foundation</span>
-</header>
-<main><router-outlet /></main>
-<footer>Reviewed maps. Clear directions.</footer>
+<a class="skip-link" href="#main-content">Skip to content</a>
+@if (!fullScreen()) {
+  @if (mobileOpen()) {
+    <button
+      class="sidebar-scrim"
+      aria-label="Close navigation"
+      (click)="mobileOpen.set(false)"
+    ></button>
+  }
+  <aside class="sidebar" [class.open]="mobileOpen()">
+    <a routerLink="/overview" class="brand" (click)="mobileOpen.set(false)"
+      ><span class="brand-mark"><app-icon name="route" /></span>snapway<span class="brand-dot"
+        >.</span
+      ></a
+    >
+    <div class="workspace-name">
+      <span class="workspace-monogram">N</span
+      ><span>North Campus<small>Mapping workspace</small></span
+      ><app-icon name="chevron-down" />
+    </div>
+    <p class="nav-label">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      @for (item of links; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" (click)="mobileOpen.set(false)"
+          ><app-icon [name]="item.icon" />{{ item.label }}
+          @if (item.path === '/review' && pending()) {
+            <span class="nav-count">{{ pending() }}</span>
+          }
+        </a>
+      }
+    </nav>
+    <div class="visitor-card">
+      <span class="visitor-icon"><app-icon name="compass" /></span
+      ><strong>A fresh perspective</strong>
+      <p>Walk through your published maps as a visitor.</p>
+      <a routerLink="/navigate" class="btn secondary small" (click)="mobileOpen.set(false)"
+        >Open visitor preview<app-icon name="arrow"
+      /></a>
+    </div>
+    <nav class="bottom-nav" aria-label="Workspace tools">
+      <a routerLink="/help" routerLinkActive="active" (click)="mobileOpen.set(false)"
+        ><app-icon name="help" />Getting started</a
+      ><a routerLink="/settings" routerLinkActive="active" (click)="mobileOpen.set(false)"
+        ><app-icon name="settings" />Settings</a
+      >
+    </nav>
+    <div class="profile">
+      <span class="avatar">EY</span
+      ><span
+        ><strong>{{ repo.profile().name }}</strong
+        ><small>{{ repo.profile().role === 'admin' ? 'Administrator' : 'Volunteer' }}</small></span
+      ><a routerLink="/welcome" title="Switch experience" aria-label="Switch experience"
+        ><app-icon name="logout"
+      /></a>
+    </div>
+  </aside>
+  <div class="workspace-main">
+    <header class="topbar">
+      <div class="actions">
+        <button
+          class="btn ghost icon-only mobile-menu"
+          aria-label="Open navigation"
+          (click)="mobileOpen.set(true)"
+        >
+          <app-icon name="menu" /></button
+        ><span class="breadcrumb"
+          >Workspace <span>/</span> <strong>{{ title() }}</strong></span
+        >
+      </div>
+      <div class="actions">
+        <button
+          class="search-trigger"
+          (click)="search.showModal()"
+          aria-label="Search mapping targets"
+        >
+          <app-icon name="search" /><span>Find a place</span></button
+        ><span class="demo-badge"><span class="status-dot"></span>Prototype</span
+        ><label class="role-select"
+          ><span class="sr-only">Demo role</span
+          ><select [value]="repo.profile().role" (change)="changeRole($event)">
+            <option value="admin">Admin view</option>
+            <option value="volunteer">Volunteer view</option>
+          </select></label
+        >
+      </div>
+    </header>
+    @if (repo.storageError()) {
+      <div class="storage-warning" role="alert">
+        {{ repo.storageError() }} <a routerLink="/settings">Manage data</a>
+      </div>
+    }
+    <main id="main-content"><router-outlet /></main>
+  </div>
+} @else {
+  @if (url().startsWith('/navigate')) {
+    <div class="visitor-return">
+      <a routerLink="/overview"><app-icon name="arrow-left" />Back to workspace</a
+      ><span>snapway.</span>
+    </div>
+  }
+  <main id="main-content"><router-outlet /></main>
+}
+<div class="toast" [class.visible]="ui.toast()" role="status" aria-live="polite">
+  @if (ui.toast()) {
+    <span>{{ ui.toast() }}</span
+    ><button aria-label="Dismiss notification" (click)="ui.toast.set('')">
+      <app-icon name="close" />
+    </button>
+  }
+</div>
+<dialog #search class="modal search-dialog">
+  <div class="modal-header">
+    <h2>Find your next place</h2>
+    <button class="btn ghost icon-only" aria-label="Close search" (click)="search.close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+  <label class="field"
+    ><span>Search mapping targets</span
+    ><input
+      type="search"
+      placeholder="Building, floor or target…"
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+  /></label>
+  <div class="search-results">
+    @for (target of searchResults(); track target.id) {
+      <a [routerLink]="['/targets', target.id]" (click)="search.close()"
+        ><app-icon name="building" /><span
+          ><strong>{{ target.name }}</strong
+          ><small>{{ target.building }} · {{ target.floor }}</small></span
+        ><app-icon name="arrow-right"
+      /></a>
+    } @empty {
+      <p class="empty">No places match this search.</p>
+    }
+  </div>
+</dialog>

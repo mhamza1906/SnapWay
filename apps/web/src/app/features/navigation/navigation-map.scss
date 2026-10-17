@@ -1,0 +1,201 @@
+.map-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f8f9f6;
+}
+.map-heading {
+  justify-content: space-between;
+  padding: 22px;
+}
+.map-heading strong,
+.map-heading span {
+  display: block;
+}
+.map-heading strong {
+  font-size: 13px;
+}
+.map-heading span {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.view-switch {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  padding: 3px;
+}
+.view-switch button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font: inherit;
+  font-size: 11px;
+  padding: 7px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.view-switch button.active {
+  background: var(--ink);
+  color: white;
+}
+.visitor-map {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding: 16px;
+}
+.visitor-map app-map-canvas {
+  width: 100%;
+}
+.map-caption {
+  padding: 18px 22px;
+  font-size: 10px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.map-caption span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.map-caption span:last-child {
+  margin-left: auto;
+}
+.position-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.route-line {
+  width: 18px;
+  height: 3px;
+  background: var(--blue);
+}
+.guided-view {
+  padding: 40px 30px;
+  text-align: center;
+  max-width: 520px;
+  margin: auto;
+}
+.guided-view p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.guided-view small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 30px;
+}
+.direction-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 160px;
+  height: 160px;
+  margin: 35px auto;
+  color: var(--blue);
+}
+.direction-stage > app-icon {
+  transform: rotate(var(--guide-angle, -90deg)) scale(3);
+}
+.direction-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed #a9badb;
+  border-radius: 50%;
+}
+.is-guiding .direction-stage > app-icon {
+  animation: direction 1.8s ease-in-out infinite;
+}
+.has-arrived .direction-stage > app-icon {
+  transform: scale(3);
+  color: #398469;
+}
+@keyframes direction {
+  50% {
+    transform: translateY(-10px) rotate(var(--guide-angle, -90deg)) scale(3);
+  }
+}
+
+@media (max-width: 760px) {
+  .map-panel {
+    order: -1;
+    min-height: 340px;
+  }
+  .map-heading {
+    padding: 15px;
+  }
+  .map-heading strong {
+    max-width: 170px;
+  }
+  .visitor-map {
+    padding: 8px;
+  }
+  .map-caption {
+    padding: 12px;
+    font-size: 9px;
+    gap: 10px;
+  }
+  .mobile-next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #eaf0fb;
+    font-size: 12px;
+  }
+  .guided-view {
+    padding: 20px;
+  }
+  .direction-stage {
+    width: 110px;
+    height: 110px;
+    margin: 20px auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-guiding .direction-stage > app-icon {
+    animation: none;
+  }
+}
+
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+.map-panel {
+  height: 100%;
+}
+.map-heading,
+.map-caption {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mobile-next {
+  display: none;
+}
+h2 {
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  margin: 0 0 14px;
+}
+p {
+  line-height: 1.65;
+}
+@media (max-width: 760px) {
+  .mobile-next {
+    display: flex;
+  }
+}

@@ -1,0 +1,152 @@
+﻿.activity-panel .panel-heading {
+  padding-bottom: 15px;
+}
+.activity-panel .panel-body {
+  padding-top: 17px;
+}
+.activity-panel .timeline li {
+  display: block;
+  position: relative;
+  padding: 0 0 22px 23px;
+  margin-bottom: 20px;
+}
+.activity-panel .timeline .dot {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  background: #b5c2a6;
+}
+.activity-panel .timeline time {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+}
+.activity-panel .timeline strong {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.activity-panel .timeline p {
+  font-size: 10px;
+  margin: 7px 0 0;
+}
+.getting-started {
+  padding: 24px 2px;
+}
+.guide-tag {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #9a846c;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+  font-weight: 600;
+}
+.guide-tag app-icon {
+  width: 14px;
+}
+.getting-started h3 {
+  font-size: 16px;
+  margin: 12px 0 8px;
+  letter-spacing: -0.3px;
+}
+.getting-started p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin-bottom: 17px;
+}
+.getting-started a {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  padding: 9px 0;
+}
+.getting-started a > app-icon {
+  margin-left: auto;
+  width: 12px;
+  color: var(--muted);
+}
+.getting-started a:hover {
+  color: var(--accent);
+}
+.step-number {
+  width: 22px;
+  height: 22px;
+  font-size: 10px;
+}
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  margin-top: 35px;
+  padding-top: 19px;
+  font-size: 9px;
+  color: #97a08f;
+}
+.page-footer span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.page-footer .status-dot {
+  width: 5px;
+  height: 5px;
+}
+.table-link {
+  font-size: 11px;
+}
+@media (max-width: 1200px) {
+  .two-columns {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 20px;
+  }
+  .journey-art {
+    display: none;
+  }
+  .journey-banner {
+    flex-wrap: wrap;
+  }
+  .journey-banner .btn {
+    margin-left: 0;
+  }
+}
+@media (max-width: 1000px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+  .two-columns > aside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .page-heading h1 {
+    font-size: 25px;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 650px) {
+  .two-columns > aside {
+    display: block;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .metric {
+    padding: 15px;
+  }
+  .page-heading h1 {
+    font-size: 24px;
+  }
+  .page-footer > span:last-child {
+    display: none;
+  }
+  .journey-banner {
+    padding: 20px;
+  }
+}
