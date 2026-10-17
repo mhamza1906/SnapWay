@@ -95,3 +95,14 @@ placeholders with no runtime storage adapter in this checkout.
   `local/test-results/IA-1-2026-10-17T07-33-21-079Z/`; the audit's committed
   screenshots and selected JSON can be reviewed without those private files.
   Contributor development history remains in the single ignored `local/ACTIONS.md`.
+
+## Proposed next iteration
+
+The [web artifact review](audits/2026-10-17-chatgpt-web-floorplan.md) independently
+checks both supplied SVG/HTML versions and records a second-version regression:
+all hotspots/labels were inserted into the Logo SVG. The
+[redesign proposal](pipeline/redesign-proposal.md) specifies GPT Image 2.5 raster
+generation, Gemini 4 semantic extraction/edits, optional Opus 5.5 or GPT 6.1
+vector fallback, bounded example schemas, coordinate/review gates and staged
+cost experiments. Evidence and examples are linked there; this is a proposal,
+not a completed pipeline or an application API change.

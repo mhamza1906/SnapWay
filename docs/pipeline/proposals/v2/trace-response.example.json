@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "request_id": "synthetic-frame-example",
+  "frame_id": "synthetic-crop-01",
+  "coordinate_space": "crop_n1000_xy",
+  "spaces": [
+    {
+      "local_id": "region-1",
+      "role": "room",
+      "polygon": [{"x": 100, "y": 100}, {"x": 700, "y": 100}, {"x": 700, "y": 600}, {"x": 100, "y": 600}],
+      "label_refs": ["synthetic-label-1"],
+      "observation": "visible"
+    }
+  ],
+  "opening_candidates": [],
+  "unresolved": [{"target_ref": "region-1", "code": "ambiguous_geometry", "reason": "Synthetic example only; no doorway evidence has been supplied."}]
+}

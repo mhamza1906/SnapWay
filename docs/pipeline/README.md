@@ -5,6 +5,10 @@ See the [phase audit, requirement gaps and screenshots](../audits/2026-10-17-map
 The workflow below describes the implementation; it does not establish faithful
 output for a real target or completion of the required GPT Image stage.
 
+For the next experiment, read the [web artifact review](../audits/2026-10-17-chatgpt-web-floorplan.md)
+and [redesign proposal](redesign-proposal.md). They describe proposed changes and
+bounded response examples; the runtime documented below has not been replaced.
+
 `apps/pipeline/` is a private Node service. It turns an uploaded floor plan
 (PDF, PNG or JPEG) into a draft indoor map: rooms and other spaces, doorways, and
 a walking graph that can be routed. Everything it produces is a draft for review.

@@ -8,6 +8,7 @@ does not replace real-fixture acceptance.
 | Date | Scope | Result |
 | --- | --- | --- |
 | 2026-10-17 | [Map-authoring models, pipeline and IA-1 real-photo trial](2026-10-17-map-authoring-pipeline.md) | IA-1 failed; required raster stage and integrated authoring loop remain incomplete |
+| 2026-10-17 | [ChatGPT web chain and supplied SVG/HTML artifacts](2026-10-17-chatgpt-web-floorplan.md) | Useful staged visual proof; v2 embeds hotspots/labels in the Logo SVG and fails interaction acceptance; [redesign proposed](../pipeline/redesign-proposal.md) |
 
 The earlier [main smoke check](../main-workflow-smoke-check.md) applies only to
 main `71f24ab`. The current [pipeline feature record](../map-authoring-pipeline.md)
