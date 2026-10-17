@@ -11,7 +11,9 @@ later N0 session/capture/result/route persistence. See the
 rules, migration instructions and service boundaries.
 
 Authorized domain services and product APIs remain to be implemented. REST, jobs
-and MCP will invoke those same services. Google allauth is installed but not enabled until
-credentials and the real login flow are integrated and tested.
+and MCP will invoke those same services. Google OAuth (django-allauth) and session
+identity endpoints are documented in
+[backend-oauth.md](../../docs/backend-oauth.md); paste Web client credentials into
+`local/env/api.env` when available.
 
 See [development instructions](../../docs/development.md).

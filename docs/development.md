@@ -92,10 +92,15 @@ inspection, create a local administrator yourself:
 uv run --locked python apps/api/manage.py createsuperuser
 ```
 
-Google allauth is installed but no Google OAuth route or provider is enabled.
-Provider SDKs likewise remain inactive. No application authoring job, paid API
-call or server-backed guest-navigation capability is implemented. The separate
-frontend prototype exercises these workflows locally with explicit simulations.
+Google OAuth for developers is wired through django-allauth on branch
+`feature/backend-oauth`. See the shared feature record
+[backend-oauth.md](backend-oauth.md): `/accounts/google/login/`, session
+`GET /api/auth/me/` and `POST /api/auth/logout/`, local SQLite by default, and
+env placeholders for `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`.
+Map roles are never granted by Google. AI provider SDKs remain inactive. No
+application authoring job or server-backed guest-navigation capability is
+implemented. The separate frontend prototype still simulates contributor roles
+locally until an Angular login UI is added.
 
 ## Development commands and health
 
