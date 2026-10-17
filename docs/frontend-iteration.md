@@ -2,12 +2,27 @@
 
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
 Merged remote main through PR #10 (`67db1fe`, graph editor / R2 media) into this
-branch after the earlier PR #9 single-env baseline. Personal execution history
+branch after the earlier PR #9 single-env baseline. Main's later schema-map
+commit `7c8ea30` was also merged without conflicts as `e753f57`. Personal execution history
 remains in ignored `local/ACTIONS.md`.
 
 Implementation commit:
 [`1f6f7cc`](https://github.com/mhamza1906/SnapWay/commit/1f6f7cc)
-(local on this branch; remote availability awaits push).
+(included in this branch's Google integration merge).
+
+Merge preparation preserves `feature/frontend-iteration` for subsequent work.
+The incoming [schema renderer](assets/database-schema/render.py) needed import
+sorting and long-string wrapping to pass the existing root Ruff gates. Its AST
+is equivalent after import-order normalization; all saved catalog/DOT/SVG/HTML
+artifacts remain unchanged. No diagram regeneration or database access was used.
+
+Main has automatic production deployment enabled. The production owner must
+reconcile `/etc/indoor-nav/api.env` to contract `2026-10-17.6` and the appropriate
+production Google credentials/restrictions before activating this release. A
+local credential check is not evidence of a synchronized server env. The existing
+deployment gate must remain enabled; an old server contract must block activation
+rather than accepting missing configuration. PR checks and production activation
+are separate outcomes.
 
 ## Scope
 
