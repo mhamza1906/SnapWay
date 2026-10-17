@@ -28,6 +28,31 @@ deployment gate must remain enabled; an old server contract must block activatio
 rather than accepting missing configuration. PR checks and production activation
 are separate outcomes.
 
+### Merge and production verification
+
+PR [#11](https://github.com/mhamza1906/SnapWay/pull/11) merged into main as
+[`a0e6d79`](https://github.com/mhamza1906/SnapWay/commit/a0e6d79). All seven PR
+checks passed in [run 39064393074](https://github.com/mhamza1906/SnapWay/actions/runs/39064393074),
+including Linux, Windows and PostgreSQL. The retained iteration branch was
+fast-forwarded to that merge; subsequent acceptance notes continue here.
+
+Main [run 39064525583](https://github.com/mhamza1906/SnapWay/actions/runs/39064525583)
+passed all checks, packaging and automatic production activation. Independent
+HTTPS checks confirmed the exact new release, database readiness and both new
+public endpoints return HTTP 200. The public config currently reports **no Maps
+browser key** and **Google OAuth disabled**; discovery has zero published buildings.
+Deployment success therefore does not establish working production Google services.
+
+The deployment owner must populate `PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY`,
+`GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in the existing protected
+`/etc/indoor-nav/api.env`, reconcile the full `.6` contract, and restart the active
+Django service through the operations process. Use a production website-restricted
+Maps key and register the HTTPS OAuth callback listed below. Obtain values through
+the external private channel; do not blindly upload the laptop env or replace
+production database/Django secrets. Reload the browser after restart and run a
+production map/login smoke test. The remote private env was not inspected or
+modified during this merge. Local credentials remain only in ignored `local/.env`.
+
 ## Scope
 
 Follow the [architecture](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)
