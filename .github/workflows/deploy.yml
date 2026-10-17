@@ -1,0 +1,41 @@
+name: Deploy release
+
+on:
+  workflow_call:
+    secrets:
+      VULTR_HOST:
+        required: true
+      VULTR_USER:
+        required: true
+      VULTR_SSH_PORT:
+        required: true
+      VULTR_SSH_KEY:
+        required: true
+      VULTR_KNOWN_HOSTS:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapway-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: local
+      - name: Upload and activate checked release
+        env:
+          VULTR_HOST: ${{ secrets.VULTR_HOST }}
+          VULTR_USER: ${{ secrets.VULTR_USER }}
+          VULTR_SSH_PORT: ${{ secrets.VULTR_SSH_PORT }}
+          VULTR_SSH_KEY: ${{ secrets.VULTR_SSH_KEY }}
+          VULTR_KNOWN_HOSTS: ${{ secrets.VULTR_KNOWN_HOSTS }}
+          RELEASE: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: bash infra/upload-release.sh "$RELEASE"
