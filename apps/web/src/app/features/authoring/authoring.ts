@@ -23,6 +23,7 @@ import {
   Health,
   LibraryEntry,
   MapJob,
+  MergeRecord,
   PipelineBuilding,
   PipelineService,
   PlanType,
@@ -258,8 +259,13 @@ export class AuthoringPage implements OnInit {
   readonly selectedRegions = signal<string[]>([]);
   readonly nameDrafts = signal<Record<string, string>>({});
   readonly mergeName = signal('');
-  /** null follows the selection (a stair if any selected region is one). */
+  /** null follows the merge group (a stair if any region in it is one). */
   readonly mergeStairChoice = signal<boolean | null>(null);
+  /**
+   * The Merge rooms menu: null while closed, else [first room, room to merge into it]. One
+   * merge at a time: the second room must share a wall with the first, which keeps its id.
+   */
+  readonly mergeGroup = signal<string[] | null>(null);
   readonly nameMax = REGION_NAME_MAX;
   readonly roleChoices = ROLE_CHOICES;
   /** "Show on map": the region the map is zoomed to; null shows the whole floor. */
@@ -275,6 +281,8 @@ export class AuthoringPage implements OnInit {
 
   /** Regions drawn selected: the Regions selection, else the located region. */
   readonly highlighted = computed<string[]>(() => {
+    const group = this.mergeGroup();
+    if (group) return group;
     const sel = this.selectedRegions(),
       f = this.focused();
     return sel.length ? sel : f && f.floorId === this.floorId() ? [f.spaceId] : [];
@@ -321,8 +329,23 @@ export class AuthoringPage implements OnInit {
       .map((id) => spaces.find((s) => s.id === id))
       .filter((s): s is SpaceSummary => !!s);
   });
+  readonly mergeMembers = computed<SpaceSummary[]>(() => {
+    const spaces = this.floor()?.spaces ?? [];
+    return (this.mergeGroup() ?? [])
+      .map((id) => spaces.find((s) => s.id === id))
+      .filter((s): s is SpaceSummary => !!s);
+  });
+  /** Rooms that share a wall with the first room of the merge: the only ones it can take in. */
+  readonly mergeCandidates = computed<SpaceSummary[]>(() => {
+    const first = this.mergeMembers()[0];
+    if (!first) return [];
+    const touching = new Set(first.neighbours ?? []);
+    return (this.floor()?.spaces ?? []).filter((s) => s.id !== first.id && touching.has(s.id));
+  });
+  /** Merges on this floor that can be undone, newest first. */
+  readonly merges = computed(() => this.floor()?.merges ?? []);
   readonly mergeStair = computed(
-    () => this.mergeStairChoice() ?? this.selectedSpaces().some((s) => this.isStair(s)),
+    () => this.mergeStairChoice() ?? this.mergeMembers().some((s) => this.isStair(s)),
   );
   readonly stairCount = computed(() => {
     const f = this.floor();
@@ -787,11 +810,84 @@ export class AuthoringPage implements OnInit {
     this.selectedRegions.set([]);
     this.showSelection();
   }
-  /** Clicking a walkable region on the map toggles its selection. */
+  /**
+   * Clicking a walkable region on the map toggles its selection, or, while the Merge rooms
+   * menu is open, adds or removes it from the merge group.
+   */
   mapClick(event: Event): void {
     const target = event.target as Element | null,
       id = target?.closest?.('[data-room-id]')?.getAttribute('data-room-id');
-    if (id && this.floor()?.spaces.some((s) => s.id === id)) this.toggleRegion(id);
+    if (!id || !this.floor()?.spaces.some((s) => s.id === id)) return;
+    if (this.mergeGroup()) this.toggleMerge(id);
+    else this.toggleRegion(id);
+  }
+
+  /** Opens the Merge rooms menu, starting from `startId` or the single selected region. */
+  openMerge(startId?: string): void {
+    const sel = this.selectedRegions(),
+      start = startId ?? (sel.length === 1 ? sel[0] : undefined);
+    this.mergeGroup.set(start ? [start] : []);
+    this.mergeName.set('');
+    this.mergeStairChoice.set(null);
+    this.showSelection();
+    setTimeout(() =>
+      document
+        .querySelector('[data-testid="merge-box"]')
+        ?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }),
+    );
+  }
+  cancelMerge(): void {
+    this.mergeGroup.set(null);
+    this.mergeName.set('');
+    this.mergeStairChoice.set(null);
+  }
+  /** Picks the first region of the merge group (from the menu's list). */
+  startMerge(event: Event): void {
+    const id = (event.target as HTMLSelectElement).value;
+    this.mergeGroup.set(id ? [id] : []);
+  }
+  /**
+   * Sets the first room, or the room to merge into it (replacing an earlier choice). A room
+   * that doesn't share a wall with the first one is refused with a reason.
+   */
+  addToMerge(id: string): void {
+    const group = this.mergeGroup();
+    if (!group || group[0] === id) return;
+    if (!group.length) {
+      this.mergeGroup.set([id]);
+      return;
+    }
+    if (!this.mergeCandidates().some((s) => s.id === id)) {
+      const name = this.floor()?.spaces.find((s) => s.id === id)?.label ?? id,
+        first = this.mergeMembers()[0]?.label ?? group[0];
+      this.say(`${name} does not share a wall with ${first}, so they can't be merged.`);
+      return;
+    }
+    this.mergeGroup.set([group[0], id]);
+  }
+  /** Removing the first room starts over; removing the second keeps the first. */
+  removeFromMerge(id: string): void {
+    const group = this.mergeGroup();
+    if (!group) return;
+    this.mergeGroup.set(group[0] === id ? [] : group.filter((g) => g !== id));
+  }
+  /** Undoes a recorded merge from the Merged rooms checklist. */
+  async unmerge(m: MergeRecord): Promise<void> {
+    const building = this.building(),
+      floorId = this.floorId();
+    if (!building || !m.undoable) return;
+    await this.run(async () => {
+      const out = await this.pipeline.unmergeSpaces(building, floorId, m.recordId, this.reviewer());
+      this.cancelMerge();
+      this.selectedRegions.set([]);
+      this.dropDrafts([`${floorId}/${m.keptId}`]);
+      this.load(out);
+      this.say(`Unmerged "${m.removedLabel}" from "${m.label}"; both rooms are back.`);
+    }, 'unmerge:' + m.recordId);
+  }
+  toggleMerge(id: string): void {
+    if (this.mergeGroup()?.includes(id)) this.removeFromMerge(id);
+    else this.addToMerge(id);
   }
   private showSelection(): void {
     // Selecting regions shows the whole floor again.
@@ -809,7 +905,7 @@ export class AuthoringPage implements OnInit {
 
   async mergeRegions(): Promise<void> {
     const building = this.building(),
-      ids = this.selectedSpaces().map((s) => s.id),
+      ids = this.mergeMembers().map((s) => s.id),
       label = this.mergeName().trim(),
       stair = this.mergeStair(),
       floorId = this.floorId();
@@ -822,8 +918,7 @@ export class AuthoringPage implements OnInit {
         reviewer: this.reviewer(),
       });
       this.selectedRegions.set([]);
-      this.mergeName.set('');
-      this.mergeStairChoice.set(null);
+      this.cancelMerge();
       this.dropDrafts(ids.map((id) => `${floorId}/${id}`));
       this.load(merged);
       const name =

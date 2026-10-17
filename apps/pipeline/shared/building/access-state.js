@@ -90,6 +90,27 @@ export const AccessRecordSchema = z.object({
     .nullable()
     .default(null),
   reason: z.string().max(3000),
+  // A two-region merge keeps what it changed so the map author can unmerge it:
+  // both regions before the merge, the kept outline right after it, and the
+  // doors, walls, points of interest and records it re-pointed or removed.
+  merge: z
+    .object({
+      keptId: id,
+      removedId: id,
+      kept: z.any(),
+      removed: z.any(),
+      after: z.array(z.object({ x: z.number(), y: z.number() })),
+      internalDoors: z.array(z.any()).default([]),
+      repointedDoors: z.array(z.object({ id: z.string(), spaceIds: z.array(z.string()) })).default([]),
+      removedWalls: z.array(z.any()).default([]),
+      addedWallIds: z.array(z.string()).default([]),
+      poiIds: z.array(z.string()).default([]),
+      recordIds: z.array(z.string()).default([]),
+      adjacent: z.array(z.object({ id: z.string(), adjacentIds: z.array(z.string()) })).default([]),
+      undone: z.boolean().default(false),
+    })
+    .nullable()
+    .default(null),
   attemptedChecks: z.array(z.string().max(500)).default([]),
   evidence: EvidenceSchema,
   validation: z

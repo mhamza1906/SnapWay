@@ -8,7 +8,7 @@ import { traceBoundaryWalls } from "../shared/building/coverage.js";
 import { mergeOutlines, newAccessRecord } from "../shared/building/access.js";
 import { doorAccessState, regionNeedsSemanticReview } from "../shared/building/access-state.js";
 import { roomAvailability, routeBuilding } from "../shared/building/routing.js";
-import { mergeSpaces, renameSpace, setSpaceStair } from "../shared/building/region-edits.js";
+import { mergeHistory, mergeNeighbours, mergeSpaces, renameSpace, setSpaceStair, unmergeSpaces } from "../shared/building/region-edits.js";
 import { authoringRouter, floorSummary, renderFloor } from "../server/authoring-routes.js";
 
 // Synthetic layout (not a real building): rooms 101–103 above a hallway, 104
@@ -218,12 +218,53 @@ test("merging as a stair across a hairline gap gives one walkable stair; a given
 });
 
 test("regions that do not share a boundary, or that would enclose a hole, are not merged", () => {
-  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r4"]), /Regions must share a boundary to be merged/);
-  assert.throws(() => mergeSpaces(base, "t", ["t:r1"]), /at least two regions/);
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r4"]), /Only regions that share a wall can be merged: 104 does not/);
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1"]), /two regions at a time/);
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r2", "t:r3"]), /two regions at a time/);
   assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r1"]), /only once/);
   assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:nope"]), /Unknown region t:nope/);
   assert.throws(() => mergeOutlines([rect(0, 0, 300, 100), rect(0, 100, 100, 200), rect(200, 100, 300, 200), rect(0, 200, 300, 300)]), /surround/);
   assert.throws(() => mergeOutlines([rect(0, 0, 100, 100), rect(100, 100, 200, 200)]), /share a boundary/, "corner contact is not a shared boundary");
+});
+
+test("wall neighbours: regions sharing a wall (hairline gaps included), never corner contact", () => {
+  const n = mergeNeighbours(floorOf(base));
+  assert.deepEqual([...n.get("t:r1")].sort(), ["t:hall", "t:r2"]);
+  assert.ok(n.get("t:s1").includes("t:s2"), "a 1.2 px hairline still counts as a shared wall");
+  assert.ok(!n.get("t:r1").includes("t:r4"));
+  const summary = floorSummary(base, "t");
+  assert.deepEqual([...summary.spaces.find((s) => s.id === "t:r1").neighbours].sort(), ["t:hall", "t:r2"]);
+  assert.deepEqual(summary.merges, []);
+});
+
+test("unmerge puts both rooms, the doorway between them and the walls back exactly; merges undo newest first", () => {
+  const key = (b) => {
+    const g = floorOf(b).geometry, sort = (l) => JSON.stringify([...l].sort((a, z) => (a.id < z.id ? -1 : 1)));
+    return [sort(g.spaces), sort(g.doors), sort(g.walls), JSON.stringify(g.pois)];
+  };
+  const once = mergeSpaces(base, "t", ["t:r1", "t:r2"], { reviewer: "Dev" }).building;
+  const [m1] = mergeHistory(floorOf(once));
+  assert.deepEqual([m1.keptId, m1.label, m1.removedLabel, m1.undoable], ["t:r1", "101", "Unlabelled 2", true]);
+  // Merge the result again with 103: only the newest merge can be undone now.
+  const twice = mergeSpaces(once, "t", ["t:r1", "t:r3"]).building;
+  const [m2, older] = mergeHistory(floorOf(twice));
+  assert.deepEqual([m2.removedLabel, m2.undoable, older.undoable], ["103", true, false]);
+  assert.match(older.reason, /unmerge the later merge first/);
+  assert.throws(() => unmergeSpaces(twice, "t", older.recordId), /changed shape after this merge/);
+  const back1 = unmergeSpaces(twice, "t", m2.recordId);
+  assert.deepEqual(key(back1), key(once));
+  const back0 = unmergeSpaces(back1, "t", mergeHistory(floorOf(back1))[0].recordId, "Dev");
+  assert.deepEqual(key(back0), key(base), "the floor is exactly as before both merges");
+  const f = floorOf(back0);
+  // The restored internal doorway is checked again and usable; 102's records are its own again.
+  assert.equal(doorAccessState(f, f.geometry.doors.find((d) => d.id === "t:d12")).state, "verified");
+  assert.equal(f.access.records.find((r) => r.id === "t:r2:held").spaceId, "t:r2");
+  assert.deepEqual(f.access.records.find((r) => r.id === "t:d2:verified").adjacentIds, ["t:r2", "t:hall"]);
+  assert.deepEqual(mergeHistory(f), []);
+  assert.deepEqual(geometryErrors(back0), []);
+  assert.ok(routeBuilding(back0, "t:r1", "t:r3"));
+  assert.throws(() => unmergeSpaces(back0, "t", m1.recordId), /already undone/);
+  assert.throws(() => unmergeSpaces(back0, "t", "nope"), /Unknown merge/);
 });
 
 // The authoring routes over HTTP, with the same error handler as the server.
@@ -258,7 +299,7 @@ test("HTTP: rename, stair and merge return {building, summary}; merge also retur
   assert.equal(merged.data.building.floors[0].geometry.spaces.find((s) => s.id === "t:r3").use, "stair");
   const bad = await post("/spaces/merge", { building: base, floorId: "t", spaceIds: ["t:r1", "t:r4"], stair: false, reviewer: "" });
   assert.equal(bad.status, 400);
-  assert.equal(bad.data.error, "Regions must share a boundary to be merged.");
+  assert.equal(bad.data.error, "Only regions that share a wall can be merged: 104 does not share a wall with the rest.");
   const badStair = await post("/spaces/stair", { building: base, floorId: "t", spaceId: "t:r3" });
   assert.equal(badStair.status, 400);
   const badFloor = await post("/spaces/rename", { building: base, floorId: "nope", spaceId: "t:r3", label: "X" });

@@ -76,15 +76,20 @@ The editor's **Regions** panel (map authoring screen) lets the user:
 - rename any region (default names such as "Unlabelled room 3" are flagged);
 - mark or unmark a region as a **stair** (stored as `kind: "lobby"`,
   `use: "stair"`; drawn with tread hatching);
-- tick two or more regions that share a boundary and **merge** them into one,
-  optionally as a stair (the first region keeps its id; the doorway and wall
-  between them are removed; doors to other regions and their evidence move to
-  the merged region);
+- **merge** two rooms at a time with "Merge rooms" (or a room's "Merge…"
+  button): pick the room to keep, then a room that shares a wall with it
+  (only those are offered; others are refused); the second is merged into the
+  first, optionally as a stair (the first keeps its id and name; the doorway
+  and wall between them are removed; doors to other regions and their
+  evidence move to the merged region);
+- **unmerge** from the "Merged rooms" checklist, newest merge first: both
+  rooms, the doorway between them (checked again) and the walls come back
+  exactly as before;
 - select regions by ticking them or clicking them on the map; selected regions
   are highlighted.
 
 Every edit goes through the access transaction (`applyAccessDecisions`, ops
-`rename-space`, `set-space-use`, `merge-spaces`), so walking paths are rebuilt
+`rename-space`, `set-space-use`, `merge-spaces`, `unmerge-spaces`), so walking paths are rebuilt
 and route checks re-run. API: [api.md](api.md) "Region tools".
 
 ## Configuration

@@ -162,7 +162,51 @@ select {
   border-radius: 0.5rem;
   background: #fff8f4;
 }
-.merge-box .btn {
+.merge-box h3,
+.merged-list h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.merge-members,
+.merge-candidates,
+.merged-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.merge-members li,
+.merged-list li,
+.merge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.merge-role {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+.merge-candidates .chosen {
+  box-shadow: inset 0 0 0 2px #c2185b;
+}
+.merged-list {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border: 1px solid #d5e3dc;
+  border-radius: 0.5rem;
+}
+.merged-list li {
+  width: 100%;
+}
+.merged-text {
+  flex: 1 1 12rem;
+  display: grid;
+}
+.merge-open {
   justify-self: start;
 }
 .region-list {

@@ -285,7 +285,7 @@ Review status:
 Every region route takes `{building, floorId, …, reviewer?}` and responds with
 `{building, summary, …extra}`. `reviewer` may be empty. Each edit is one
 `applyAccessDecisions` transaction (ops `rename-space`, `set-space-use`,
-`set-space-kind`, `merge-spaces`), so the floor graph is rebuilt and evidence is
+`set-space-kind`, `merge-spaces`, `unmerge-spaces`), so the floor graph is rebuilt and evidence is
 recorded as a `classification` record with `evidence.method: "manual"`.
 
 | Path | Extra request fields | Extra response fields | What it does |
@@ -293,7 +293,8 @@ recorded as a `classification` record with `evidence.method: "manual"`.
 | `rename` | `spaceId`, `label` (trimmed, 1–120 characters) | (none) | Renames the region. Graph node labels follow on the rebuild, and a display-only label override for the region is cleared. A rename does not lift a hold for source classification. Renaming to the current name changes nothing. |
 | `stair` | `spaceId`, `stair` (boolean, required) | (none) | `true` marks a walkable stair: `kind: "lobby"`, `use: "stair"`. A non-walkable region becomes walkable with access `unknown`. `false` makes it `kind: "room"` and removes `use`. Asking for the current state changes nothing. |
 | `kind` | `spaceId`, `kind` (required, one of the kinds below) | (none) | Sets the region's role. Asking for the current role changes nothing. A pending classification hold on the region is superseded. |
-| `merge` | `spaceIds` (2 or more distinct ids on this floor), `label?`, `stair?` (boolean) | `spaceId`: the merged region's id, which is always `spaceIds[0]` | Merges the regions into one, described below. |
+| `merge` | `spaceIds` (exactly 2 distinct ids on this floor that share a wall), `label?`, `stair?` (boolean) | `spaceId`: the merged region's id, which is always `spaceIds[0]` | Merges the second region into the first, described below. One merge at a time. |
+| `unmerge` | `recordId` (from the floor summary's `merges[]`) | (none) | Undoes one recorded merge, described below. |
 
 Kinds for `spaces/kind` (each sets `kind`, `use` and access together):
 
@@ -311,6 +312,15 @@ region with its doors: the access it had before it was closed is restored, or
 other than `stair` makes a stair no longer a stair. Errors:
 `Choose a region kind: room, hall-room, corridor, lobby, stair or closed.` (400)
 and `Unknown region.`
+
+Summary fields for merging: each `spaces[]` row has `neighbours`, the ids of
+regions it shares a wall with (at least 4 px of outline on the same line,
+within the 2 px merge snap; corner contact does not count). Only those can be
+merged with it. `merges[]` lists the floor's merges that are not undone,
+newest first: `{recordId, keptId, label (current name), keptLabel, removedId,
+removedLabel, at, undoable, reason}`. `undoable` is `false`, with a reason,
+while the merged region has been merged again since (undo the later merge
+first) or is gone.
 
 How `merge` builds the region:
 
@@ -336,6 +346,19 @@ How `merge` builds the region:
   Pending classification proposals for the merged regions are superseded.
 - A merged region with no usable doorway is left with access `unknown`, so
   it appears in `needsAttention`.
+- The merge's `classification` record keeps a `merge` snapshot: both regions
+  as they were, the kept outline right after the merge, the removed internal
+  doors, re-pointed doors, POIs and records, and the transaction's wall
+  changes (traced walls included).
+
+How `unmerge` restores it: both regions come back exactly as they were before
+the merge (outline, name, kind, use, access), the re-pointed doors, POIs and
+access records return to the removed region, the transaction's wall changes
+are reversed, and the internal doorway is put back. A restored doorway is
+validated again (`validateOpening`); its earlier evidence is carried over in a
+new `opening` record, `accepted` when the check passes and `proposed`
+otherwise. The merge record is marked `undone`, and an `unmerge` is recorded as
+a `classification` record. Nav overrides dropped by the merge are not restored.
 
 Errors from these routes:
 
@@ -343,9 +366,11 @@ Errors from these routes:
 - `Enter a region name of 1–120 characters.`
 - `Say whether the region is a stair (stair: true or false).`
 - `Choose a region kind: room, hall-room, corridor, lobby, stair or closed.`
-- `Choose at least two regions to merge.`
+- `Merge two regions at a time.`
 - `Each region can be listed only once.`
+- `Only regions that share a wall can be merged: <name> does not share a wall with the rest.`
 - `Regions must share a boundary to be merged.` A corner contact does not count.
+- `Unknown merge.`, `That merge was already undone.`, `<name> changed shape after this merge; unmerge its later merge first.`
 - `The merged region would surround an area that is not part of it; include that area too or merge fewer regions.`
 - `Geometry validation failed: …` when the result would break a geometry check
 

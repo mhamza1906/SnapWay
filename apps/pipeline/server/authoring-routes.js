@@ -20,7 +20,7 @@ import {
   addAssumedDoor, assumedDoors, defineAsRoom, defineNotRoom, doorEdgeOptions,
   editAssumedDoor, placeAssumedDoorways, removeAssumedDoor,
 } from "../shared/building/assumed-doors.js";
-import { mergeSpaces, renameSpace, setSpaceKind, setSpaceStair } from "../shared/building/region-edits.js";
+import { mergeHistory, mergeNeighbours, mergeSpaces, renameSpace, setSpaceKind, setSpaceStair, unmergeSpaces } from "../shared/building/region-edits.js";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 const body = (req) => ({ building: BuildingSchema.parse(req.body.building), floorId: req.body.floorId });
@@ -37,14 +37,17 @@ export function floorSummary(building, floorId, rooms = roomAvailability(buildin
     // Walkable regions plus closed ones (so they can be re-opened); regions made
     // non-walkable any other way (source classification, Not a room) are left out.
     listed = floor.geometry.spaces.filter((s) => s.access !== "nonwalkable" || s.use === "closed")
-      .sort((a, z) => a.label.localeCompare(z.label, undefined, { numeric: true }));
+      .sort((a, z) => a.label.localeCompare(z.label, undefined, { numeric: true })),
+    // Regions each listed region shares a wall with (the only ones it can merge with).
+    neighbours = mergeNeighbours(floor, listed);
   return {
     floorId, label: floor.label, level: floor.level, geometryStatus: floor.geometryStatus,
     regions: floor.geometry.spaces.length,
     rooms: rooms.filter((r) => r.floorId === floorId).map((r) => ({ id: r.id, label: r.label, kind: r.kind, ready: r.ready, reason: r.reason, doors: doors(r.id) })),
     spaces: listed.map((s) => ({ id: s.id, label: s.label, kind: s.kind, use: s.use ?? null, role: spaceRole(s),
-      stair: s.use === "stair", closed: s.use === "closed", doors: doors(s.id) })),
+      stair: s.use === "stair", closed: s.use === "closed", doors: doors(s.id), neighbours: neighbours.get(s.id) })),
     stairs: listed.filter((s) => s.use === "stair").map((s) => ({ id: s.id, label: s.label })),
+    merges: mergeHistory(floor),
     needsAttention: inventory.queue.map((q) => ({ spaceId: q.spaceId, label: q.label, kind: q.kind, status: q.status, reason: q.reason })),
     assumed: assumedDoors(floor).map((a) => ({
       doorId: a.door.id, roomId: a.room.id, roomLabel: a.room.label, roomDoors: doors(a.room.id),
@@ -272,6 +275,10 @@ export function authoringRouter() {
   r.post("/spaces/kind", (req, res, next) => {
     try { const { building, floorId } = body(req);
       respond(res, setSpaceKind(building, floorId, req.body.spaceId, req.body.kind, req.body.reviewer || "")); } catch (e) { next(e); }
+  });
+  r.post("/spaces/unmerge", (req, res, next) => {
+    try { const { building, floorId } = body(req);
+      respond(res, unmergeSpaces(building, floorId, req.body.recordId, req.body.reviewer || "")); } catch (e) { next(e); }
   });
   r.post("/spaces/merge", (req, res, next) => {
     try { const { building, floorId } = body(req), { spaceIds, label, stair, reviewer } = req.body,

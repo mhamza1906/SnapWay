@@ -876,12 +876,102 @@ export function applyAccessDecisions(
     },
     tracedWalls = (id) => g.walls.some((w) => w.id.startsWith(`${floorId}:${id}:w:`) || w.id.startsWith(`${id}:w:`)),
     manual = (description) => ({ method: "manual", description: description.slice(0, 3000), crops: [] });
+  // Unmerge: put back both regions of a recorded two-region merge, as they were
+  // before it, with the doors, walls and points of interest it changed. Only a
+  // merge whose kept region still has the merged outline can be undone (undo a
+  // later merge of that region first).
+  const unmerged = [], mergeUndos = [];
+  for (const d of decisions.filter((d) => d.op === "unmerge-spaces")) {
+    const rec = floor.access.records.find((r) => r.id === d.recordId), u = rec?.merge;
+    if (!u) throw new Error("Unknown merge.");
+    if (u.undone) throw new Error("That merge was already undone.");
+    const kept = g.spaces.find((s) => s.id === u.keptId);
+    if (!kept) throw new Error(`${u.kept.label} is no longer on the map, so this merge can't be undone.`);
+    if (g.spaces.some((s) => s.id === u.removedId)) throw new Error(`${u.removed.label} is already on the map.`);
+    const same = kept.polygon.length === u.after.length &&
+      kept.polygon.every((p, i) => Math.abs(p.x - u.after[i].x) < 1e-6 && Math.abs(p.y - u.after[i].y) < 1e-6);
+    if (!same) throw new Error(`${kept.label} changed shape after this merge; unmerge its later merge first.`);
+    const from = regionState(kept);
+    g.spaces = g.spaces.map((s) => (s.id === u.keptId ? clone(u.kept) : s));
+    g.spaces.push(clone(u.removed));
+    for (const r of u.repointedDoors) {
+      const door = g.doors.find((x) => x.id === r.id);
+      if (door) door.spaceIds = [...r.spaceIds];
+    }
+    const restoredDoors = u.internalDoors.filter((x) => !g.doors.some((y) => y.id === x.id)).map(clone);
+    g.doors.push(...restoredDoors);
+    const addedWalls = new Set(u.addedWallIds);
+    g.walls = g.walls.filter((w) => !addedWalls.has(w.id));
+    g.walls.push(...u.removedWalls.filter((w) => !g.walls.some((x) => x.id === w.id)).map(clone));
+    g.pois = g.pois.map((p) => (u.poiIds.includes(p.id) ? { ...p, spaceId: u.removedId } : p));
+    [u.keptId, u.removedId].forEach((id) => superseded.add(id));
+    relabelled.add(u.keptId);
+    unmerged.push({ recordId: rec.id, u, restoredDoors });
+    records.push({
+      id: recordId(`${u.keptId}:unmerged`),
+      kind: "classification",
+      status: "accepted",
+      spaceId: u.keptId,
+      change: { from, to: regionState(u.kept) },
+      reason: `${u.removed.label} unmerged from ${from.label}; both regions are back as they were before the merge.`.slice(0, 3000),
+      evidence: manual(`Undid merge record ${rec.id} in the editor.`),
+    });
+  }
+  // A doorway put back by an unmerge is checked again before it can be used;
+  // its earlier evidence is carried over when it had any.
+  for (const { u, restoredDoors } of unmerged)
+    for (const door of restoredDoors) {
+      const prior = floor.access.records.findLast((r) => r.doorId === door.id && r.kind === "opening"),
+        check = validateOpening(
+          { ...view(), geometry: { ...g, doors: g.doors.filter((x) => x.id !== door.id) } },
+          { spaceId: door.spaceIds[0], adjacentId: door.spaceIds[1] || null, openingType: prior?.openingType || "door", a: door.a, b: door.b },
+        );
+      records.push({
+        ...(prior ? clone(prior) : { openingType: "door", evidence: manual("Doorway restored by an unmerge in the editor.") }),
+        id: recordId(`${door.id}:restored`),
+        kind: "opening",
+        status: check.passed ? "accepted" : "proposed",
+        spaceId: door.spaceIds[0],
+        doorId: door.id,
+        adjacentIds: door.spaceIds,
+        segment: { a: door.a, b: door.b },
+        label: door.label,
+        reason: `Doorway restored: ${u.removed.label} was unmerged from ${u.kept.label}.`,
+        validation: { passed: check.passed, failures: check.failures, checkedAt: now, geometryRevision: floor.revision + 1, routeCheck: null },
+        merge: null,
+      });
+    }
   for (const d of decisions.filter((d) => d.op === "merge-spaces")) {
     const spaceIds = Array.isArray(d.spaceIds) ? d.spaceIds.map(resolve) : d.spaceIds,
       // Boundary-traced walls are regenerated around the merged outline only
       // when the merged regions had them (raster walls are cut instead).
       traced = Array.isArray(spaceIds) && spaceIds.some(tracedWalls),
+      pair = Array.isArray(spaceIds) && spaceIds.length === 2,
+      before = pair && {
+        kept: clone(g.spaces.find((s) => s.id === spaceIds[0]) ?? null),
+        removed: clone(g.spaces.find((s) => s.id === spaceIds[1]) ?? null),
+        doors: g.doors.filter((x) => x.spaceIds.includes(spaceIds[1])).map((x) => ({ id: x.id, spaceIds: [...x.spaceIds] })),
+        pois: g.pois.filter((p) => p.spaceId === spaceIds[1]).map((p) => p.id),
+      },
       m = mergeRegions(g, spaceIds, { label: d.label, use: d.use });
+    let undo = null;
+    if (before?.kept && before?.removed) {
+      const removedId = m.removedIds[0];
+      undo = {
+        keptId: m.keptId, removedId, kept: before.kept, removed: before.removed,
+        after: clone(g.spaces.find((s) => s.id === m.keptId).polygon),
+        internalDoors: clone(m.internal),
+        repointedDoors: before.doors.filter((x) => !m.internal.some((i) => i.id === x.id)),
+        // Filled in once the transaction's walls are final (see reconcileWalls below).
+        removedWalls: [],
+        addedWallIds: [],
+        poiIds: before.pois,
+        recordIds: floor.access.records.filter((r) => r.spaceId === removedId).map((r) => r.id),
+        adjacent: floor.access.records.filter((r) => r.adjacentIds.includes(removedId)).map((r) => ({ id: r.id, adjacentIds: [...r.adjacentIds] })),
+        undone: false,
+      };
+      mergeUndos.push(undo);
+    }
     for (const id of m.removedIds) {
       remap.set(id, m.keptId);
       affected.add(id);
@@ -914,6 +1004,7 @@ export function applyAccessDecisions(
       change: { from: m.from, to: m.to },
       reason: (d.reason || `${labels} merged into one region, ${m.to.label}.`).slice(0, 3000),
       evidence: manual(`Merged regions ${spaceIds.join(", ")} in the editor; ${m.keptId} is kept.`),
+      merge: undo,
     });
   }
   for (const d of decisions.filter((d) => d.op === "carve")) {
@@ -1077,6 +1168,15 @@ export function applyAccessDecisions(
   const geometryOps = decisions.some((d) => d.op !== "unresolved");
   if (geometryOps)
     reconcileWalls(g, floorId, [...affected], added, removed);
+  // A recorded merge undoes its whole effect on walls, traced walls included.
+  if (mergeUndos.length) {
+    const beforeKeys = new Set(floor.geometry.walls.map((w) => JSON.stringify(w))),
+      finalKeys = new Set(g.walls.map((w) => JSON.stringify(w)));
+    for (const undo of mergeUndos) {
+      undo.removedWalls = floor.geometry.walls.filter((w) => !finalKeys.has(JSON.stringify(w))).map(clone);
+      undo.addedWallIds = g.walls.filter((w) => !beforeKeys.has(JSON.stringify(w))).map((w) => w.id);
+    }
+  }
   const stamped = records.map((r) =>
     newAccessRecord({
       ...r,
@@ -1098,6 +1198,14 @@ export function applyAccessDecisions(
     ),
     f = next.floors.find((f) => f.id === floorId);
   if (remap.size) remapRegionReferences(next, f, remap, droppedDoors);
+  for (const { recordId: id, u } of unmerged) {
+    for (const r of f.access.records) {
+      if (r.id === id) r.merge = { ...r.merge, undone: true };
+      if (u.recordIds.includes(r.id)) r.spaceId = u.removedId;
+      const adj = u.adjacent.find((a) => a.id === r.id);
+      if (adj) r.adjacentIds = [...adj.adjacentIds];
+    }
+  }
   // Earlier automated proposals for regions the developer has now decided.
   for (const r of f.access.records)
     if (superseded.has(r.spaceId) && r.kind === "classification" && r.status === "proposed") {

@@ -509,7 +509,8 @@
                 </p>
                 <p class="hint">
                   Tick regions to highlight them on the map, or click a region on the map. “Show on
-                  map” zooms the map to one region.
+                  map” zooms the map to one region. To join rooms, use “Merge rooms” or a room's
+                  “Merge…” button.
                 </p>
                 <label class="field"
                   >Filter regions
@@ -535,48 +536,169 @@
                       </button>
                     </div>
                   }
-                  @if (sel.length >= 2) {
-                    <div class="merge-box" data-testid="merge-box">
-                      <p class="hint">
-                        Merge {{ sel.length }} regions into one walkable region:
-                        @for (m of sel; track m.id; let last = $last) {
-                          <strong>{{ m.label }}</strong
-                          >{{ last ? '.' : ', ' }}
-                        }
-                      </p>
+                }
+
+                @if (mergeGroup(); as group) {
+                  <div
+                    class="merge-box"
+                    role="group"
+                    aria-labelledby="merge-title"
+                    data-testid="merge-box"
+                  >
+                    <h3 id="merge-title">Merge two rooms</h3>
+                    <p class="hint">
+                      One merge at a time. Pick the room to keep first, then a room that shares a
+                      wall with it; the second room is merged into the first. You can unmerge later
+                      under “Merged rooms”.
+                    </p>
+                    @if (!group.length) {
                       <label class="field"
-                        >Name for the merged region (optional)
-                        <input
-                          [maxLength]="nameMax"
-                          [value]="mergeName()"
-                          (input)="mergeName.set(value($event))"
-                          data-testid="merge-name"
-                        />
+                        >Room to keep
+                        <select
+                          class="input"
+                          (change)="startMerge($event)"
+                          data-testid="merge-start"
+                        >
+                          <option value="" selected>Choose a room, or click one on the map…</option>
+                          @for (sp of floor()?.spaces ?? []; track sp.id) {
+                            <option [value]="sp.id" [disabled]="!sp.neighbours?.length">
+                              {{ sp.label }}
+                            </option>
+                          }
+                        </select>
                       </label>
-                      <label class="choice">
-                        <input
-                          type="checkbox"
-                          [checked]="mergeStair()"
-                          (change)="mergeStairChoice.set(!mergeStair())"
-                          data-testid="merge-stair"
-                        />
-                        Merged region is a stair
-                      </label>
+                    } @else {
+                      <ol class="merge-members" data-testid="merge-members">
+                        @for (m of mergeMembers(); track m.id; let first = $first) {
+                          <li>
+                            <span class="merge-role">{{ first ? 'Keep' : 'Merge in' }}</span>
+                            <span>{{ m.label }}</span>
+                            <button
+                              class="btn small ghost"
+                              (click)="removeFromMerge(m.id)"
+                              [attr.aria-label]="'Remove ' + m.label + ' from the merge'"
+                              data-testid="merge-remove"
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        }
+                      </ol>
+                      <p class="hint">
+                        {{
+                          mergeMembers().length > 1
+                            ? 'Or merge in a different room'
+                            : 'Merge in a room'
+                        }}
+                        that shares a wall with {{ mergeMembers()[0]?.label }}:
+                      </p>
+                      @if (mergeCandidates().length) {
+                        <ul class="merge-candidates" data-testid="merge-candidates">
+                          @for (c of mergeCandidates(); track c.id) {
+                            <li>
+                              <button
+                                class="btn small secondary"
+                                [class.chosen]="group[1] === c.id"
+                                [attr.aria-pressed]="group[1] === c.id"
+                                (click)="addToMerge(c.id)"
+                                [attr.data-region-id]="c.id"
+                                data-testid="merge-candidate"
+                              >
+                                {{ c.label }}
+                              </button>
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        <p class="hint" data-testid="merge-none">
+                          No other room shares a wall with {{ mergeMembers()[0]?.label }}.
+                        </p>
+                      }
+                    }
+                    <label class="field"
+                      >Name for the merged room (optional; otherwise the kept room's name)
+                      <input
+                        [maxLength]="nameMax"
+                        [value]="mergeName()"
+                        (input)="mergeName.set(value($event))"
+                        data-testid="merge-name"
+                      />
+                    </label>
+                    <label class="choice">
+                      <input
+                        type="checkbox"
+                        [checked]="mergeStair()"
+                        (change)="mergeStairChoice.set(!mergeStair())"
+                        data-testid="merge-stair"
+                      />
+                      Merged room is a stair
+                    </label>
+                    <div class="merge-actions">
                       <button
                         class="btn small primary"
-                        [disabled]="busy()"
+                        [disabled]="busy() || mergeMembers().length < 2"
                         (click)="mergeRegions()"
                         data-testid="merge-regions"
                       >
-                        Merge {{ sel.length }} regions
+                        @if (mergeMembers().length > 1) {
+                          Merge {{ mergeMembers()[1].label }} into {{ mergeMembers()[0].label }}
+                        } @else {
+                          Merge
+                        }
+                      </button>
+                      <button
+                        class="btn small ghost"
+                        (click)="cancelMerge()"
+                        data-testid="cancel-merge"
+                      >
+                        Cancel
                       </button>
                       @if (isSaving('merge')) {
                         <span class="saving" role="status" data-testid="saving">Saving…</span>
                       }
                     </div>
-                  } @else if (sel.length === 1) {
-                    <p class="hint">Tick another region to merge them.</p>
-                  }
+                  </div>
+                } @else {
+                  <button
+                    class="btn small secondary merge-open"
+                    [disabled]="busy() || (floor()?.spaces?.length ?? 0) < 2"
+                    (click)="openMerge()"
+                    data-testid="open-merge"
+                  >
+                    Merge rooms
+                  </button>
+                }
+
+                @if (merges().length) {
+                  <div class="merged-list" data-testid="merged-list">
+                    <h3>Merged rooms ({{ merges().length }})</h3>
+                    <ul>
+                      @for (m of merges(); track m.recordId) {
+                        <li data-testid="merged-item">
+                          <span class="merged-check" aria-hidden="true">✓</span>
+                          <span class="merged-text">
+                            <strong>{{ m.removedLabel }}</strong> merged into
+                            <strong>{{ m.label }}</strong>
+                            @if (!m.undoable && m.reason) {
+                              <span class="hint">{{ m.reason }}</span>
+                            }
+                          </span>
+                          <button
+                            class="btn small secondary"
+                            [disabled]="busy() || !m.undoable"
+                            (click)="unmerge(m)"
+                            [attr.aria-label]="'Unmerge ' + m.removedLabel + ' from ' + m.label"
+                            data-testid="unmerge"
+                          >
+                            Unmerge
+                          </button>
+                          @if (isSaving('unmerge:' + m.recordId)) {
+                            <span class="saving" role="status" data-testid="saving">Saving…</span>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </div>
                 }
 
                 <p class="hint" aria-live="polite">
@@ -670,6 +792,20 @@
                           data-testid="locate"
                         >
                           <app-icon name="pin" /> Show on map
+                        </button>
+                        <button
+                          class="btn small secondary"
+                          [disabled]="busy() || !sp.neighbours?.length"
+                          (click)="openMerge(sp.id)"
+                          [attr.aria-label]="
+                            'Merge ' + sp.label + ' with a room that shares a wall'
+                          "
+                          [title]="
+                            sp.neighbours?.length ? '' : 'No room shares a wall with this one'
+                          "
+                          data-testid="merge-from"
+                        >
+                          Merge…
                         </button>
                       </div>
                     </li>

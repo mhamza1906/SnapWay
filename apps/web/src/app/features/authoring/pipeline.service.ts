@@ -38,6 +38,20 @@ export interface AssumedDoor {
   segment: { a: Point; b: Point };
   candidates: EdgeOption[];
 }
+/** One recorded two-room merge: `removedLabel` was merged into the region `keptId`. */
+export interface MergeRecord {
+  recordId: string;
+  keptId: string;
+  /** The merged region's current name. */
+  label: string;
+  keptLabel: string;
+  removedId: string;
+  removedLabel: string;
+  at: string;
+  /** False, with `reason`, when a later merge of the same region must be undone first. */
+  undoable: boolean;
+  reason: string | null;
+}
 /** A walkable space (region) on a floor. */
 export interface SpaceSummary {
   id: string;
@@ -50,6 +64,8 @@ export interface SpaceSummary {
   use?: 'stair' | 'hall' | 'closed' | null;
   /** Closed regions stay on the map but are never routed through. */
   closed?: boolean;
+  /** Regions this one shares a wall with: the only ones it can be merged with. */
+  neighbours?: string[];
 }
 /**
  * How a region is used, sent as `kind` to spaces/kind. A hall room is a room people also
@@ -82,6 +98,8 @@ export interface FloorSummary {
   spaces: SpaceSummary[];
   /** Spaces the map author marked as stairs; absent in responses from older pipeline builds. */
   stairs?: { id: string; label: string }[];
+  /** Merges that can be undone, newest first; absent in responses from older pipeline builds. */
+  merges?: MergeRecord[];
   needsAttention: {
     spaceId: string;
     label: string;
@@ -453,6 +471,15 @@ export class PipelineService {
     merge: { spaceIds: string[]; label?: string; stair?: boolean; reviewer: string },
   ): Promise<Merged> {
     return this.postLight('/authoring/spaces/merge', building, { floorId, ...merge });
+  }
+  /** Undoes one recorded merge: both rooms come back as they were before it. */
+  unmergeSpaces(
+    building: PipelineBuilding,
+    floorId: string,
+    recordId: string,
+    reviewer: string,
+  ): Promise<Edited> {
+    return this.postLight('/authoring/spaces/unmerge', building, { floorId, recordId, reviewer });
   }
   route(
     building: PipelineBuilding,

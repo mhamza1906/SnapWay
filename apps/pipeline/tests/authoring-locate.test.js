@@ -111,7 +111,11 @@ const kinds = floorBuilding("k", 400, 300, [
   door("k:d-lab", { x: 240, y: 100 }, { x: 250, y: 100 }, ["k:lab", "k:hall"]),
   door("k:d-store", { x: 40, y: 140 }, { x: 50, y: 140 }, ["k:store", "k:hall"]),
 ]);
-const summarySpace = (b, id) => floorSummary(b, "k").spaces.find((s) => s.id === id);
+// The region row without its wall neighbours (checked in region-edits.test.js).
+const summarySpace = (b, id) => {
+  const { neighbours, ...row } = floorSummary(b, "k").spaces.find((s) => s.id === id) ?? {};
+  return neighbours ? row : undefined;
+};
 const inCluster = (b, ...ids) => circulationClusters(floorOf(b)).some((c) => ids.every((id) => c.some((s) => s.id === id)));
 const throughAnnex = (route) => route.steps.some((s) => s.from === "k:d-annex:nav" || s.to === "k:d-annex:nav");
 
