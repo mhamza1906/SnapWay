@@ -141,4 +141,4 @@ From `apps/web` with Node 24.15+ and npm 11: `npm ci`, `npm run ios:sync`,
 
 - `4dd1045` feat(ios): add Capacitor iOS visitor app with phone layout
 - `75870f6` Merge origin/main into feature/mobile-ios
-- Camera capture and MegaLoc-first matching: recorded after its commit.
+- `03ea4da` feat(ios): camera capture and MegaLoc-first place matching
