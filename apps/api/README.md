@@ -16,6 +16,11 @@ product APIs remain to be implemented; REST, jobs and MCP should call the same
 authorized services. Google OAuth and session identity:
 [backend-oauth.md](../../docs/backend-oauth.md) (credentials in `local/.env`).
 
+`navigation/` also exposes the photo-localization gateway under
+`/api/navigation/localize/` (signed-in user, visitor `NavigationSession`, or a
+DEBUG-only dev token), which forwards frames to the place-match engine:
+[mobile-ios-api.md](../../docs/mobile-ios-api.md).
+
 See [development instructions](../../docs/development.md).
 
 Configuration: use only ignored `local/.env` and the root

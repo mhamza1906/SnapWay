@@ -1,0 +1,220 @@
+<div class="live-backdrop">
+  <section class="live-sheet" role="dialog" aria-modal="true" aria-labelledby="live-title">
+    <header>
+      <div>
+        <span class="eyebrow">Photo localization · beta</span>
+        <h2 id="live-title">Locate with camera</h2>
+      </div>
+      @if (debugBuild()) {
+        <button class="btn ghost" aria-label="Server settings" (click)="view.set('settings')">
+          <app-icon name="settings" />
+        </button>
+      }
+      <button class="btn ghost" aria-label="Close" (click)="closed.emit()">
+        <app-icon name="close" />
+      </button>
+    </header>
+
+    @switch (view()) {
+      @case ('loading') {
+        <p class="muted">Checking camera access…</p>
+      }
+      @case ('explain') {
+        <p>
+          SnapWay can compare what your camera sees with reference photos of this building to
+          suggest where you are. Frames stay on this iPhone and are sent only when you choose.
+        </p>
+        <button class="btn primary wide" (click)="allowCamera()">Allow camera</button>
+        <button class="btn ghost wide" (click)="closed.emit()">Choose my start manually</button>
+      }
+      @case ('blocked') {
+        <p>
+          @if (!cameraAvailable()) {
+            This device has no back camera.
+          } @else if (camera() === 'restricted') {
+            Camera access is restricted on this iPhone (for example by Screen Time).
+          } @else {
+            Camera access is off. Turn it on in Settings › SnapWay › Camera.
+          }
+          You can still import a recorded video or choose your start manually.
+        </p>
+        @if (camera() === 'denied') {
+          <button class="btn secondary wide" (click)="openSettings()">Open Settings</button>
+        }
+        <button class="btn secondary wide" (click)="importVideo()">Import a video</button>
+        <button class="btn ghost wide" (click)="closed.emit()">Choose my start manually</button>
+      }
+      @case ('settings') {
+        <form class="live-settings" (submit)="$event.preventDefault()">
+          <p class="muted">
+            Development builds only. Use the HTTPS ngrok address of the place-match server (or
+            SnapWay API). The token is written to the Keychain and never shown again.
+          </p>
+          <label
+            >Server address<input
+              #base
+              type="url"
+              inputmode="url"
+              autocapitalize="none"
+              autocorrect="off"
+              placeholder="https://example.ngrok-free.app"
+              [value]="config().baseUrl ?? ''"
+          /></label>
+          <label
+            >Server type<select #mode [value]="config().mode ?? 'engine'">
+              <option value="engine">place-match engine (/v1)</option>
+              <option value="snapway">SnapWay API (/api/navigation)</option>
+            </select></label
+          >
+          <label
+            >Token
+            <input
+              #token
+              type="password"
+              autocomplete="off"
+              [placeholder]="config().hasToken ? 'Saved — leave empty to keep' : 'Paste token'"
+          /></label>
+          <div class="row">
+            <button class="btn primary" (click)="saveSettings(base.value, mode.value, token.value)">
+              Save
+            </button>
+            <button class="btn secondary" (click)="testConnection()">Test</button>
+            <button class="btn ghost" (click)="clearSettings()">Clear</button>
+          </div>
+          <button class="btn ghost wide" (click)="refresh()">Back to camera</button>
+        </form>
+      }
+      @case ('capture') {
+        <div class="live-controls">
+          <button
+            class="btn wide"
+            [class.primary]="!capturing()"
+            [class.secondary]="capturing()"
+            (click)="toggleCapture()"
+          >
+            <app-icon name="camera" /> {{ capturing() ? 'Stop capturing' : 'Start capturing' }}
+          </button>
+          <label
+            >Frames per second
+            <select [value]="fps()" (change)="setFps(value($event))">
+              <option value="0.5">0.5</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="5">5</option>
+            </select></label
+          >
+        </div>
+        @if (capturing()) {
+          <p class="live-recording" role="status"><span></span>Capturing frames</p>
+        }
+        @if (!online()) {
+          <p class="live-note">Offline: frames stay on this iPhone and no location is guessed.</p>
+        } @else if (!canSend()) {
+          <p class="live-note">
+            Sending needs a configured server{{ debugBuild() ? ' (settings icon above)' : '' }}.
+            Frames stay on this iPhone.
+          </p>
+        }
+        <details class="live-options">
+          <summary>Matching options</summary>
+          <label
+            ><input
+              type="checkbox"
+              [checked]="autoSend()"
+              (change)="autoSend.set(checked($event))"
+            />Send every new frame automatically</label
+          >
+          <label
+            >Backend
+            <select [value]="backend()" (change)="backend.set($any(value($event)))">
+              <option value="auto">Auto (MegaLoc first)</option>
+              <option value="megaloc">MegaLoc only</option>
+              <option value="vertex">Vertex AI only</option>
+            </select></label
+          >
+          <label
+            ><input type="checkbox" [checked]="verify()" (change)="verify.set(checked($event))" />
+            Geometric verification (~1.2 s)</label
+          >
+          <label
+            ><input
+              type="checkbox"
+              [checked]="secondOpinion()"
+              (change)="secondOpinion.set(checked($event))"
+            />Vertex AI second opinion when MegaLoc is uncertain</label
+          >
+        </details>
+
+        <ul class="live-frames">
+          @for (frame of frames(); track frame.client_frame_id) {
+            @let outcome = results()[frame.client_frame_id];
+            <li>
+              @if (frame.preview) {
+                <img [src]="frame.preview" alt="Captured frame {{ frame.client_frame_id }}" />
+              }
+              <div>
+                <strong>Frame {{ frame.client_frame_id }}</strong>
+                <small
+                  >{{ frame.source }} · {{ frame.timestamp_s.toFixed(1) }} s ·
+                  {{ frame.orientation }}
+                  @if (frame.quality.flags.length) {
+                    · {{ frame.quality.flags.join(', ') }}
+                  }
+                </small>
+                @if (outcome?.kind === 'result' && outcome; as found) {
+                  @if (found.kind === 'result') {
+                    <p class="live-result" [attr.data-outcome]="found.result.decision.outcome">
+                      {{ label[found.result.decision.outcome] }}
+                      @if (found.result.decision.location_id) {
+                        · {{ found.result.decision.location_id }}
+                      }
+                    </p>
+                    <small
+                      >{{ backendLabel(found.result) }} · thresholds
+                      {{ found.result.thresholds_id }} · {{ found.roundTripMs }} ms</small
+                    >
+                    <small
+                      >Similarity (raw):
+                      @for (c of found.result.candidates.slice(0, 3); track c.reference_id) {
+                        {{ c.location_id ?? c.reference_id }} {{ similarity(c.cosine) }};
+                      }
+                    </small>
+                    @if (suggestion(found); as node) {
+                      <button class="btn secondary" (click)="checkpoint.emit(node.id)">
+                        Use {{ node.label }} as start
+                      </button>
+                    }
+                  }
+                } @else if (outcome?.kind === 'error' && outcome; as failed) {
+                  @if (failed.kind === 'error') {
+                    <p class="live-error">{{ failed.message }}</p>
+                  }
+                }
+                <button
+                  class="btn ghost"
+                  [disabled]="!canSend() || sending()[frame.client_frame_id]"
+                  (click)="send(frame)"
+                >
+                  {{
+                    sending()[frame.client_frame_id] ? 'Sending…' : outcome ? 'Send again' : 'Send'
+                  }}
+                </button>
+              </div>
+            </li>
+          } @empty {
+            <li class="muted">No frames yet. Start capturing or import a video.</li>
+          }
+        </ul>
+        <div class="row">
+          <button class="btn secondary" (click)="importVideo()">Import a video</button>
+          <button class="btn ghost" (click)="deleteFrames()">
+            <app-icon name="trash" /> Delete captured frames
+          </button>
+        </div>
+      }
+    }
+    @if (message()) {
+      <p class="live-note" role="status">{{ message() }}</p>
+    }
+  </section>
+</div>

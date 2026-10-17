@@ -14,12 +14,14 @@ import type { MapDocument, MappingTarget } from '../../core/prototype.models';
 import { NavigationMap } from './navigation-map';
 import { Icon } from '../../shared/icon';
 import { CapturePanel } from './capture-panel';
+import { LiveLocate } from './live-locate';
+import { nativeCaptureAvailable } from '../../core/frame-capture';
 
 const EMPTY_MAP: MapDocument = { rooms: [], nodes: [], edges: [], annotations: [], references: [] };
 
 @Component({
   selector: 'app-navigation',
-  imports: [NavigationMap, Icon, CapturePanel],
+  imports: [NavigationMap, Icon, CapturePanel, LiveLocate],
   providers: [DevicePreview],
   templateUrl: './navigation.html',
   styleUrl: './navigation.scss',
@@ -59,6 +61,9 @@ export class NavigationPage {
   readonly message = signal('');
   readonly suggestedBuilding = signal('');
   readonly cameraOpen = signal(false);
+  /** Real camera matching (iOS app only); the simulated capture panel stays for the web. */
+  readonly nativeCapture = nativeCaptureAvailable();
+  readonly liveOpen = signal(false);
   readonly outcome = signal<CaptureOutcome>('accepted');
   readonly destinationOptions = computed(() =>
     this.map().nodes.map((node) => ({
@@ -228,6 +233,14 @@ export class NavigationPage {
 
   captureContext(): string {
     return `${this.session()?.id}:${this.session()?.published?.version}:${this.destination()}:${this.position()}:${this.step()}`;
+  }
+
+  acceptLiveCheckpoint(id: string): void {
+    this.liveOpen.set(false);
+    this.chooseStart(id);
+    this.message.set(
+      'Starting point set from a photo match. Check it against your surroundings before starting.',
+    );
   }
 
   acceptCheckpoint(id: string): void {

@@ -4,7 +4,10 @@
   "cli": {
     "packageManager": "npm",
     "analytics": false,
-    "cache": { "enabled": true, "environment": "all" }
+    "cache": {
+      "enabled": true,
+      "environment": "all"
+    }
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -53,7 +56,12 @@
               "browser": "src/main.visitor.ts",
               "outputPath": "dist/snapway-visitor",
               "optimization": true,
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "index": {
+                "input": "src/index.visitor.html",
+                "output": "index.html"
+              },
+              "styles": ["src/styles.scss", "src/styles.visitor.scss"]
             },
             "development": {
               "optimization": false,

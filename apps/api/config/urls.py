@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/health/ready/", readiness, name="readiness"),
     path("api/auth/", include("accounts.urls")),
     path("api/maps/", include("maps.urls")),
+    path("api/navigation/", include("navigation.urls")),
     path("accounts/", include("allauth.urls")),
     path("admin/", admin.site.urls),
 ]

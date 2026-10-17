@@ -162,6 +162,14 @@ build/install/test an APK. App ID `org.snapway.app` is an initial candidate; agr
 the release identity and signing custody before distribution. No APK, camera
 plugin behavior, device permission flow or native acceptance is claimed.
 
+On branch `feature/mobile-ios`, the same visitor build also runs on iOS (macOS
+with Xcode 26+ only). See [iOS visitor app](mobile-ios.md):
+
+```sh
+npm run ios:sync
+npx cap open ios
+```
+
 ## Checks and CI
 
 Run `python scripts/dev.py check` after bootstrap. It verifies initial-document

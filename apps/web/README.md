@@ -70,6 +70,19 @@ a physical phone are still needed for build/device acceptance. No APK or
 native camera acceptance is claimed. Trivial upstream sample tests were removed;
 meaningful native tests accompany device features when implemented.
 
+## iOS synchronization
+
+On macOS with Xcode 26+:
+
+```bash
+npm run ios:sync
+npx cap open ios
+```
+
+The iOS app ships the same visitor build as Android, with the phone layout from
+`src/styles.visitor.scss`. Signing and physical-device acceptance are not
+claimed; see [iOS visitor app](../../docs/mobile-ios.md).
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

@@ -65,9 +65,11 @@ python scripts/dev.py check
 ```text
 apps/web/               Angular contributor workspace + separate visitor entry
 apps/web/android/       Generated Capacitor Android project and Gradle wrapper
+apps/web/ios/           Generated Capacitor iOS project (Xcode, Swift Package Manager)
 apps/api/               Django/DRF, domain schema, custom user, health and Celery setup
 apps/mcp/               Official MCP v2 read-only local stdio scaffold
 apps/pipeline/          Map-authoring AI pipeline service (Node); see docs/pipeline/
+apps/place-match/       Photo place-matching engine (MegaLoc, Vertex AI) and mobile API
 packages/geometry/     Geometry boundary; algorithms follow later
 packages/vision/       AI adapter boundary; provider calls follow later
 contracts/             PostgreSQL DDL reference; future payload schemas and fixtures
@@ -92,6 +94,8 @@ creating another env file. See [docs/pipeline](docs/pipeline/README.md) and the
 [phase audit, model/pipeline gaps and committed screenshots](docs/audits/2026-10-17-map-authoring-pipeline.md)
 before using this result as evidence of a completed authoring workflow. Real
 Vertex access succeeded, but the generated proposal was not accepted as a map.
+iOS visitor app and photo localization: [docs/mobile-ios.md](docs/mobile-ios.md)
+(API reference: [docs/mobile-ios-api.md](docs/mobile-ios-api.md)).
 
 ## Dependencies and collaboration
 

@@ -105,7 +105,11 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "300/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "300/min",
+        "localization": env("LOCALIZATION_RATE", default="60/min"),
+    },
 }
 SPECTACULAR_SETTINGS = {"TITLE": "SnapWay API", "VERSION": "0.1.0"}
 CSRF_COOKIE_NAME = "XSRF-TOKEN"
@@ -127,3 +131,11 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_TIME_LIMIT = 300
 CELERY_TASK_SOFT_TIME_LIMIT = 280
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Visual place matching (apps/place-match mobile engine). The API forwards frames to the
+# engine on a private address; it never stores frames or holds Google credentials.
+PLACEMATCH_ENGINE_URL = env("PLACEMATCH_ENGINE_URL", default="")
+PLACEMATCH_ENGINE_TOKEN = env("PLACEMATCH_ENGINE_TOKEN", default="")
+PLACEMATCH_ENGINE_TIMEOUT_S = env.float("PLACEMATCH_ENGINE_TIMEOUT_S", default=30.0)
+# Development-only bearer token for the iOS debug build; ignored unless DEBUG is true.
+PLACEMATCH_DEV_TOKEN = env("PLACEMATCH_DEV_TOKEN", default="")

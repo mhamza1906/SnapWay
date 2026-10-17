@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Place Match</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #e2e2dc;
+  --accent: #2f5bd3; --ok: #1f7a4a; --warn: #9a6a00; --bad: #a33a2b; --chip: #efefea;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #151614; --panel: #1e1f1c; --ink: #ecece6; --muted: #9c9c94; --line: #33342f;
+    --accent: #7b9cff; --ok: #5fc48d; --warn: #e0b04a; --bad: #ef7c69; --chip: #2a2b27; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+header { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 12px;
+  align-items: baseline; flex-wrap: wrap; }
+header h1 { font-size: 17px; margin: 0; }
+header span { color: var(--muted); }
+main { display: grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 16px 20px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 16px; } }
+section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px; min-width: 0; }
+h2 { font-size: 14px; margin: 0 0 10px; }
+a { color: var(--accent); }
+label { display: block; margin: 10px 0 4px; color: var(--muted); font-size: 12px; }
+input[type=number], select { width: 100%; padding: 6px 8px; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--panel); color: var(--ink); }
+input[type=file] { width: 100%; font-size: 12px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row label { margin: 0; color: var(--ink); font-size: 13px; }
+button { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--accent);
+  background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; }
+button.secondary { background: transparent; color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+pre.log { background: var(--chip); padding: 8px; border-radius: 6px; max-height: 200px;
+  overflow: auto; font-size: 11px; white-space: pre-wrap; }
+.hint { color: var(--muted); font-size: 12px; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.toolbar select { width: auto; max-width: 100%; }
+.tabs button { background: transparent; color: var(--ink); border-color: var(--line); }
+.tabs button.on { border-color: var(--accent); color: var(--accent); }
+.stats { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+.q { border-top: 1px solid var(--line); padding: 12px 0; display: grid;
+  grid-template-columns: 180px 1fr; gap: 12px; }
+@media (max-width: 600px) { .q { grid-template-columns: 1fr; } }
+.q:first-of-type { border-top: 0; }
+.thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px;
+  background: var(--chip); display: block; }
+.meta { font-size: 12px; color: var(--muted); margin-top: 4px; word-break: break-all; }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.cand { cursor: pointer; border: 1px solid var(--line); border-radius: 8px; padding: 6px;
+  font-size: 12px; background: transparent; color: var(--ink); text-align: left; font-weight: 400; }
+.cand:hover, .cand:focus-visible { border-color: var(--accent); }
+.cand.accepted { border-color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px;
+  font-weight: 600; background: var(--chip); }
+.likely_match { color: var(--ok); } .uncertain { color: var(--warn); }
+.no_supported_match { color: var(--bad); }
+.flag { color: var(--warn); font-size: 12px; margin-left: 6px; }
+.v { color: var(--muted); }
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel);
+  color: var(--ink); width: min(1200px, 96vw); max-height: 94vh; padding: 14px; }
+dialog::backdrop { background: rgba(0,0,0,.5); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+.pair img, .ov img { width: 100%; border-radius: 6px; }
+table.kv { border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+table.kv td { padding: 2px 10px 2px 0; } table.kv td:first-child { color: var(--muted); }
+.empty { color: var(--muted); padding: 30px 0; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Place Match</h1>
+  <span>Match video frames to reference photographs. Scores are raw cosine similarity, not confidence.</span>
+</header>
+<main>
+  <section class="panel" aria-labelledby="new-h">
+    <h2 id="new-h">New match</h2>
+    <form id="form">
+      <label for="refs">Reference photos (folder; subfolders = location ids)</label>
+      <input id="refs" name="references" type="file" webkitdirectory multiple required>
+      <label for="video">Recorded video</label>
+      <input id="video" name="video" type="file" accept="video/*">
+      <label for="queries">…or an existing frame folder</label>
+      <input id="queries" name="queries" type="file" webkitdirectory multiple>
+      <label for="fps">Frames per second (video)</label>
+      <input id="fps" name="fps" type="number" value="1" min="0.1" step="0.1">
+      <label>Backends</label>
+      <div class="row">
+        <label><input type="checkbox" name="b" value="megaloc" checked> MegaLoc (local, default)</label>
+        <label><input type="checkbox" name="b" value="vertex"> Vertex AI embeddings</label>
+        <label><input type="checkbox" name="b" value="gemini"> Gemini Developer API (legacy)</label>
+      </div>
+      <p><button type="submit" id="prep">Prepare and estimate</button></p>
+    </form>
+    <div id="estimate" hidden>
+      <div id="est-text" class="hint"></div>
+      <label for="limit">API request limit (blank = no limit)</label>
+      <input id="limit" type="number" min="0">
+      <div class="row" style="margin-top:8px">
+        <label><input type="checkbox" id="verify"> Geometric verification (SuperPoint + LightGlue; slower, ~1.2 s/frame)</label>
+      </div>
+      <p><button id="start" type="button">Run</button></p>
+    </div>
+    <pre class="log" id="log" hidden></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="res-h">
+    <h2 id="res-h">Results</h2>
+    <div class="toolbar">
+      <label for="runsel" class="hint" style="margin:0">Run</label>
+      <select id="runsel"></select>
+      <div class="tabs row" role="tablist">
+        <button type="button" id="t-q" class="on" role="tab">By frame</button>
+        <button type="button" id="t-r" role="tab">By reference</button>
+      </div>
+      <span id="exports" class="hint"></span>
+    </div>
+    <div id="stats" class="stats"></div>
+    <div id="list"><div class="empty">No runs yet.</div></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="row" style="justify-content:space-between">
+    <strong id="dlg-title"></strong>
+    <button class="secondary" type="button" onclick="dlg.close()">Close</button>
+  </div>
+  <div class="pair" style="margin-top:10px">
+    <figure style="margin:0"><img id="dq" alt="query frame"><figcaption class="meta" id="dqc"></figcaption></figure>
+    <figure style="margin:0"><img id="dr" alt="reference photo"><figcaption class="meta" id="drc"></figcaption></figure>
+  </div>
+  <table class="kv" id="dkv"></table>
+  <div class="ov" id="dov"></div>
+</dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let current = null, view = "q", job = null;
+const fmt = (x, d = 3) => (x === null || x === undefined ? "–" : Number(x).toFixed(d));
+const ts = (t) => (t === null || t === undefined ? "no timestamp" : `${fmt(t, 2)} s`);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const img = (id) => `/api/image?id=${encodeURIComponent(current.id)}&image_id=${encodeURIComponent(id)}`;
+const LABEL = {likely_match: "Likely match", uncertain: "Uncertain", no_supported_match: "No supported match"};
+
+async function loadRuns(select) {
+  const runs = await (await fetch("/api/runs")).json();
+  const sel = $("#runsel");
+  sel.innerHTML = runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(r.provider || r.backend)}${r.verified ? " · verified" : ""}</option>`).join("");
+  if (select) sel.value = select;
+  if (runs.length) showRun(sel.value);
+}
+
+async function showRun(id) {
+  const data = await (await fetch(`/api/run?id=${encodeURIComponent(id)}`)).json();
+  current = {id, ...data};
+  const s = data.run.stats;
+  $("#stats").textContent = `${data.run.backend} · ${s.n_queries} queries, ${s.n_references} references · ` +
+    `${s.api_requests} API requests, ${s.cache_hits} cache hits` +
+    (s.failed ? `, ${s.failed} failed` : "") + ` · thresholds: ${data.run.queries[0]?.decision?.thresholds ?? "none"}`;
+  $("#exports").innerHTML = Object.entries(data.exports).map(([k, u]) => `<a href="${u}">${k.replace("_", " ")}</a>`).join(" · ");
+  render();
+}
+
+function verifyText(v) {
+  if (!v) return "";
+  if (v.status === "verified" || v.status === "inconclusive")
+    return `${v.status}: ${v.n_inliers}/${v.n_correspondences} inliers, cov ${fmt(v.coverage_query, 2)}`;
+  return v.status;
+}
+
+function render() {
+  const list = $("#list");
+  if (!current) return;
+  if (view === "q") {
+    list.innerHTML = current.run.queries.map((q, qi) => {
+      const d = q.decision || {};
+      const flags = (q.quality?.flags || []).map((f) => `<span class="flag">${esc(f)}</span>`).join("");
+      return `<div class="q">
+        <div><img class="thumb" loading="lazy" src="${img(q.query_id)}" alt="query ${esc(q.query_id)}">
+          <div class="meta">${esc(ts(q.timestamp_s))}${flags}<br>${esc(q.query_id)}</div></div>
+        <div><div style="margin-bottom:6px"><span class="badge ${esc(d.outcome)}">${esc(LABEL[d.outcome] || "No decision")}</span>
+          <span class="hint">${esc((d.reasons || []).join(" · "))}</span></div>
+          <div class="cands">${q.candidates.map((c, ci) => `
+            <button type="button" class="cand ${d.reference_id === c.reference_id && d.outcome === "likely_match" ? "accepted" : ""}" data-q="${qi}" data-c="${ci}">
+              <img class="thumb" loading="lazy" src="${img(c.reference_id)}" alt="reference ${esc(c.reference_id)}">
+              #${c.rank} cosine ${fmt(c.cosine)}<br><span class="v">${esc(c.location_id || "")}</span>
+              <br><span class="v">${esc(verifyText(c.verification))}</span></button>`).join("")}
+          </div></div></div>`;
+    }).join("") || `<div class="empty">No queries.</div>`;
+  } else {
+    list.innerHTML = current.run.references.map((r) => `<div class="q">
+        <div><img class="thumb" loading="lazy" src="${img(r.reference_id)}" alt="reference ${esc(r.reference_id)}">
+          <div class="meta">${esc(r.location_id || "")}<br>${esc(r.reference_id)}</div></div>
+        <div class="cands">${r.best_queries.map((m, i) => `<div class="cand">
+            <img class="thumb" loading="lazy" src="${img(m.query_id)}" alt="frame ${esc(m.query_id)}">
+            #${i + 1} ${esc(ts(m.timestamp_s))}<br>cosine ${fmt(m.cosine)}</div>`).join("")}</div></div>`).join("")
+      || `<div class="empty">No reverse lookup in this run.</div>`;
+  }
+}
+
+$("#list").addEventListener("click", (e) => {
+  const b = e.target.closest("button.cand");
+  if (!b) return;
+  const q = current.run.queries[+b.dataset.q], c = q.candidates[+b.dataset.c], v = c.verification;
+  $("#dlg-title").textContent = `Rank ${c.rank} · cosine ${fmt(c.cosine)} (raw similarity)`;
+  $("#dq").src = img(q.query_id); $("#dr").src = img(c.reference_id);
+  $("#dqc").textContent = `query ${q.query_id} · ${ts(q.timestamp_s)}`;
+  $("#drc").textContent = `reference ${c.reference_id} · location ${c.location_id ?? "unknown"}`;
+  const rows = v ? [["verification", v.status], ["geometry model", v.geometry_model ?? "–"],
+    ["correspondences", v.n_correspondences], ["geometric inliers", v.n_inliers],
+    ["inlier ratio", fmt(v.inlier_ratio)], ["coverage (query / ref)", `${fmt(v.coverage_query, 2)} / ${fmt(v.coverage_reference, 2)}`],
+    ["note", v.message || "–"]] : [["verification", "not run"]];
+  $("#dkv").innerHTML = rows.map(([k, x]) => `<tr><td>${esc(k)}</td><td>${esc(x)}</td></tr>`).join("");
+  $("#dov").innerHTML = v?.overlay_path
+    ? `<p class="hint">Feature correspondences (inliers)</p><img alt="correspondence overlay" src="/api/overlay?id=${encodeURIComponent(current.id)}&query_id=${encodeURIComponent(q.query_id)}&reference_id=${encodeURIComponent(c.reference_id)}">` : "";
+  $("#dlg").showModal();
+});
+
+$("#runsel").addEventListener("change", (e) => showRun(e.target.value));
+$("#t-q").onclick = () => { view = "q"; $("#t-q").classList.add("on"); $("#t-r").classList.remove("on"); render(); };
+$("#t-r").onclick = () => { view = "r"; $("#t-r").classList.add("on"); $("#t-q").classList.remove("on"); render(); };
+
+function log(lines) { const l = $("#log"); l.hidden = false; l.textContent = lines.join("\n"); l.scrollTop = l.scrollHeight; }
+
+$("#form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData();
+  for (const f of $("#refs").files) fd.append("references", f, f.webkitRelativePath || f.name);
+  if ($("#video").files[0]) fd.append("video", $("#video").files[0]);
+  else for (const f of $("#queries").files) fd.append("queries", f, f.webkitRelativePath || f.name);
+  fd.append("fps", $("#fps").value);
+  fd.append("backends", [...document.querySelectorAll("input[name=b]:checked")].map((x) => x.value).join(","));
+  $("#prep").disabled = true; log(["uploading and extracting frames…"]);
+  const res = await fetch("/api/jobs", {method: "POST", body: fd});
+  $("#prep").disabled = false;
+  const body = await res.json();
+  if (!res.ok) { log([body.detail || "failed"]); return; }
+  job = body; log(job.log);
+  $("#estimate").hidden = false;
+  $("#est-text").textContent = Object.values(job.estimates).map((x) =>
+    `${x.backend}: ${x.n_images} images, ${x.n_cached} cached, expected uncached API requests ${x.expected_requests}`).join(" · ");
+});
+
+$("#start").addEventListener("click", async () => {
+  const fd = new FormData();
+  if ($("#limit").value !== "") fd.append("limit", $("#limit").value);
+  fd.append("verify", $("#verify").checked);
+  $("#start").disabled = true;
+  await fetch(`/api/jobs/${job.id}/start`, {method: "POST", body: fd});
+  const poll = setInterval(async () => {
+    const j = await (await fetch(`/api/jobs/${job.id}`)).json();
+    log(j.log);
+    if (j.status === "done" || j.status === "failed") {
+      clearInterval(poll); $("#start").disabled = false;
+      if (j.runs.length) loadRuns(j.runs[j.runs.length - 1]);
+    }
+  }, 1500);
+});
+
+loadRuns();
+</script>
+</body>
+</html>
