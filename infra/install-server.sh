@@ -31,4 +31,4 @@ printf '%s\n' 'snapwaydeploy ALL=(root) NOPASSWD: /usr/local/sbin/snapway-activa
     > /etc/sudoers.d/snapway-deploy
 chmod 440 /etc/sudoers.d/snapway-deploy
 visudo -cf /etc/sudoers.d/snapway-deploy
-echo 'Controller installed. Configure api.env and migration.env before deployment.'
+echo 'Controller installed. Configure DATABASE_URL and DATABASE_MIGRATOR in api.env before deployment.'

@@ -2,6 +2,9 @@
 
 import importlib.util
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -12,6 +15,7 @@ SPEC = importlib.util.spec_from_file_location(
 )
 deploy = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(deploy)
+DJANGO_LAUNCHER = deploy.django
 
 OLD = "a" * 40 + "-1-1"
 NEW = "b" * 40 + "-2-1"
@@ -23,8 +27,7 @@ def host(tmp_path, monkeypatch):
     config = tmp_path / "config"
     config.mkdir()
     (config / "domain").write_text("snapway.work")
-    for name in ("api.env", "migration.env"):
-        (config / name).write_text("private")
+    (config / "api.env").write_text("private")
     caddy = tmp_path / "Caddyfile"
     caddy.write_text("previous configuration")
     monkeypatch.setattr(deploy, "ROOT", root)
@@ -148,3 +151,50 @@ def test_environment_files_reject_nonroot_ownership_or_shared_access(owner, mode
     file.stat.return_value = Mock(st_uid=owner, st_mode=mode)
     with pytest.raises(ValueError, match="owned by root"):
         deploy.require_secret_file(file)
+
+
+@pytest.mark.parametrize("connection", ["postgresql://migrator@host/database", ""])
+def test_migration_entrypoint_selects_migrator_or_fails_before_django(tmp_path, connection):
+    api = tmp_path / "apps/api"
+    api.mkdir(parents=True)
+    (api / "manage.py").write_text(
+        "import json, os, sys\n"
+        "print(json.dumps({'connection': os.environ['DATABASE_URL'], "
+        "'migration_visible': 'DATABASE_MIGRATOR' in os.environ, 'args': sys.argv[1:]}))\n"
+    )
+    environment = dict(
+        os.environ, DATABASE_URL="postgresql://runtime@host/database", DATABASE_MIGRATOR=connection
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", deploy.MIGRATION_ENTRYPOINT, "migrate", "--noinput"],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    if connection:
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout) == {
+            "connection": connection,
+            "migration_visible": False,
+            "args": ["migrate", "--noinput"],
+        }
+    else:
+        assert result.returncode != 0
+        assert "DATABASE_MIGRATOR must be configured" in result.stderr
+        assert not result.stdout
+
+
+def test_api_and_management_commands_use_one_file_and_hide_migrator(host):
+    _, config, _, state, _ = host
+    # Exercise the real launcher rather than the promotion fixture's command stub.
+    runner = deploy.run
+    DJANGO_LAUNCHER(state, ["check"])
+    assert f"--property=EnvironmentFile={config / 'api.env'}" in runner.call_args.args
+    assert "--property=UnsetEnvironment=DATABASE_MIGRATOR" in runner.call_args.args
+    DJANGO_LAUNCHER(state, ["migrate", "--noinput"], migration=True)
+    assert f"--property=EnvironmentFile={config / 'api.env'}" in runner.call_args.args
+    assert deploy.MIGRATION_ENTRYPOINT in runner.call_args.args
+    assert "--property=UnsetEnvironment=DATABASE_MIGRATOR" not in runner.call_args.args
+    assert "UnsetEnvironment=DATABASE_MIGRATOR" in deploy.api_unit(state)

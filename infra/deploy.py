@@ -22,6 +22,16 @@ USER = "snapwaydeploy"
 APP_USER = "snapway"
 UV = "/usr/local/bin/uv"
 RELEASE_PATTERN = re.compile(r"[0-9a-f]{40}-[0-9]+-[0-9]+")
+MIGRATION_ENTRYPOINT = """
+import os
+import runpy
+
+connection = os.environ.pop("DATABASE_MIGRATOR", "").strip()
+if not connection:
+    raise SystemExit("DATABASE_MIGRATOR must be configured in api.env for migrations")
+os.environ["DATABASE_URL"] = connection
+runpy.run_path("apps/api/manage.py", run_name="__main__")
+"""
 
 
 def run(*args, **kwargs):
@@ -136,10 +146,13 @@ def django(state, command, *, migration=False):
         f"--gid={APP_USER}",
         f"--working-directory={source}",
         "--property=NoNewPrivileges=yes",
-        f"--property=EnvironmentFile={CONFIG / ('migration.env' if migration else 'api.env')}",
+        f"--property=EnvironmentFile={CONFIG / 'api.env'}",
     ]
+    if not migration:
+        args.append("--property=UnsetEnvironment=DATABASE_MIGRATOR")
     args.extend(f"--setenv={key}={value}" for key, value in service_env(state).items())
-    run(*args, str(ROOT / "venvs" / state["venv"] / "bin/python"), "apps/api/manage.py", *command)
+    entrypoint = ["-c", MIGRATION_ENTRYPOINT] if migration else ["apps/api/manage.py"]
+    run(*args, str(ROOT / "venvs" / state["venv"] / "bin/python"), *entrypoint, *command)
 
 
 def api_unit(state):
@@ -161,6 +174,7 @@ User={APP_USER}
 Group={APP_USER}
 WorkingDirectory={source}
 EnvironmentFile={CONFIG}/api.env
+UnsetEnvironment=DATABASE_MIGRATOR
 {environment}
 ExecStart={command}
 Restart=on-failure
@@ -284,8 +298,7 @@ def activate(release_id, *, rollback=False):
     domain = (CONFIG / "domain").read_text().strip()
     if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)+", domain):
         raise ValueError("Invalid deployment domain")
-    for name in ("api.env", "migration.env"):
-        require_secret_file(CONFIG / name)
+    require_secret_file(CONFIG / "api.env")
     source = release / "source"
     backend_hash = tree_digest(source)
     web_hash = tree_digest(release / "web")

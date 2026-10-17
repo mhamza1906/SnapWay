@@ -76,6 +76,10 @@ Complete the server-only environment template:
 - Set `DATABASE_URL` to Tiger Data's actual direct PostgreSQL endpoint and port.
   Percent-encode special characters in connection-string passwords. Prefer a
   dedicated runtime role with the application's required grants.
+- Set `DATABASE_MIGRATOR` to the same database with the migration/owner login.
+  The migration launcher temporarily selects this connection as `DATABASE_URL`
+  before Django starts. A missing value fails migrations explicitly. Normal API
+  and management processes have `DATABASE_MIGRATOR` removed from their environment.
 - Keep `PGSSLMODE=verify-full`. Use `PGSSLROOTCERT=system` only if the service
   certificate chains to a trusted system root. Otherwise copy the CA from Tiger
   Data to `/etc/indoor-nav/tiger-ca.pem`, make it root-owned and world-readable
@@ -86,21 +90,38 @@ Complete the server-only environment template:
 - Do not set `STATIC_ROOT`, `STATIC_URL`, `PYTHONPATH` or `APP_RELEASE` here; the
   controller supplies release-specific values.
 
-Prepare a separate protected migration environment:
+Both connection URLs live in the single protected `/etc/indoor-nav/api.env`:
 
-```bash
-sudo cp /etc/indoor-nav/api.env /etc/indoor-nav/migration.env
-sudo nano /etc/indoor-nav/migration.env
-sudo chown root:root /etc/indoor-nav/api.env /etc/indoor-nav/migration.env
-sudo chmod 600 /etc/indoor-nav/api.env /etc/indoor-nav/migration.env
+```dotenv
+DATABASE_URL=postgresql://RUNTIME_USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_MIGRATOR=postgresql://snapway_migrator:PASSWORD@HOST:PORT/DATABASE
 ```
 
-In `migration.env`, use the migration/owner connection with permission to apply
-the existing schema migrations. The runtime connection needs schema/table and
+```bash
+sudo chown root:root /etc/indoor-nav/api.env
+sudo chmod 600 /etc/indoor-nav/api.env
+```
+
+The migration connection needs permission to apply the existing schema migrations.
+The runtime connection needs schema/table and
 sequence access; those grants must be maintained for newly migrated objects.
 Do not change or drop the existing schema to work around an error. Verify Tiger
 network rules allow the Vultr IPv4. A runtime check cannot prove migration grants.
-Keep the two environment files consistent apart from their intended credentials.
+
+For a VM with the earlier two-file controller, copy the updated reviewed
+infrastructure files and rerun the installer. Add the old migration connection
+as `DATABASE_MIGRATOR` in `api.env`, then remove the obsolete file if it exists:
+
+```bash
+sudo nano /etc/indoor-nav/api.env
+sudo rm /etc/indoor-nav/migration.env
+```
+
+Do not remove the old file before preserving its connection and installing the
+updated controller. Existing running API processes pick up environment changes
+on restart; subsequent releases generate the API service's migration-variable
+exclusion. Local development still reads `local/env/api.env` and uses its
+`DATABASE_URL`; this change does not alter the local management entrypoint.
 
 ## First release and automatic releases
 
@@ -142,8 +163,8 @@ silently drop a backend change on the next frontend-only commit.
 Backend changes reuse only a completed venv keyed by lockfile, manifest, exact
 Python version, OS, architecture, uv version and install profile. A cache miss
 creates it at its final path; running environments are never resynced. The
-controller checks production settings, applies pending migrations using the
-migration identity, collects release-qualified Django static files, and starts
+controller checks production settings, applies pending migrations using
+`DATABASE_MIGRATOR`, collects release-qualified Django static files, and starts
 the inactive API slot (`8101`/`8102`). Private liveness/readiness must pass before
 Caddy switches to that API and the corresponding frontend. Public HTTPS health
 and exact index content must then pass. The old API drains with Gunicorn TERM.
@@ -205,3 +226,9 @@ October 17 local result: 50 tests passed; 16 PostgreSQL-only cases skipped under
 the local SQLite test profile. Ruff lint/format, Bash syntax, actionlint workflow
 validation and Git whitespace checks passed. Action commits were checked against
 their official GitHub tags. The existing staged schema documentation was preserved.
+
+The requesting contributor subsequently approved consolidating production
+configuration into one `api.env`. Regression coverage also checks migration
+connection selection, a missing migration connection failing before Django starts,
+and normal management/API processes excluding the migration variable. No dependency
+or service-topology change accompanies this configuration simplification.
