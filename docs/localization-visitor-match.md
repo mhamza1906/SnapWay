@@ -7,66 +7,88 @@ Personal history: ignored `local/ACTIONS.md`.
 
 ## Goal
 
-Let a **visitor (or signed-in tester)** submit a camera JPEG and get back a **matched graph node** by comparing against the revision’s stored MegaLoc index (`RevisionArtifact` kind=`index`).
+Let a **visitor** submit a camera JPEG (no floor prompt) and get back **which floor and node** by MegaLoc cosine search over **all ready floor-map index zips**.
 
 ```text
 Developer half (done)
-  ReferencePhotos → MegaLoc → Asset zip + RevisionArtifact ready
+  Per MapTarget/floor revision: ReferencePhotos → MegaLoc → index zip on RevisionArtifact
 
 Visitor half (this branch)
-  JPEG frame + revision (or published target)
-    → SnapWay API /localize/ (extended)
-    → place-match MegaLoc cosine match vs that revision’s vectors
-    → node_id (location_id) + decision (likely_match | uncertain | no_supported_match)
+  JPEG frame only (no floor / target / revision from the user)
+    → embed once with MegaLoc
+    → cosine vs every ready floor index (published preferred)
+    → best global hit → building/floor/target + node_id + decision
 ```
+
+## Design decision (updated)
+
+**Do not ask the user which floor they are on.** The app does not rely on GPS for indoor floor. Instead:
+
+1. Embed the visitor photo **once**.  
+2. Score it against **all** eligible MegaLoc indexes (one gallery per floor map revision).  
+3. Take the **global** top candidate(s); the winning reference’s index carries `target_id` / `revision_id` / `node_id` (and thus floor).
+
+Indexes remain stored **per revision** (one floor version each). Search is **cross-floor**, not “one big floorplan embedding.”
+
+Optional **debug** query params (`revision_id` / `target_id`) may restrict search for developers; they are not part of the visitor UX.
 
 ## What already exists
 
 | Piece | Role |
 | --- | --- |
 | Index zip on `RevisionArtifact` | `vectors.npy`, `index.txt`, `meta.json`, `locations.json` (`image_id` → `node_id`) |
-| place-match `serve-mobile` `/v1/match` | MegaLoc match against a **named folder** reference set |
-| Django `/api/navigation/localize/` | Validates JPEG, forwards to engine; **does not** select a map revision’s stored artifact |
-| iOS / live-locate client | Capture → localize against engine’s fixed `MOBILE_REFERENCE_SET` |
+| place-match `/v1/match` | MegaLoc match against a **single** named reference set |
+| Django `/api/navigation/localize/` | Forwards one frame to the engine; no multi-index / floor resolution yet |
+| iOS / live-locate | Capture UI; still assumes a fixed engine set today |
 
 ## Design (chosen for first implementation)
 
-### 1. Resolve which index to use
+### 1. Which indexes are eligible
 
-Request names either:
+Default visitor catalog:
 
-- `revision_id` (dev/contributor testing on a draft with a ready index), or  
-- `target_id` → current `Publication` revision (visitor-facing path when publications exist).
+- Each `MapTarget` (floor) with a **current `Publication`**, and  
+- That publication’s revision has `RevisionArtifact(kind=index, state=ready)`.
 
-Require `RevisionArtifact(kind=index, state=ready)` with an `Asset`. Otherwise `404` / `503` with a clear code (`index_not_ready`).
+Dev/DEBUG may also include unfrozen drafts with a ready index (membership-gated), so testers can run without a full publish loop.
 
-### 2. Register / load index into the engine
+If **no** ready indexes exist → `503` / `index_not_ready`.
 
-Engine today loads one set from `data/references/<name>/`. Extend place-match with:
+### 2. Global search mechanics
 
-- **`POST /v1/references/load-index`** (or equivalent CLI): accept the zip (or paths to `vectors.npy` + `index.txt` + `locations.json`), register as set name `rev_<revision_id_compact>`.
-- Match uses **vectors only** for scoring; thumbnails optional later (may omit image bytes in v1).
-- Django, before `/v1/match`, ensures the set is loaded (cache by artifact `input_content_hash` / asset sha256 so rebuilds refresh).
+- MegaLoc **embed query once** (same backend key as embed half, e.g. `megaloc:5fe0dd6:322x322`).  
+- Load each eligible index zip into the engine (or one concatenated gallery with per-row metadata: `target_id`, `revision_id`, `node_id`, `reference_id`).  
+- Cosine top-k **across the union**; apply existing place-match decision thresholds on the global ranking (or calibrated multi-set policy: margin vs 2nd place, including 2nd place on another floor).  
+- Response includes floor context derived from the winning target (`building` / `floor` / `target_id` / `revision_id` / `node_id`).
 
-Alternative considered and rejected for v1: re-implement MegaLoc cosine inside Django (would pull torch into the API venv).
+**Risk:** visually similar corridors on different floors. Mitigation for v1: keep calibrated `uncertain` when top-1 and top-2 are close (especially cross-target); do not invent a floor. Optional later: building filter if outdoor/context ever provides building only (still no floor prompt).
 
-### 3. API contract (Django)
+### 3. Engine / Django split
 
-Extend localize (or add sibling) so clients can pass revision/target:
+- **place-match:** support multi-set or merged-index match from zips (vectors + locations + set metadata); still no torch in Django.  
+- **Django:** list eligible artifacts, ensure engine has them loaded (keyed by asset sha256 / `input_content_hash`), forward JPEG, map engine hit → SnapWay IDs.
+
+Reject re-implementing MegaLoc inside the API venv.
+
+### 4. API contract (Django)
 
 ```http
 POST /api/navigation/localize/
 multipart: image (JPEG) + meta (JSON)
-query or form: revision_id=…   OR   target_id=…
+# visitor: no floor fields required
+# optional debug: revision_id=… or target_id=… to search one gallery only
 ```
 
-Response (engine decision, plus SnapWay fields):
+Example success body:
 
 ```json
 {
   "decision": "likely_match",
   "node_id": "<uuid>",
   "revision_id": "<uuid>",
+  "target_id": "<uuid>",
+  "floor_id": "<uuid>",
+  "building_id": "<uuid>",
   "reference_id": "…",
   "backend_used": "megaloc",
   "candidates": [ … ],
@@ -74,70 +96,61 @@ Response (engine decision, plus SnapWay fields):
 }
 ```
 
-`node_id` = `locations.json` / place-match `location_id` (already node UUID from embed half).
+**Auth for v1 (dev):** existing localize auth (session / nav capability / DEBUG token). Full visitor `NavigationSession` productization later.
 
-**Auth for v1 (dev):** keep existing localize auth (session / nav capability / DEBUG token). Do not require full visitor `NavigationSession` productization yet.
+**Out of scope for first PR:** `Capture` / `LocalizationResult` persistence (frame retention).
 
-**Still out of scope for this draft’s first PR:** writing `Capture` / `LocalizationResult` rows (needs frame-retention approval).
+### 5. Minimal tester UI
 
-### 4. Minimal tester UI
-
-Reuse or thin-wrap existing live-locate / a small `/localize-test` page:
-
-- pick or paste `revision_id` (with ready index),
-- upload or capture one JPEG,
-- show matched `node_id` + decision.
-
-Full visitor map guidance (route, arrival) remains later.
+Upload/capture one JPEG → show **floor + node + decision** (no floor picker). Debug-only optional “limit to revision” control behind a flag.
 
 ## Non-goals (this branch)
 
-- Multi-angle authoring UX / “index stale” banners  
-- Auto-rebuild index on every photo upload  
-- Celery workers / Cloud Run place-match hosting  
+- Prompting the user for floor / map  
+- Multi-angle authoring UX  
+- Auto-rebuild index on photo upload  
+- Celery / Cloud Run hosting  
 - Continuous tracking / IMU  
-- Persisting visitor frames to R2  
-- Geometric verification / Vertex second opinion (keep engine defaults: MegaLoc-only)
+- Persisting visitor frames  
+- Vertex / geometric verification (MegaLoc-only defaults)
 
 ## Implementation slices
 
 | Slice | Work |
 | --- | --- |
-| A | place-match: load index zip → in-memory / on-disk set; match without photo files |
-| B | Django: resolve revision artifact → push/load to engine → forward match; map `location_id` → `node_id` |
-| C | Tests: fake engine + fake artifact zip; one optional live MegaLoc smoke |
-| D | Minimal web tester UI (revision id + JPEG → result) |
-| E | Docs: this file → “implemented”; link from `localization-megaloc.md` |
+| A | place-match: load many index zips; match query vs union (metadata per row) |
+| B | Django: discover eligible published (and DEBUG draft) indexes; sync to engine; localize → floor + node |
+| C | Tests: multi-floor fake indexes; correct floor wins; uncertain when scores collide |
+| D | Tester UI: photo in → floor/node out (no floor prompt) |
+| E | Docs mark implemented; keep link from `localization-megaloc.md` |
 
-Suggested order: **A → B → C → D → E**.
+Order: **A → B → C → D → E**.
 
 ## Env
-
-Reuse existing:
 
 | Variable | Role |
 | --- | --- |
 | `PLACEMATCH_ENGINE_URL` / `TOKEN` / `TIMEOUT_S` | Django → engine |
 | `S3_*` / `MEDIA_ROOT` | Read index Asset bytes |
-| `MOBILE_REFERENCE_SET` | Legacy default set name; revision sets use `rev_*` names |
 
-No schema migration expected if `RevisionArtifact` + `Asset` already hold the index.
+No new keys required for the design change. Scale note: embedding once + scoring all refs is fine for demo floor counts; revisit if galleries grow huge.
 
 ## How to verify (once built)
 
-1. Graph editor: photos on nodes → `POST …/revisions/<id>/index/` → `ready`.  
-2. Start `uv run placematch serve-mobile` from `apps/place-match`.  
-3. Set `PLACEMATCH_ENGINE_*` in `local/.env`.  
-4. `POST /api/navigation/localize/` with a JPEG similar to a reference + `revision_id`.  
-5. Expect `decision: likely_match` and the correct `node_id`.
+1. Build ready indexes on **two** floor revisions (different photos).  
+2. Run engine + API with `PLACEMATCH_ENGINE_*`.  
+3. `POST /localize/` with a photo from floor A **without** floor params.  
+4. Expect `likely_match` (or calibrated `uncertain`) and `target_id` / `node_id` for floor A.
 
-## Open points (resolve during implementation, not blockers for starting A)
+## Open points
 
-- Cache invalidation when the same revision’s index is rebuilt (hash key).  
-- Whether unpublished drafts are allowed for localize in production (default: allow in DEBUG / membership only).  
-- Thumbnail URLs without storing image copies in the engine set.
+- Exact catalog: published-only vs DEBUG drafts.  
+- Engine: merged matrix vs N sequential score merges (same math).  
+- Thresholds when top-2 are different floors.  
+- Cache invalidation when any floor’s index is rebuilt.
 
 ## Commits / evidence
 
 - Draft opened on `feature/visitor-localization-match` (2026-10-17).  
+- Design update: **global multi-floor search, no floor prompt** (2026-10-17).  
 - Implementation commits TBD.
