@@ -1,0 +1,145 @@
+<div class="graph-page">
+  <header class="graph-bar">
+    <div class="brand-block">
+      <a class="brand" routerLink="/overview">SnapWay</a>
+      <h1>Graph editor</h1>
+      <p class="lede">Place waypoints and connections on the floor plan.</p>
+    </div>
+    <div class="tools" role="toolbar" aria-label="Graph tools">
+      <button
+        type="button"
+        class="tool"
+        [class.active]="tool() === 'select'"
+        (click)="setTool('select')"
+      >
+        Select
+      </button>
+      <button type="button" class="tool" [class.active]="tool() === 'add'" (click)="setTool('add')">
+        Add waypoint
+      </button>
+      <button
+        type="button"
+        class="tool"
+        [class.active]="tool() === 'connect'"
+        (click)="setTool('connect')"
+      >
+        Connect
+      </button>
+      <button type="button" class="tool" [class.active]="tool() === 'cut'" (click)="setTool('cut')">
+        Cut connection
+      </button>
+      <label class="tool upload">
+        Upload underlay
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          hidden
+          (change)="onUnderlayPicked($event)"
+        />
+      </label>
+      <button
+        type="button"
+        class="tool danger"
+        [disabled]="!selectedNodeId() && !selectedEdgeId()"
+        (click)="removeSelected()"
+      >
+        Remove
+      </button>
+      <button type="button" class="tool" (click)="startNewMap()">New map</button>
+    </div>
+  </header>
+
+  @if (tool() === 'add') {
+    <div class="label-row">
+      <label>
+        Waypoint label
+        <input
+          type="text"
+          [value]="labelDraft()"
+          (input)="labelDraft.set($any($event.target).value)"
+          placeholder="e.g. Studio 101"
+          maxlength="120"
+        />
+      </label>
+    </div>
+  }
+
+  <div class="workspace">
+    <div class="stage">
+      <app-graph-canvas
+        [width]="width()"
+        [height]="height()"
+        [underlayUrl]="underlayUrl()"
+        [nodes]="nodes()"
+        [edges]="edges()"
+        [selectedNodeId]="selectedNodeId()"
+        [selectedEdgeId]="selectedEdgeId()"
+        [connectFromId]="connectFromId()"
+        [tool]="tool()"
+        (canvasClicked)="onCanvasClick($event)"
+        (nodeClicked)="onNodeClick($event)"
+        (edgeClicked)="onEdgeClick($event)"
+      />
+    </div>
+
+    @if (tool() === 'select' && selectedNodeId(); as nodeId) {
+      <aside class="inspector" aria-label="Selected waypoint">
+        <h2>Waypoint</h2>
+        <label>
+          Label
+          <input
+            type="text"
+            [value]="editLabel()"
+            (input)="editLabel.set($any($event.target).value)"
+            maxlength="120"
+            placeholder="Classroom or landmark name"
+          />
+        </label>
+        <button type="button" class="tool active save" (click)="saveLabel()">Save label</button>
+
+        <div class="photos-block">
+          <div class="photos-head">
+            <h3>Photos</h3>
+            <label class="tool upload small">
+              Attach
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                hidden
+                (change)="onPhotoPicked($event)"
+              />
+            </label>
+          </div>
+          @if (photosLoading()) {
+            <p class="muted">Loading…</p>
+          } @else if (!photos().length) {
+            <p class="muted">No photos yet. Attach a reference image for this waypoint.</p>
+          } @else {
+            <ul class="photo-list">
+              @for (photo of photos(); track photo.id) {
+                <li>
+                  <a [href]="photo.url" target="_blank" rel="noopener">
+                    <img [src]="photo.url" alt="Node reference photo" />
+                  </a>
+                  <button type="button" class="tool danger small" (click)="removePhoto(photo.id)">
+                    Remove
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </aside>
+    }
+  </div>
+
+  <footer class="status-line">
+    <span>{{ status() }}</span>
+    @if (error(); as err) {
+      <span class="err">{{ err }}</span>
+    }
+    @if (!authenticated()) {
+      <a class="signin" href="/accounts/google/login/">Sign in with Google</a>
+    }
+  </footer>
+</div>

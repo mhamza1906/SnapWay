@@ -122,6 +122,13 @@ STATIC_URL = "/django-static/"
 MEDIA_URL = "/media/"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+# Default filesystem; development/production may replace via storage_backends.apply_storages.
+S3_SIGNED_URL_TTL_SECONDS = 300
+MEDIA_STORAGE_BACKEND = "filesystem"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = None
