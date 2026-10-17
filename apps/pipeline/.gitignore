@@ -1,0 +1,6 @@
+# Runtime data: response caches, map jobs, saved copies and exports stay local.
+.local/
+output/
+node_modules/
+# Large regression fixture from the original project; copy in locally to run the skipped tests.
+public/buildings/waterloo-e2.json

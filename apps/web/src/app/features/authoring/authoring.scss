@@ -1,0 +1,76 @@
+.authoring-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+// Long option labels and the map's intrinsic width must not widen the page.
+.authoring-page > *,
+.authoring-grid > *,
+.panel-body > * {
+  min-width: 0;
+}
+select,
+input {
+  min-width: 0;
+}
+.source-row,
+.button-row,
+.route-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+}
+.floor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.authoring-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .authoring-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.map-svg {
+  width: 100%;
+  overflow: auto;
+  border-radius: 0.5rem;
+  background: #f7f7f4;
+}
+.map-svg ::ng-deep svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.tools-panel .panel-body {
+  display: grid;
+  gap: 0.6rem;
+  max-height: 80vh;
+  overflow: auto;
+}
+.item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.hint,
+.job {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+label.btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+select {
+  max-width: 100%;
+  width: 100%;
+}

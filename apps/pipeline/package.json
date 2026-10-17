@@ -1,0 +1,29 @@
+{
+  "name": "@snapway/pipeline",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Map-authoring pipeline service: floor-plan PDF to rooms, doorways and walking paths (Claude in dev, Gemini on Vertex AI in prod).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/start.js prod",
+    "dev": "node server/start.js dev",
+    "prod": "node server/start.js prod",
+    "build-plan": "node server/build-from-plan.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.11",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jszip": "^3.10.2",
+    "multer": "^2.0.0",
+    "pdfjs-dist": "^6.4.299",
+    "polygon-clipping": "^0.15.7",
+    "sharp": "^0.35.5",
+    "zod": "^3.25.0",
+    "zod-to-json-schema": "^3.25.2"
+  }
+}

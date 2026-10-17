@@ -64,6 +64,7 @@ apps/web/               Angular contributor workspace + separate visitor entry
 apps/web/android/       Generated Capacitor Android project and Gradle wrapper
 apps/api/               Django/DRF, domain schema, custom user, health and Celery setup
 apps/mcp/               Official MCP v2 read-only local stdio scaffold
+apps/pipeline/          Map-authoring AI pipeline service (Node); see docs/pipeline/
 packages/geometry/     Geometry boundary; algorithms follow later
 packages/vision/       AI adapter boundary; provider calls follow later
 contracts/             PostgreSQL DDL reference; future payload schemas and fixtures
@@ -74,6 +75,14 @@ scripts/               Portable bootstrap, development and verification tools
 local/                 Ignored private settings, database, logs and research
 .venv/                 Ignored machine-local Python environment
 ```
+
+## Map-authoring pipeline
+
+The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
+`apps/pipeline/`. Run it with `npm ci && npm run prod` from `apps/pipeline`
+(Gemini on Vertex AI). Everyone uses `.env.prod`; only Arjun uses `.env.dev`
+(Claude). See [docs/pipeline](docs/pipeline/README.md) and the
+[feature record](docs/map-authoring-pipeline.md).
 
 ## Dependencies and collaboration
 

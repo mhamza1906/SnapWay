@@ -1,4 +1,9 @@
 {
+  "/pipeline/**": {
+    "target": "http://127.0.0.1:5175",
+    "secure": false,
+    "pathRewrite": { "^/pipeline": "" }
+  },
   "/api/**": { "target": "http://127.0.0.1:8000", "secure": false },
   "/admin/**": { "target": "http://127.0.0.1:8000", "secure": false },
   "/accounts/**": { "target": "http://127.0.0.1:8000", "secure": false }
