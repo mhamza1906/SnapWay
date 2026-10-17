@@ -337,6 +337,12 @@ This avoids rewriting the complete tested Node implementation in Python or letti
 
 ## 11. Delivery sequence, costs and acceptance
 
+The [deployment update plan](../deployment-update-plan.md) selects the stage
+direction for section 10.1: retain one private Node compute service behind
+Django-owned jobs and one authoring worker, rather than rewriting the pipeline.
+It defines resource limits, serial execution, persistent paths, coordinated
+releases and capacity/failure gates. This is a selected plan, not deployed work.
+
 ### 11.1 Implementation slices
 
 1. **Contracts and short-route truth:** manually confirm IA nodes, doors, metric distances/headings, independent test photos and SVG. Keep IA-4 construction assets independent of IA-1 navigation testing.

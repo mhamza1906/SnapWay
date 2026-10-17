@@ -225,3 +225,14 @@ documents the remaining persistence, schema, permission, job and delivery gaps,
 recommending Django-owned shared state with private Node computation through
 background workers. This is an integration recommendation, not an implemented
 runtime change or a request to delete source evidence/prebuilt assets.
+
+## Selected deployment increment
+
+The [deployment update plan](deployment-update-plan.md) selects Django as the
+business/data authority with one private Node compute service and a serial
+authoring worker on the current VM. It records resource budgets as unverified
+rehearsal settings, persistent asset/configuration boundaries, coordinated
+release/rollback and acceptance gates. The [deployment guide](deployment.md)
+and [workflow delivery plan](pipeline/navigation-ai-workflow-plan.md#11-delivery-sequence-costs-and-acceptance)
+link to this conclusion. No runtime/API/dependency change, service installation,
+main merge, data deletion or deployment accompanies the document.

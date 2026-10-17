@@ -1,5 +1,10 @@
 # Vultr deployment
 
+The [deployment update plan](deployment-update-plan.md) selects the next increment:
+Django-owned business APIs and durable jobs, with one private Node compute
+service and a serial authoring worker. It defines delivery/resource/rollback
+gates; Node and the worker are not implemented by the deployment described here.
+
 Owner: Eric. Updated October 17, 2026. Demo TLS fix: pending on `ci/deployment`.
 Earlier deployment commits: [native deployment](https://github.com/mhamza1906/SnapWay/commit/8d0a005)
 and [single environment file](https://github.com/mhamza1906/SnapWay/commit/32a5abf).
