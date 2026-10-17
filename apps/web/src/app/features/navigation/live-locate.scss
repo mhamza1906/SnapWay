@@ -1,0 +1,120 @@
+.live-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: #182a35a6;
+}
+.live-sheet {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - env(safe-area-inset-top) - 12px);
+  overflow: auto;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 18px 18px calc(env(safe-area-inset-bottom) + 18px);
+  font-size: 14px;
+}
+header {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+header > div {
+  flex: 1;
+}
+h2 {
+  margin: 4px 0 12px;
+}
+.wide {
+  width: 100%;
+  margin-top: 10px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+label {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+input:not([type='checkbox']),
+select {
+  font-size: 16px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 10px;
+  background: white;
+}
+.live-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.live-controls {
+  display: grid;
+  gap: 4px;
+}
+.live-recording {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--red);
+  font-weight: 600;
+}
+.live-recording span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+}
+.live-note,
+.live-error {
+  background: #edf2fc;
+  color: #355fa8;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.live-error {
+  background: #fbecea;
+  color: var(--red);
+}
+.live-frames {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.live-frames li {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.live-frames img {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--canvas);
+}
+.live-frames li > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.live-result {
+  margin: 0;
+  font-weight: 600;
+}
+.live-result[data-outcome='likely_match'] {
+  color: var(--green);
+}

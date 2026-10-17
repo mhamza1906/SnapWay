@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>SnapWay uses the camera only when you choose a photo for localization in the navigation preview.</string>
+	<string>SnapWay uses the camera to recognise where you are inside a building. Frames stay on this iPhone and are sent to a matching server only when you choose to.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>SnapWay lets you choose an existing photo for localization in the navigation preview.</string>
 	<key>UILaunchStoryboardName</key>
