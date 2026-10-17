@@ -17,6 +17,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "accounts.apps.AccountsConfig",
     "maps.apps.MapsConfig",
     "jobs.apps.JobsConfig",
@@ -31,6 +35,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+]
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 TEMPLATES = [
     {
@@ -59,6 +68,34 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APP_RELEASE = env("APP_RELEASE", default="development")
+
+# Google establishes identity; map roles stay in maps.Membership / staff (never from Google).
+LOGIN_REDIRECT_URL = env("LOGIN_REDIRECT_URL", default="/api/auth/me/")
+ACCOUNT_LOGOUT_REDIRECT_URL = env("ACCOUNT_LOGOUT_REDIRECT_URL", default="/api/auth/me/")
+ACCOUNT_ADAPTER = "accounts.adapters.AccountAdapter"
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ONLY = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_STORE_TOKENS = False
+
+_google_client_id = env("GOOGLE_OAUTH_CLIENT_ID", default="")
+_google_client_secret = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+_google_provider = {
+    "SCOPE": ["openid", "email", "profile"],
+    "AUTH_PARAMS": {"access_type": "online"},
+    "OAUTH_PKCE_ENABLED": True,
+}
+# Settings-based APP only when both values are present so boot works without secrets.
+if _google_client_id and _google_client_secret:
+    _google_provider["APP"] = {
+        "client_id": _google_client_id,
+        "secret": _google_client_secret,
+        "key": "",
+    }
+SOCIALACCOUNT_PROVIDERS = {"google": _google_provider}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],

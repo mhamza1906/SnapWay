@@ -1,0 +1,11 @@
+---
+description: After every change, update the active feature docs under docs/
+alwaysApply: true
+---
+
+# Feature documentation after every change
+
+- After **each meaningful change**, update that feature’s shared markdown under `docs/` (e.g. `docs/backend-oauth.md` for OAuth work). Do not leave the feature doc stale.
+- Keep the feature doc concise and non-redundant: scope, how to run, env contract, changed-file links, action summary, commits.
+- Also append the contributor’s ignored `local/ACTIONS.md` (see `AGENTS.md`).
+- Before finishing a turn that edited code or config, re-read the feature md and fix anything outdated (commands, env paths, non-goals, file list, commit notes).
