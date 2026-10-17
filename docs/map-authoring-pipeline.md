@@ -177,7 +177,7 @@ prebuilds with the IA-4-only mock; and public static/photo or periodic-camera
 guidance without an indoor map UI. The plan defines frame/revision binding,
 deterministic wall checks, calibrated distances, interference exclusions,
 durable uploads, capture backpressure, review gates and proposed acceptance.
-Continuous world-registered AR remains a separate, unverified capability.
+Continuous world-registered AR requires its own measured acceptance.
 This update changes documentation only; existing APIs/schema/dependencies and
 paid-call settings remain unchanged.
 
@@ -187,3 +187,11 @@ It explains server visual localization plus local visual-inertial pose tracking,
 compares open-source reconstruction/localization/tracking components, and proposes
 isolated alignment and markerless-location experiments without changing runtime
 architecture, model choices or demo boundaries.
+
+The member subsequently authorized continuous geometric tracking and device
+sensor access as planned dynamic-navigation work. The [plan's sections 9.4–9.7](pipeline/navigation-ai-workflow-plan.md#94-双速率定位跟踪状态与延迟校正)
+now define local camera/accelerometer/gyroscope tracking alongside Gemini's
+periodic queries, Android/Capacitor boundaries, clock/coordinate/epoch handling,
+native camera ownership, fallback states, source-code references and real-device
+acceptance. No sensor reading or new SDK installation is claimed by this
+documentation update; existing API contracts and paid-call settings are unchanged.

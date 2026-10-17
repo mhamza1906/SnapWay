@@ -3,6 +3,8 @@
 日期：2026-10-17；分支 `acceptance/map-authoring-pipeline`；评估基线 `d78c5f4`。
 状态：**未来规划与可行性评估，尚未实现新运行链路**。依据成员最新七项需求，遵循[架构基线](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)，补充[现有工作流要求](../initial/Indoor_Navigation_Stakeholders_and_Workflows_Review_EN.md)。保留 Angular、Django/DRF、PostgreSQL、Celery/Redis、Capacitor 的职责划分；本次只更新文档，不修改 API、数据库 schema 或依赖，不调用收费服务。
 
+**连续跟踪更新（2026-10-17）：** 成员已授权把相机与加速度计、陀螺仪等设备接入、连续几何跟踪列为动态导航的正式工作项，参考 OpenVINS/ORB-SLAM3 等开源实现。以下 §9.4–9.7 定义接入方案与验收边界；这次更新仍是计划，不表示已经读取真机传感器或安装跟踪依赖。
+
 ## 1. 结论与产品定义
 
 **整体可行，建议以“人工审核的导航图 + 四向实景参考 + 受约束的视觉重新定位”推进。** 无需等待自动矢量化完成，即可建设和验证主要闭环。必须把以下能力分别验收：
@@ -14,8 +16,8 @@
 | 人工编辑与 Flash 辅助 | 可在现有权限/ChangeSet 方向上实现 | 稳定 ID、并发版本检查、可撤销的结构化操作 |
 | 四向照片异步理解 | 可实现 | 采集方位基准、独立任务、来源/干扰标注、结果版本检查 |
 | 静态实景路线 | 最适合作为首个实地闭环 | 起点/朝向确认、路线方向选图、用户手动推进、明确失败恢复 |
-| 每三秒视觉重新定位 | 有条件可行，精度和延迟尚未验证 | 本地选帧、限流、时序/运动约束、未知/歧义结果、实机测量 |
-| 摄像头内稳定贴合地面的箭头/位标 | 独立进阶能力 | 相机姿态、尺度、地图配准和跟踪；四向照片与周期 LLM 调用本身不足 |
+| 连续几何跟踪 + 每三秒视觉重新定位 | 已授权纳入动态方案；精度和延迟待真机验证 | 相机/IMU 接入、本地姿态与相对运动、限流、时序/运动约束、未知/歧义恢复 |
+| 摄像头内稳定贴合地面的箭头/位标 | 动态方案中分阶段验收 | 在连续跟踪上完成尺度、锚点与地图配准；通过后才开放世界坐标叠加 |
 
 Public User 的室内主界面改为**起终点选择、参考照片、摄像头和下一步指引**，不再展示室内地图；地图及图编辑界面留给 Developer。Google Maps 仍可承担室外找楼/接近入口，不能据此认定室内楼层和位置。将需求中的“输入重点”按上下文解释为“输入终点”；这是本文唯一的文字歧义假设。
 
@@ -187,6 +189,8 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 
 每会话最多一个定位请求在途、一个最新待处理帧；新帧替换旧待处理帧，避免队列不断累积。定位结果绑定 `sessionId / publicationId / contextVersion / captureSequence / capturedAt`，过期或乱序结果不得覆盖新状态。目的地/楼层变更递增上下文版本。
 
+此三秒采样仅用于 Gemini 查询；本地连续跟踪使用跟踪引擎所需的连续相机帧与 IMU 流。两者共享相机来源，不能每三秒才唤醒一次相机并期待连续 VIO；具体相机所有权见 §9.5。
+
 三秒是采样目标，**不是端到端延迟保证**。每分钟最多约 20 张被选帧；如果单次请求耗时 10 秒，串行会话约只能处理每分钟 6 张，其余必须丢弃或降频。量测拍摄、上传、队列、推理、验证各段 p50/p95，再决定采样频率、裁切和请求配置；不把增加并发作为无限补救。
 
 浏览器相机需要真实权限和适用的安全上下文；Cookie 不能代替相机许可。页面隐藏、锁屏、切后台、停止导航时暂停采样，恢复时检查新鲜度。Capacitor Camera 的单次拍照接口不能直接当作常驻分析管线；Android 连续模式需验证 WebView 相机流，或另行设计 CameraX bridge。当前仅规划，不安装插件/增加依赖。[W3C 媒体采集规范](https://www.w3.org/TR/mediacapture-streams/)、[Capacitor Camera](https://capacitorjs.com/docs/apis/camera)、[CameraX ImageAnalysis](https://developer.android.com/media/camera/camerax/analyze)
@@ -205,9 +209,80 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 
 有已确认地图朝向时才能计算相对转角；无朝向则显示“请对齐该地标”，不显示有确定含义的左右箭头。沿边位置未知时距离为区间/约数；无标尺不显示米数。局部可见地标若做框选，必须来自当前帧检测且有时效，不能把旧图框贴在新画面。
 
-若要求箭头/位标在移动相机中稳定附着于真实位置，则进入**世界坐标配准阶段**：需要相机内参、持续姿态/视觉惯性跟踪、地图与跟踪坐标对齐、真实尺度以及跟踪丢失恢复。四向照片 + 周期 LLM 识别只提供位置/朝向假设，不自动产生连续 6DoF 相机位姿；首版不承诺该效果。ARCore 用视觉特征和惯性数据进行跟踪，集成与地图配准仍是独立工程。[ARCore 基本原理](https://developers.google.com/ar/develop/fundamentals)
+成员已同意推进**连续几何跟踪与世界坐标配准**。实施时需要相机内参、持续姿态/视觉惯性跟踪、地图与跟踪坐标对齐、真实尺度以及跟踪丢失恢复；达到相应门槛前保留屏幕空间指引。四向照片 + 周期 LLM 识别提供位置/朝向假设，本地跟踪负责连续相对运动，两者共同参与导航状态估计。[ARCore 基本原理](https://developers.google.com/ar/develop/fundamentals)
 
-后续[Google Indoor Live View 技术研究](indoor-live-view-research.md)给出公开证据、云端定位与本地跟踪的对齐原理，以及 COLMAP/hloc/LightGlue/OpenVINS 等候选。其研究建议是额外的受控试验，不代表主系统已引入这些依赖或替换本计划指定的 Gemini 工作流。
+[Google Indoor Live View 技术研究](indoor-live-view-research.md)记录公开证据和对齐原理；下列章节将其转化为本项目获准推进的工作项。当前没有引入运行依赖或替换指定的 Gemini 工作流。
+
+### 9.4 双速率定位、跟踪状态与延迟校正
+
+**本地快路径：** 连续相机 + 加速度计/陀螺仪 → 原生 VIO/SLAM 或受支持的跟踪 SDK → 相机位姿/跟踪质量 → 地图坐标对齐 → 每个可用渲染帧更新箭头。原始 IMU 用于引擎内部融合，不通过网络逐条发送给 Gemini，也不逐样本触发 Angular 全页面刷新。
+
+**云端慢路径：** 三秒 burst 选帧 + 拍摄时刻的跟踪上下文 → Gemini 4 语义位置/朝向验证及候选收缩 → 一致性检查 → 校正地图关联/请求重新锚定。若以后接入几何 VPS，可返回受约束的绝对相机位姿；Gemini 的节点/标签判断本身不等价于这种完整位姿。
+
+跟踪能力与状态分开暴露：
+
+| 能力 / 状态 | 可以展示什么 |
+|---|---|
+| `orientation-only` | 设备转动/粗朝向与屏幕空间提示；不输出虚构平移 |
+| `local-vio`，尚未地图对齐 | 相对轨迹及跟踪状态；不能声称已精确定位到建筑坐标 |
+| `registered-vio` 且 `tracking` | 经过尺度/锚点校验的路线箭头、沿图进度和估计距离 |
+| `initializing / limited / lost / paused / unavailable` | 当前限制与最后确认状态；丢失时撤下依赖精确位姿的叠加，引导重新定位/静态模式 |
+
+局部跟踪坐标原点重置、重定位或原生 session 重启时递增 `trackingEpoch`；旧坐标变换和旧云结果不得跨 epoch 应用。保存有界的时间戳位姿历史：延迟结果只在同一发布版本、上下文、epoch 且对应历史可用时校正，再按后续运动传播到当前时刻；不能把旧截图位置直接写成“现在的位置”。超过历史窗口或误差边界就丢弃/重拍。大幅位置冲突触发重新确认，不能单靠视觉平滑隐藏错误。
+
+地图锚定需要位置、朝向、尺度和相机到地图平面的关系。初期用已知位置/朝向的人工校准或已知尺寸的 AprilTag 验证；一个手选节点或四向照片中的粗方向不足以自动确定精确 6DoF。锚点校准与无标记定位必须分开标注和验收。跟踪器未提供的协方差/精度字段写未知，不能自行编造高置信度。
+
+### 9.5 设备接入与客户端边界
+
+沿用[Android 架构](../initial/Indoor_Navigation_Android_Architecture_EN.md)：Android/Capacitor 为主要连续跟踪目标，Angular 通过设备适配器调用原生能力；浏览器作为按能力降级的入口。当前 [DevicePreview](../../apps/web/src/app/core/device-preview.ts) 明确是模拟边界，不能作为已经接入硬件的证据。
+
+| 输入 / 能力 | 计划调用方式 | 使用约束 |
+|---|---|---|
+| 加速度计 | 原生 Android `SensorManager` / `TYPE_ACCELEROMETER`，或选定跟踪 SDK 内部采集 | 原始加速度含重力与偏置；经标定/融合后估计运动，不能简单二次积分当作可靠室内距离 |
+| 陀螺仪 | `TYPE_GYROSCOPE`；原生记录角速度与采样时间 | 用于姿态变化和相机融合；积分会漂移，不能单独给出建筑朝向 |
+| 辅助姿态/重力/步态 | 按设备能力读取 rotation vector / gravity；步态仅作为后续可选约束 | 传感器缺失必须可降级；不把磁北直接当地图方向，启用计步时再处理对应权限 |
+| 连续相机与内参 | Android 原生统一 session；优先验证 ARCore 跟踪与图像/渲染接口 | 相机帧、IMU、物理相机姿态、显示旋转保持对应；SDK 不支持时明确降级 |
+| Web/快速传感器探针 | `DeviceMotionEvent` / `DeviceOrientationEvent`，或评估 `@capacitor/motion` | 测读取可用性与交互；官方 Motion 当前基于 Web 事件，不提供完整原生 VIO，不保证硬件级频率/同步 |
+
+设备调用的服务合同先定义为 `capabilities()`、`requestAccess()`、`start(options)`、`subscribePose()`、`captureBestFrame()`、`stop()`；这是拟定的客户端适配器接口，不是已发布后端 API。能力结果区分相机/陀螺仪/加速度计可用性、授权、跟踪引擎与时钟支持。姿态结果携带 session/epoch、原生采样时刻、源坐标系、位置、四元数、tracking 状态、地图对齐 ID 和可获得的质量信息。
+
+实施记录要求：
+
+- Android 原始加速度统一为 `m/s²`、角速度为 `rad/s`；Web 事件的旋转单位需按其实际合同转换。记录重力是否包含、偏置处理、设备/相机外参、自然屏幕方向与显示旋转，优先用四元数/变换矩阵避免 Euler 角跳变。
+- 保存原生单调时钟时间戳和时钟来源；`SensorEvent.timestamp` 为纳秒，与 Android elapsed realtime 同基准。相机/SDK/JS 的时钟须验证对应关系，不能用 JS 回调到达时间或 `Date.now()` 代替曝光/采样时间。跨 bridge 的纳秒整数采用字符串或明确的相对时间编码，避免 JS 数值精度损失。
+- 原始相机与 IMU 高频处理留在原生线程；向 Angular 批量/节流输出可用状态和位姿，必要时原生完成相机背景与 AR 渲染。先验证原生视图，再验证与 Angular 控件层叠加、触摸和生命周期；大量像素/每个 IMU 样本不经 JS bridge 往返。
+- **一个相机所有者**：启用 ARCore 时从该 session 获取允许的查询帧；自建 VIO 时由对应 Camera2/CameraX 管线统一管理。不要让 WebView `getUserMedia`、CameraX 和 ARCore 分别抢占摄像头；共享相机方案先按官方接口验证。
+- 请求前说明持续摄像头/运动用途；相机走平台运行时授权，Web 按平台支持处理安全上下文、策略和用户触发的 motion 授权。普通 Android 原始运动传感器不假定有统一的运行时弹窗；高采样率/计步等限制按实际 Android 版本和已选 API 单独处理。
+- 导航停止、页面隐藏、锁屏、离开原生视图或授权撤销时，解除传感器监听、停止跟踪/相机并清理缓冲；恢复后检查时钟、epoch 和地图锚定。服务端照片分析任务仍可后台完成，手机连续跟踪按前台生命周期运行。
+
+参考：[Android 运动传感器](https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion)、[传感器总览](https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview)、[SensorEvent 时钟](https://developer.android.com/reference/android/hardware/SensorEvent#timestamp)、[ARCore Camera 物理/显示姿态](https://developers.google.com/ar/reference/java/com/google/ar/core/Camera)、[ARCore 共享相机](https://developers.google.com/ar/develop/java/camera-sharing)、[Capacitor Motion](https://capacitorjs.com/docs/apis/motion)。
+
+### 9.6 开源代码参考与引擎选择
+
+成员已授权参考下列实现；先固定版本并在本地做可复现探针，再选择进入产品的依赖。项目目前未安装 `@capacitor/motion`、OpenVINS、ORB-SLAM3 或 ARCore；Android 包装器也不等于完整跟踪功能。
+
+| 候选 / 具体源码入口 | 参考内容与决策 |
+|---|---|
+| [Capacitor Motion `web.ts`](https://github.com/ionic-team/capacitor-plugins/blob/main/motion/src/web.ts) 与 [定义](https://github.com/ionic-team/capacitor-plugins/blob/main/motion/src/definitions.ts) | 事件监听、能力探针、生命周期清理。适合先验证真机事件；不能据插件名称当作原生同步 IMU 引擎 |
+| [OpenVINS `VioManager.cpp`](https://github.com/rpng/open_vins/blob/master/ov_msckf/src/core/VioManager.cpp) | 参考 `feed_measurement_imu`、IMU 缓冲/传播、初始化、视觉更新及状态管理；需要完整相机/IMU 标定与同步，不能只复制积分片段 |
+| [ORB-SLAM3 `System.h`](https://github.com/UZ-SLAMLab/ORB_SLAM3/blob/master/include/System.h) | `TrackMonocular` 接收带时间的图像与 IMU 测量，参考跟踪状态、重置和地图生命周期；不是现成的 Capacitor 插件 |
+| [hloc](https://github.com/cvg/Hierarchical-Localization) / [LightGlue](https://github.com/cvg/LightGlue) / [COLMAP](https://github.com/colmap/colmap) | 作为后续无标记绝对重定位/建图候选，配合真实重叠采集；不代替高频本地运动跟踪 |
+| [ARCore 官方 `HelloArActivity.java`](https://github.com/google-ar/arcore-android-sdk/blob/main/samples/hello_ar_java/app/src/main/java/com/google/ar/core/examples/java/helloar/HelloArActivity.java) | Android 首个完整相机姿态/渲染探针的优先评估路径；核心运行时非完全开源，SDK 示例不能等同于可自行维护的 VIO 源码 |
+
+推荐实施选择是：**先读设备和记录数据 → 在目标 Android 手机验证 ARCore 原生姿态/渲染 → 通过统一 Tracking 适配器接入 → 以同一记录评估 OpenVINS/ORB-SLAM3 的必要性**。采用 SDK 时复用其内部相机/IMU 融合，额外读取原始传感器用于诊断，不重复将同一数据叠加融合。若选开源引擎，则显式承担同步、标定、构建、线程和地图管理。
+
+OpenVINS/ORB-SLAM3 主体为 GPL-3.0；hloc/LightGlue 主体 Apache-2.0，但特征模型/权重的许可可能不同。实际采用前记录对应版本及依赖边界。上述是工程选型与代码参考，当前不自动复制代码或改变生产依赖，也不新增付费 VPS 服务。
+
+### 9.7 连续跟踪真机验收
+
+先在忽略目录 `local/android/tracking/` 保存探针、录制样本、设备/标定信息与测量报告，再把可复用接口/必要回归纳入共享代码。必须记录数据来源是真机、回放还是模拟；当前无任何真机验收通过声明。
+
+1. **设备与生命周期**：相机/IMU 存在性、授权拒绝/撤销、停止后无回调、旋转屏幕、切后台/恢复、相机占用、无 ARCore/缺陀螺仪时的降级。
+2. **采集质量**：量测实际相机/IMU 频率、抖动、丢样、时间偏移与 bridge 延迟；选择满足目标引擎的采样配置，不从 UI 刷新率推定硬件采样率。
+3. **几何真值**：静止、原地旋转、实测直线/转角、往返闭合与长走廊；统计姿态误差、轨迹/闭合漂移、渲染抖动、尺度/地图配准误差。短距测试通过不推出整栋楼可用。
+4. **丢失与恢复**：镜头遮挡、低纹理、弱光、快速转身和相似走廊；跟踪丢失时撤下精确叠加，恢复后检测坐标重置；错楼层、错误地标不能强制吸附回预期路线。
+5. **慢路径融合**：模拟长延迟、乱序、目的地变更、tracking epoch 重置；历史姿态匹配后才融合，缺历史就拒绝。Gemini 仅确认节点时维持相应不确定性，不升级为精确六自由度定位。
+6. **手机资源**：测帧率、CPU/内存、耗电、发热、网络量与原生/Angular 叠层；本地跟踪开销与云模型费用分别统计。数值门槛在目标手机基线试验后确定，再以独立实地路线验收。
 
 ## 10. 与现有仓库的映射及缺口
 
@@ -217,6 +292,7 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 | 同文件 ReferencePhoto / SceneRelationship | 照片到节点、朝向、场景描述、关系与审核来源 | 四向覆盖/例外、结构化 descriptor、排除区域与规则版本、采集质量和索引有效性 |
 | [Job / JobAttempt](../../apps/api/jobs/models.py) | 任务状态、幂等、租约、重试、提供者与用量记录 | 实际照片分析 worker、可靠派发/恢复、队列容量、前端状态反馈 |
 | [NavigationSession / Capture / LocalizationResult / Route](../../apps/api/navigation/models.py) | 固定发布版本、捕获顺序、上下文版本、定位状态、路线历史 | 初始/持续定位、候选/沿边位置、检索服务、方向确认和访客 API/UI |
+| [Capacitor Android 访客边界](../initial/Indoor_Navigation_Android_Architecture_EN.md)与 [DevicePreview](../../apps/web/src/app/core/device-preview.ts) | 原生能力适配职责与现有模拟设备状态 | 相机/IMU 真机接入、Tracking 适配器、原生渲染、时间同步/epoch/地图对齐；模拟边界不能冒充实测 |
 | [Node pipeline](../../apps/pipeline/server/index.js) | 当前作者工作流与独立矢量化路由 | 通过边界适配对接 Django 域服务；不能形成第二份权威发布数据 |
 | [Vectorizer mock / 预构建资产库](vectorizer-api-demo.md) | demo 底图导入、来源记录、固定 IA-4 mock | IA-4 真实资产、共享资产存储适配、Angular 演示接线；一楼导航图另行完善 |
 
@@ -232,8 +308,9 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 2. **Developer 接受位图 → 图草稿**：接入自然语言改图和版本选择；Gemini 4 提案、确定性验证、手工编辑、Flash 辅助。优先验证一段含转角与门的地图。
 3. **采集后台闭环**：四向槽、照片上传、排除标注、持久任务、审核与发布；证明上传不被模型等待阻塞、任务不会错误写回。
 4. **Public 静态路线闭环**：起终点解析、拍照定位/方向确认、正确选图、手动推进与到达确认；用真实行走验证，不仅浏览器点击。
-5. **动态短段试验**：单走廊/单转角，三帧选优、最新帧策略、候选邻域约束、偏航/失败恢复和屏幕空间指引。
-6. **条件升级**：通过独立实机证据后再扩楼层/设备/光照和世界坐标 AR；自动 Vectorizer 保持赛后商业启用事项。
+5. **设备采集与本地跟踪**：在目标 Android 真机读取加速度计/陀螺仪，统一相机来源与时钟；先姿态探针，再连续相对运动和锚点配准，验证停止/恢复与降级。
+6. **动态短段闭环**：单走廊/单转角，已校准 Tracking + 三帧选优/Gemini 查询 + 邻域约束 + 延迟融合 + 偏航恢复；分开验收屏幕空间与世界坐标提示。
+7. **条件升级**：通过独立实机证据后再扩楼层/设备/光照、补无标记几何重定位；自动 Vectorizer 保持赛后商业启用事项。
 
 ### 11.2 时间和费用记录
 
@@ -255,6 +332,7 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 | 后台与发布 | 幂等、重试受限、进程重启可恢复，旧结果不覆盖；发布图/照片/索引一致 | 派发失败、失联 worker、改排除规则、删节点时任务完成 |
 | 静态导航 | 正反路线均选对照片和转向，实地到达；无照片/无路线可恢复 | 起点声明错误、朝向未知、重名终点、自动播放未移动 |
 | 动态定位 | 报告接受精度/覆盖率、错误接受数、楼层/方向错误、沿路线误差、端到端 p50/p95、拒绝与恢复时间 | 相似走廊、未知地点/楼层、运动模糊、超出邻域、长延迟、乱序帧 |
+| 连续几何跟踪 | 真机相机/IMU 数据质量、姿态/轨迹漂移、尺度/地图对齐、渲染稳定性和丢失恢复均有记录 | 采样时钟错配、坐标 epoch 重置、原地转动被误作平移、漂移后强制吸附、重复相机占用 |
 | 设备体验 | 真机授权/暂停/恢复、耗电/流量、停止后不再采样；屏幕空间提示不冒充世界配准 | 拒权、切后台、锁屏、离线、无传感器、相机被占用 |
 | demo 诚信 | 构建 mock 只返回 IA-4 并显示真实来源，IA-1 只属于导航 demo | 四楼缺失时明确待配置，不能回退成一楼或宣称实时矢量化 |
 
