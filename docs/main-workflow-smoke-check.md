@@ -21,7 +21,7 @@ The requester subsequently confirmed that AI authoring is on the separate
 `feature/map-authoring-pipeline` branch, not merged into this main SHA. It is now
 available in local `acceptance/map-authoring-pipeline`, created from `b2939be`
 with main `71f24ab` merged into it in `b83e87c`. See the
-[pipeline acceptance setup](map-authoring-pipeline.md#local-acceptance-setup--october-17-2026)
+[pipeline acceptance setup](map-authoring-pipeline.md#run-and-configuration-boundaries)
 for the environment path and offline checks. Findings below describe the original
 main baseline; they must not be read as a claim that AI implementation is absent
 from all branches. Live AI acceptance is pending the requester's credentials.

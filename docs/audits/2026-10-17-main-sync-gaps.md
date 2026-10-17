@@ -1,99 +1,99 @@
-# 同步最新 main 后的主要缺口：环境、功能与重构
+# Latest main integration: environment, feature and refactoring gaps
 
-日期：2026-10-17（America/Toronto）；审计分支 `acceptance/map-authoring-pipeline`。
-本报告对照[完整导航/AI 计划](../pipeline/navigation-ai-workflow-plan.md)，包括已授权的连续相机/IMU 跟踪。范围是检查与记录，不在本次审计中实现这些产品缺口。
+Date: 2026-10-17, America/Toronto. Branch: `acceptance/map-authoring-pipeline`.
+This audit compares implementation with the [complete navigation/AI plan](../pipeline/navigation-ai-workflow-plan.md), including authorized continuous camera/IMU tracking. Its scope is inspection and recording, not implementing the identified product gaps.
 
-## 1. 同步基线与总体判断
+## 1. Synchronization baseline and overall finding
 
-- 原有文档已提交，最近计划提交为 `3bb9ab1`，同步前工作区干净。
-- 执行 `git fetch origin`，将远程 `main` **`2dfd1ef`** 合并到当前验收分支，合并提交 **`1922769`**，无文本冲突；没有把验收代码合并进本地 main，也没有推送/PR/部署。
-- **身份/权限基础和 Web/API 发布管线已有实质实现及线上证据。主要缺口已转为产品服务接线、数据归属统一、真实导航资产与动态设备能力。** 当前分支仍有可复现的 CI 集成失败，不能据远程 main 绿色就视为当前验收分支可合并。
+- Plans were already committed through `3bb9ab1`; the worktree was clean before synchronization.
+- Ran `git fetch origin` and merged remote main **`2dfd1ef`** into the acceptance branch in **`1922769`**, without text conflicts. The acceptance branch was not merged into local main; no push, PR or deployment was performed.
+- **Identity/permission foundations and Web/API delivery now have substantive implementations and live evidence. The main remaining work is product integration, one data authority, real navigation assets and device capabilities.** The merged branch still has reproducible CI failures; green remote main does not establish merge readiness of this branch.
 
-优先级：P0 阻塞下一条可验收真实闭环或当前分支合并；P1 是后续完整目标必需，但可在静态闭环后推进。优先级按验收路径而非模型能力宣传确定。
+P0 blocks the next accepted real workflow or branch integration. P1 is required for the complete target but can follow the static loop. Priorities reflect acceptance dependencies rather than advertised model capabilities.
 
-分类规则：**E 环境/外部准备**包括配置、运行服务、人工资产与设备；**F 功能**是尚缺的用户行为/API/后台处理；**R 重构/集成**是已有实现需要适配、迁移或统一。一个问题只给一个主要归属，相关项用编号交叉引用。
+Categories: **E, environment/external preparation** includes configuration, running services, manual assets and devices; **F, features** means missing user behavior/APIs/background processing; **R, refactoring/integration** means adapting, migrating or unifying existing implementations. Each issue has one primary category, with cross-references for dependencies.
 
-**Vectorizer.AI 真实 Key、订阅和真实自动转换不计入缺口**，它们是本赛程明确不启用的范围。IA 四楼 mock 的真实素材、入库和演示可用性计入 E-04；其前端接线和线上运行分别属于 F-04/R-03。
+**A real Vectorizer.AI key, subscription and automatic conversion are excluded from the gap list**, as explicitly disabled for this event. IA-4 mock assets/import/readiness are E-04; frontend integration and runtime delivery are F-04/R-03.
 
-## 2. 最新 main 已经带来的能力
+## 2. Capabilities present on latest main
 
-| 已有能力 | 代码/证据 | 不能据此推导的完成状态 |
+| Existing capability | Code / evidence | What it does not establish |
 |---|---|---|
-| Google OAuth 后端入口、Django session、身份/退出接口 | [auth 路由](../../apps/api/accounts/urls.py)、[视图](../../apps/api/accounts/views.py)、[OAuth 记录](../backend-oauth.md)；本机 auth 测试随套件通过 | Angular 已接真实登录、普通邮箱认证已支持、真实 Google consent 已验收 |
-| 按 MapTarget 的 admin/volunteer Membership、grant/revoke 服务、DRF 权限、启动管理命令 | [权限](../../apps/api/maps/permissions.py)、[成员服务](../../apps/api/maps/services/membership.py)、[诊断视图](../../apps/api/maps/views.py)、[功能记录](../backend-permissions.md) | 所有地图业务接口已存在，或 Node pipeline 自动继承 Django 会话/权限 |
-| CI、受开关控制的部署、打包、迁移、健康检查与版本切换/失败处理代码 | [CI](../../.github/workflows/ci.yml)、[部署工作流](../../.github/workflows/deploy.yml)、[控制器](../../infra/deploy.py)、[打包](../../scripts/package_release.py) | pipeline/worker 全部上线、地图业务就绪、灾难恢复已实演 |
-| 最新 main 已成功运行并部署 | [CI run 39038792613](https://github.com/mhamza1906/SnapWay/actions/runs/39038792613)：含 Linux/Windows backend、PostgreSQL、Web、package、deploy 成功；部署开关复核为 `true` | 当前验收分支已通过 CI，或包含本分支未推送的 pipeline 代码 |
+| Google OAuth backend entrypoints, Django sessions, identity/logout | [Auth routes](../../apps/api/accounts/urls.py), [views](../../apps/api/accounts/views.py), [OAuth record](../backend-oauth.md); auth tests passed in the local suite | Integrated Angular login, ordinary email authentication or accepted live Google consent |
+| MapTarget-scoped admin/volunteer Membership, grant/revoke services, DRF permissions and bootstrap tooling | [Permissions](../../apps/api/maps/permissions.py), [services](../../apps/api/maps/services/membership.py), [diagnostic view](../../apps/api/maps/views.py), [feature record](../backend-permissions.md) | Completed map business APIs or automatic propagation of Django authority into Node |
+| CI, gated deployment, packaging, migrations, health checks and release-switch/failure handling | [CI](../../.github/workflows/ci.yml), [deployment workflow](../../.github/workflows/deploy.yml), [controller](../../infra/deploy.py), [packaging](../../scripts/package_release.py) | Deployed pipeline/workers, product readiness or rehearsed disaster recovery |
+| Latest main successfully checked/deployed | [Run 39038792613](https://github.com/mhamza1906/SnapWay/actions/runs/39038792613): Linux/Windows backend, PostgreSQL, Web, package and deploy succeeded; deployment flag rechecked as `true` | Successful CI for the merged acceptance branch or deployment of its unpushed pipeline |
 
-公开只读 HTTP 观测（约本地 11:08）：`/api/health/live/` 返回 main 完整 SHA `2dfd1efcfd6a2008b5c4c6d3e6b43cb26202fd32`；`/api/health/ready/` 返回数据库 ok；`/api/auth/me/` 返回匿名身份，均为 JSON 200。这证明已部署基础运行，不证明 OAuth 实际授权或业务工作流完整。
+Read-only public observations at approximately 11:08 local time: `/api/health/live/` returned full main SHA `2dfd1efcfd6a2008b5c4c6d3e6b43cb26202fd32`; `/api/health/ready/` reported database ok; `/api/auth/me/` reported anonymous identity. All were JSON 200. They establish framework operation, not live OAuth authorization or product completion.
 
-相同主机的 `/pipeline/api/health`、`/pipeline/api/vectorization/status` 均返回 **200 HTML**，与[当前 Caddy SPA fallback](../../infra/deploy.py)和[发行包不含 Node pipeline](../../scripts/package_release.py)一致；它们不是工作的 pipeline API。不能只检查 HTTP 200。
+On the same host, `/pipeline/api/health` and `/pipeline/api/vectorization/status` returned **200 HTML**, consistent with [Caddy SPA fallback](../../infra/deploy.py) and [packaging that excludes Node](../../scripts/package_release.py). They are not functioning pipeline APIs. HTTP 200 alone is insufficient.
 
-## 3. E：环境与外部准备缺口
+## 3. E: Environment and external preparation
 
-| 编号 / 优先级 | 实际状态与证据 | 补齐后如何验收 |
+| ID / priority | Observed state and evidence | Closure evidence |
 |---|---|---|
-| **E-01 / P0：Google OAuth 实际配置** | 本机 `local/env/api.env` 的 `GOOGLE_OAUTH_CLIENT_ID`、`GOOGLE_OAUTH_CLIENT_SECRET` 为空。生产端凭据/Google Console consent、测试用户和精确 callback 未在本次读取/确认；不据本机状态断言生产也为空 | 配好本机与 HTTPS 部署回调，各完成一次真实授权；`me` 返回会话及目标 membership，退出后失效。Google 身份不自动授予地图权限 |
-| **E-02 / P0：本机共享 DB 可达性** | 本机配置了 PostgreSQL URL，但只读 `SELECT 1` 返回 `OperationalError`；未输出连接信息或凭据。线上 readiness 数据库 ok，故不能报告“整个 Tiger DB 宕机” | 修复本机连接/网络/TLS/账号中的真实原因；只读连通和表状态核对通过后，再按成员授权进行迁移/种子准备。仅给出 URL 不等于连通 |
-| **E-03 / P0：后台 broker/worker 运行条件** | Django 配有 Celery broker，但本机配置的 Redis TCP 端口不可达；发布控制器目前只生成 API 服务，未见两条业务队列的 worker 单元。实际 worker/队列消费者未验收 | 本地提供适用的 Redis/Celery 运行环境，部署侧配置 authoring/localization 消费者并检查容量隔离；还需 F-06 的真实任务实现，端口通不等于任务可用 |
-| **E-04 / P0：IA 四楼 mock 预构建包** | 代码固定 `ia-4`，缺素材时明确 `503 DEMO_ASSET_PENDING`。本机 SQLite 只有 `ia-1` 的 440,127 字节 SVG；四楼真实源图/SVG 未入库；合成测试四边形不算素材 | 人工 Figma 四楼导出，核对楼层/比例/结构，按[导入命令](../pipeline/vectorizer-api-demo.md)入库并保存源哈希/来源。四楼 mock 实测返回该图和声明；一楼绝不顶替 |
-| **E-05 / P0：导航 demo 的实地数据** | 一楼 SVG 显示资产已有，但仍 `navigationReady=false`；本次未发现一套已审核的 IA 路线图、米制校准、四向真实参考与独立查询照片组成的完整发布包 | 明确一条真实起终点路线，现场确认门洞/楼梯/朝向/距离，采集参考和独立验收图；发布后实地走通。优先一条短路线，不以全楼采集阻塞起步 |
-| **E-06 / P1：目标 Android 真机与标定条件** | 仓库包含 Capacitor Android 外壳，但依赖清单尚无 Motion/ARCore/VIO；DevicePreview 明确是模拟。真机型号、相机/IMU 能力、调试连接和标定尚未验收 | 准备一台目标手机、可复测路线/锚点、相机与运动数据录制条件；按计划 §9.7 实测频率/时钟/漂移/暂停恢复。SDK/适配器开发属于 F-08 |
-| **E-07 / P1：服务端模型/发信环境的发布验收** | 本机 OpenAI key 已存在，Vertex 参数存在于 Node `.env.prod`，并非全部缺 Key；这些存在性不等于服务器已配置或新 Flash 角色可用。普通邮箱的真实邮件发送条件亦未验收 | 先明确 R-04 的环境合同，再验证实际部署使用的模型入口/权限/额度及发信服务；用量/时间记录齐全。本次不发起任何模型请求，不要求购买 Vectorizer 服务 |
+| **E-01 / P0: Real Google OAuth configuration** | Local `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in `local/env/api.env` are empty. Production credentials, Console consent/test users and exact callbacks were not inspected; local absence does not prove production absence | Configure local/HTTPS callbacks and complete actual consent; `me` returns session/membership and logout invalidates it. Google identity never grants map authority automatically |
+| **E-02 / P0: Local shared-database connectivity** | PostgreSQL URL exists locally, but read-only `SELECT 1` raised `OperationalError`; no connection/secret was printed. Public readiness reports DB ok, so this is not evidence of a complete Tiger outage | Diagnose actual local network/TLS/account/connection cause; verify read-only connectivity/table state before separately authorized migrations/seeds. A URL is not connectivity |
+| **E-03 / P0: Broker/worker runtime** | Django has broker configuration, but its local Redis TCP endpoint is unreachable; the release controller creates API units, not the two business-queue worker units. Actual consumers are unverified | Provide appropriate local Redis/Celery runtime and authoring/localization workers with reserved capacity; F-06 still supplies real tasks. An open port is not task readiness |
+| **E-04 / P0: IA-4 mock prebuild package** | Route is fixed to `ia-4`, returning `503 DEMO_ASSET_PENDING` when absent. Local SQLite contains only the 440,127-byte `ia-1` SVG; no real IA-4 source/SVG is imported. Synthetic test rectangles are not deliverables | Manually export/review real floor-4 assets in Figma, preserve source/provenance hashes and use the [import command](../pipeline/vectorizer-api-demo.md). Verify that mock/disclosure return floor 4, never floor 1 |
+| **E-05 / P0: Navigation field assets** | IA-1 presentation SVG exists with `navigationReady=false`; no complete accepted package of reviewed IA graph, metric calibration, four-direction references and independent query photos was established | Choose a real short start/destination route, confirm openings/stairs/headings/distances in the field, collect reference/held-out photos, publish and walk it. Do not block the first loop on whole-building collection |
+| **E-06 / P1: Target Android phone and calibration setup** | Capacitor wrapper exists, but dependency inventory lacks Motion/ARCore/VIO and DevicePreview is simulated. Phone model, camera/IMU, debugging connection and calibration are unverified | Prepare a target device, repeatable route/anchor and recording setup; measure clocks/rates/drift/lifecycle under plan section 9.7. SDK/adapter implementation is F-08 |
+| **E-07 / P1: Deployed model/email configuration acceptance** | Local OpenAI key exists; Vertex settings exist in Node `.env.prod`. Their presence does not prove deployed validity or access for the new Flash role. Real email delivery is unverified | Resolve R-04, then verify the actual model endpoint/access/quota and sending service with complete usage/timing records. No model requests or Vectorizer purchase are required by this audit |
 
-R2 四项本机配置存在，未做对象写入/凭据有效性测试。**不将“购买或重新开通 R2”当作必需环境缺口**：当前架构支持持久私有文件存储。缺的是 F-03/F-06 中可用、受权限保护的资产写入/交付服务；如决定使用 R2，再验收其适配与访问条件。
+All four local R2 values are present; no object write or validity test was performed. **R2 purchase/reactivation is not a mandatory dependency gap** because persistent private filesystem storage is supported. F-03/F-06 still need authorized asset writing/delivery; validate R2 integration/access if it is selected.
 
-## 4. F：功能缺口
+## 4. F: Missing product features
 
-| 编号 / 优先级 | 与最新计划相比尚缺什么 | 现有基础 / 完成判断 |
+| ID / priority | Missing behavior against the plan | Existing foundation / completion boundary |
 |---|---|---|
-| **F-01 / P0：真实前端身份与权限体验** | Google 登录入口、会话加载/退出、会员目标列表、无权限/过期恢复、带 CSRF 的写请求和真实身份路由行为 | 后端 `me/logout` 和 Membership 已有；前端 [welcome](../../apps/web/src/app/features/welcome/welcome.ts)、[settings](../../apps/web/src/app/features/settings/settings.ts)仍调用 `setRole`，没有完整 Auth facade。应替换演示角色入口，不能重复造另一套权限权威 |
-| **F-02 / P1：邮箱密码 + 邮箱验证** | 原先确认的注册、验证、登录、找回密码与邮件投递流程尚未实现 | [base settings](../../apps/api/config/settings/base.py)为 `SOCIALACCOUNT_ONLY=True`、`ACCOUNT_EMAIL_VERIFICATION="none"`。这是普通邮箱认证范围缺失，不是对 Google 身份验证有效性的否定；如需暂缓，应显式缩小产品范围 |
-| **F-03 / P0：地图业务 API 与发布闭环** | 目标/贡献/修订/资产 CRUD、成员操作入口、服务端图编辑/审核/发布、Public 发布读取和受控媒体交付 | [maps 路由](../../apps/api/maps/urls.py)当前只有 access 诊断；[模型](../../apps/api/maps/models.py)丰富但不能替代服务。新接口必须使用现有 membership/对象范围验证；初始成员可先用已有 Admin/命令，不必为 demo 重做启动机制 |
-| **F-04 / P0：Image 2.5 产品化与构建演示接线** | 原图优化、直接看图、自然语言再生成、版本接受/回退及语义失效；IA-4 mock 的选择/响应展示/真实来源声明 | [真实调用实验](../../apps/pipeline/experiments/fullchain-pilot.mjs)已经有证据；[当前 authoring UI](../../apps/web/src/app/features/authoring/authoring.ts)未提供完整新链路。mock 路由本身已有，剩素材 E-04、部署 R-03 与 UI/任务编排接线 |
-| **F-05 / P0：新版语义图与 Flash 编辑助手** | Gemini 4 针对接受图提议各类节点、标签/证据、走廊采样、完整边几何与距离关系；Flash 将自然语言转换为受约束 ChangeSet；人工修改/审核闭环 | Node pipeline 已有识别、局部几何、门洞、路由/校验和持久快照，**不是没有 AI 代码**。但[真实 IA 验收](2026-10-17-gpt-fullchain-pilot.md)未通过，且当前流程未覆盖新的三类模型职责/全套合同；需复用已验证部分并补测 |
-| **F-06 / P0：四向照片及异步场景理解** | 四方向槽位/方位校准、非阻塞上传、用户干扰排除、Gemini 4 结构化描述、任务进度/有限重试/版本核验、关系复核和索引发布 | ReferencePhoto/SceneRelationship/Job/JobAttempt 仅提供持久化基础；[jobs 目录](../../apps/api/jobs/models.py)未见照片分析任务/派发服务；[Celery](../../apps/api/config/celery.py)只有初始化。现有 Node map-job 快照不等于照片理解 worker |
-| **F-07 / P0：Public 静态实景导航** | 真实发布范围/起终点解析、拍照确认节点/方向、按路段出发朝向选真实照片、手动推进、到达/错误恢复；不展示室内地图的新流程 | [导航页面](../../apps/web/src/app/features/navigation/navigation.ts)依赖 PrototypeRepository/DevicePreview、模拟定位/到达；本地 Dijkstra 可运行，但实际导航 session/定位/路线 API 未存在。UI 改造归 R-05 |
-| **F-08 / P1：动态相机与连续几何跟踪** | 相机与加速度计/陀螺仪、原生跟踪适配器、同源相机取帧、时间/坐标/epoch、锚定与漂移恢复、Gemini 慢路径融合、屏幕/世界坐标叠加 | [DevicePreview](../../apps/web/src/app/core/device-preview.ts)明确不调用硬件；当前无原生 Tracking 引擎。按计划 §9.4–9.7 分层验收；静态先行，不把模型自报节点当成完整相机位姿 |
+| **F-01 / P0: Real frontend identity and permissions** | Google entrypoint, session loading/logout, membership-filtered targets, expired/denied recovery, CSRF-protected writes and identity-aware navigation | Backend `me/logout` and Membership exist; [welcome](../../apps/web/src/app/features/welcome/welcome.ts)/[settings](../../apps/web/src/app/features/settings/settings.ts) still call `setRole`, without a complete Auth facade. Replace demo-role authority rather than building another permission truth |
+| **F-02 / P1: Email/password and verification** | Previously requested registration, verification, login, reset and email-delivery workflow | [Settings](../../apps/api/config/settings/base.py) use `SOCIALACCOUNT_ONLY=True` and `ACCOUNT_EMAIL_VERIFICATION="none"`. This identifies missing ordinary email authentication, not invalid Google identity verification; defer only with an explicit scope decision |
+| **F-03 / P0: Map services and publication loop** | Target/contribution/revision/asset CRUD, membership UI operations, server graph edits/review/publication, public reads and controlled media delivery | [Maps routes](../../apps/api/maps/urls.py) expose only diagnostic access. Rich [models](../../apps/api/maps/models.py) are not services. Apply existing membership/scope checks; existing Admin/commands can bootstrap initial members |
+| **F-04 / P0: Product image-edit workflow and construction demo integration** | Source optimization, immediate raster review, natural-language regeneration, acceptance/rollback and semantic invalidation; IA-4 mock selection/result/provenance display | [Real-call experiment](../../apps/pipeline/experiments/fullchain-pilot.mjs) exists; [authoring UI](../../apps/web/src/app/features/authoring/authoring.ts) lacks the complete new loop. Mock route exists; assets are E-04, delivery R-03, and UI/job wiring remains |
+| **F-05 / P0: Updated semantic graph and Flash assistance** | Gemini 4 proposals for accepted images: node classes, label evidence, corridor samples, complete edge geometry/distance relations; Flash constrained ChangeSets and manual review | Node already implements extraction, geometry, doors, routing/checks and persistent snapshots: AI code is not absent. [Actual IA acceptance](2026-10-17-gpt-fullchain-pilot.md) failed and the new model roles/contracts remain incomplete; reuse validated parts and measure additions |
+| **F-06 / P0: Four-direction references and asynchronous scene understanding** | Direction slots/calibration, non-blocking uploads, declared exclusions, Gemini 4 descriptors, progress/bounded retries/version checks, association review and index publication | ReferencePhoto/SceneRelationship/Job/JobAttempt are persistence foundations. [Jobs](../../apps/api/jobs/models.py) lacks photo task/dispatch implementation; [Celery configuration](../../apps/api/config/celery.py) is initialization. Node map snapshots are not photo-analysis workers |
+| **F-07 / P0: Public static scene navigation** | Published scope/destination resolution, capture-confirmed position/heading, departure-directed real photos, manual progress/arrival/recovery and the no-indoor-map flow | [Navigation](../../apps/web/src/app/features/navigation/navigation.ts) uses PrototypeRepository/DevicePreview and simulated localization/arrival. Local Dijkstra runs, but real session/localization/route APIs are absent. UI migration is R-05 |
+| **F-08 / P1: Dynamic camera and geometric tracking** | Camera/accelerometer/gyro, native Tracking adapter, shared camera frames, clock/frame/epoch handling, anchoring/drift recovery, Gemini slow-path fusion and screen/world overlays | [DevicePreview](../../apps/web/src/app/core/device-preview.ts) explicitly avoids hardware; no native engine exists. Accept layers under sections 9.4-9.7, with static guidance first. Model node judgments are not full camera pose |
 
-定位图像/特征检索、候选集合和索引属于 F-06/F-07/F-08 的内部工作，不单独把“必须买某 embedding 服务”列为依赖。先验证指定 Gemini 方案，再据真实精度/延迟决定检索实现。
+Retrieval, candidates and indexes belong within F-06/F-07/F-08. Do not turn purchasing a specific embedding service into an assumed dependency; evaluate the specified Gemini workflow before choosing retrieval from accuracy/latency evidence.
 
-## 5. R：重构与集成缺口
+## 5. R: Refactoring and integration gaps
 
-| 编号 / 优先级 | 现有实现需要怎样调整 | 证据与边界 |
+| ID / priority | Required adaptation | Evidence / boundary |
 |---|---|---|
-| **R-01 / P0：合并后的 CI 合同与脚本质量** | 统一 `classify_changes` 的三项返回值及测试；使实验/分析 Python 服从仓库 Ruff 规则，保留证据字节要求。修复后重跑相关检查再考虑 PR | [分类器](../../scripts/ci_changes.py)返回 backend/web/pipeline；[新增发布测试](../../infra/tests/test_package_release.py)仍期待两项，实测 7 失败。另有 3 个本分支旧实验/分析脚本累计 89 Ruff 诊断且格式检查失败。前者是无文本冲突仍出现的集成问题，后者是本分支既有质量债，不归咎于新 main |
-| **R-02 / P0：统一数据权威与图合同** | 将 Local Storage prototype、Node building JSON/文件、Django revision/关系模型通过明确 DTO/适配边界统一；固定 ID、坐标、比例、边方向/权重/验证状态和发布版本，迁移现有草稿 | [PrototypeRepository](../../apps/web/src/app/core/prototype.repository.ts)、[原型模型](../../apps/web/src/app/core/prototype.models.ts)、[Node building schema](../../apps/pipeline/shared/building/schema.js)、[Django 模型](../../apps/api/maps/models.py)。前端 MapEdge 只有基本 blocked/accessibility，原型边双向且无米制比例；不是共享图的可直接等价序列化 |
-| **R-03 / P0：把 pipeline/任务/权限纳入运行和发布边界** | 明确 Node 作为内部服务还是迁移所需流程进 Django worker；补发行资产/启动、队列、持久目录、受控代理与 readiness。复用 Django 的身份/MapTarget 权限，保持浏览器合同兼容 | 现有发行包不含 `apps/pipeline`，Caddy 无 `/pipeline` handler，线上实测 HTML fallback；Node 只有 Origin/loopback 边界，不验证 Django membership。**不能直接公开代理整个 Node 服务来完成部署**。这属于新增 pipeline 切片的集成工作，不把现有 Web/API 部署判作失败 |
-| **R-04 / P1：环境、模型角色与存储配置合同** | 统一/明确 Django `local/env/api.env`、Node `.env.prod` 和生产 `/etc/indoor-nav/api.env` 的读取边界；配置 Image/Gemini/Flash 的角色、资产存储与预算记录 | 当前“唯一私密 env”文档主要描述 Django，与 Node 独立 dotenv 有范围歧义；生产模板还未包含新 pipeline 的模型运行合同。已有本机 key 不应无说明再复制多份，也不能因 R2 值存在就声称已启用存储 |
-| **R-05 / P1：前端从通用地图原型转为新工作流** | Developer 以接受位图/图草稿/四向采集为中心；Public 以照片/相机为中心，拆除室内地图主视图与模拟结果/角色入口；保持已约定 API 边界 | 当前 [NavigationMap](../../apps/web/src/app/features/navigation/navigation-map.ts)与[导航模板](../../apps/web/src/app/features/navigation/navigation.html)仍面向地图和模拟推进。历史 prototype 可保留独立演示入口，不能混作正式用户流程。风格/布局/动画的整体迭代仍随新流程验收 |
-| **R-06 / P1：从各层 mock 单测补到跨层真实合同验收** | 保留快速离线 CI，加入身份→目标权限→资产/任务→发布→静态路线的必要合同回归；真实模型/设备测试放本地或明确人工流程并共享精简结果 | 当前前端/Node 单测可通过，但不能证明跨进程/真实资产闭环。现有 CI `required` 只汇总运行/跳过结果，业务 readiness 仅 DB；需按切片增加必要检查，不把收费模型调用加入每次 CI |
+| **R-01 / P0: Merged CI contract and script quality** | Align the classifier's three-result contract/tests; bring experiment/analysis Python under Ruff while preserving evidence bytes; rerun before PR | [Classifier](../../scripts/ci_changes.py) returns backend/web/pipeline; [new infra tests](../../infra/tests/test_package_release.py) expect two results, causing seven failures. Three existing branch scripts yield 89 Ruff diagnostics and format failures. The former is a semantic integration conflict; the latter is existing branch debt, not a main regression |
+| **R-02 / P0: One data authority and graph contract** | Explicit adapters/DTOs across Local Storage prototype, Node building JSON/files and Django revisions/relations; unify IDs, frames, scale, direction/cost/verification/publication and migrate drafts | [PrototypeRepository](../../apps/web/src/app/core/prototype.repository.ts), [prototype models](../../apps/web/src/app/core/prototype.models.ts), [Node schema](../../apps/pipeline/shared/building/schema.js), [Django models](../../apps/api/maps/models.py). Prototype edges have basic blocked/accessibility state, are bidirectional and lack verified metric scale; these are not equivalent serializations |
+| **R-03 / P0: Pipeline/task/permission delivery boundary** | Decide between an internal Node service and migrating required workflows into Django workers; include release/startup/queues/persistent paths/authorized proxy/readiness while retaining browser contracts | Releases exclude `apps/pipeline`, Caddy lacks its handler, public URLs return HTML. Node has Origin/loopback checks, not Django membership. **Do not simply expose the entire Node API publicly**. This is integration of a new slice, not failure of current Web/API deployment |
+| **R-04 / P1: Environment, provider-role and storage configuration contract** | Clarify/unify Django `local/env/api.env`, Node `.env.prod` and production `/etc/indoor-nav/api.env`; define Image/Gemini/Flash roles, storage and budget records | The "only private env" documentation describes Django but conflicts in scope with Node dotenv; production templates lack the new pipeline contract. Do not silently duplicate keys or treat R2 values as activated storage |
+| **R-05 / P1: Move frontend prototype to the new journeys** | Developer raster/graph/reference workflow; Public photo/camera workflow replacing indoor-map emphasis and simulated results/roles, with existing API boundaries respected | [NavigationMap](../../apps/web/src/app/features/navigation/navigation-map.ts) and [template](../../apps/web/src/app/features/navigation/navigation.html) remain map/simulation-based. Preserve historical prototype only as a distinct demo; style/layout/animation iteration follows the new workflow |
+| **R-06 / P1: Cross-layer acceptance beyond isolated mock tests** | Keep fast offline CI; add necessary identity/permission/assets/jobs/publication/static-route contracts, with real provider/device trials local or explicitly manual and concise shared evidence | Passing frontend/Node units do not establish the complete workflow. `required` aggregates run/skip status; runtime readiness checks DB only. Add checks by slice without charging model calls on each CI run |
 
-R-01 的 3 个 Ruff 文件为 [meter_image_cli.py](../../apps/pipeline/experiments/meter_image_cli.py)、[stage_fullchain.py](../../apps/pipeline/experiments/stage_fullchain.py)、[Figma 分析脚本](assets/2026-10-17-figma-vectorization/analyze.py)。本次仅记录，未用跳过/排除规则隐藏检查，也未改写历史证据。R-02/R-03 的实施方式须作为具体切片定案；当前计划授权不等于可以未经评审替换队友已公开 API。
+The three Ruff files are [meter_image_cli.py](../../apps/pipeline/experiments/meter_image_cli.py), [stage_fullchain.py](../../apps/pipeline/experiments/stage_fullchain.py) and the [Figma analysis script](assets/2026-10-17-figma-vectorization/analyze.py). This audit records failures without hiding them through exclusions or rewriting historical evidence. Resolve R-02/R-03 as concrete slices; current planning authorization does not justify an unreviewed replacement of teammates' published APIs.
 
-## 6. 本次验证结果与限制
+## 6. Verification results and limitations
 
-| 检查 | 本次结果 |
+| Check | Result |
 |---|---|
-| Git 同步 | main 合并成功，merge `1922769`，无文本冲突 |
-| 最新 main GitHub CI/部署 | run `39038792613` 成功；线上 release 匹配 `2dfd1ef` |
-| 合并分支 Python tests（API/MCP/infra） | **67 通过、16 PostgreSQL-only 跳过、7 失败**；失败均为 CI 分类器二项/三项合同不一致，约 23 秒 |
-| 合并分支 Ruff | **89 诊断，3 个文件格式不通过**；不是“全部检查已绿” |
-| Django system check / migration drift | 无 system check 问题；`makemigrations --check --dry-run --settings=config.settings.test` 无变更 |
-| Node pipeline | **151 通过、18 既有可选 Waterloo fixture 跳过、0 失败**，约 4.5 秒；包括 IA-4 mock 离线合同 |
-| Angular | **11 个测试文件、59 项通过**；浏览器 production build 成功。未在此审计重跑原生 APK/实机验收 |
-| 配置/环境 | 本机 OAuth 两项为空、DB 只读连接失败、broker TCP 不可达；OpenAI/Vertex/R2 存在性检查不泄露值，也不视为有效性证明 |
-| 公网 API | health/live、health/ready、匿名 auth/me 正常；pipeline URL 返回 HTML，未上线 |
-| 人工资产 | 本机预构建库仅 `ia-1`；IA-4 mock 素材待配置 |
+| Git integration | Merge `1922769`, no text conflicts |
+| Remote main CI/deployment | Run `39038792613` succeeded; public release matches `2dfd1ef` |
+| Merged Python API/MCP/infra suite | **67 passed, 16 PostgreSQL-only skipped, 7 failed**, approximately 23 seconds; all failures are two-result/three-result classifier mismatch |
+| Merged Ruff checks | **89 diagnostics; 3 files fail formatting**; checks are not all green |
+| Django check / migration drift | No system-check issues; `makemigrations --check --dry-run --settings=config.settings.test` reports no changes |
+| Node pipeline | **151 passed, 18 optional Waterloo-fixture skips, zero failures**, about 4.5 seconds, including mock contracts |
+| Angular | **11 test files / 59 tests passed**; browser production build passed; no APK/real-device rerun |
+| Local environment | Empty OAuth pair, failed read-only DB connection, unreachable broker; OpenAI/Vertex/R2 presence neither exposes values nor proves validity |
+| Public HTTP | JSON live/ready/anonymous identity succeeded; pipeline URLs are HTML fallback |
+| Manual assets | Local catalog contains only `ia-1`; real IA-4 fixture remains pending |
 
-细化证据在忽略目录 `local/test-results/main-sync-gap-audit/`：`probe.py/probe.json`（只读配置/DB/端口/公开 HTTP）、`lint.json`（诊断聚合）。共享的[去敏验证快照](assets/2026-10-17-main-sync/verification.json)保留关键结果与基线，不包含真实 env 值、数据库连接串或用户记录。
+Private evidence remains in ignored `local/test-results/main-sync-gap-audit/`: `probe.py/probe.json` for read-only configuration/DB/TCP/public HTTP and `lint.json` for aggregated diagnostics. The [sanitized shared snapshot](assets/2026-10-17-main-sync/verification.json) retains results/baselines without secret values, database URLs or user records.
 
-本次不执行 Google consent、共享数据库迁移/写入、模型/Vectorizer 真实请求、R2 写入、SSH 部署或硬件测试。线上 readiness 仅检查 SQL 和基本用户表，不代表照片索引、作者任务或导航已经就绪。主分支与合并分支的检查结果严格分开。
+No Google consent, shared DB migration/write, model/Vectorizer request, R2 write, SSH deployment or hardware test was performed. Public readiness checks SQL/basic user-table access, not indexes, authoring or navigation. Main and merged-branch results remain distinct.
 
-## 7. 建议推进顺序
+## 7. Recommended order
 
-1. **先恢复可集成基线**：R-01；同时补 E-01/E-02，准备 IA-4 资产 E-04 和一楼短路线数据 E-05。CI/后端部署基础可以复用，无需重建整套发布系统。
-2. **接身份与单一数据权威**：F-01/F-03 + R-02；明确 R-03/R-04 后接作者流程 F-04/F-05。先一条目标/贡献链路，不同时迁移所有页面。
-3. **完成照片到静态导航**：E-03 + F-06/F-07，真实发布版本中验证参考照片、起点/方向、可走路线和到达；这是下一条完整产品闭环。
-4. **再推进连续动态导航**：E-06 + F-08，按传感器读数→局部姿态→地图锚定→云端慢路径融合验收。F-02 邮箱认证若纳入首演示则需提前并行安排；否则明确列为保留需求。
+1. **Restore integration readiness:** R-01; concurrently prepare E-01/E-02, actual IA-4 assets E-04 and a short IA-1 route E-05. Reuse the existing backend/delivery foundations.
+2. **Connect identity and one data authority:** F-01/F-03 plus R-02; resolve R-03/R-04 before F-04/F-05. Start with one target/contribution loop rather than all pages.
+3. **Complete references to static navigation:** E-03 plus F-06/F-07; confirm real publication, references, position/heading, walkability and arrival in the field.
+4. **Add continuous dynamics:** E-06 plus F-08, progressing from sensor data to pose, anchoring and delayed cloud fusion. Implement F-02 in parallel if required for the first demo; otherwise explicitly retain it as deferred scope.
 
-人工补素材、部署配置和代码工作可并行准备，但“界面能点击”“schema 已存在”“模型能返回 JSON”“CI 绿色”各自只证明对应层，不能相互替代完成证据。
+Asset preparation, deployment configuration and coding can progress concurrently. Clickable UI, existing models, model JSON and green CI each prove a different layer; none substitutes for the other acceptance evidence.

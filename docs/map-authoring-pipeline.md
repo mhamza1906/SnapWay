@@ -189,7 +189,7 @@ isolated alignment and markerless-location experiments without changing runtime
 architecture, model choices or demo boundaries.
 
 The member subsequently authorized continuous geometric tracking and device
-sensor access as planned dynamic-navigation work. The [plan's sections 9.4–9.7](pipeline/navigation-ai-workflow-plan.md#94-双速率定位跟踪状态与延迟校正)
+sensor access as planned dynamic-navigation work. The [plan's sections 9.4–9.7](pipeline/navigation-ai-workflow-plan.md#94-dual-rate-estimation-tracking-states-and-delayed-corrections)
 now define local camera/accelerometer/gyroscope tracking alongside Gemini's
 periodic queries, Android/Capacitor boundaries, clock/coordinate/epoch handling,
 native camera ownership, fallback states, source-code references and real-device
@@ -207,3 +207,13 @@ failures and 89 Ruff diagnostics on this merged branch, while main's deployed CI
 and the local Node/Angular suites pass. IA-4 mock asset preparation is an external
 dependency; purchasing Vectorizer.AI is explicitly excluded. No product fixes,
 paid calls, PR, deployment or push accompany this audit.
+
+## Documentation language maintenance
+
+All authored `docs/` content is maintained in English under [AGENTS.md](../AGENTS.md)
+and the [development guide](development.md). The plans, research and audits linked
+above were translated with API names, commands, hashes, source citations, gap IDs
+and recorded outcomes preserved; the [web-artifact review](audits/2026-10-17-chatgpt-web-floorplan.md)
+now explains the translated control label, and the [earlier smoke-check link](main-workflow-smoke-check.md)
+points to the current setup section. Original evidence and `docs/initial/` remain
+unchanged. Personal execution history stays in ignored `local/ACTIONS.md`.

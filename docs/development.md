@@ -5,6 +5,11 @@ architecture are indexed in [initial/README.md](initial/README.md). This guide
 describes implemented setup behavior; the initial files retain their original
 planning status and content.
 
+Maintain all authored documentation under `docs/` in English, including plans,
+feature records, audits, diagram labels and explanatory examples. Preserve original
+source artifacts and historical input bytes; describe their meaning in English
+instead of modifying evidence. The shared rule is recorded in [AGENTS.md](../AGENTS.md).
+
 For the interactive frontend, use the [prototype walkthrough](frontend-prototype.md).
 Its Local Storage service and simulated AI/device flows run without the API; this
 guide remains the initialization and backend/toolchain reference.

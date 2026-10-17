@@ -1,137 +1,88 @@
-# 私人 Figma 账号作为矢量化中转站：hackathon 可行性评估
+# Personal Figma account as a vectorization relay: hackathon assessment
 
-**已被取代（2026-10-17）：** 成员决定放弃中转站/自动插件方案，改为[Vectorizer.AI 接口代码与 IA 四楼预构建 mock](vectorizer-api-demo.md)。下文仅保留历史评估，不再是执行计划；IA 一楼用于独立导航 demo route。
+**Superseded, 2026-10-17:** the member abandoned the relay/automated-plugin approach in favor of the [Vectorizer.AI adapter and prebuilt IA-4 mock](vectorizer-api-demo.md). This is historical assessment, not the execution plan. IA-1 belongs to the separate navigation demo route.
 
-日期：2026-10-17；分支 `acceptance/map-authoring-pipeline`，评估基线 `60e92cd`。
-状态：**方案评估，未实现或运行中转链路**。遵循[现有架构](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)，
-应用 API、schema、依赖、Figma 文件和账号设置均未变更。
+Date: 2026-10-17. Branch: `acceptance/map-authoring-pipeline`; baseline: `60e92cd`.
+Status: **assessment only; no relay implemented or run**. Follows the [existing architecture](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md). No application API, schema, dependency, Figma file or account setting was changed.
 
-## 决策建议
+## Recommendation at the time
 
-**适合做操作者在场的 demo；不应承诺靠一个普通 Figma plugin 实现无人值守的完整转换服务。**
-可自动化的是图片导入、选中矢量结果的导出和回传；公开接口仍缺少原生 Vectorize 的调用入口。
-私人账号与非商业 demo 不改变这个技术边界，也不自动带来爬虫 / UI 自动化的许可。
-实际矢量质量依据[此前本地 SVG 验收](../audits/2026-10-17-figma-vectorization.md)，不代表本次桥接已经打通。
+**Suitable for an operator-assisted demo; a normal plugin cannot be promised as an unattended conversion service.** Supported automation covers import, export of selected vectors and return transfer; no public native Vectorize invocation was found. Personal/noncommercial use does not remove that boundary or automatically authorize crawlers/UI automation. Quality evidence comes from the [earlier SVG audit](../audits/2026-10-17-figma-vectorization.md), not a completed bridge.
 
-| 环节 | 可行性 | 已知证据 / 未确认部分 |
-| --- | --- | --- |
-| Image 2.5 返回 PNG 后保存 | 已有隔离实验产物 | 本轮可直接复用 `optimized-floor.png`，验证中转时不必重复付费生成 |
-| PNG 进入指定 Design 文件 | 支持插件实现 | Plugin API 创建 image + image-fill 节点，需用户打开目标文件并运行插件；导入尺寸与网络权限需校验 |
-| 插件自动调用原生 Vectorize | 未找到公开入口 | 不能由 `createVector`、SVG 导出或插件自有 HTML 按钮推导出可调用原生功能 |
-| 原生 Vectorize 由操作者运行 | 可作为 demo 中间步骤 | 本人已有该功能成功产物；实际配额、当前文件权限与响应仍需验证 |
-| 桌面 / 浏览器脚本代点 Vectorize | 技术上可试，未验证 | 有焦点、选择、工具面板、生成完成、确认保存等 UI 状态；无法保证单凭截图就稳定执行，也不能视作官方 API |
-| 从结果节点导出 SVG | 有受支持 API | `exportAsync({format:'SVG'})` 或 `SVG_STRING`；必须确认选中的是结果，不是仍带位图填充的输入 |
-| 回传后端 / 写资产记录 | 可设计桥接，尚未接通 | 用现有存储 / Asset 概念；本地试验先保存文件与 SQLite 清单，不冒充共享 DB 已接入 |
+| Step | Feasibility | Evidence / unknowns |
+|---|---|---|
+| Save Image 2.5 PNG | Existing isolated output | Reuse `optimized-floor.png` without another paid generation |
+| Import into selected Design file | Supported plugin approach | Create image/image-fill node in an open file after user launch; validate dimensions/network access |
+| Plugin invokes native Vectorize | No public entrypoint found | `createVector`, SVG export and a plugin's own button do not establish that capability |
+| Operator runs native Vectorize | Possible demo step | Member has supplied successful output; quota, file access and response still require testing |
+| Browser/desktop script clicks Vectorize | Possible experiment, unverified | Focus, selection, panel, completion and confirmation states require validation; not an official API |
+| Export result as SVG | Supported API | `exportAsync({format:'SVG'})` or `SVG_STRING`; verify the selection is output, not an image-filled input |
+| Return/store asset | Designable, not integrated | Existing storage/Asset concepts; local file/SQLite registration must not impersonate shared DB integration |
 
-官方依据：[图片导入](https://developers.figma.com/docs/plugins/working-with-images/)、
-[节点导出](https://developers.figma.com/docs/plugins/api/properties/nodes-exportasync/)、
-[原生 Vectorize 操作](https://help.figma.com/hc/en-us/articles/38031452710807-Convert-static-images-to-vector-layers)。
-公开接口核查范围及固定版本见前一份 SVG 审计；没有发现可直接执行任意编辑器菜单命令的受支持入口。
+References: [image import](https://developers.figma.com/docs/plugins/working-with-images/), [node export](https://developers.figma.com/docs/plugins/api/properties/nodes-exportasync/), [native Vectorize UI](https://help.figma.com/hc/en-us/articles/38031452710807-Convert-static-images-to-vector-layers). The earlier audit pins the public interface investigation; it found no supported arbitrary editor-menu invocation.
 
-当前会话也已提供 Figma connector 的 `upload_assets` / `download_assets` 能力，
-可作为操作者 / Codex 发起的导入导出候选，未必需要先开发完整插件；本次只读其工具定义，没有上传或下载。
-这不等于 SnapWay 后端能长期自行使用本聊天的认证连接；当前目标文件访问也未重新实测。
-两种导入导出方式都没有补齐原生 Vectorize 的公开调用入口。
+The session also exposed connector `upload_assets` / `download_assets`, potential operator/Codex import/export helpers that might avoid writing a whole plugin. Only tool definitions were inspected; no transfer occurred. A chat connection is not a permanent SnapWay backend credential, target access was not re-tested, and neither import/export approach supplies the missing native conversion API.
 
-## 最小的可靠 demo 流程
+## Minimum reliable demo sequence
 
-建议只使用一个专用 Design 文件 `SnapWay · Vectorize Demo`，其中一个页面 `Vectorization Queue`；
-同页按 job 分 frame，保留输入 / 输出，避免继续产生中间页面。名称只是建议，本次未创建文件或页面。
+Use one proposed Design file, `SnapWay · Vectorize Demo`, and one `Vectorization Queue` page with per-job frames containing input/output. These names were suggestions; no file/page was created.
 
-1. 后端实验脚本登记 job：输入 hash、1536×1024 尺寸、来源资产、目标地图 / 楼层及实验 ID。先复用现有 PNG。
-2. **本人打开文件并执行 `Import next image` 插件命令。** 插件从受限下载地址或本地文件取得字节，
-   创建对应 job frame 与原始大小的图片节点，绑定 job 信息、选中输入，然后保存检查点并关闭。
-3. **本人执行 Figma 原生 Vectorize，确认结果。** 保留原输入以供叠加检查；不得把图片被选中或出现新节点就当成转换完成。
-4. **本人选中输出并执行 `Submit selected vector`。** 插件检查 job 归属、原始输入与结果对应、导出尺寸，
-   导出 SVG / PNG 预览，再上传至受限的实验接收端。不依赖手动下载目录和浏览器文件名。
-5. 接收端验证、保存并记录结果为 `unreviewed`；应用展示可以加载这个候选资产。
-   后续仍需独立的房间 / 门洞 / graph 标注与审核，不能把 Figma 输出直接宣布为可导航地图。
+1. Register input hash, 1536 x 1024 dimensions, source asset, target/floor and experiment ID; reuse the existing PNG.
+2. **Operator opens the file and runs `Import next image`.** Fetch restricted/local bytes, create the job frame and original-size image, attach job metadata, select input, checkpoint and close the plugin.
+3. **Operator runs native Vectorize and confirms output.** Retain input for comparison; selection/new-node presence is not completion evidence.
+4. **Operator selects output and runs `Submit selected vector`.** Check job/source/output identity and size, export SVG/PNG preview and upload to the restricted receiver without relying on download-folder filenames.
+5. Validate/store as `unreviewed`, then load as a candidate. Rooms, openings and navigation graph still need separate annotation/review.
 
-因此不是“插件按钮只点一次”的承诺：用户要启动导入、完成原生 Vectorize、再启动提交。
-关闭导入插件后再运行原生操作，可以避免把插件和编辑器操作同时可用当作前提；具体 UI 次序需 smoke test 确认。
-插件只能操作当前打开的文件上下文；fileKey 不是把普通 plugin 变成远端跨文件写入服务的凭证。
+This requires import, operator conversion and submission, not one plugin click. Closing the importer avoids assuming simultaneous plugin/editor action availability; actual UI order needs a smoke test. Plugins operate in the current file context; a fileKey is not authorization for arbitrary remote cross-file writes.
 
-Figma 官方说明用户通常需发起插件动作，每人只能运行一个插件 / 动作，插件不作为后台常驻程序。
-一个已启动插件可保持运行直至关闭，但这不等于关掉文件后还能处理队列。
-[插件简介](https://developers.figma.com/docs/plugins/)、[运行模型](https://developers.figma.com/docs/plugins/how-plugins-run/)
+Figma documents user-initiated plugins/actions, one running plugin/action per user and no background daemon model. An active plugin may run until closed, but not process a queue after the file closes. [Plugin introduction](https://developers.figma.com/docs/plugins/), [execution model](https://developers.figma.com/docs/plugins/how-plugins-run/).
 
-## 网络、回传与现有数据库
+## Networking, return transfer and existing storage
 
-插件可在其 UI 与后端交换数据，需配置精确的 `networkAccess.allowedDomains`；开发机器可使用 `devAllowedDomains`。
-Figma 网页到 localhost 的 CORS、浏览器本地网络权限和 HTTPS 行为必须现场验证，不能假定桌面可用就等于网页版也可用。
-最小导入可先用插件文件选择器读取本地 PNG，以便将“网络连通”和“原生矢量化”分开验收。
-[网络请求](https://developers.figma.com/docs/plugins/making-network-requests/)、
-[manifest 网络权限](https://developers.figma.com/docs/plugins/manifest/)
+Configure precise `networkAccess.allowedDomains`, with `devAllowedDomains` for development. Test browser localhost CORS/local-network permission/HTTPS separately from desktop behavior. A local PNG file chooser can decouple import networking from native conversion. [Network requests](https://developers.figma.com/docs/plugins/making-network-requests/), [manifest permissions](https://developers.figma.com/docs/plugins/manifest/).
 
-后端无需接管私人 Figma 的登录 Cookie 或密码。本人操作自己的 Figma 会话，插件只持有短期、单 job 的导入 / 提交凭证；
-模型 API、数据库与 R2 密钥仍在现有服务端私有环境。job 归属和应用用户权限独立于 Figma 账号，不能把私人账号等同应用管理员。
-可复用的插件中不嵌入长期服务端密钥或公开任意数据库写接口。
+The backend does not need the personal Figma password/cookies. Operator owns the Figma session; the plugin gets short-lived job-scoped transfer credentials. Model/DB/R2 secrets stay server-side. App authorization and job ownership remain distinct from Figma identity; reusable plugins must not embed long-lived secrets or arbitrary database-write interfaces.
 
-“下载回 database”应拆成资产保存与元数据登记：
+Separate binary storage from database metadata:
 
-- SVG / PNG 保存到配置的私有媒体存储，DB 保存 key、SHA256、类型、大小、尺寸、来源和 job 对应。
-- 现有 [Django Asset](../../apps/api/maps/models.py)已有 `kind=svg`、`storage_key`、`source_asset`、`provenance`；
-  `storage_key` 明确不是 blob、签名 URL 或凭证，不需要为存一张图先改生产 schema。
-- 记录输入 hash、job ID、Figma 输入 / 输出节点关联、插件版本、转换设置、时间与 credits。
-  原生功能可能重新生成节点；不能只按图层名或假定自动继承 `pluginData` 就关联成功。
-- 入站 SVG 检查脚本 / 外部引用 / 位图嵌入、尺寸、字节上限与 hash，安全渲染为预览；
-  重复提交同一 job 不重复建资产，重新转换输出保留新版本而不覆盖已验收资产。
-- [Node BuildingSchema](../../apps/pipeline/shared/building/schema.js)的实验 assets 是 data URL 模型，与 Django 存储适配不是同一个落库契约。
-  当前隔离实验未打通共享 DB / R2 写入；先用 `local/` 文件与 SQLite 登记即可，不声称生产落库已完成。
-  Asset 可空上传者也不代表 Revision / authoring job 可以伪造或省略 required actor。
+- Save SVG/PNG in private media storage; record key, SHA256, type, byte size, dimensions, provenance and job association.
+- Existing [Django Asset](../../apps/api/maps/models.py) provides `kind=svg`, `storage_key`, `source_asset`, `provenance`. A storage key is not a blob, signed URL or credential; storing one asset does not require a production-schema rewrite.
+- Retain source hash, job ID, Figma input/output association, plugin/settings versions, time and credits. Conversion may replace nodes; layer names/assumed `pluginData` inheritance are insufficient identity checks.
+- Validate scripts/external references/embedded bitmaps, dimensions, limits and hashes before rendering preview. Submission is idempotent; new conversions create versions instead of overwriting accepted assets.
+- Experimental [Node BuildingSchema](../../apps/pipeline/shared/building/schema.js) uses data URLs and is not the Django storage contract. Shared DB/R2 writes were not integrated; initially use `local/` files/SQLite. Nullable Asset uploader does not remove required Revision/job actor rules.
 
-最小持久状态建议为：`pending → imported → waiting_for_operator → ready_to_export → stored_unreviewed`；
-这是一份实验状态建议，不新增或替换现有应用 API。
+Suggested experiment state: `pending -> imported -> waiting_for_operator -> ready_to_export -> stored_unreviewed`. This is a proposed experiment state, not a new application API.
 
-## 全自动 UI 路径的边界
+## Unattended UI boundary
 
-在本人登录的电脑上，受控浏览器 / 桌面助手有可能完成选择输入、点击 Vectorize、等待和确认；
-但普通 Figma 插件在沙箱内，自己的 iframe DOM 不提供操纵宿主编辑器菜单的标准途径。
-UI 自动化是独立的外部控制层，插件本身并未获得 Vectorize API。
+A controlled browser/desktop assistant might select input, click Vectorize, wait and confirm in the operator's session, but a normal sandboxed plugin's iframe cannot use a supported host-menu-control API. UI automation is a separate controller, not a new native API capability for the plugin.
 
-演示中最容易失败的地方是登录或权限提示、选错节点、结果尚未完成、布局 / 语言变化，以及 credits 耗尽。
-若进行单独 PoC，应限定单任务、显式可观察状态和超时，提交前再次校验纯矢量；出现异常由本人接管。
-不靠固定 sleep 宣称生成完成，不因超时反复点击造成多次计费，也不将手工生成的旧缓存冒充现场结果。
-在现场稳定性实测与平台允许范围未确认前，推荐保留第 3 步人工操作作为主 demo 路线。
+Failure modes include login/permission prompts, wrong selection, incomplete output, changed layout/language and exhausted credits. A separate PoC should process one job with observable states/timeouts and final pure-vector validation, allowing operator takeover. Fixed sleeps do not prove completion; repeated timeout clicks can duplicate charges, and old manual output must not be presented as a fresh conversion. Until reliability/allowed use are established, retain operator conversion as the primary demo path.
 
-Figma [AUP](https://www.figma.com/legal/aup/)对程序化访问保留明确许可条件，也限制共享账号和规避费用；
-没有在本次阅读文本中找到 hackathon / 非商业自动豁免。
-普通 Plugin API 的导入 / 导出有官方文档支持；未公开接口爬取、重放内部请求或 UI 爬虫不能自动视为同等获准。
-本评估不认定所有本人 UI 辅助操作都被禁止，亦不将用户的 demo 意图解读为共享登录或绕过付费。
+Figma's [AUP](https://www.figma.com/legal/aup/) conditions programmatic access and restricts account sharing/fee circumvention; no blanket hackathon exception was found. Documented Plugin import/export differs from private-endpoint scraping/replay. This assessment neither declares every personal UI assistance action forbidden nor interprets the member's demo as credential sharing or fee bypass.
 
-## 成本和产物使用
+## Cost and output use
 
-原生 Vectorize 仍消耗账号额度，当前官方表为 **2–5 Figma AI credits / 图**（表标注截至 2026-10-15）；
-不是把个人账号放入流程后转换就免费。已有额度充足时可能无需另购矢量化服务，但未核查本人的额度和结算设置。
-测量时分开记录导入 / 上传网络时间、原生转换时间、人工等待、credits 和总用时，不能与两阶段模型调用耗时直接当作等任务比较。
-[credits 说明](https://help.figma.com/hc/en-us/articles/33459875669015-How-Figma-AI-credits-work)
+Native Vectorize consumes account quota: the official table listed **2-5 Figma AI credits/image**, current through 2026-10-15. Personal-account routing does not make conversion free. Existing quota might avoid another purchase, but the account balance/billing was not checked. Measure transfer, native conversion, operator wait, credits and total duration separately rather than comparing directly to two-stage model calls. [Credit documentation](https://help.figma.com/hc/en-us/articles/33459875669015-How-Figma-AI-credits-work).
 
-Figma [AI Terms](https://www.figma.com/legal/ai-terms/)第 2 条将输入输出视作 Customer Content，并在双方之间保留客户权利；
-这与此前商业描摹工具的专门 AI 用途限制不应混为一谈，但仍需按自身输入授权、Figma 适用条款和供应商条件使用。
-该条款也区分 Figma 与独立 Weave 产品，不能将两者配额 / 权利自动等同。没有对产物后处理给出全面法律保证。
+Section 2 of [Figma AI Terms](https://www.figma.com/legal/ai-terms/) treats inputs/outputs as Customer Content and preserves customer rights between the parties. This differs from the previously investigated tracing vendors' AI-use restrictions but does not give a blanket downstream-use guarantee; input rights, applicable terms and supplier conditions still matter. Figma and standalone Weave quotas/rights are not interchangeable.
 
-## 新发现：可另查 Weave 官方调用能力
+## Additional candidate: Weave tooling
 
-本会话 Figma connector 已暴露 Weave 工具目录、输入契约、资产上传、运行和结果轮询能力。
-这比爬取内部 Vectorize 接口更值得作为自动化候选调查，但 connector 能力不等于 SnapWay 后端获得了公共 API 凭证或服务许可。
+The connector exposed a Weave catalog, contracts, uploads, runs and polling. This was a more concrete investigation candidate than private Vectorize scraping, but connector capability does not grant a public backend credential/service license.
 
-本次只调用一次只读 `weave_list_tools(search="vector")`，返回：**当前 Figma 账号尚未关联 Weave**。
-工具给出的关联入口为 `https://app.weavy.ai/settings?section=profile`；没有运行模型、上传图片或消耗生成 credits。
-目前还不知道该账号的实际目录、输入输出格式与某个矢量工具的可调用性。
+One read-only `weave_list_tools(search="vector")` returned **Figma account not linked to Weave**, with `https://app.weavy.ai/settings?section=profile` as the link entrypoint. No image was uploaded, model run or credits consumed. Actual account catalog, input/output format and callable vector tool remained unknown.
 
-官方 credits 表另列 Weave 的 **Image to vector：13 credits / 次**，不同于原生 Vectorize 的 2–5；
-不能推断两者同一引擎、同等效果或同样输出纯 SVG。独立 Weave 的账户 / credits 也与在 Design 内使用工具有区别。
-[Weave in Figma](https://help.figma.com/hc/en-us/articles/40779260614935-Use-Weave-tools-in-Figma)
+The official table lists Weave **Image to vector at 13 credits/run**, distinct from native Vectorize's 2-5. Do not infer equal engines, quality, pure-SVG output or shared standalone/in-Design credits. [Weave in Figma](https://help.figma.com/hc/en-us/articles/40779260614935-Use-Weave-tools-in-Figma).
 
-后续若要调查此路线，先关联账号并读取工具契约，确认返回实际 SVG、生成方式、价格与适用条款；
-再用同一冻结 PNG 测一次，和现有 Figma SVG 比较几何。不能在目录未读到时声称已找到完整 API 替代方案。
+Any future investigation should first link/read the actual tool contract, confirm SVG/method/pricing/terms, then test the same frozen PNG against the existing Figma vector. Catalog availability alone is not an end-to-end API replacement.
 
-## 最小验收次序
+## Minimum acceptance order
 
-1. 同一 PNG 经插件进入目标文件，尺寸 / hash / job 对应正确；无新增生图调用。
-2. 本人完成一次原生 Vectorize；导出插件识别正确输出，回传真实 SVG 与渲染预览。
-3. 接收端保存文件、SQLite 元数据与测量记录；关插件后重新打开仍能恢复 job，对重复提交与选错图片能明确处理。
-4. 视觉质量不低于手工导出基线；保留原图信息与待审核状态，不宣称已通过导航连通验收。
-5. 若上述通过，才另行评估 UI 自动操作或 Weave；需要时再提出应用服务 / 存储接入的具体变更。
+1. Identical PNG reaches the intended file; dimensions/hash/job match, without another generation.
+2. Operator completes native Vectorize; exporter selects actual output and returns SVG/preview.
+3. Receiver persists files, SQLite metadata and measurements; reopening resumes the job and rejects duplicate/wrong-image submissions appropriately.
+4. Visual quality meets the manual baseline; original information/review status remain, without navigation-connectivity claims.
+5. Only then separately evaluate UI automation/Weave and propose concrete service/storage integration if needed.
 
-本次完成文档与官方能力核查，另有一次 Weave 只读连通检查；未开发插件、未设置账号、未创建 Figma 页面、未写数据库。
+This assessment performed documentation/public-capability review and one read-only Weave connection check. It did not implement a plugin, change accounts, create pages or write a database.
