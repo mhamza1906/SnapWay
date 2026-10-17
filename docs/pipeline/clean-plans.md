@@ -12,6 +12,70 @@ Before mapping, each floor of an upload is redrawn as a clean, flat floor plan
 by the image model. The clean image becomes the floor's mapping source; the
 original upload and the floor's crop are kept as assets for comparison.
 
+### Plan brief (Gemini 4 Argon), then the redraw
+
+Before every redraw, the **plan reader** (`gemini-4-argon` by default, replacing
+Gemini Flash 3.8; `VERTEX_BRIEF_MODEL`,
+reasoning effort `high`, `VERTEX_BRIEF_EFFORT`;
+[server/plan-brief.js](../../apps/pipeline/server/plan-brief.js)) reads the
+original floor and decides how it must be redrawn. In the redraw, **flat light
+grey `#D8D8D8` means corridor** and every other enclosed area is a white room,
+so the reader decides the corridors first:
+
+- **The original shades its corridors grey** (`greyInOriginal: true`): those
+  grey areas are the corridors; the image model fills exactly them and adds no
+  other grey.
+- **No grey in the original**: the reader works out each corridor in detail
+  (where it starts and ends, which rooms open onto it) and the image model
+  draws each one grey. A floor is never left as rooms only.
+
+The JSON brief also lists printed room names, **unlabelled enclosed spaces**
+(stair cores or ramps with treads but no name, closets, shafts; drawn as
+closed white rooms so the map author can mark them later), labelled stairs and
+lifts, voids, easy-to-miss walls, doorways onto corridors and clutter to
+remove, plus direct instructions. It is appended to the image model's prompt
+and cached by input image.
+
+Raster segmentation reads the convention: on a grey-coded redraw (3% or more
+of the floor grey) a region that is at least 45% grey is a **corridor**
+(`Hallway N`, or a printed circulation name in capitals) and a white region is
+a room whatever its shape. Plans without grey keep the shape rules below.
+Colour also splits regions: where a grey corridor grew through a wall gap into
+white rooms or voids, each connected white part (with its text, door arcs and
+X marks) becomes its own region. Openings between two corridor pieces are open
+circulation joins (not checked by the model); between grey and white, each
+pair of regions keeps one opening (the widest, at least 15 px), so slivers
+along the colour boundary are not checked as doorways.
+
+Six-floor rebuild from the board photo (October 17, 2026; six Flash briefs at
+high effort, six Nano Banana 2.1 redraws in parallel, all floors mapped in
+parallel within the default 40-request budget): every original shades its
+corridors grey; the maps have 131 corridors and 378 rooms, 295 routable.
+Saved as library copy `copy-sam-ibrahim-building-corridors-v3-f8bd624b`.
+Remaining review: voids (open to below, roof gardens) are regions without a
+doorway (mark them Not a room), and Level 1's angled outline is fragmented.
+
+Level 1 fix (same day): the redraw had kept the thin-line landscaping around
+the building and drawn the glazed exterior as thin lines, so outside detection
+flooded the grey concourse and the floor fell apart into three islands. Now
+(1) the plan reader is Gemini 4 Argon and is told to keep **the building only**
+(landscaping, canopies, site and dashed lines removed; glazed walls drawn as a
+closed solid outline), and the image model's prompt says the same; (2) on a
+grey-coded redraw a one-pixel barrier is placed wherever open exterior touches
+grey, so the outside never swallows a corridor; (3) raster wall fragments
+shorter than 5 px are dropped (Level 1 had 1,789 of them, over the 2,000-wall
+limit). Rebuild with Argon (library copy
+`copy-sam-ibrahim-building-argon-corridors-v4-…`): every floor is one connected
+building with its grey corridors; 451 rooms, 311 routable; Level 1 has 23
+corridors and still many rooms awaiting doorway review.
+
+Level B of the Sam Ibrahim board photo (October 17, 2026; Flash brief 7.3k
+tokens at high effort, one Nano Banana 2.1 image): the reader found the grey
+corridors (central atrium and its north arm, south corridor, diagonal corridor
+beside The Cave, east foyer); the map gave 7 corridors and 44 rooms, all 44
+routable. The earlier redraw (no brief) had dropped the grey and produced no
+corridors at all.
+
 | Plan type (user chooses) | Behaviour |
 | --- | --- |
 | **Floor plan** | One floor. The page is redrawn once. A multi-page PDF is refused (use Building plan). |

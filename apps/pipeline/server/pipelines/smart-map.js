@@ -18,7 +18,7 @@ import { clone, inside, centre, distance, emptyMap, validateMap } from "../../sh
 import { rasterRoomsMap } from "./raster-rooms.js";
 
 export const SMART_MAP_VERSION = "hybrid-map-v1-2026-10-16";
-const RASTER_VERSION = "raster-rooms-v1-2026-10-17";
+const RASTER_VERSION = "raster-rooms-v7-2026-10-17";
 export const SmartOptions = z.object({
   floorIds: z.array(z.string()).min(1).max(20),
   rebuild: z.boolean().default(false),

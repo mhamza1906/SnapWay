@@ -133,7 +133,7 @@ a live project here:
 - which Google Cloud API key types and restrictions Vertex accepts this way,
 - whether `gemini-4-argon` is available in your project and location.
 
-`VERTEX_IMAGE_MODEL` (default `gemini-nano-banana-2.1`) and `VERTEX_IMAGE_SIZE`
+`VERTEX_IMAGE_MODEL` (default `gemini-nano-banana-2.1`), `VERTEX_BRIEF_MODEL` (default `gemini-4-argon`, the plan reader that runs before each redraw; `VERTEX_BRIEF_EFFORT` default `high`) and `VERTEX_IMAGE_SIZE`
 (default `2K`) select the clean-plan image model; see
 [clean-plans.md](clean-plans.md).
 

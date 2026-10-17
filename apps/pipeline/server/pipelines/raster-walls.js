@@ -336,7 +336,8 @@ export function outsideLabels(seg, walls, w, h, { radius, ratio = 0.72, minPeak 
       }
       if (edge) cut++;
     }
-    if (peak < minPeak || cut >= 2 * ratio * peak) drop.push(...comp);
+    // A loop, not push(...comp): a large piece overflows the argument stack.
+    if (peak < minPeak || cut >= 2 * ratio * peak) for (const k of comp) drop.push(k);
   }
   for (const k of drop) labels[k] = moveTo.get(labels[k]);
   for (let i = 0; i < n; i++) if (!inside[i] && moveTo.has(labels[i])) labels[i] = moveTo.get(labels[i]);

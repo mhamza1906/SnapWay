@@ -406,6 +406,82 @@ function simplifyChains(chains, rings, tol) {
 }
 
 const GENERIC = /^(unlabel|unlabeled|unknown|unnamed|space\b|area\b)/i;
+// The clean redraw's circulation fill (#D8D8D8 = 216) with room for JPEG and
+// anti-aliasing; a plan counts as grey-coded when 3% of its floor is grey.
+const GREY_LOW = 185, GREY_HIGH = 240, GREY_PLAN_FRACTION = 0.03, GREY_REGION_FRACTION = 0.45;
+const isGrey = (g) => g >= GREY_LOW && g <= GREY_HIGH, GREY_MIN_DOOR = 15, MIN_WALL_PX = 5;
+// Grey-coded when 3% of the image's open (non-wall) pixels are corridor grey.
+function imageGreyCoded(gray, walls) {
+  let free = 0, grey = 0;
+  for (let i = 0; i < gray.length; i++) if (!walls[i]) { free++; if (isGrey(gray[i])) grey++; }
+  return grey >= GREY_PLAN_FRACTION * free;
+}
+// Walls plus a one-pixel barrier on every grey pixel the exterior touches. The
+// exterior is flooded from the image border through open, non-grey pixels at
+// least `clearance` px from a wall, so it cannot slip through door-sized gaps
+// into rooms.
+function greyBarrier(gray, walls, w, h, { clearance = 4 } = {}) {
+  const n = w * h, free = new Uint8Array(n);
+  for (let i = 0; i < n; i++) free[i] = walls[i] ? 0 : 1;
+  const dist = distanceField({ w, h, res: 1, mask: free }), open = (i) => free[i] && !isGrey(gray[i]) && dist[i] >= clearance;
+  const out = new Uint8Array(n), queue = [];
+  for (let x = 0; x < w; x++) for (const i of [x, (h - 1) * w + x]) if (open(i) && !out[i]) { out[i] = 1; queue.push(i); }
+  for (let y = 0; y < h; y++) for (const i of [y * w, y * w + w - 1]) if (open(i) && !out[i]) { out[i] = 1; queue.push(i); }
+  for (let k = 0; k < queue.length; k++) {
+    const i = queue[k], x = i % w;
+    for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w])
+      if (j >= 0 && j < n && !out[j] && open(j)) { out[j] = 1; queue.push(j); }
+  }
+  const barred = Uint8Array.from(walls);
+  for (let i = 0; i < n; i++) {
+    if (!isGrey(gray[i]) || walls[i]) continue;
+    const x = i % w;
+    for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w])
+      if (j >= 0 && j < n && out[j]) { barred[i] = 1; break; }
+  }
+  return barred;
+}
+function greyCoded(gray, rid, walls) {
+  let free = 0, grey = 0;
+  for (let i = 0; i < rid.length; i++) if (rid[i] && !walls[i]) { free++; if (isGrey(gray[i])) grey++; }
+  return grey >= GREY_PLAN_FRACTION * free;
+}
+// Splits regions that are part grey (corridor) and part white (rooms, voids):
+// each connected non-grey part (white with its text and marks) of at least
+// `minArea` becomes its own region; the grey part and walls keep the label. Where a white part meets
+// the grey without a wall, the boundary becomes a doorway as usual.
+function splitByColour(rid, walls, gray, w, h, minArea) {
+  const n = w * h, free = new Map(), grey = new Map();
+  let top = 0;
+  for (let i = 0; i < n; i++) {
+    const r = rid[i]; if (!r) continue;
+    if (r > top) top = r;
+    if (walls[i]) continue;
+    free.set(r, (free.get(r) || 0) + 1);
+    if (isGrey(gray[i])) grey.set(r, (grey.get(r) || 0) + 1);
+  }
+  const mixed = new Set([...free].filter(([r, f]) => (grey.get(r) || 0) >= 0.15 * f && (grey.get(r) || 0) <= 0.85 * f).map(([r]) => r));
+  if (!mixed.size) return;
+  const seen = new Uint8Array(n), D = [-1, 1, -w, w];
+  for (let i = 0; i < n; i++) {
+    const r = rid[i];
+    if (seen[i] || !mixed.has(r) || walls[i] || gray[i] <= GREY_HIGH) continue;
+    const part = [i]; seen[i] = 1;
+    for (let k = 0; k < part.length; k++) {
+      const p = part[k], x = p % w;
+      for (const d of D) {
+        const q = p + d;
+        if (q < 0 || q >= n || (d === -1 && x === 0) || (d === 1 && x === w - 1)) continue;
+        // White and dark marks (text, door arcs, a void's X) are one part; only
+        // walls and grey stop it.
+        if (!seen[q] && rid[q] === r && !walls[q] && !isGrey(gray[q])) { seen[q] = 1; part.push(q); }
+      }
+    }
+    if (part.length < minArea) continue;
+    const id = ++top;
+    for (const p of part) rid[p] = id;
+  }
+}
 // "Hall" alone is a room name (Innovation Hall); these words mean circulation.
 // The model only names rooms: printed stair names stay rooms until the user
 // marks them as stairs (or merges them into one).
@@ -430,12 +506,19 @@ const KIND = { room: "room", restroom: "restroom", storage: "storage", corridor:
 export async function rasterRoomsMap(image, { source, inventory = [], minAreaFraction = 0.00025, minWalkFraction = 0.003,
   simplify = 1.5, minDoor = 8 } = {}) {
   const { gray, w, h } = await loadGray(image);
-  const walls = wallMask(gray, w, h), seg = segmentSpaces(walls, w, h);
+  // On a grey-coded redraw the corridors are inside by definition: where open
+  // exterior reaches the grey without a wall (glazing drawn as thin lines, a
+  // broken outline), a barrier keeps the outside from swallowing the corridor.
+  const drawn = wallMask(gray, w, h), walls = imageGreyCoded(gray, drawn) ? greyBarrier(gray, drawn, w, h) : drawn,
+    seg = segmentSpaces(walls, w, h);
   // Outside: anything grown from the image border.
   const outside = outsideLabels(seg, walls, w, h);
   const rid = shareWalls(seg.labels, walls, w, h);
   for (let i = 0; i < w * h; i++) if (outside.has(rid[i])) rid[i] = 0;
   const minArea = Math.max(200, minAreaFraction * w * h), minHalf = minWalkFraction * Math.max(w, h);
+  // On a grey-coded redraw, colour beats shape: a region that grew across a
+  // wall gap from a grey corridor into white rooms or voids is split by colour.
+  if (greyCoded(gray, rid, walls)) splitByColour(rid, walls, gray, w, h, minArea);
   // Small regions (text blobs, wall slivers), then regions too narrow to walk.
   mergeInto(rid, walls, seg.dist, w, h, (s) => s.area < minArea);
   mergeInto(rid, walls, seg.dist, w, h, (s) => s.peak < minHalf
@@ -447,14 +530,23 @@ export async function rasterRoomsMap(image, { source, inventory = [], minAreaFra
   const origin = new Map();
   for (let i = 0; i < w * h; i++) if (rid[i] && !origin.has(rid[i])) origin.set(rid[i], before[i]);
   // Region features.
+  // `grey`: floor pixels in the redraw's flat circulation grey (see CLEAN_PROMPT).
   const stats = new Map();
+  let freeTotal = 0, greyTotal = 0;
   for (let i = 0; i < w * h; i++) {
     const r = rid[i]; if (!r) continue;
-    const s = stats.get(r) || { id: r, area: 0, peak: 0, sx: 0, sy: 0 };
+    const s = stats.get(r) || { id: r, area: 0, peak: 0, sx: 0, sy: 0, free: 0, grey: 0 };
     s.area++; s.sx += i % w; s.sy += Math.floor(i / w);
-    if (!walls[i] && seg.dist[i] > s.peak) s.peak = seg.dist[i];
+    if (!walls[i]) {
+      s.free++; freeTotal++;
+      if (gray[i] >= GREY_LOW && gray[i] <= GREY_HIGH) { s.grey++; greyTotal++; }
+      if (seg.dist[i] > s.peak) s.peak = seg.dist[i];
+    }
     stats.set(r, s);
   }
+  // A redraw that fills corridors grey decides corridor vs room by colour:
+  // grey regions are corridors, white ones are rooms.
+  const greyPlan = greyTotal >= GREY_PLAN_FRACTION * freeTotal;
   const ids = [...stats.keys()].sort((a, b) => a - b), spaceId = (r) => `raster-${r}`;
   const chains = boundaryChains(rid, walls, w, h), rings = new Map();
   for (const r of [0, ...ids]) rings.set(r, ringPlans(r, chains));
@@ -503,7 +595,20 @@ export async function rasterRoomsMap(image, { source, inventory = [], minAreaFra
       shapeKind = elong >= 3 || (doorsHere >= 3 && elong >= 1.8) ? "corridor"
         : doorsHere >= 3 && s.area >= 1.5 * median ? "lobby" : "room";
     let kind, label;
-    if (specific.length) {
+    if (greyPlan) {
+      // A grey region takes only printed circulation names (all capitals, as on
+      // the plan); room or stair labels that land in it and the model's own
+      // descriptions are ignored.
+      const circulation = s.grey >= GREY_REGION_FRACTION * s.free,
+        own = circulation
+          ? specific.filter((i) => circulationKind(i.label) && i.label === i.label.toUpperCase())
+          : specific.filter((i) => !circulationKind(i.label) || KIND[i.kind] !== "corridor"),
+        printed = own.length ? distinctLabels(own.map((i) => i.label)).join(" / ").slice(0, 120) : "";
+      // Grey is corridor, white is room: the plan reader decided it.
+      kind = circulation ? "corridor" : "room";
+      label = printed || (kind === "corridor" ? `Hallway ${spaces.filter((x) => x.kind === "corridor").length + 1}`
+        : generic.length ? generic[0].label.trim().slice(0, 120) : `Unlabelled room ${++unnamed}`);
+    } else if (specific.length) {
       label = distinctLabels(specific.map((i) => i.label)).join(" / ").slice(0, 120);
       const k = specific.map((i) => KIND[i.kind] || "room");
       kind = circulationKind(label) || (k.includes("corridor") && specific.length === 1 ? "corridor" : k.find((x) => x !== "corridor") || "room");
@@ -518,10 +623,36 @@ export async function rasterRoomsMap(image, { source, inventory = [], minAreaFra
       ...(doorsHere ? {} : { access: "unknown" }) });
   }
   const kept = new Set(spaces.map((s) => s.id));
-  const finalDoors = doors.filter((d) => d.spaceIds.every((id) => kept.has(id)));
-  const wallLines = chains.filter((c) => !c.open && c.simple.length >= 2 && c.pair.some((r) => kept.has(spaceId(r))))
+  // On a grey-coded plan, an opening between two grey corridor pieces is the
+  // same corridor continuing: an open circulation join, not a doorway to check.
+  const corridorIds = new Set(greyPlan ? spaces.filter((x) => x.kind === "corridor").map((x) => x.id) : []);
+  let joins = 0;
+  let finalDoors = doors.filter((d) => d.spaceIds.every((id) => kept.has(id)))
+    .map((d) => d.spaceIds.length === 2 && d.spaceIds.every((id) => corridorIds.has(id)) && !d.id.includes("coverage-open-")
+      ? { ...d, id: `coverage-open-raster-c${++joins}`, label: "Open circulation join", confidence: 1 } : d);
+  if (greyPlan) {
+    // Where grey meets white the boundary breaks into slivers between wall
+    // pixels: drop openings shorter than a door and keep one (the widest) per
+    // pair of regions.
+    const len = (d) => Math.hypot(d.a.x - d.b.x, d.a.y - d.b.y), best = new Map();
+    for (const d of finalDoors) {
+      if (d.id.includes("coverage-open-")) continue;
+      if (len(d) < GREY_MIN_DOOR) continue;
+      const key = [...d.spaceIds].sort().join("|");
+      if (!best.has(key) || len(d) > len(best.get(key))) best.set(key, d);
+    }
+    const keep = new Set(best.values());
+    finalDoors = finalDoors.filter((d) => d.id.includes("coverage-open-") || keep.has(d));
+  }
+  // A region left without any opening is flagged for review, as above.
+  const opened = new Set(finalDoors.flatMap((d) => d.spaceIds));
+  for (const sp of spaces) if (!opened.has(sp.id)) sp.access = "unknown";
+  // Wall fragments shorter than MIN_WALL_PX (corner slivers) block nothing a
+  // person could pass and only add pieces; region boundaries still separate.
+  const chainLength = (pts) => pts.slice(1).reduce((n, p, i) => n + Math.hypot(p.x - pts[i].x, p.y - pts[i].y), 0);
+  const wallLines = chains.filter((c) => !c.open && c.simple.length >= 2 && c.pair.some((r) => kept.has(spaceId(r))) && chainLength(c.simple) >= MIN_WALL_PX)
     .map((c, i) => ({ id: `raster-wall-${i + 1}`, points: c.simple }));
   return { spaces, doors: finalDoors, walls: wallLines, width: w, height: h,
     stats: { regions: spaces.length, doors: finalDoors.length, walls: wallLines.length, corridors: spaces.filter((s) => s.kind === "corridor").length,
-      lobbies: spaces.filter((s) => s.kind === "lobby").length, named: spaces.filter((s) => s.confidence > 0.8).length } };
+      lobbies: spaces.filter((s) => s.kind === "lobby").length, named: spaces.filter((s) => s.confidence > 0.8).length, greyCoded: greyPlan } };
 }

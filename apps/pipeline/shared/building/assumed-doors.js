@@ -40,8 +40,9 @@ export const isAssumed = (record) => record?.evidence?.method === "assumed";
 const RANK = { corridor: 0, lobby: 1 };
 const hallRank = (s) => RANK[s.kind] ?? (s.use === "hall" ? 1 : 2);
 const bounds = (p) => {
-  const xs = p.map((v) => v.x), ys = p.map((v) => v.y);
-  return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const v of p) { x0 = Math.min(x0, v.x); y0 = Math.min(y0, v.y); x1 = Math.max(x1, v.x); y1 = Math.max(y1, v.y); }
+  return { x0, y0, x1, y1 };
 };
 export function neighbourEdges(floor, spaceId) {
   const g = floor.geometry,
@@ -75,8 +76,10 @@ export function neighbourEdges(floor, spaceId) {
         }
       }
     if (!touching) {
-      const gap = Math.min(...room.polygon.flatMap((p) => edges(other).map((h) => pointSegment(p, h.a, h.b))),
-        ...other.polygon.flatMap((p) => edges(room).map((e) => pointSegment(p, e.a, e.b))));
+      // A loop: detailed outlines give too many distances to spread into Math.min.
+      let gap = Infinity;
+      for (const p of room.polygon) for (const h of edges(other)) gap = Math.min(gap, pointSegment(p, h.a, h.b));
+      for (const p of other.polygon) for (const e of edges(room)) gap = Math.min(gap, pointSegment(p, e.a, e.b));
       if (gap <= NEAR_GAP) near.push({ adjacentId: other.id, adjacentLabel: other.label, gap: Math.round(gap * 10) / 10 });
     }
   }

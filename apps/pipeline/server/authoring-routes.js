@@ -6,6 +6,7 @@ import multer from "multer";
 import sharp from "sharp";
 import { createProvider } from "./provider.js";
 import { VertexImageModel } from "./vertex-image.js";
+import { PlanBriefModel } from "./plan-brief.js";
 import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 import { preparePlan } from "./pipelines/preparation.js";
 import { hashBytes } from "./pipelines/extraction.js";
@@ -137,6 +138,7 @@ export function startCleanJob(file, { mode, floors, labels, name }, deps = {}) {
     try {
       const clean = await cleanPlan({ buffer: file.buffer, fileName: file.originalname, mime: file.mimetype, mode, floors, labels,
         provider: deps.provider ?? createProvider(), imageModel: deps.imageModel ?? new VertexImageModel(),
+        briefModel: "briefModel" in deps ? deps.briefModel : new PlanBriefModel(),
         cacheDir: deps.cacheDir, signal: controller.signal, progress: (p) => { job.progress = p; } });
       const building = await buildingFromClean(clean, { name });
       job.result = {

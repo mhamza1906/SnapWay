@@ -325,3 +325,21 @@ test("segmentation 'model' (and auto on a non-redraw source) still traces tiles 
   assert.ok(auto.requests.includes("floor_plan"), `requests: ${auto.requests}`);
   assert.equal(traced.proposals[0].segmentation, undefined);
 });
+
+test("a grey-coded redraw: grey regions are circulation and white regions are rooms, whatever their shape", async () => {
+  // West half filled with the redraw's circulation grey; east: a long thin white
+  // strip (shape alone would call it a corridor) above a white room.
+  const svg = planSvg({ h: [...OUTER.h, [120, 400, 770, [[560, 600]]]], v: [...OUTER.v, [400, 30, 470, [[60, 100], [280, 320]]]] })
+    .replace('fill="white"/>', 'fill="white"/><rect x="30" y="30" width="370" height="440" fill="#D8D8D8"/>');
+  const png = await sharp(Buffer.from(svg)).png().toBuffer(), r = await rasterRoomsMap(png);
+  assert.equal(r.stats.greyCoded, true);
+  const lobby = one(r, { x: 200, y: 250 }, "grey area"), strip = one(r, { x: 585, y: 75 }, "white strip"), room = one(r, { x: 585, y: 300 }, "white room");
+  assert.equal(lobby.kind, "corridor", "a grey area is a corridor");
+  assert.match(lobby.label, /^Hallway \d+$/);
+  assert.deepEqual([strip.kind, room.kind], ["room", "room"], "white regions are rooms even when long and thin");
+  // Without grey the same strip is a hallway by shape.
+  const plain = await plan({ h: [...OUTER.h, [120, 400, 770, [[560, 600]]]], v: [...OUTER.v, [400, 30, 470, [[60, 100], [280, 320]]]] });
+  const r2 = await rasterRoomsMap(plain);
+  assert.equal(r2.stats.greyCoded, false);
+  assert.equal(one(r2, { x: 585, y: 75 }, "plain strip").kind, "corridor");
+});

@@ -18,21 +18,43 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { hashBytes } from "./extraction.js";
 import { preparePlan } from "./preparation.js";
 import { nearestAspect } from "../vertex-image.js";
+import { BRIEF_VERSION, CIRCULATION_GREY, briefText } from "../plan-brief.js";
 import { newBuilding, newFloor, parseBuilding } from "../../shared/building/schema.js";
 import { emptyMap } from "../../shared/map.js";
 
-export const CLEAN_PLAN_VERSION = "clean-plan-v1-2026-10-17";
+export const CLEAN_PLAN_VERSION = "clean-plan-v4-2026-10-17";
 const MODEL_VIEW_EDGE = 1600, CROP_VIEW_EDGE = 1024, IMAGE_INPUT_EDGE = 2048;
 
-export const CLEAN_PROMPT = (label) => [
+export const CLEAN_PROMPT = (label, brief = null) => [
   `Redraw this ${label ? `floor plan (${label})` : "floor plan"} as a clean, flat, top-down architectural floor plan.`,
   "Preserve the geometry exactly: every wall, room, corridor, door opening, stair, elevator and void stays in the same position, shape and proportion as in the input.",
   "Correct perspective, rotation, glare, blur and paper texture so the plan is viewed straight on.",
-  "Draw walls as solid black lines on a plain white background. Show door openings as gaps in walls, with door swing arcs where the input shows them.",
+  "Draw walls as solid black lines. Show door openings as gaps in walls, with door swing arcs where the input shows them.",
+  brief
+    ? `Fill the corridors the plan reader lists below, and only those, with one flat, uniform light grey (${CIRCULATION_GREY}) right up to the walls and door openings.`
+    : `Fill every corridor, hallway, lobby and atrium (in the input usually the grey-shaded areas) with one flat, uniform light grey (${CIRCULATION_GREY}) right up to the walls and door openings.`,
+  "Everything else inside the building is plain white: rooms, stairs, lifts, washrooms, service rooms and unlabelled enclosed spaces, each closed by its walls. Use no other fills, colours, gradients, hatching or shading.",
   "Keep room names and numbers as text inside their rooms, spelled exactly as in the input. Keep stair and elevator names.",
   "Remove everything that is not part of the building: fire-equipment symbols, red leader lines, legends, titles, 'you are here' markers, exit arrows, seat counts drawn as clutter, and anything outside this one floor.",
+  "Draw only the building: nothing outside its exterior wall (no landscaping, trees, canopy or roof outlines, paving, site lines or dashed outlines). Draw the exterior wall, including glazed walls shown as thin lines, as one closed solid outline; outside it the page is plain white.",
   "Do not invent rooms, doors or text. Do not add a title, legend, compass or border. If something is unreadable, leave it plain rather than guessing.",
-].join(" ");
+  brief ? briefText(brief) : "",
+].filter(Boolean).join(" ");
+
+// Gemini Flash reads the original first and writes the redraw instructions;
+// cached by input image, model and brief version.
+async function planBrief(briefModel, input, { label, cacheDir, signal }) {
+  const key = sha(JSON.stringify({ v: BRIEF_VERSION, model: briefModel.model, label, input: hashBytes(input.buffer) })),
+    path = `${cacheDir}/briefs/${key}.json`;
+  try {
+    return { ...JSON.parse(await readFile(path, "utf8")), cached: true };
+  } catch (e) { if (e.code !== "ENOENT") throw e; }
+  const started = Date.now(), out = await briefModel.brief({ dataUrl: input.dataUrl, label, signal }),
+    meta = { brief: out.brief, model: out.model, usage: out.usage, latencyMs: Date.now() - started, version: BRIEF_VERSION };
+  await mkdir(`${cacheDir}/briefs`, { recursive: true });
+  await writeFile(path, JSON.stringify(meta, null, 2));
+  return { ...meta, cached: false };
+}
 
 const sha = (s) => hashBytes(Buffer.from(s));
 async function fit(buffer, edge) {
@@ -61,14 +83,15 @@ async function griddedOverview(buffer) {
  * Redraws one image with the image model; responses are cached by model,
  * prompt and input bytes so a re-run makes no new paid request.
  */
-export async function redraw(imageModel, { dataUrl, label = "", cacheDir, signal }) {
+export async function redraw(imageModel, { dataUrl, label = "", cacheDir, signal, briefModel = null }) {
   const input = await fit(bytesOf(dataUrl), IMAGE_INPUT_EDGE),
-    prompt = CLEAN_PROMPT(label),
+    plan = briefModel ? await planBrief(briefModel, input, { label, cacheDir, signal }) : null,
+    prompt = CLEAN_PROMPT(label, plan?.brief),
     key = sha(JSON.stringify({ v: CLEAN_PLAN_VERSION, model: imageModel.model, size: imageModel.imageSize, prompt, input: hashBytes(input.buffer) })),
     path = `${cacheDir}/images/${key}`;
   try {
     const meta = JSON.parse(await readFile(`${path}.json`, "utf8"));
-    return { ...meta, dataUrl: `data:image/png;base64,${(await readFile(`${path}.png`)).toString("base64")}`, cached: true };
+    return { ...meta, plan, dataUrl: `data:image/png;base64,${(await readFile(`${path}.png`)).toString("base64")}`, cached: true };
   } catch (e) { if (e.code !== "ENOENT") throw e; }
   const started = Date.now(),
     out = await imageModel.generate({ prompt, images: [input.dataUrl], aspectRatio: nearestAspect(input.width, input.height), signal }),
@@ -78,7 +101,7 @@ export async function redraw(imageModel, { dataUrl, label = "", cacheDir, signal
   await mkdir(`${cacheDir}/images`, { recursive: true });
   await writeFile(`${path}.png`, png.data);
   await writeFile(`${path}.json`, JSON.stringify(meta, null, 2));
-  return { ...meta, dataUrl: `data:image/png;base64,${png.data.toString("base64")}`, cached: false };
+  return { ...meta, plan, dataUrl: `data:image/png;base64,${png.data.toString("base64")}`, cached: false };
 }
 
 const box = z.object({ x0: z.number().min(0).max(1000), y0: z.number().min(0).max(1000), x1: z.number().min(0).max(1000), y1: z.number().min(0).max(1000) });
@@ -105,7 +128,7 @@ const toolDefinitions = () => Object.entries(TOOLS).map(([name, t]) => {
  * Building mode: a text model with crop/redraw tools splits one image into
  * `floors` floors. Returns floors with their crop rectangles and clean images.
  */
-export async function splitBuilding({ buffer, floors, labels = [], provider, imageModel, cacheDir, signal,
+export async function splitBuilding({ buffer, floors, labels = [], provider, imageModel, briefModel = null, cacheDir, signal,
   maxTurns = 8, turnTimeoutMs = 300000, progress = () => {} }) {
   if (!provider?.respond) throw new Error(`${provider?.name || "The text model"} does not support tools.`);
   const original = await sharp(buffer).rotate().png().toBuffer({ resolveWithObject: true }),
@@ -138,7 +161,7 @@ export async function splitBuilding({ buffer, floors, labels = [], provider, ima
       // The ID is fixed when the call starts, so parallel redraws keep call order.
       const id = `clean-${usage.images}`;
       progress({ stage: "redraw", message: `Redrawing ${crop.label} with ${imageModel.model}` });
-      const out = await redraw(imageModel, { dataUrl: crop.dataUrl, label: crop.label, cacheDir, signal });
+      const out = await redraw(imageModel, { dataUrl: crop.dataUrl, label: crop.label, cacheDir, signal, briefModel });
       if (out.cached) usage.cachedImages++; else usage.imageTokens += out.usage?.total_tokens || 0;
       cleans.set(id, { id, cropId: crop.id, ...out });
       return { data: { ok: true, clean_id: id, crop_id: crop.id, label: crop.label, pixels: `${out.width}x${out.height}`, cached: out.cached },
@@ -237,9 +260,10 @@ Steps: (1) call crop_region once per floor, tightly around that floor's drawing 
  * "building": `floors` floors; a multi-page PDF with that many pages uses one
  * page per floor, otherwise the splitter crops them from the single image.
  */
-export async function cleanPlan({ buffer, fileName, mime, mode, floors = 1, labels = [], provider, imageModel,
+export async function cleanPlan({ buffer, fileName, mime, mode, floors = 1, labels = [], provider, imageModel, briefModel = null,
   cacheDir = ".local/clean-plans", signal, progress = () => {} }) {
   if (!imageModel?.configured) throw new Error("Clean-plan images need VERTEX_API_KEY and VERTEX_PROJECT in the server env file.");
+  if (briefModel && !briefModel.configured) throw new Error("Plan briefs need VERTEX_API_KEY and VERTEX_PROJECT in the server env file.");
   const started = Date.now(), prepared = await preparePlan(buffer, fileName, mime);
   const page = (s) => prepared.assets[s.assetId].dataUrl;
   let result;
@@ -248,7 +272,7 @@ export async function cleanPlan({ buffer, fileName, mime, mode, floors = 1, labe
     if (mode === "floor" && prepared.sources.length > 1)
       throw new Error("A floor plan must be one page. Choose Building plan for a multi-page PDF.");
     progress({ stage: "redraw", message: `Redrawing ${pages.length} floor(s) in parallel` });
-    const cleans = await Promise.all(pages.map((s, i) => redraw(imageModel, { dataUrl: page(s), label: labels[i] || "", cacheDir, signal })));
+    const cleans = await Promise.all(pages.map((s, i) => redraw(imageModel, { dataUrl: page(s), label: labels[i] || "", cacheDir, signal, briefModel })));
     result = { floors: pages.map((s, i) => ({ label: labels[i] || (mode === "floor" ? "Floor 1" : `Floor ${i + 1}`), level: i + 1,
       crop: { left: 0, top: 0, width: s.width, height: s.height, box: { x0: 0, y0: 0, x1: 1000, y1: 1000 }, dataUrl: page(s) }, clean: cleans[i] })),
       usage: { calls: 0, tokens: 0, images: cleans.length, cachedImages: cleans.filter((c) => c.cached).length,
@@ -256,9 +280,9 @@ export async function cleanPlan({ buffer, fileName, mime, mode, floors = 1, labe
   } else if (mode === "building") {
     if (prepared.sources.length !== 1)
       throw new Error(`This PDF has ${prepared.sources.length} pages but ${floors} floors were requested. Upload one image of the whole building, or a PDF with one page per floor.`);
-    result = await splitBuilding({ buffer: bytesOf(page(prepared.sources[0])), floors, labels, provider, imageModel, cacheDir, signal, progress });
+    result = await splitBuilding({ buffer: bytesOf(page(prepared.sources[0])), floors, labels, provider, imageModel, briefModel, cacheDir, signal, progress });
   } else throw new Error("Plan type must be floor or building.");
-  return { ...result, prepared, fileName, elapsedMs: Date.now() - started, imageModel: imageModel.model };
+  return { ...result, prepared, fileName, elapsedMs: Date.now() - started, imageModel: imageModel.model, briefModel: briefModel?.model ?? null };
 }
 
 /**

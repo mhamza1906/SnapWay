@@ -14,6 +14,7 @@ import { placeAssumedDoorways } from "../shared/building/assumed-doors.js";
 import { roomAvailability } from "../shared/building/routing.js";
 import { createProvider } from "./provider.js";
 import { VertexImageModel } from "./vertex-image.js";
+import { PlanBriefModel } from "./plan-brief.js";
 import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 
 // One building from N plan files: each file becomes its own labelled floor and
@@ -44,7 +45,7 @@ if (cleanMode) {
   const floors = cleanMode === "floor" ? 1 : Number(flag("floors"));
   if (cleanMode === "building" && !(floors >= 2)) throw new Error("--clean=building needs --floors=N (2 or more).");
   const clean = await cleanPlan({ buffer: await readFile(input), fileName: basename(input), mime: MIME[extension], mode: cleanMode, floors, labels,
-    provider: createProvider(), imageModel: new VertexImageModel(), cacheDir: ".local/clean-plans",
+    provider: createProvider(), imageModel: new VertexImageModel(), briefModel: new PlanBriefModel(), cacheDir: ".local/clean-plans",
     progress: (p) => console.log(`${new Date().toISOString().slice(11, 19)} clean: ${p.message}`) });
   building = await buildingFromClean(clean, { name: flag("name") });
   await mkdir(join(directory, "clean"), { recursive: true });
@@ -53,9 +54,10 @@ if (cleanMode) {
     await writeFile(join(directory, "clean", `${slug}-original.png`), Buffer.from(f.crop.dataUrl.split(",")[1], "base64"));
     await writeFile(join(directory, "clean", `${slug}-clean.png`), Buffer.from(f.clean.dataUrl.split(",")[1], "base64"));
   }
-  await atomicJson(join(directory, "clean-report.json"), { imageModel: clean.imageModel, elapsedMs: clean.elapsedMs, usage: clean.usage,
+  await atomicJson(join(directory, "clean-report.json"), { imageModel: clean.imageModel, briefModel: clean.briefModel, elapsedMs: clean.elapsedMs, usage: clean.usage,
     floors: clean.floors.map((f) => ({ label: f.label, level: f.level, crop: { left: f.crop.left, top: f.crop.top, width: f.crop.width, height: f.crop.height },
-      cached: f.clean.cached, latencyMs: f.clean.latencyMs, usage: f.clean.usage, model: f.clean.model, note: f.clean.note })),
+      cached: f.clean.cached, latencyMs: f.clean.latencyMs, usage: f.clean.usage, model: f.clean.model, note: f.clean.note,
+      brief: f.clean.plan ? { model: f.clean.plan.model, cached: f.clean.plan.cached, usage: f.clean.plan.usage, latencyMs: f.clean.plan.latencyMs, ...f.clean.plan.brief } : null })),
     transcript: clean.transcript });
   console.log(`clean: ${clean.floors.length} floor(s) in ${Math.round(clean.elapsedMs / 1000)} s`);
 }
