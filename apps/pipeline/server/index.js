@@ -17,6 +17,7 @@ import { PresentationSchema } from "../shared/building/design.js";
 import { z } from "zod";
 import { startMapJob, getMapJob, resumeMapJob, cancelMapJob, applyMapJob } from "./map-jobs.js";
 import { libraryEntries, libraryEntry, saveCopy } from "./building-library.js";
+import { cloudStore, safeError, storageSettings } from "./cloud-store.js";
 import { authoringRouter } from "./authoring-routes.js";
 const coverageJobs = new Map(),
   accessJobs = new Map();
@@ -53,6 +54,15 @@ app.get("/api/health", (_, res) => {
     model: provider.model,
     ...(provider.effort ? { effort: provider.effort } : {}),
   });
+});
+// Tiger Data and R2: configured, reachable, and how many buildings are stored.
+// Connects for real; never returns connection strings or keys.
+app.get("/api/storage/check", async (_, res, next) => {
+  try {
+    res.json(await cloudStore().check());
+  } catch (e) {
+    next(e);
+  }
 });
 app.post("/api/normalize", upload.single("image"), async (req, res, next) => {
   try {
@@ -136,13 +146,21 @@ app.get("/api/project", async (_, res, next) => {
 app.post("/api/plans", upload.single("image"), async (req, res, next) => {
   try {
     if (!req.file) throw new Error("Choose a plan file.");
-    res.json(
-      await preparePlan(
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype,
-      ),
+    const prepared = await preparePlan(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
     );
+    // Keep the original plan in R2 when configured; a storage error never fails the upload.
+    let storage;
+    if (storageSettings().r2)
+      try {
+        storage = await cloudStore().uploadPlan(req.file.buffer, req.file.mimetype);
+      } catch (e) {
+        console.warn(`R2 upload failed: ${safeError(e)}`);
+        storage = { error: "Could not copy the plan to R2." };
+      }
+    res.json(storage ? { ...prepared, storage } : prepared);
   } catch (e) {
     next(e);
   }
@@ -284,6 +302,17 @@ app.post("/api/buildings/copies", async (req, res, next) => {
   } catch (e) {
     if (e.name === "ZodError") return res.status(400).json({ error: "That building does not pass the schema; fix validation errors first." });
     next(e);
+  }
+});
+// Saves the current building to Tiger Data; it then appears in the library.
+app.post("/api/buildings/cloud", async (req, res, next) => {
+  try {
+    res.json(await cloudStore().saveBuilding(req.body));
+  } catch (e) {
+    if (e.name === "ZodError") return res.status(400).json({ error: "That building does not pass the schema; fix validation errors first." });
+    if (e.status === 503) return res.status(503).json({ error: e.message });
+    console.warn(`Tiger Data save failed: ${safeError(e)}`);
+    res.status(502).json({ error: "Could not save to Tiger Data." });
   }
 });
 app.post("/api/design/render", async (req, res, next) => {

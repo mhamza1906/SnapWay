@@ -348,6 +348,7 @@ Notes:
 | Saved project | `.local/building.json` | `editor-save` |
 | Saved copies | `.local/buildings/*.json` | `copy-<basename>` |
 | Pipeline exports | `output/<dir>/building.json` | `export-<dir>` |
+| Tiger Data (optional) | `snapway_pipeline.buildings` ([storage.md](storage.md)) | `cloud-<building id>` |
 
 A file that is invalid or cannot be read is skipped with a server warning.
 Parsed buildings are cached by file mtime and size.
@@ -357,6 +358,8 @@ Parsed buildings are cached by file mtime and size.
 | `GET /api/buildings` | no | (none) | `{buildings: [{key, source, sourceLabel, file, id, name, provenance, updatedAt, floors:[{id,label,level}], photos, testPhotos, rooms, regions, reviewedFloors, sizeBytes, modifiedAt}]}` |
 | `GET /api/buildings/:key` | no | (none) | The full building, or `404 Unknown building.` |
 | `POST /api/buildings/copies` | no (writes a file) | The building itself as the body (not wrapped) | `{key, file, updated}`. Saving the same `building.id` again overwrites its copy. A schema failure returns `400 That building does not pass the schema; fix validation errors first.` |
+| `POST /api/buildings/cloud` | no (writes to Tiger Data) | The building itself as the body | `{key, sha256, updated, updatedAt}`; `503` when `DATABASE_URL` is not set. See [storage.md](storage.md). |
+| `GET /api/storage/check` | no | (none) | Tiger Data and R2 reachability; changes nothing. See [storage.md](storage.md). |
 
 ## Access and doorway investigation
 

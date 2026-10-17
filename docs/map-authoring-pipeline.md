@@ -21,6 +21,10 @@ Status: integrated as a local service with an Angular screen; not deployed.
   - **Only Arjun uses `.env.dev`**: Claude via the Anthropic API (`npm run dev`).
   - `APP_ENV` defaults to `prod`. Prod refuses any provider except Vertex and fails at startup if misconfigured.
 - **Docs:** [docs/pipeline/](pipeline/README.md) covers the overview, [environments](pipeline/environments.md), [stages](pipeline/stages.md), the [HTTP API and CLI](pipeline/api.md), and [operations, costs and trial results](pipeline/operations.md).
+- **Optional cloud storage** (branch `feature/pipeline-tigerdata`, requested by Arjun on
+  2026-10-17): buildings in Tiger Data (`snapway_pipeline` schema) and uploaded plans in
+  Cloudflare R2. Off unless configured; adds `pg` and `@aws-sdk/client-s3`. See
+  [storage](pipeline/storage.md).
 
 ## Architecture note (approval)
 

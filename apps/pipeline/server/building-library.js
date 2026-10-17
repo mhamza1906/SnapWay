@@ -1,11 +1,13 @@
 // Every building on this machine, in one catalog: published library files, the
-// editor's saved project, saved copies of uploaded buildings, and pipeline
-// exports. The editor and the mobile API both list and open buildings from here.
+// editor's saved project, saved copies of uploaded buildings, pipeline exports,
+// and (when DATABASE_URL is set) buildings saved to Tiger Data. The editor and the
+// mobile API both list and open buildings from here.
 import { mkdir, readdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { createHash } from "node:crypto";
 import { BuildingSchema } from "../shared/building/schema.js";
 import { buildingSummary } from "../shared/building/navigation-bundle.js";
+import { cloudStore, safeError } from "./cloud-store.js";
 
 export const PUBLISHED_DIR = "public/buildings",
   EDITOR_SAVE = ".local/building.json",
@@ -16,7 +18,9 @@ export const SOURCE_LABELS = {
   "editor-save": "Saved project",
   "saved-copy": "Saved copies",
   "pipeline-export": "Pipeline exports",
+  cloud: "Tiger Data",
 };
+const CLOUD_PREFIX = "cloud-";
 
 const listJson = async (dir) => {
   try {
@@ -69,7 +73,7 @@ async function load(entry) {
 }
 
 // Unreadable or invalid files are skipped with a warning, never fatal.
-export async function libraryEntries() {
+async function fileEntries() {
   const entries = [];
   for (const c of await candidates())
     try {
@@ -81,8 +85,35 @@ export async function libraryEntries() {
   return entries;
 }
 
-export async function libraryEntry(key) {
-  return (await libraryEntries()).find((e) => e.key === key) || null;
+// Tiger Data rows are listed by stored summary. An unreachable database is
+// skipped for a minute so listing stays fast; local files are always listed.
+let cloudDownUntil = 0;
+async function cloudEntries(store) {
+  if (!store.settings.database || Date.now() < cloudDownUntil) return [];
+  try {
+    return (await store.listBuildings()).map((e) => ({
+      key: e.key,
+      source: "cloud",
+      summary: { key: e.key, source: "cloud", sourceLabel: SOURCE_LABELS.cloud, ...e.summary },
+    }));
+  } catch (e) {
+    cloudDownUntil = Date.now() + 60_000;
+    console.warn(`Skipping Tiger Data buildings: ${safeError(e)}`);
+    return [];
+  }
+}
+
+export async function libraryEntries({ store = cloudStore() } = {}) {
+  return [...(await fileEntries()), ...(await cloudEntries(store))];
+}
+
+export async function libraryEntry(key, { store = cloudStore() } = {}) {
+  if (key.startsWith(CLOUD_PREFIX)) {
+    if (!store.settings.database) return null;
+    const building = await store.getBuilding(key.slice(CLOUD_PREFIX.length));
+    return building ? { key, source: "cloud", building } : null;
+  }
+  return (await fileEntries()).find((e) => e.key === key) || null;
 }
 
 // Saves a copy of the current building into the catalog. Re-saving the same
@@ -90,7 +121,7 @@ export async function libraryEntry(key) {
 export async function saveCopy(input) {
   const building = BuildingSchema.parse(input);
   await mkdir(COPIES_DIR, { recursive: true });
-  const existing = (await libraryEntries()).find((e) => e.source === "saved-copy" && e.building.id === building.id),
+  const existing = (await fileEntries()).find((e) => e.source === "saved-copy" && e.building.id === building.id),
     slug = (building.name || "building").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "building",
     file = existing?.file || join(COPIES_DIR, `${slug}-${createHash("sha256").update(building.id).digest("hex").slice(0, 8)}.json`);
   await writeFile(file + ".tmp", JSON.stringify(building));

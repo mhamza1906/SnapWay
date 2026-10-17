@@ -39,7 +39,8 @@ breakdown, see [stages.md](stages.md).
   request whose `Origin` is not on its allow-list (see
   [environments.md](environments.md#security-notes)). The proxy target is fixed
   at port 5175: if you change `PORT`, update the proxy too. See
-  [api.md](api.md) for the routes.
+  [api.md](api.md) for the routes; optional Tiger Data and R2 storage is in
+  [storage.md](storage.md).
 - **Keys stay on the server.** Provider credentials are read from
   `apps/pipeline/.env.*` files on the server only. They are never sent to
   Angular, Capacitor or any browser bundle.

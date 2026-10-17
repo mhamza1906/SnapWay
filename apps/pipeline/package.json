@@ -15,12 +15,14 @@
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1152.0",
     "@napi-rs/canvas": "^1.0.11",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jszip": "^3.10.2",
     "multer": "^2.0.0",
     "pdfjs-dist": "^6.4.299",
+    "pg": "^8.23.1",
     "polygon-clipping": "^0.15.7",
     "sharp": "^0.35.5",
     "zod": "^3.25.0",
