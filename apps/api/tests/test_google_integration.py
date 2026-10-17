@@ -32,7 +32,10 @@ def publish(user, *, coordinates=True, building=None):
     )
     floor_number = building.floors.count() + 1
     floor = Floor.objects.create(
-        building=building, code=str(floor_number), name=f"Floor {floor_number}"
+        building=building,
+        code=str(floor_number),
+        name=f"Floor {floor_number}",
+        sort_order=floor_number,
     )
     target = MapTarget.objects.create(floor=floor, title="Private instructions", created_by=user)
     contribution = Contribution.objects.create(target=target, author=user, title="Draft")
@@ -113,6 +116,7 @@ def test_discovery_hides_drafts_archived_invalid_and_unlocated_buildings():
     assert buildings[0]["id"] == str(visible.target.floor.building_id)
     assert buildings[0]["latitude"] == 43.6532
     assert len(buildings[0]["floors"]) == 2
+    assert [floor["code"] for floor in buildings[0]["floors"]] == ["1", "2"]
     assert buildings[0]["floors"][0]["target_id"] == str(visible.target_id)
     assert "never-disclose" not in response.content.decode()
     assert str(missing.target.floor.building_id) not in response.content.decode()

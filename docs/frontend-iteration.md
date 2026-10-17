@@ -11,6 +11,10 @@ Implementation commit:
 (included in this branch's Google integration merge).
 
 Merge preparation preserves `feature/frontend-iteration` for subsequent work.
+Integration PR: [#11](https://github.com/mhamza1906/SnapWay/pull/11), with the
+current CI and merge status available there. Multi-floor discovery fixtures now
+set explicit `Floor.sort_order` values and verify that order, avoiding accidental
+dependence on randomly generated target UUIDs across database/OS profiles.
 The incoming [schema renderer](assets/database-schema/render.py) needed import
 sorting and long-string wrapping to pass the existing root Ruff gates. Its AST
 is equivalent after import-order normalization; all saved catalog/DOT/SVG/HTML
