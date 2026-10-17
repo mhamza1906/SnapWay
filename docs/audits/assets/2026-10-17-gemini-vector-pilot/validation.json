@@ -1,0 +1,458 @@
+{
+  "schemaValid": true,
+  "frameValid": true,
+  "mapSchemaValid": true,
+  "spaces": 16,
+  "walls": 96,
+  "openingCandidates": 12,
+  "namedCoverage": [
+    {
+      "label": "BRAINSTORM",
+      "regions": [
+        "room_brainstorm"
+      ]
+    },
+    {
+      "label": "DARK MATTER",
+      "regions": [
+        "room_dark_matter"
+      ]
+    },
+    {
+      "label": "THE CAVE",
+      "regions": [
+        "room_the_cave"
+      ]
+    },
+    {
+      "label": "STAIR A",
+      "regions": [
+        "stair_a_landing",
+        "stair_a_flight"
+      ]
+    },
+    {
+      "label": "STAIR B",
+      "regions": [
+        "stair_b_landing",
+        "stair_b_flight"
+      ]
+    },
+    {
+      "label": "STAIR C",
+      "regions": [
+        "stair_c_landing",
+        "stair_c_flight"
+      ]
+    },
+    {
+      "label": "STAIR D",
+      "regions": [
+        "stair_d_landing",
+        "stair_d_flight"
+      ]
+    }
+  ],
+  "openingBoundaries": [
+    {
+      "id": "open_brainstorm",
+      "adjacency": [
+        {
+          "id": "room_brainstorm",
+          "maxEndpointDistancePixels": 6.715194785781959
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 6.715194785781932
+        }
+      ]
+    },
+    {
+      "id": "open_dark_matter",
+      "adjacency": [
+        {
+          "id": "room_dark_matter",
+          "maxEndpointDistancePixels": 1.4050000000000864
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 52.90763201089234
+        }
+      ]
+    },
+    {
+      "id": "open_cave_south",
+      "adjacency": [
+        {
+          "id": "room_the_cave",
+          "maxEndpointDistancePixels": 6.747255907982213
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 4.318489681612833
+        }
+      ]
+    },
+    {
+      "id": "open_cave_mid",
+      "adjacency": [
+        {
+          "id": "room_the_cave",
+          "maxEndpointDistancePixels": 8.227161219796928
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 10.112722240035842
+        }
+      ]
+    },
+    {
+      "id": "open_cave_north",
+      "adjacency": [
+        {
+          "id": "room_the_cave",
+          "maxEndpointDistancePixels": 14.478185314465295
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 9.571892823349996
+        }
+      ]
+    },
+    {
+      "id": "open_stair_a_west",
+      "adjacency": [
+        {
+          "id": "stair_a_landing",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_stair_b_north",
+      "adjacency": [
+        {
+          "id": "stair_b_landing",
+          "maxEndpointDistancePixels": 0
+        },
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 56.19999999999993
+        }
+      ]
+    },
+    {
+      "id": "open_stair_c_north",
+      "adjacency": [
+        {
+          "id": "stair_c_landing",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_stair_d_north",
+      "adjacency": [
+        {
+          "id": "stair_d_landing",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    },
+    {
+      "id": "open_ext_nw",
+      "adjacency": [
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 1.2268114179449576
+        }
+      ]
+    },
+    {
+      "id": "open_ext_south",
+      "adjacency": [
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 3.669332282793178
+        }
+      ]
+    },
+    {
+      "id": "open_ext_east",
+      "adjacency": [
+        {
+          "id": "main_circulation",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    }
+  ],
+  "traceUnresolved": [
+    {
+      "target_ref": null,
+      "code": "capacity",
+      "reason": "Reached max 16 spaces limit; omitted secondary rooms, western hall/auditorium, voids, and additional exterior stairs."
+    },
+    {
+      "target_ref": "stair-c",
+      "code": "ambiguous_geometry",
+      "reason": "Upper flight in Stair C has dashed/overlapping lines indicating split level or overhead run."
+    },
+    {
+      "target_ref": "the-cave",
+      "code": "ambiguous_geometry",
+      "reason": "Complex tiered seating and internal ramps/stairs inside The Cave merged into single room boundary."
+    }
+  ],
+  "structureUnresolved": [
+    "Omitted secondary western stairs without prior stair_flight region proposals.",
+    "Omitted multi-leaf exterior door swings (open_ext_nw, open_ext_south, open_ext_east, open_stair_a_west) where single-hinge schema does not apply.",
+    "Upper dashed flight in Stair C omitted due to split-level overlap ambiguity."
+  ],
+  "currentDomainValidation": [
+    {
+      "code": "door",
+      "message": "BRAINSTORM: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "room_brainstorm"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "DARK MATTER: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "room_dark_matter"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "THE CAVE: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "room_the_cave"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR A: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_a_landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR B: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_b_landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR C: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "STAIR D: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_d_landing"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "door",
+      "message": "main_circulation: no connected doorway",
+      "target": {
+        "kind": "spaces",
+        "id": "main_circulation"
+      },
+      "severity": "warning"
+    },
+    {
+      "code": "overlap",
+      "message": "THE CAVE overlaps main_circulation",
+      "target": {
+        "kind": "spaces",
+        "id": "room_the_cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "overlap",
+      "message": "STAIR C overlaps STAIR C",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "BRAINSTORM: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "room_brainstorm"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "DARK MATTER: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "room_dark_matter"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "THE CAVE: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "room_the_cave"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR A: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_a_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR A: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_a_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR B: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_b_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR B: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_b_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "elev_b: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "elev_b"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR C: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR C: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "elev_c: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "elev_c"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR D: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_d_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "STAIR D: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_d_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "main_circulation: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "main_circulation"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "stair_c_ext_flight: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_ext_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "disconnected",
+      "message": "dark_matter_flight: disconnected from entrance",
+      "target": {
+        "kind": "spaces",
+        "id": "dark_matter_flight"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "scale",
+      "message": "Unscaled map — distances are shown in pixels",
+      "target": null,
+      "severity": "info"
+    }
+  ],
+  "navigationAccepted": false,
+  "acceptedDoors": 0,
+  "routeEdges": 0,
+  "scope": "Gemini-only pilot on frozen generated raster; not original-photo raster generation or production job integration"
+}

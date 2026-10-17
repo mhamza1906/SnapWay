@@ -106,3 +106,9 @@ generation, Gemini 4 semantic extraction/edits, optional Opus 5.5 or GPT 6.1
 vector fallback, bounded example schemas, coordinate/review gates and staged
 cost experiments. Evidence and examples are linked there; this is a proposal,
 not a completed pipeline or an application API change.
+
+The [Gemini-only pilot](audits/2026-10-17-gemini-vector-pilot.md) now exercises the
+frozen-raster vector stage with four real requests and a replayable
+[isolated experiment harness](../apps/pipeline/experiments/README.md). It produces
+a useful partial map but fails full geometry/navigation acceptance; the member
+deferred GPT image API and fallback-model testing. Application APIs remain unchanged.

@@ -4,6 +4,12 @@
 
 The [real API trial](../audits/2026-10-17-map-authoring-pipeline.md) failed map acceptance. The [independent web artifact review](../audits/2026-10-17-chatgpt-web-floorplan.md) demonstrates a promising human-corrected visual workflow and also a reproducible second-version interaction failure. This proposal turns those observations into bounded experiments; it does not claim that the new chain already works or costs less.
 
+**Experiment update:** the [Gemini-only frozen-raster pilot](../audits/2026-10-17-gemini-vector-pilot.md)
+has now run, with an isolated harness and four recorded requests. It supports
+bounded vector parameter extraction but exposes overlap, capacity, opening-anchor
+and polygon-representation defects. The member explicitly deferred the image API
+and fallback models; the full chain and production integration remain proposed.
+
 ## 1. Model policy and verified capabilities
 
 Follow the requesting member's latest choice: **GPT Image 2.5 for image generation; Gemini 4 for other inference; Opus 5.5 or GPT 6.1 only as optional vectorization fallbacks.** Earlier preserved plans remain historical context.

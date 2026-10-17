@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "request_id": "candidate-d1542c73969761c5-trace",
+  "frame_id": "candidate-d1542c73969761c5",
+  "coordinate_space": "crop_n1000_xy",
+  "spaces": [
+    {
+      "local_id": "stair_c_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 350,
+          "y": 180
+        },
+        {
+          "x": 580,
+          "y": 180
+        },
+        {
+          "x": 595,
+          "y": 390
+        },
+        {
+          "x": 345,
+          "y": 390
+        }
+      ],
+      "label_refs": [
+        "stair-c"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "stair_c_landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 252,
+          "y": 145
+        },
+        {
+          "x": 628,
+          "y": 145
+        },
+        {
+          "x": 628,
+          "y": 310
+        },
+        {
+          "x": 690,
+          "y": 310
+        },
+        {
+          "x": 690,
+          "y": 472
+        },
+        {
+          "x": 352,
+          "y": 472
+        },
+        {
+          "x": 352,
+          "y": 520
+        },
+        {
+          "x": 252,
+          "y": 520
+        },
+        {
+          "x": 252,
+          "y": 390
+        },
+        {
+          "x": 595,
+          "y": 390
+        },
+        {
+          "x": 580,
+          "y": 180
+        },
+        {
+          "x": 350,
+          "y": 180
+        },
+        {
+          "x": 345,
+          "y": 390
+        },
+        {
+          "x": 252,
+          "y": 390
+        }
+      ],
+      "label_refs": [
+        "stair-c"
+      ],
+      "observation": "visible"
+    },
+    {
+      "local_id": "elevator_c",
+      "role": "elevator_shaft",
+      "polygon": [
+        {
+          "x": 710,
+          "y": 320
+        },
+        {
+          "x": 835,
+          "y": 320
+        },
+        {
+          "x": 835,
+          "y": 472
+        },
+        {
+          "x": 710,
+          "y": 472
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "room_west",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 185,
+          "y": 175
+        },
+        {
+          "x": 230,
+          "y": 175
+        },
+        {
+          "x": 230,
+          "y": 512
+        },
+        {
+          "x": 175,
+          "y": 512
+        },
+        {
+          "x": 35,
+          "y": 280
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "room_north_east",
+      "role": "circulation",
+      "polygon": [
+        {
+          "x": 652,
+          "y": 95
+        },
+        {
+          "x": 1000,
+          "y": 95
+        },
+        {
+          "x": 1000,
+          "y": 310
+        },
+        {
+          "x": 652,
+          "y": 310
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "room_south",
+      "role": "room",
+      "polygon": [
+        {
+          "x": 372,
+          "y": 490
+        },
+        {
+          "x": 695,
+          "y": 490
+        },
+        {
+          "x": 695,
+          "y": 520
+        },
+        {
+          "x": 808,
+          "y": 520
+        },
+        {
+          "x": 775,
+          "y": 600
+        },
+        {
+          "x": 600,
+          "y": 600
+        },
+        {
+          "x": 372,
+          "y": 538
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "south_stairs_flight",
+      "role": "stair_flight",
+      "polygon": [
+        {
+          "x": 195,
+          "y": 525
+        },
+        {
+          "x": 352,
+          "y": 538
+        },
+        {
+          "x": 745,
+          "y": 678
+        },
+        {
+          "x": 620,
+          "y": 895
+        },
+        {
+          "x": 320,
+          "y": 722
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    },
+    {
+      "local_id": "south_corner_landing",
+      "role": "stair_landing",
+      "polygon": [
+        {
+          "x": 320,
+          "y": 722
+        },
+        {
+          "x": 620,
+          "y": 895
+        },
+        {
+          "x": 460,
+          "y": 945
+        }
+      ],
+      "label_refs": [],
+      "observation": "visible"
+    }
+  ],
+  "opening_candidates": [
+    {
+      "local_id": "open_north_exit",
+      "a": {
+        "x": 285,
+        "y": 140
+      },
+      "b": {
+        "x": 430,
+        "y": 115
+      },
+      "adjacent_local_ids": [
+        "stair_c_landing"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 275,
+          "y": 65
+        },
+        {
+          "x": 425,
+          "y": 65
+        },
+        {
+          "x": 435,
+          "y": 145
+        },
+        {
+          "x": 280,
+          "y": 145
+        }
+      ]
+    },
+    {
+      "local_id": "open_west_door",
+      "a": {
+        "x": 28,
+        "y": 262
+      },
+      "b": {
+        "x": 80,
+        "y": 215
+      },
+      "adjacent_local_ids": [
+        "room_west"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 20,
+          "y": 210
+        },
+        {
+          "x": 145,
+          "y": 210
+        },
+        {
+          "x": 145,
+          "y": 295
+        },
+        {
+          "x": 20,
+          "y": 295
+        }
+      ]
+    },
+    {
+      "local_id": "open_east_door",
+      "a": {
+        "x": 912,
+        "y": 310
+      },
+      "b": {
+        "x": 988,
+        "y": 310
+      },
+      "adjacent_local_ids": [
+        "room_north_east"
+      ],
+      "observed": "door",
+      "evidence_region": [
+        {
+          "x": 905,
+          "y": 255
+        },
+        {
+          "x": 995,
+          "y": 255
+        },
+        {
+          "x": 995,
+          "y": 325
+        },
+        {
+          "x": 905,
+          "y": 325
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "target_ref": "stair_c_landing",
+      "code": "ambiguous_geometry",
+      "reason": "Internal doorway between Stair C landing and adjacent circulation spaces is not clearly depicted as a wall gap or door arc."
+    },
+    {
+      "target_ref": "room_north_east",
+      "code": "clipped",
+      "reason": "Space extends beyond the right edge of the crop."
+    },
+    {
+      "target_ref": "south_stairs_flight",
+      "code": "different_floor",
+      "reason": "Exterior/multi-level stair flights at the bottom transition across levels with ambiguous Level 1 boundary."
+    }
+  ]
+}

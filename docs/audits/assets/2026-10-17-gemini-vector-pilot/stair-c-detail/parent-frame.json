@@ -1,0 +1,10 @@
+{
+  "parent": "candidate-8aaf2ca074bce958",
+  "crop_xyxy": [
+    500,
+    45,
+    710,
+    335
+  ],
+  "coordinate_conversion": "parent_x=left+local_x/1000*width; parent_y=top+local_y/1000*height"
+}
