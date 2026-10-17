@@ -246,3 +246,8 @@ changes and offline verification. Release activation gains a schema/version gate
 the live controller/env still need owner synchronization before deployment.
 Agents must flag changed keys and required member updates immediately under
 [AGENTS.md](../AGENTS.md). No shared credentials were published or rotated.
+
+The [subsequent remote-main alignment](environment-sync.md#subsequent-remote-main-contract-alignment)
+adds the four iOS/localization settings from fetched main `7af9eae` to contract
+`2026-10-17.2` without merging its consumer code. This machine's env is aligned;
+team/server distribution and real engine credentials remain pending.

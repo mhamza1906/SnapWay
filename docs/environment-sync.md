@@ -108,3 +108,22 @@ all 20 deployment-controller tests passed. Node passed 152 tests with 18 optiona
 fixture skips. Changed Python files passed Ruff lint/format, Django system check
 passed, and the local file matches the 47-key contract and is Git-ignored. These
 are local/offline results; no production env, controller or service was changed.
+
+## Subsequent remote-main contract alignment
+
+The October 17 remote check found that main `7af9eae` adds
+`PLACEMATCH_ENGINE_URL`, `PLACEMATCH_ENGINE_TOKEN`, `PLACEMATCH_DEV_TOKEN` and
+`LOCALIZATION_RATE`. Contract `2026-10-17.2` includes all four (51 total keys),
+with engine/token fields empty and the existing main throttle default `60/min`.
+The dev token and engine address are host-specific; the dev token should remain
+empty in production. Engine credentials must come from that service's owner.
+These settings do not enable a working engine on their own. Their consuming
+iOS/localization code is fetched but not merged into this acceptance branch.
+
+This machine's private file was aligned without changing any existing private
+value. Its schema matches the updated local template. The remote acceptance/main
+templates do not yet contain this branch's single-env contract, and no external
+reference or live server file was available to prove credential freshness.
+Distribute the public contract/code commit through Git and private provider
+values only through the external team channel; never include the local Django
+secret or migration credentials in a general team share.
