@@ -119,8 +119,8 @@ export class TargetDetailPage {
   );
   start() {
     this.ui.run(() => {
-      const t = this.target();
-      if (t) void this.router.navigate(['/editor', this.repo.startContribution(t.id).id]);
+      // Prototype Local Storage target ids are not Django UUIDs; open a fresh API draft.
+      void this.router.navigate(['/graph-editor']);
     });
   }
   archive(dialog: HTMLDialogElement) {

@@ -24,7 +24,9 @@ export class App {
     ),
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
-  readonly fullScreen = computed(() => /^\/(navigate|welcome)(\/|\?|$)/.test(this.url()));
+  readonly fullScreen = computed(() =>
+    /^\/(navigate|welcome|graph-editor)(\/|\?|$)/.test(this.url()),
+  );
   readonly mobileOpen = signal(false);
   readonly query = signal('');
   readonly searchResults = computed(() =>
@@ -44,6 +46,7 @@ export class App {
       ({
         overview: 'Overview',
         targets: 'Mapping targets',
+        'graph-editor': 'Graph editor',
         editor: 'Map editor',
         contributions: 'Contributions',
         authoring: 'Map authoring',
@@ -56,6 +59,7 @@ export class App {
   readonly links = [
     { path: '/overview', label: 'Overview', icon: 'grid' },
     { path: '/targets', label: 'Mapping targets', icon: 'map' },
+    { path: '/graph-editor', label: 'Graph editor', icon: 'edit' },
     { path: '/contributions', label: 'Contributions', icon: 'layers' },
     { path: '/authoring', label: 'Map authoring (AI)', icon: 'map' },
     { path: '/review', label: 'Review queue', icon: 'review' },
