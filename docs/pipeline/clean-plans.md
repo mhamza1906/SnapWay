@@ -1,4 +1,4 @@
-# Clean-plan stage (Nano Banana Pro) and parallel floors
+# Clean-plan stage (Gemini image models) and parallel floors
 
 **Status:** implemented on `feature/map-authoring-pipeline` (October 17, 2026) by
 Arjun's decision, ahead of team agreement. The [phase audit](../audits/2026-10-17-map-authoring-pipeline.md)
@@ -41,9 +41,29 @@ same time** (`floorConcurrency`, default 6), each with its own request budget.
 Same Vertex key and project as the team's prod setup (`apps/pipeline/.env.prod`):
 
 ```sh
-VERTEX_IMAGE_MODEL=gemini-3-pro-image   # Nano Banana Pro
-VERTEX_IMAGE_SIZE=2K                     # 1K, 2K or 4K
+VERTEX_IMAGE_MODEL=gemini-nano-banana-2.1   # default; gemini-3-pro-image for Nano Banana Pro
+VERTEX_IMAGE_SIZE=2K                         # 1K, 2K or 4K (Nano Banana 2 Lite: 1K only)
 ```
+
+The default changed from Nano Banana Pro to Nano Banana 2.1 after the
+comparison below. Pro stays selectable for the most faithful redraws.
+
+## Image model comparison (Level B, same crop)
+
+All five Gemini image models were available in the team's Vertex project.
+One redraw each of the Sam Ibrahim Level B crop, October 17, 2026. Prices are
+third-party list prices per output image, not invoices.
+
+| Model (ID) | Size | Time | Tokens in/out | Approx. price | Result on this floor |
+| --- | --- | --- | --- | --- | --- |
+| Nano Banana Pro (`gemini-3-pro-image`) | 2K | 38 s | 769 / 1,372 | ~$0.134 | Most faithful; labels and seat counts correct |
+| **Nano Banana 2.1** (`gemini-nano-banana-2.1`, default) | 2K | 41 s | 1,329 / 3,289 | ~$0.050 | Clean and faithful geometry, draws door swings; one slip ("35 SEATS" for 36) |
+| Nano Banana 2 (`gemini-3.1-flash-image`) | 2K | 29 s | 1,329 / 1,680 | ~$0.07–0.10 | Dropped seat counts and The Cave's seating, misread "THE CASE", duplicated Stair C |
+| Nano Banana 2 Lite (`gemini-3.1-flash-lite-image`) | 1K only | 10 s | 1,329 / 1,120 | ~$0.034 | Fast and cheap; wrong stair labels ("STAIR E", duplicate "STAIR C"), lower resolution |
+| Nano Banana (`gemini-2.5-flash-image`) | ~1.5K | 16 s | 2,531 / 1,290 | ~$0.039 | Barely cleaned: kept grey fills and colours |
+
+One floor is not a benchmark: compare more floors before settling on a model.
+
 
 Dev (Claude) also needs `VERTEX_API_KEY` and `VERTEX_PROJECT` in `.env.dev`
 for this stage. `GET /api/health` reports `imageModel {model, size, configured}`.
@@ -88,6 +108,7 @@ Mapping results are in [operations.md](operations.md#clean-plan-trial).
 - Generated images can move walls, drop doors or invent labels; there is no
   automatic geometric registration of a redraw against its original yet.
 - Prices are not measured from invoices. Third-party listings put Nano Banana
-  Pro at about $0.134 per 1K/2K image; check the Vertex pricing page.
+  2.1 at about $0.050 per 2K image and Nano Banana Pro at about $0.134; check
+  the Vertex pricing page.
 - The image model ID is configurable because Google's model names change;
   verify access in your project before a paid run.

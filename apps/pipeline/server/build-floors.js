@@ -21,7 +21,7 @@ import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 // pipeline per floor, each with its own request budget).
 const args = process.argv.slice(2), flags = args.filter((a) => a.startsWith("--")), [destination, ...inputs] = args.filter((a) => !a.startsWith("--"));
 if (!destination || !inputs.length)
-  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--no-assumed-doors]\n       node server/build-floors.js <output-directory> <plan> --clean=floor|building [--floors=N] [--labels=...]   (Nano Banana Pro redraws each floor first)');
+  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--no-assumed-doors]\n       node server/build-floors.js <output-directory> <plan> --clean=floor|building [--floors=N] [--labels=...]   (the image model redraws each floor first)');
 const flag = (name) => flags.find((f) => f.startsWith(`--${name}=`))?.split("=").slice(1).join("="),
   labels = flag("labels")?.split(",").map((s) => s.trim()) || [],
   levels = flag("levels")?.split(",").map(Number) || [];
@@ -36,7 +36,7 @@ building.assets = {};
 building.floors = [];
 await mkdir(directory, { recursive: true });
 if (cleanMode) {
-  // Clean-plan stage: Nano Banana Pro redraws each floor first (building mode
+  // Clean-plan stage: the image model (Nano Banana 2.1 by default) redraws each floor first (building mode
   // lets the text model crop the floors out of one image, in parallel).
   if (inputs.length !== 1) throw new Error("--clean takes exactly one input file.");
   const input = inputs[0], extension = extname(input).toLowerCase();

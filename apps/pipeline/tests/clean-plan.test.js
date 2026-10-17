@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
-import { VertexImageModel, nearestAspect } from "../server/vertex-image.js";
+import { DEFAULT_IMAGE_MODEL, VertexImageModel, nearestAspect } from "../server/vertex-image.js";
 import { cleanPlan, buildingFromClean, splitBuilding } from "../server/pipelines/clean-plan.js";
 import { validateBuilding } from "../shared/building/validation.js";
 
@@ -39,16 +39,20 @@ function scriptedAgent(turns) {
   } };
 }
 
-test("Nano Banana Pro request asks for an image with size and aspect, and returns the image", async () => {
+test("the image request asks for an image with size and aspect, defaults to Nano Banana 2.1, and Pro stays selectable", async () => {
   let sent;
   const png = await sharp({ create: { width: 4, height: 3, channels: 3, background: "#fff" } }).png().toBuffer();
   const model = new VertexImageModel({ apiKey: "k", project: "p", fetchImpl: async (url, init) => {
     sent = { url, body: JSON.parse(init.body), headers: init.headers };
-    return new Response(JSON.stringify({ modelVersion: "gemini-3-pro-image", usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 1120, totalTokenCount: 1130 },
+    return new Response(JSON.stringify({ modelVersion: "gemini-nano-banana-2.1", usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 1120, totalTokenCount: 1130 },
       candidates: [{ finishReason: "STOP", content: { parts: [{ text: "ok" }, { inlineData: { mimeType: "image/png", data: png.toString("base64") } }] } }] }));
   } });
   const out = await model.generate({ prompt: "redraw", images: [`data:image/png;base64,${png.toString("base64")}`], aspectRatio: "4:3" });
-  assert.match(sent.url, /publishers\/google\/models\/gemini-3-pro-image:generateContent$/);
+  assert.match(sent.url, /publishers\/google\/models\/gemini-nano-banana-2\.1:generateContent$/);
+  assert.equal(DEFAULT_IMAGE_MODEL, "gemini-nano-banana-2.1");
+  const pro = new VertexImageModel({ apiKey: "k", project: "p", model: "gemini-3-pro-image", fetchImpl: async (url) => { sent.proUrl = url; throw new Error("stop"); } });
+  await assert.rejects(pro.generate({ prompt: "x" }), /stop/);
+  assert.match(sent.proUrl, /models\/gemini-3-pro-image:generateContent$/);
   assert.deepEqual(sent.body.generationConfig.responseModalities, ["TEXT", "IMAGE"]);
   assert.deepEqual(sent.body.generationConfig.imageConfig, { imageSize: "2K", aspectRatio: "4:3" });
   assert.equal(sent.headers["x-goog-api-key"], "k");

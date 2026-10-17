@@ -1,9 +1,12 @@
-// Image generation on Vertex AI (Gemini image models, "Nano Banana Pro" by
-// default). Used only to redraw a photographed or scanned plan as a clean
-// floor plan; the original is always kept as evidence. Credentials stay on the
-// server; there is no provider fallback.
+// Image generation on Vertex AI with Gemini image models: Nano Banana 2.1 by
+// default; Nano Banana Pro and the others are selectable with
+// VERTEX_IMAGE_MODEL. Used only to redraw a photographed or scanned plan as a
+// clean floor plan; the original is always kept as evidence. Credentials stay
+// on the server; there is no provider fallback.
 import { vertexEndpoint } from "./vertex.js";
 
+// Nano Banana 2.1: close to Pro on floor plans at about a third of the price.
+export const DEFAULT_IMAGE_MODEL = "gemini-nano-banana-2.1";
 export const IMAGE_ASPECTS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"];
 const DECLINED = new Set(["SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII", "IMAGE_SAFETY", "IMAGE_PROHIBITED_CONTENT"]);
 
@@ -21,7 +24,7 @@ export class VertexImageModel {
     apiKey = process.env.VERTEX_API_KEY,
     project = process.env.VERTEX_PROJECT,
     location = process.env.VERTEX_IMAGE_LOCATION || process.env.VERTEX_LOCATION || "global",
-    model = process.env.VERTEX_IMAGE_MODEL || "gemini-3-pro-image",
+    model = process.env.VERTEX_IMAGE_MODEL || DEFAULT_IMAGE_MODEL,
     imageSize = process.env.VERTEX_IMAGE_SIZE || "2K",
     fetchImpl = fetch,
   } = {}) {

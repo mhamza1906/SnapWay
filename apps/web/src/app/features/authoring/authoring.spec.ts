@@ -169,7 +169,7 @@ describe('map authoring page', () => {
         building,
         summary,
         elapsedMs: 41000,
-        imageModel: 'gemini-3-pro-image',
+        imageModel: 'gemini-nano-banana-2.1',
         usage: { calls: 3, tokens: 9000, images: 2, cachedImages: 0 },
         floors: ['Level B', 'Level 1'].map((label, i) => ({
           label,
@@ -177,7 +177,7 @@ describe('map authoring page', () => {
           crop: { left: 0, top: 0, width: 10, height: 10 },
           cached: false,
           latencyMs: 30000,
-          model: 'gemini-3-pro-image',
+          model: 'gemini-nano-banana-2.1',
           originalPreview: img,
           cleanPreview: img,
         })),
@@ -190,7 +190,7 @@ describe('map authoring page', () => {
     const grid = fixture.nativeElement.querySelector('[data-testid="clean-floors"]') as HTMLElement;
     expect(grid.querySelectorAll('figure').length).toBe(2);
     expect(grid.textContent).toContain('Level B');
-    expect(page.message()).toContain('2 clean floor(s) from gemini-3-pro-image');
+    expect(page.message()).toContain('2 clean floor(s) from gemini-nano-banana-2.1');
   });
 });
 

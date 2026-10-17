@@ -1,5 +1,6 @@
 // Clean-plan stage: before mapping, redraw each floor of an uploaded plan as a
-// clean, flat floor plan with the image model (Nano Banana Pro on Vertex AI).
+// clean, flat floor plan with the image model (Nano Banana 2.1 on Vertex AI by
+// default; Nano Banana Pro is selectable).
 //
 // - "floor" mode: the upload is one floor; its page is redrawn once.
 // - "building" mode: the user states how many floors the upload contains. A
