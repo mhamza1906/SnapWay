@@ -3,6 +3,9 @@ import {
   distance,
   pointSegment,
   edgeProblem,
+  edgeContext,
+  boxOf,
+  nearPoint,
   validateMap,
   intersection,
 } from "../map.js";
@@ -11,29 +14,52 @@ import { roomDoorNodes } from "./endpoints.js";
 import { doorNodeProblem } from "./access-state.js";
 export const pathLength = (path) =>
   path.slice(1).reduce((sum, p, i) => sum + distance(path[i], p), 0);
-export function segmentProblem(floor, a, b) {
+// What every segment check on a floor reads: its unusable doorways and its
+// walkable geometry. Share one only while the floor and its access records
+// stay unchanged (a read-only pass over a built building).
+export function segmentContext(floor) {
+  const g = {
+    ...floor.geometry,
+    spaces: floor.geometry.spaces.filter((s) => s.access !== "nonwalkable"),
+  };
+  return {
+    unusable: floor.geometry.doors.filter((d) => doorNodeProblem(floor, d.id)),
+    g,
+    // Boxes skip doors and spaces too far away for the exact tests below.
+    doorBoxes: g.doors.map((d) => boxOf([d.a, d.b])),
+    spaceBoxes: g.spaces.map((s) => boxOf(s.polygon)),
+    edges: null,
+  };
+}
+export function segmentProblem(floor, a, b, context = segmentContext(floor)) {
   // Check the entire polyline segment, including a bend placed on a closed
   // opening. Checking graph endpoints alone allows edited edges to bypass it.
-  for (const d of floor.geometry.doors) {
-    if (!doorNodeProblem(floor, d.id)) continue;
+  for (const d of context.unusable) {
     if (intersection(a, b, d.a, d.b) ||
         pointSegment(a, d.a, d.b) < 0.01 ||
         pointSegment(b, d.a, d.b) < 0.01)
       return `unusable doorway ${d.id}`;
   }
-  const g = {
-    ...floor.geometry,
-    spaces: floor.geometry.spaces.filter((s) => s.access !== "nonwalkable"),
-  };
+  const { g, doorBoxes, spaceBoxes } = context;
   const node = (position, id) => {
-    const d = g.doors.find((d) => pointSegment(position, d.a, d.b) < 0.5);
+    const d = g.doors.find(
+      (d, i) =>
+        nearPoint(position, doorBoxes[i], 0.6) &&
+        pointSegment(position, d.a, d.b) < 0.5,
+    );
     return {
       id,
       label: id,
       position,
       spaceIds: d
         ? d.spaceIds
-        : g.spaces.filter((s) => inside(position, s.polygon)).map((s) => s.id),
+        : g.spaces
+            .filter(
+              (s, i) =>
+                nearPoint(position, spaceBoxes[i], 0.02) &&
+                inside(position, s.polygon),
+            )
+            .map((s) => s.id),
       ...(d ? { doorId: d.id } : {}),
     };
   };
@@ -42,9 +68,11 @@ export function segmentProblem(floor, a, b) {
   if (!from.spaceIds.length || !to.spaceIds.length)
     return "leaves walkable geometry";
   if (distance(a, b) < 0.01) return null;
+  context.edges ??= edgeContext(g);
   return edgeProblem(
     { ...g, graph: { nodes: [from, to], edges: [] } },
     { from: from.id, to: to.id, id: "segment" },
+    context.edges,
   );
 }
 export function nodeProblem(b, n) {
@@ -68,7 +96,9 @@ export function nodeProblem(b, n) {
   }
   return null;
 }
-export function edgeIssue(b, e, { requireReviewed = true } = {}) {
+// `contexts` (a Map from floor to segmentContext) lets a read-only pass over
+// many edges derive each floor's segment context once.
+export function edgeIssue(b, e, { requireReviewed = true, contexts = null } = {}) {
   const a = b.nodes.find((n) => n.id === e.from),
     z = b.nodes.find((n) => n.id === e.to);
   if (!a || !z) return "missing endpoint";
@@ -127,8 +157,13 @@ export function edgeIssue(b, e, { requireReviewed = true } = {}) {
   );
   if (sections.size > 1)
     return "source sections have no established relationship";
+  let context = contexts?.get(f);
+  if (!context) {
+    context = segmentContext(f);
+    contexts?.set(f, context);
+  }
   for (let i = 1; i < e.path.length; i++) {
-    const issue = segmentProblem(f, e.path[i - 1], e.path[i]);
+    const issue = segmentProblem(f, e.path[i - 1], e.path[i], context);
     if (issue) return issue;
   }
   if (pathLength(e.path) < 0.01) return "zero-length edge";
@@ -144,9 +179,10 @@ export function validateBuilding(b) {
   const issues = [],
     add = (code, message, target, floorId, severity = "error") =>
       issues.push({ code, message, target, floorId, severity });
-  const edgeResults = new Map();
+  const edgeResults = new Map(),
+    contexts = new Map();
   const checkEdge = (e) => {
-    if (!edgeResults.has(e.id)) edgeResults.set(e.id, edgeIssue(b, e));
+    if (!edgeResults.has(e.id)) edgeResults.set(e.id, edgeIssue(b, e, { contexts }));
     return edgeResults.get(e.id);
   };
   const ids = new Set();

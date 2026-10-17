@@ -21,7 +21,7 @@ import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 // pipeline per floor, each with its own request budget).
 const args = process.argv.slice(2), flags = args.filter((a) => a.startsWith("--")), [destination, ...inputs] = args.filter((a) => !a.startsWith("--"));
 if (!destination || !inputs.length)
-  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--no-assumed-doors]\n       node server/build-floors.js <output-directory> <plan> --clean=floor|building [--floors=N] [--labels=...]   (the image model redraws each floor first)');
+  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--segmentation=auto|raster|model] [--no-assumed-doors]\n       node server/build-floors.js <output-directory> <plan> --clean=floor|building [--floors=N] [--labels=...]   (the image model redraws each floor first)');
 const flag = (name) => flags.find((f) => f.startsWith(`--${name}=`))?.split("=").slice(1).join("="),
   labels = flag("labels")?.split(",").map((s) => s.trim()) || [],
   levels = flag("levels")?.split(",").map(Number) || [];
@@ -88,6 +88,7 @@ let lastLine = "";
 const result = await runSmartMap(building, {
   floorIds: building.floors.map((f) => f.id), rebuild: true,
   maxCalls: Number(flag("max-calls") || 40), floorConcurrency: Number(flag("floor-concurrency") || 6),
+  ...(flag("segmentation") ? { segmentation: flag("segmentation") } : {}),
 }, { signal: controller.signal, progress: (p) => {
   const line = p.floors ? Object.values(p.floors).map((f) => `${f.label}: ${f.done ? f.status : f.stage} ${f.stats?.calls ?? 0}r`).join(" | ") : p.message;
   if (line !== lastLine) console.log(`${new Date().toISOString().slice(11, 19)} ${line}`);

@@ -13,15 +13,16 @@ const usable = (f, d) => !doorNodeProblem(f, d.id);
 const area = (p) => Math.abs(p.reduce((n, a, i) => { const z = p[(i + 1) % p.length]; return n + a.x * z.y - z.x * a.y; }, 0) / 2);
 const walkable = (f, s) => s.access !== "nonwalkable" && !regionNeedsSemanticReview(f, s.id);
 
-// Corridors, lobbies and large halls (three or more usable doors) form
-// circulation areas; pieces joined through usable openings are one area.
+// Corridors, lobbies, rooms the developer marked as halls (use "hall") and
+// large halls (three or more usable doors) form circulation areas; pieces
+// joined through usable openings are one area.
 export function circulationClusters(f) {
   const doorsOf = (s) => f.geometry.doors.filter((d) => d.spaceIds.includes(s.id) && usable(f, d));
   // A large hall: three or more usable doors and at least 3x the median room area.
   const rooms = f.geometry.spaces.filter((s) => !CIRCULATION.has(s.kind) && walkable(f, s)).map((s) => area(s.polygon)).sort((a, b) => a - b),
     median = rooms.length ? rooms[Math.floor(rooms.length / 2)] : Infinity,
     hall = (s) => doorsOf(s).length >= 3 && area(s.polygon) >= 3 * median;
-  const circ = f.geometry.spaces.filter((s) => walkable(f, s) && (CIRCULATION.has(s.kind) || hall(s))),
+  const circ = f.geometry.spaces.filter((s) => walkable(f, s) && (CIRCULATION.has(s.kind) || s.use === "hall" || hall(s))),
     ids = new Set(circ.map((s) => s.id)),
     parent = new Map(circ.map((s) => [s.id, s.id])),
     root = (x) => (parent.get(x) === x ? x : (parent.set(x, root(parent.get(x))), parent.get(x)));
@@ -43,6 +44,57 @@ export function wallClearance(f, p) {
   for (const s of f.geometry.spaces.filter((s) => s.access === "nonwalkable"))
     for (const e of segments(s.polygon, true)) best = Math.min(best, pointSegment(p, e.a, e.b));
   return best;
+}
+
+// Distance from a point to the nearest of `segs`, equal to the brute-force
+// minimum. Segments are binned in a uniform grid and rings of cells around the
+// point are searched until no unseen segment can be closer than the best found.
+export function nearestSegmentDistance(segs) {
+  const brute = (p) => {
+    let d = Infinity;
+    for (const s of segs) { const q = pointSegment(p, s.a, s.b); if (q < d) d = q; }
+    return d;
+  };
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const { a, b } of segs) {
+    x0 = Math.min(x0, a.x, b.x); x1 = Math.max(x1, a.x, b.x);
+    y0 = Math.min(y0, a.y, b.y); y1 = Math.max(y1, a.y, b.y);
+  }
+  if (segs.length < 32 || ![x0, y0, x1, y1].every(Number.isFinite)) return brute;
+  const size = Math.max(4, Math.sqrt(((x1 - x0 + 1) * (y1 - y0 + 1)) / segs.length)),
+    cols = Math.floor((x1 - x0) / size) + 1, rows = Math.floor((y1 - y0) / size) + 1,
+    cells = Array.from({ length: cols * rows }, () => []),
+    col = (x) => Math.floor((x - x0) / size), row = (y) => Math.floor((y - y0) / size);
+  segs.forEach(({ a, b }, i) => {
+    for (let r = row(Math.min(a.y, b.y)); r <= row(Math.max(a.y, b.y)); r++)
+      for (let c = col(Math.min(a.x, b.x)); c <= col(Math.max(a.x, b.x)); c++) cells[r * cols + c].push(i);
+  });
+  const seen = new Uint32Array(segs.length);
+  let stamp = 0;
+  return (p) => {
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return brute(p);
+    stamp++;
+    const cx = col(p.x), cy = row(p.y),
+      last = Math.max(Math.abs(cx), Math.abs(cx - cols + 1), Math.abs(cy), Math.abs(cy - rows + 1));
+    let d = Infinity;
+    const scan = (c, r) => {
+      if (c < 0 || c >= cols || r < 0 || r >= rows) return;
+      for (const i of cells[r * cols + c]) {
+        if (seen[i] === stamp) continue;
+        seen[i] = stamp;
+        const q = pointSegment(p, segs[i].a, segs[i].b);
+        if (q < d) d = q;
+      }
+    };
+    for (let k = 0; k <= last; k++) {
+      for (let r = cy - k; r <= cy + k; r++)
+        if (r === cy - k || r === cy + k) for (let c = cx - k; c <= cx + k; c++) scan(c, r);
+        else { scan(cx - k, r); if (k) scan(cx + k, r); }
+      // Unseen segments lie outside these rings, at least k cells away.
+      if (d <= k * size - 1e-6) break;
+    }
+    return d;
+  };
 }
 
 // Minimum clear width along a whole path, turns included (sampled every ~1 px).
@@ -214,11 +266,7 @@ export function buildCirculation(b, f, { newNode, newEdge, overrides = [] }) {
     }
     // Reported clearance is exact: distance to the nearest wall, blocked boundary
     // or obstacle segment (the raster is only used to find the centreline).
-    const exact = (p) => {
-      let d = Infinity;
-      for (const s of blockers) { const q = pointSegment(p, s.a, s.b); if (q < d) d = q; }
-      return d;
-    };
+    const exact = nearestSegmentDistance(blockers);
     const node = (id) => b.nodes.find((n) => n.id === id);
     // A segment that passes through a thin piece between two others gets a
     // polyline point (not a graph vertex) inside that piece, so each segment

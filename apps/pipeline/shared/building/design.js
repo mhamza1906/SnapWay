@@ -227,8 +227,11 @@ export function designContent(
     maxX = Math.max(...ps.map((p) => p.x)),
     maxY = Math.max(...ps.map((p) => p.y)),
     unit = Math.max(maxX - minX, maxY - minY) / 50;
-  const pattern = "nonwalkable-" + floor.id.replace(/[^a-zA-Z0-9_-]/g, "_");
-  let out = `<defs><pattern id="${pattern}" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="${c.storage}"/><path d="M-1 1L1 -1M0 6L6 0M5 7L7 5" stroke="${c.wall}" stroke-opacity=".2" stroke-width=".7"/></pattern></defs><rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${c.background}"/>`;
+  const pattern = "nonwalkable-" + floor.id.replace(/[^a-zA-Z0-9_-]/g, "_"),
+    // Developer-marked stairs get tread lines over the lobby colour.
+    treads = "stair-" + floor.id.replace(/[^a-zA-Z0-9_-]/g, "_"),
+    stairs = floor.geometry.spaces.some((r) => r.use === "stair" && r.access !== "nonwalkable");
+  let out = `<defs><pattern id="${pattern}" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="${c.storage}"/><path d="M-1 1L1 -1M0 6L6 0M5 7L7 5" stroke="${c.wall}" stroke-opacity=".2" stroke-width=".7"/></pattern>${stairs ? `<pattern id="${treads}" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="${c.lobby}"/><path d="M0 2H4" stroke="${c.wall}" stroke-opacity=".35" stroke-width=".5"/></pattern>` : ""}</defs><rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${c.background}"/>`;
   if (s.showTitle)
     out += `<text x="${minX}" y="${minY - unit * 1.4}" font-family="${fontFamily(s.labels.font)}" fill="${c.text}" font-size="${unit * 1.15}" font-weight="700">${esc(s.title || floor.label)}</text><text x="${maxX}" y="${minY - unit * 1.4}" text-anchor="end" font-family="Arial, sans-serif" fill="${c.text}" opacity=".65" font-size="${unit * 0.45}">INDOOR MAP · ${reviewLabel(floor)}</text>`;
   for (const r of floor.geometry.spaces) {
@@ -238,8 +241,8 @@ export function designContent(
           ? `url(#${pattern})`
           : r.access === "unknown"
             ? "#f2d8a7"
-            : override?.fill || c[r.kind] || c.room;
-    out += `<g data-room-id="${esc(r.id)}" class="designed-room"><title>${esc(r.label)}${r.access === "unknown" ? " · Doorway review needed" : r.access === "nonwalkable" ? " · Non-walkable" : ""}</title><polygon points="${pts(r.polygon)}" fill="${fill}" stroke="${selection === r.id ? c.accent : showWalls ? c.wall : "none"}" stroke-width="${selection === r.id ? s.wallWidth * 2 : s.wallWidth}" stroke-linejoin="round"${r.access === "unknown" ? ' stroke-dasharray="2 1.5"' : ""}/></g>`;
+            : override?.fill || (r.use === "stair" ? `url(#${treads})` : c[r.kind] || c.room);
+    out += `<g data-room-id="${esc(r.id)}" class="designed-room"><title>${esc(r.label)}${r.use === "stair" ? " · Stair" : ""}${r.access === "unknown" ? " · Doorway review needed" : r.use === "closed" ? " · Closed" : r.access === "nonwalkable" ? " · Non-walkable" : ""}</title><polygon points="${pts(r.polygon)}" fill="${fill}" stroke="${selection === r.id ? c.accent : showWalls ? c.wall : "none"}" stroke-width="${selection === r.id ? s.wallWidth * 2 : s.wallWidth}" stroke-linejoin="round"${r.access === "unknown" ? ' stroke-dasharray="2 1.5"' : ""}/></g>`;
   }
   if (s.showDoors && showWalls)
     for (const d of floor.geometry.doors) {
@@ -253,7 +256,7 @@ export function designContent(
     for (const r of floor.geometry.spaces) {
       if (
         (!s.labels.corridors && r.kind === "corridor") ||
-        r.access === "nonwalkable"
+        (r.access === "nonwalkable" && r.use !== "closed")
       )
         continue;
       const xs = r.polygon.map((p) => p.x),
@@ -269,6 +272,9 @@ export function designContent(
               ? "Landing"
               : "Unlabelled";
       if (/stair .* landing|stair enclosure/i.test(label)) label = "Stair";
+      if (r.use === "stair" && s.rooms[r.id]?.label == null && !/stair/i.test(label))
+        label = /^(landing|unlabelled)$/i.test(label) ? "Stair" : `${label} (stair)`;
+      if (r.use === "closed" && s.rooms[r.id]?.label == null) label = `${label} (closed)`;
       if (w < 4 || h < 4) continue;
       const p = labelPoint(r.polygon),
         font = Math.min(

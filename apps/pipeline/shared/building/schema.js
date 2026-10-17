@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MapSchema, Point, emptyMap, clone } from "../map.js";
+import { MapSchema, Point, emptyMap, clone, LIGHT_IMAGE } from "../map.js";
 import { PresentationSchema } from "./design.js";
 import { AccessSchema, ACCESS_VERSION } from "./access-state.js";
 const id = z.string().min(1).max(150),
@@ -12,6 +12,16 @@ const asset = z.object({
   hash: z.string(),
   provenance: z.string(),
 });
+// A floor history entry with everything kept except the floor image
+// (geometry.source.dataUrl becomes LIGHT_IMAGE). Nothing reads the image of a
+// past geometry, and each entry used to repeat the full floor image
+// (megabytes) up to 10 times. Never mutates its input; anything without a
+// string image is returned unchanged for the schema to judge.
+export function lightHistoryEntry(entry) {
+  const source = entry?.geometry?.source;
+  if (typeof source?.dataUrl !== "string" || source.dataUrl === LIGHT_IMAGE) return entry;
+  return { ...entry, geometry: { ...entry.geometry, source: { ...source, dataUrl: LIGHT_IMAGE } } };
+}
 export const SourceSchema = z.object({
   id,
   assetId: id,
@@ -150,13 +160,18 @@ export const FloorSchema = z.object({
       }),
     )
     .default([]),
+  // Geometry only: the floor image is replaced by LIGHT_IMAGE on every parse,
+  // so a saved building with full images in its history shrinks on load.
   history: z.array(
-    z.object({
-      revision: z.number(),
-      at: z.string(),
-      reason: z.string(),
-      geometry: MapSchema,
-    }),
+    z.preprocess(
+      lightHistoryEntry,
+      z.object({
+        revision: z.number(),
+        at: z.string(),
+        reason: z.string(),
+        geometry: MapSchema,
+      }),
+    ),
   ),
   snapshots: z.array(
     z.object({
@@ -262,7 +277,7 @@ export function geometryChanged(
     reason,
     geometry: f.geometry,
   });
-  f.history = f.history.slice(-10);
+  f.history = f.history.slice(-10).map(lightHistoryEntry);
   f.geometry = MapSchema.parse(geometry);
   for (const s of f.sources) if (s.coverage) s.coverage.stage = "needs-review";
   f.revision++;

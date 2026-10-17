@@ -552,11 +552,13 @@ export function revalidateGraph(building, floorId) {
     f = b.floors.find((f) => f.id === floorId);
   if (f.geometryStatus !== "reviewed")
     throw new Error("Review edited geometry first.");
+  // Only node and edge statuses change below, so segment contexts stay valid.
+  const contexts = new Map();
   for (const n of b.nodes.filter((n) => n.floorId === floorId))
     n.status = nodeProblem(b, n) ? "stale" : "reviewed";
   for (const e of b.edges.filter((e) => e.floorId === floorId)) {
     e.geometryRevision = f.revision;
-    e.status = edgeIssue(b, e, { requireReviewed: false })
+    e.status = edgeIssue(b, e, { requireReviewed: false, contexts })
       ? "stale"
       : "reviewed";
     e.length = pathLength(e.path) / (f.geometry.scale?.pixelsPerMetre || 1);
@@ -565,7 +567,7 @@ export function revalidateGraph(building, floorId) {
   }
   for (const e of b.edges.filter((e) => e.floorId === null))
     e.status =
-      edgeIssue(b, e, { requireReviewed: false }) ||
+      edgeIssue(b, e, { requireReviewed: false, contexts }) ||
       [e.from, e.to].some(
         (id) => b.nodes.find((n) => n.id === id)?.status !== "reviewed",
       )

@@ -5,7 +5,8 @@ import { spaceAccessState } from "./access-state.js";
 // Availability is independent of a selected route and is recalculated whenever
 // the building changes. Draft or isolated rooms remain visible with a reason.
 export function roomAvailability(b) {
-  const usable = b.edges.filter((e) => !e.restricted && !edgeIssue(b, e));
+  const contexts = new Map(),
+    usable = b.edges.filter((e) => !e.restricted && !edgeIssue(b, e, { contexts }));
   const adjacency = new Map(b.nodes.map((n) => [n.id, []]));
   for (const e of usable) {
     adjacency.get(e.from)?.push(e.to);
@@ -96,12 +97,13 @@ export function routeBuilding(
     previous = new Map(),
     pending = new Set(b.nodes.map((n) => n.id));
   for (const n of starts) costs.set(n.id, 0);
+  const contexts = new Map();
   const usable = b.edges.filter(
     (e) =>
       !e.restricted &&
       (!excludeStairs || e.traversal !== "stairs") &&
       (!verifiedAccessible || e.accessible === "yes") &&
-      !edgeIssue(b, e),
+      !edgeIssue(b, e, { contexts }),
   );
   let destination = null;
   const edgeCost = (e) => {

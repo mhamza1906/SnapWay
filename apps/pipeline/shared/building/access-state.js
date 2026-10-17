@@ -78,11 +78,13 @@ export const AccessRecordSchema = z.object({
         kind: z.string(),
         access: z.string().nullable(),
         label: z.string(),
+        use: z.string().nullable().optional(),
       }),
       to: z.object({
         kind: z.string(),
         access: z.string().nullable(),
         label: z.string(),
+        use: z.string().nullable().optional(),
       }),
     })
     .nullable()
@@ -250,10 +252,21 @@ export function doorNodeProblem(floor, doorId) {
   if (!door) return null;
   if (door.spaceIds.some(id => regionNeedsSemanticReview(floor, id)))
     return "Linked region needs original-source classification";
+  // A closed (non-walkable) region keeps its doorways, unused until it re-opens.
+  if (door.spaceIds.some(id => floor.geometry.spaces.find(s => s.id === id)?.access === "nonwalkable"))
+    return "Linked region is closed (non-walkable)";
   const { state, reason } = doorAccessState(floor, door);
   return usableDoor(state) ? null : reason;
 }
+// A rename changes only the label; it is not a decision about what the region is.
+export const labelOnlyChange = (r) =>
+  !!r.change && r.change.from.label !== r.change.to.label &&
+  r.change.from.kind === r.change.to.kind && r.change.from.access === r.change.to.access &&
+  (r.change.from.use ?? null) === (r.change.to.use ?? null);
+// The latest record that classified the region (renames excluded).
+export const lastClassification = (floor, spaceId) =>
+  records(floor).findLast((r) => r.spaceId === spaceId && r.kind === "classification" && !labelOnlyChange(r));
 export function regionNeedsSemanticReview(floor, spaceId) {
-  const record = records(floor).findLast(r => r.spaceId === spaceId && r.kind === "classification");
+  const record = lastClassification(floor, spaceId);
   return record?.status === "proposed" && record.review.status === "agent-inspected" && record.evidence.verifier?.verdict === "uncertain";
 }

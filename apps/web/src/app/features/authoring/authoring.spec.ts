@@ -2,7 +2,15 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthoringPage } from './authoring';
-import { BuildingSummary, PIPELINE_BASE } from './pipeline.service';
+import {
+  AssumedDoor,
+  BuildingSummary,
+  EdgeOption,
+  FloorSummary,
+  IMAGE_PLACEHOLDER,
+  PIPELINE_BASE,
+  SpaceSummary,
+} from './pipeline.service';
 
 const summary: BuildingSummary = {
   id: 'plan-1',
@@ -38,17 +46,99 @@ const building = {
 };
 const flush = () => new Promise((resolve) => setTimeout(resolve));
 
+// A mapped floor with three walkable regions for the Regions panel.
+const regionSpaces: SpaceSummary[] = [
+  { id: 'r1', label: '101', kind: 'room', doors: 1, stair: false },
+  { id: 'h1', label: 'Hallway 3', kind: 'hallway', doors: 2, stair: false },
+  { id: 'l1', label: 'Open lobby 2', kind: 'lobby', doors: 1, stair: false },
+];
+function withSpaces(spaces: SpaceSummary[]): BuildingSummary {
+  const floor: FloorSummary = {
+    ...summary.floors[0],
+    spaces,
+    stairs: spaces.filter((s) => s.stair).map((s) => ({ id: s.id, label: s.label })),
+  };
+  return { ...summary, floors: [floor] };
+}
+// An assumed doorway on room 101 with one deduplicated option per neighbouring region.
+function edge(key: number, label: string, kind: string, length: number): EdgeOption {
+  return {
+    key,
+    adjacentId: `${kind}-${key}`,
+    adjacentLabel: label,
+    adjacentKind: kind,
+    hallway: kind !== 'room',
+    length,
+    doors: 0,
+    a: { x: 0, y: key },
+    b: { x: length, y: key },
+  };
+}
+const door: AssumedDoor = {
+  doorId: 'd1',
+  roomId: 'r1',
+  roomLabel: '101',
+  roomDoors: 2,
+  edgeKey: 3,
+  t: 0.5,
+  width: 30,
+  segment: { a: { x: 45, y: 3 }, b: { x: 75, y: 3 } },
+  candidates: [
+    edge(3, 'Hallway 3', 'corridor', 120.4),
+    edge(5, 'Open lobby 2', 'lobby', 80),
+    edge(7, '102', 'room', 40.6),
+  ],
+};
+function withDoors(doors: AssumedDoor[], s = withSpaces(regionSpaces)): BuildingSummary {
+  return { ...s, floors: [{ ...s.floors[0], assumed: doors }] };
+}
+// A 1000 × 800 floor, so "Show on map" visibly crops the viewBox (to at least 250 px).
+const FULL_VIEW = '0 0 1000 800';
+const roomsSvg =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="${FULL_VIEW}">` +
+  '<g data-room-id="r1" class="designed-room"><polygon points="100,100 200,100 200,200 100,200"/></g>' +
+  '<g data-room-id="h1" class="designed-room"><polygon points="400,300 600,300 600,400 400,400"/></g>' +
+  '<g data-room-id="s1" class="designed-room"><polygon points="800,600 900,600 900,700 800,700"/></g></svg>';
+// An image too big to send on every click, and a building that carries it everywhere.
+const IMG = 'data:image/png;base64,' + 'A'.repeat(4000);
+const IMG_HISTORY = 'data:image/png;base64,' + 'B'.repeat(4000);
+const source = (dataUrl: string) => ({ name: 'plan.png', width: 1000, height: 800, dataUrl });
+const heavyBuilding = {
+  ...building,
+  assets: {
+    a1: { id: 'a1', name: 'plan.png', mime: 'image/png', dataUrl: IMG, hash: 'h', provenance: '' },
+  },
+  floors: [
+    {
+      id: 'floor-1',
+      label: 'Floor 1',
+      geometry: { spaces: [], source: source(IMG) },
+      history: [
+        { revision: 1, at: 't1', reason: 'old', geometry: { source: source(IMG_HISTORY) } },
+      ],
+    },
+  ],
+};
+
 describe('map authoring page', () => {
   let http: HttpTestingController;
+  // jsdom has no scrollIntoView; "Show on map" scrolls the map into view.
+  const originalScroll = Element.prototype.scrollIntoView;
+  let scroll: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll as unknown as Element['scrollIntoView'];
     await TestBed.configureTestingModule({
       imports: [AuthoringPage],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => http.verify());
+  afterEach(() => {
+    Element.prototype.scrollIntoView = originalScroll;
+    http.verify();
+  });
 
   async function start() {
     const fixture = TestBed.createComponent(AuthoringPage);
@@ -66,6 +156,96 @@ describe('map authoring page', () => {
     await flush();
     fixture.detectChanges();
     return fixture;
+  }
+
+  /** Opens a saved building so the floor is mapped and the Regions panel shows. */
+  async function startMapped(
+    s: BuildingSummary = withSpaces(regionSpaces),
+    saved: Record<string, unknown> = building,
+  ) {
+    const fixture = await start();
+    const page = fixture.componentInstance;
+    page.reviewer.set('Sam');
+    const opening = page.open('plan-1');
+    http.expectOne(`${PIPELINE_BASE}/buildings/plan-1`).flush(saved);
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/authoring/summary`).flush(s);
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/authoring/render`).flush({ svg: roomsSvg });
+    await opening;
+    await flush();
+    fixture.detectChanges();
+    return { fixture, page, el: fixture.nativeElement as HTMLElement };
+  }
+  const row = (el: HTMLElement, id: string) =>
+    el.querySelector(`[data-testid="region"][data-region-id="${id}"]`) as HTMLElement;
+  const within = <T extends HTMLElement>(parent: HTMLElement, testid: string) =>
+    parent.querySelector(`[data-testid="${testid}"]`) as T;
+  /** Answers the render request the last action made and returns its overlay. */
+  async function renderOverlay(svg = roomsSvg) {
+    await flush();
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/render`);
+    const overlay = req.request.body.overlay;
+    req.flush({ svg });
+    await flush();
+    return overlay;
+  }
+  /** Selection, "Show on map" and previews are drawn in the browser: no render request. */
+  async function noRender(fixture: { detectChanges(): void }) {
+    await flush();
+    http.expectNone(`${PIPELINE_BASE}/authoring/render`);
+    fixture.detectChanges();
+  }
+  const mapSvg = (el: HTMLElement) => el.querySelector('[data-testid="map"] svg') as SVGSVGElement;
+  /** Region ids drawn selected on the map. */
+  const drawnSelected = (el: HTMLElement) =>
+    [...mapSvg(el).querySelectorAll('[data-room-id].is-selected')].map((g) =>
+      g.getAttribute('data-room-id'),
+    );
+  const doorSegment = (el: HTMLElement) =>
+    mapSvg(el).querySelector('[data-client-overlay] line[data-door-segment]');
+
+  /** Answers the render request the last action made and returns its body. */
+  async function renderBody() {
+    await flush();
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/render`);
+    const body = req.request.body;
+    req.flush({ svg: roomsSvg });
+    await flush();
+    return body;
+  }
+  /** Every embedded image is the placeholder; no image data is sent. */
+  function expectLight(b: typeof heavyBuilding) {
+    for (const a of Object.values(b.assets)) expect(a.dataUrl).toBe(IMAGE_PLACEHOLDER);
+    for (const f of b.floors) {
+      expect(f.geometry.source.dataUrl).toBe(IMAGE_PLACEHOLDER);
+      for (const h of f.history) expect(h.geometry.source.dataUrl).toBe(IMAGE_PLACEHOLDER);
+    }
+    const text = JSON.stringify(b);
+    expect(text).not.toContain('A'.repeat(100));
+    expect(text).not.toContain('B'.repeat(100));
+  }
+  /** Opens a building with embedded images; summary and render get the light copy. */
+  async function startMappedHeavy() {
+    const fixture = await start();
+    const page = fixture.componentInstance;
+    const opening = page.open('plan-1');
+    http.expectOne(`${PIPELINE_BASE}/buildings/plan-1`).flush(structuredClone(heavyBuilding));
+    await flush();
+    const sum = http.expectOne(`${PIPELINE_BASE}/authoring/summary`);
+    expectLight(sum.request.body.building);
+    sum.flush(withSpaces(regionSpaces));
+    await flush();
+    expectLight((await renderBody()).building);
+    await opening;
+    await flush();
+    fixture.detectChanges();
+    // Lightening a request never touches the building the page holds.
+    const held = page.building() as unknown as typeof heavyBuilding;
+    expect(held.assets.a1.dataUrl).toBe(IMG);
+    expect(held.floors[0].geometry.source.dataUrl).toBe(IMG);
+    expect(held.floors[0].history[0].geometry.source.dataUrl).toBe(IMG_HISTORY);
+    return { fixture, page };
   }
 
   it('shows which provider the pipeline uses, without any key', async () => {
@@ -136,6 +316,580 @@ describe('map authoring page', () => {
     );
     expect(page.error()).toContain('How many floors');
     http.expectNone(`${PIPELINE_BASE}/authoring/clean-plans`);
+  });
+
+  it('lists regions with kind, stair badge and default-name flags, and filters them', async () => {
+    const { fixture, el } = await startMapped(
+      withSpaces([{ ...regionSpaces[0], stair: true }, regionSpaces[1], regionSpaces[2]]),
+    );
+    const panel = within(el, 'regions');
+    expect(panel.textContent).toContain('the AI only suggests room names');
+    expect(panel.textContent).not.toMatch(/developer|admin/i);
+    expect(el.querySelectorAll('[data-testid="region"]').length).toBe(3);
+    expect(within(row(el, 'r1'), 'stair-badge')).not.toBeNull();
+    expect(within<HTMLSelectElement>(row(el, 'r1'), 'region-kind').value).toBe('stair');
+    expect(within(row(el, 'r1'), 'default-name')).toBeNull();
+    expect(within(row(el, 'h1'), 'default-name')).not.toBeNull();
+    expect(within(row(el, 'l1'), 'default-name')).not.toBeNull();
+    expect(row(el, 'h1').textContent).toContain('hallway');
+
+    const filter = within<HTMLInputElement>(el, 'region-filter');
+    filter.value = 'hall';
+    filter.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    const rows = [...el.querySelectorAll('[data-testid="region"]')] as HTMLElement[];
+    expect(rows.map((r) => r.dataset['regionId'])).toEqual(['h1']);
+  });
+
+  it('renames a region with the reviewer name and shows the new label', async () => {
+    const { fixture, page, el } = await startMapped();
+    const save = within<HTMLButtonElement>(row(el, 'r1'), 'region-save');
+    expect(save.disabled).toBe(true);
+    const input = within<HTMLInputElement>(row(el, 'r1'), 'region-name');
+    input.value = '   ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(true);
+    expect(input.maxLength).toBe(120);
+    input.value = ' Room 101 ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(false);
+
+    save.click();
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/rename`);
+    expect(req.request.body).toEqual(
+      jasmineLike({ floorId: 'floor-1', spaceId: 'r1', label: 'Room 101', reviewer: 'Sam' }),
+    );
+    expect(req.request.body.building).toEqual(building);
+    req.flush({
+      building,
+      summary: withSpaces([{ ...regionSpaces[0], label: 'Room 101' }, ...regionSpaces.slice(1)]),
+    });
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(row(el, 'r1').textContent).toContain('Room 101');
+    expect(within<HTMLInputElement>(row(el, 'r1'), 'region-name').value).toBe('Room 101');
+    expect(within<HTMLButtonElement>(row(el, 'r1'), 'region-save').disabled).toBe(true);
+    expect(page.message()).toContain('"101" renamed to "Room 101"');
+  });
+
+  it('marks a region as a stair from "Use as"', async () => {
+    const { fixture, page, el } = await startMapped();
+    const select = within<HTMLSelectElement>(row(el, 'h1'), 'region-kind');
+    select.value = 'stair';
+    select.dispatchEvent(new Event('change'));
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/kind`);
+    expect(req.request.body).toEqual(
+      jasmineLike({ floorId: 'floor-1', spaceId: 'h1', kind: 'stair', reviewer: 'Sam' }),
+    );
+    expect(page.busy()).toBe(true);
+    req.flush({
+      building,
+      summary: withSpaces([
+        regionSpaces[0],
+        { ...regionSpaces[1], kind: 'lobby', use: 'stair', stair: true },
+        regionSpaces[2],
+      ]),
+    });
+    await renderOverlay();
+    fixture.detectChanges();
+    expect(within(row(el, 'h1'), 'stair-badge')).not.toBeNull();
+    expect(within(row(el, 'h1'), 'kind-badge')).toBeNull();
+    expect(within<HTMLSelectElement>(row(el, 'h1'), 'region-kind').value).toBe('stair');
+    expect(within(el, 'region-counts').textContent).toContain('1 stair(s)');
+    expect(page.message()).toBe('Hallway 3 is now a stair.');
+  });
+
+  it('highlights selected regions on the map and only offers a merge for two or more', async () => {
+    const { fixture, page, el } = await startMapped();
+    expect(within(el, 'merge-regions')).toBeNull();
+
+    expect(drawnSelected(el)).toEqual([]);
+
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    await noRender(fixture);
+    expect(within(el, 'merge-regions')).toBeNull();
+    expect(row(el, 'r1').classList).toContain('selected');
+    expect(drawnSelected(el)).toEqual(['r1']);
+
+    within<HTMLInputElement>(row(el, 'h1'), 'region-select').click();
+    await noRender(fixture);
+    expect(within(el, 'merge-regions').textContent).toContain('Merge 2 regions');
+    expect(drawnSelected(el)).toEqual(['r1', 'h1']);
+
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    await noRender(fixture);
+    expect(within(el, 'merge-regions')).toBeNull();
+    expect(drawnSelected(el)).toEqual(['h1']);
+    // Highlighting never zooms.
+    expect(mapSvg(el).getAttribute('viewBox')).toBe(FULL_VIEW);
+
+    within<HTMLButtonElement>(within(el, 'region-selection'), 'clear-selection').click();
+    await noRender(fixture);
+    expect(within(el, 'region-selection')).toBeNull();
+    expect(drawnSelected(el)).toEqual([]);
+    await page.mergeRegions();
+    http.expectNone(`${PIPELINE_BASE}/authoring/spaces/merge`);
+  });
+
+  it('keeps the selection drawn on the map after an edit re-renders it', async () => {
+    const { fixture, el } = await startMapped();
+    within<HTMLInputElement>(row(el, 'h1'), 'region-select').click();
+    await noRender(fixture);
+    const input = within<HTMLInputElement>(row(el, 'r1'), 'region-name');
+    input.value = 'Room 101';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    within<HTMLButtonElement>(row(el, 'r1'), 'region-save').click();
+    fixture.detectChanges();
+    // The row being edited says so while the edit runs.
+    expect(within(row(el, 'r1'), 'saving').textContent).toContain('Saving…');
+    expect(within(row(el, 'h1'), 'saving')).toBeNull();
+    http.expectOne(`${PIPELINE_BASE}/authoring/spaces/rename`).flush({
+      building,
+      summary: withSpaces([{ ...regionSpaces[0], label: 'Room 101' }, ...regionSpaces.slice(1)]),
+    });
+    // The service draws no selection; the browser re-applies it to the new SVG.
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(within(row(el, 'r1'), 'saving')).toBeNull();
+    expect(drawnSelected(el)).toEqual(['h1']);
+  });
+
+  it('toggles a region when it is clicked on the map', async () => {
+    const { fixture, page, el } = await startMapped();
+    const polygon = el.querySelector('[data-testid="map"] [data-room-id="h1"] polygon')!;
+    polygon.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await noRender(fixture);
+    expect(page.selectedRegions()).toEqual(['h1']);
+    expect(within<HTMLInputElement>(row(el, 'h1'), 'region-select').checked).toBe(true);
+    expect(drawnSelected(el)).toEqual(['h1']);
+    // Clicking it again unselects it.
+    el.querySelector('[data-testid="map"] [data-room-id="h1"] polygon')!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true }),
+    );
+    await noRender(fixture);
+    expect(page.selectedRegions()).toEqual([]);
+    expect(drawnSelected(el)).toEqual([]);
+  });
+
+  it('merges selected regions with a name and stair flag, then clears the selection', async () => {
+    const { fixture, page, el } = await startMapped();
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    within<HTMLInputElement>(row(el, 'h1'), 'region-select').click();
+    await noRender(fixture);
+
+    const name = within<HTMLInputElement>(el, 'merge-name');
+    name.value = 'Main stair';
+    name.dispatchEvent(new Event('input'));
+    const stair = within<HTMLInputElement>(el, 'merge-stair');
+    expect(stair.checked).toBe(false);
+    stair.click();
+    fixture.detectChanges();
+    expect(stair.checked).toBe(true);
+
+    within<HTMLButtonElement>(el, 'merge-regions').click();
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/merge`);
+    expect(req.request.body).toEqual(
+      jasmineLike({
+        floorId: 'floor-1',
+        spaceIds: ['r1', 'h1'],
+        label: 'Main stair',
+        stair: true,
+        reviewer: 'Sam',
+      }),
+    );
+    req.flush({
+      building,
+      summary: withSpaces([
+        { id: 'r1', label: 'Main stair', kind: 'stair', doors: 3, stair: true },
+        regionSpaces[2],
+      ]),
+      spaceId: 'r1',
+    });
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(page.selectedRegions()).toEqual([]);
+    expect(page.mergeName()).toBe('');
+    expect(within(el, 'merge-regions')).toBeNull();
+    expect(row(el, 'h1')).toBeNull();
+    expect(within(row(el, 'r1'), 'stair-badge')).not.toBeNull();
+    expect(page.message()).toBe('Merged 2 regions into "Main stair".');
+  });
+
+  it('shows a needs-attention region on the map, then the whole floor again, without a request', async () => {
+    const { fixture, page, el } = await startMapped();
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    await noRender(fixture);
+    expect(drawnSelected(el)).toEqual(['r1']);
+
+    const locate = within<HTMLButtonElement>(within(el, 'needs-attention'), 'locate');
+    expect(locate.getAttribute('aria-label')).toBe('Show STAIR A on the map');
+    locate.click();
+    expect(page.busy()).toBe(false);
+    await noRender(fixture);
+    expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+    expect(scroll.mock.contexts[0]).toBe(within(el, 'map'));
+    // Locating replaces the Regions selection and zooms to the region (+25%, at least 250 px).
+    expect(page.selectedRegions()).toEqual([]);
+    expect(row(el, 'r1').classList).not.toContain('selected');
+    expect(drawnSelected(el)).toEqual(['s1']);
+    expect(mapSvg(el).getAttribute('viewBox')).toBe('725 525 250 250');
+    expect(mapSvg(el).getAttribute('width')).toBe('250');
+    expect(mapSvg(el).getAttribute('height')).toBe('250');
+    expect(within(el, 'focus-bar').textContent).toContain('Showing STAIR A');
+
+    within<HTMLButtonElement>(el, 'whole-floor').click();
+    await noRender(fixture);
+    expect(page.focused()).toBeNull();
+    expect(within(el, 'focus-bar')).toBeNull();
+    expect(mapSvg(el).getAttribute('viewBox')).toBe(FULL_VIEW);
+    expect(mapSvg(el).getAttribute('width')).toBe('1000');
+    expect(mapSvg(el).getAttribute('height')).toBe('800');
+    expect(drawnSelected(el)).toEqual([]);
+  });
+
+  it('locates a region from its row, and selecting regions shows the whole floor again', async () => {
+    const { fixture, page, el } = await startMapped();
+    const locate = within<HTMLButtonElement>(row(el, 'h1'), 'locate');
+    expect(locate.getAttribute('aria-label')).toBe('Show Hallway 3 on the map');
+    locate.click();
+    await noRender(fixture);
+    expect(within(el, 'focus-bar').textContent).toContain('Showing Hallway 3');
+    expect(mapSvg(el).getAttribute('viewBox')).toBe('350 225 300 250');
+    expect(drawnSelected(el)).toEqual(['h1']);
+
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    await noRender(fixture);
+    expect(page.focused()).toBeNull();
+    expect(within(el, 'focus-bar')).toBeNull();
+    expect(mapSvg(el).getAttribute('viewBox')).toBe(FULL_VIEW);
+    expect(drawnSelected(el)).toEqual(['r1']);
+  });
+
+  it('locates an assumed doorway with its segment and keeps the room in view while editing', async () => {
+    const { fixture, el } = await startMapped(withDoors([door]));
+    const item = within(el, 'assumed-door');
+    within<HTMLButtonElement>(item, 'locate').click();
+    await noRender(fixture);
+    expect(scroll).toHaveBeenCalledTimes(1);
+    expect(within(el, 'focus-bar').textContent).toContain('Showing 101 and its doorway (magenta)');
+    expect(mapSvg(el).getAttribute('viewBox')).toBe('25 25 250 250');
+    expect(drawnSelected(el)).toEqual(['r1']);
+    let line = doorSegment(el)!;
+    expect(
+      ['x1', 'y1', 'x2', 'y2', 'stroke', 'pointer-events'].map((a) => line.getAttribute(a)),
+    ).toEqual(['45', '3', '75', '3', '#c2185b', 'none']);
+
+    // The position preview is drawn in the browser and stays zoomed on the room.
+    const range = item.querySelector('input[type="range"]') as HTMLInputElement;
+    range.value = '0.25';
+    range.dispatchEvent(new Event('input'));
+    await noRender(fixture);
+    line = doorSegment(el)!;
+    expect(mapSvg(el).querySelectorAll('[data-door-segment]').length).toBe(1);
+    expect(Number(line.getAttribute('x1'))).toBeCloseTo(15.1);
+    expect(Number(line.getAttribute('x2'))).toBeCloseTo(45.1);
+    expect(mapSvg(el).getAttribute('viewBox')).toBe('25 25 250 250');
+    expect(scroll).toHaveBeenCalledTimes(1);
+
+    // After the move the map stays on the room; the real doorway is drawn by the server.
+    const apply = [...item.querySelectorAll('button')].find((b) =>
+      b.textContent!.includes('Apply move'),
+    )!;
+    apply.click();
+    fixture.detectChanges();
+    expect(within(item, 'saving').textContent).toContain('Saving…');
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/edit`);
+    expect(req.request.body).toEqual(jasmineLike({ doorId: 'd1', edgeKey: 3, t: 0.25 }));
+    req.flush({ building, summary: withDoors([{ ...door, t: 0.25 }]) });
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(within(el, 'focus-bar').textContent).toContain('Showing 101');
+    expect(within(el, 'focus-bar').textContent).not.toContain('doorway');
+    expect(mapSvg(el).getAttribute('viewBox')).toBe('25 25 250 250');
+    expect(drawnSelected(el)).toEqual(['r1']);
+    expect(doorSegment(el)).toBeNull();
+    expect(within(el, 'saving')).toBeNull();
+
+    within<HTMLButtonElement>(el, 'whole-floor').click();
+    await noRender(fixture);
+    expect(mapSvg(el).getAttribute('viewBox')).toBe(FULL_VIEW);
+  });
+
+  it('sends authoring calls without images and keeps the real images in the building', async () => {
+    const { fixture, page } = await startMappedHeavy();
+    // Edits send the light copy too.
+    const make = page.makeRoom('s1', 'STAIR A');
+    const edit = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/define-room`);
+    expectLight(edit.request.body.building);
+    // The service echoes the placeholders, adds a history entry from the current geometry
+    // and sends one real image of its own (a new asset).
+    const echoed = structuredClone(edit.request.body.building);
+    echoed.floors[0].history.push({
+      revision: 2,
+      at: 't2',
+      reason: 'room',
+      geometry: { source: source(IMAGE_PLACEHOLDER) },
+    });
+    const SERVER_IMG = 'data:image/png;base64,SERVER==';
+    echoed.assets.a2 = { ...echoed.assets.a1, id: 'a2', dataUrl: SERVER_IMG };
+    edit.flush({ building: echoed, summary: withSpaces(regionSpaces) });
+    await flush();
+    expectLight((await renderBody()).building);
+    await make;
+    fixture.detectChanges();
+
+    const held = page.building() as unknown as typeof heavyBuilding & {
+      assets: Record<string, { dataUrl: string }>;
+    };
+    expect(held.assets['a1'].dataUrl).toBe(IMG);
+    expect(held.assets['a2'].dataUrl).toBe(SERVER_IMG);
+    expect(held.floors[0].geometry.source.dataUrl).toBe(IMG);
+    expect(held.floors[0].history.map((h) => h.geometry.source.dataUrl)).toEqual([
+      IMG_HISTORY,
+      IMG,
+    ]);
+
+    // Saving a copy and the paid AI run send the full building.
+    const saving = page.saveCopy();
+    const save = http.expectOne(`${PIPELINE_BASE}/buildings/copies`);
+    expect(save.request.body).toBe(held);
+    expect(JSON.stringify(save.request.body)).not.toContain(IMAGE_PLACEHOLDER);
+    save.flush({ key: 'plan-1', updated: true });
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/buildings`).flush({ buildings: [] });
+    await saving;
+
+    const building_ = page.buildWithAi(false);
+    const job = http.expectOne(`${PIPELINE_BASE}/map-jobs`);
+    expect(job.request.body.building).toBe(held);
+    expect(job.request.body.building.floors[0].geometry.source.dataUrl).toBe(IMG);
+    job.flush({ id: 'job-1' });
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/map-jobs/job-1`).flush({
+      id: 'job-1',
+      status: 'complete',
+      result: { status: 'complete', stats: { calls: 1, tokens: 10 }, summary: {} },
+    });
+    await flush();
+    const apply = http.expectOne(`${PIPELINE_BASE}/map-jobs/job-1/apply`);
+    expect(apply.request.body.building.assets.a1.dataUrl).toBe(IMG);
+    apply.flush({ building: structuredClone(held) });
+    await flush();
+    const place = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/place`);
+    expectLight(place.request.body.building);
+    place.flush({
+      building: structuredClone(place.request.body.building),
+      summary: withSpaces(regionSpaces),
+    });
+    await flush();
+    await renderBody();
+    await building_;
+    const after = page.building() as unknown as typeof heavyBuilding;
+    expect(after.assets.a1.dataUrl).toBe(IMG);
+    expect(after.floors[0].geometry.source.dataUrl).toBe(IMG);
+    expect(after.floors[0].history[0].geometry.source.dataUrl).toBe(IMG_HISTORY);
+  });
+
+  it('labels "Opens onto" options and counts the room doorways separately', async () => {
+    const { el } = await startMapped(withDoors([door]));
+    const item = within(el, 'assumed-door');
+    const select = within<HTMLSelectElement>(item, 'opens-onto');
+    expect([...select.options].map((o) => o.textContent!.trim())).toEqual([
+      'Hallway 3 · hallway · 120 px (current)',
+      'Open lobby 2 · lobby · 80 px',
+      '102 · room · 41 px',
+    ]);
+    expect(select.value).toBe('3');
+    expect(within(item, 'room-doors').textContent!.trim()).toBe('This room has 2 doorway(s).');
+    expect(item.textContent).toContain('Opens onto (3 options)');
+    expect(within(item, 'opens-onto-text')).toBeNull();
+  });
+
+  it('shows a single "Opens onto" option as text instead of a select', async () => {
+    const { el } = await startMapped(
+      withDoors([{ ...door, roomDoors: 1, candidates: [door.candidates[0]] }]),
+    );
+    const item = within(el, 'assumed-door');
+    expect(within(item, 'opens-onto')).toBeNull();
+    expect(item.querySelector('select')).toBeNull();
+    expect(within(item, 'opens-onto-text').textContent).toContain(
+      'Hallway 3 · hallway · 120 px (current)',
+    );
+    expect(within(item, 'room-doors').textContent).toContain('This room has 1 doorway(s).');
+  });
+
+  it('offers every role and explains them to the map author', async () => {
+    const { el } = await startMapped();
+    expect(within(el, 'role-intro').textContent).toContain('Choose how each region is used');
+    expect(within(el, 'role-intro').textContent).toContain('people also walk through');
+    expect(within(el, 'role-intro').textContent).toContain('routes never use it');
+    const select = within<HTMLSelectElement>(row(el, 'r1'), 'region-kind');
+    expect(select.getAttribute('aria-label')).toBe('Use 101 as');
+    expect([...select.options].map((o) => [o.value, o.textContent!.trim()])).toEqual([
+      ['room', 'Room'],
+      ['hall-room', 'Hall room'],
+      ['corridor', 'Hallway'],
+      ['lobby', 'Lobby or hall'],
+      ['stair', 'Stair'],
+      ['closed', 'Closed (no access)'],
+    ]);
+    expect(select.value).toBe('room');
+    expect(within(row(el, 'r1'), 'kind-badge').textContent!.trim()).toBe('room');
+    expect(row(el, 'r1').querySelector('[data-testid="region-stair"]')).toBeNull();
+  });
+
+  it('posts each role and shows the recorded role', async () => {
+    const { fixture, page, el } = await startMapped();
+    const base = regionSpaces[0];
+    // What the pipeline records for each role (kind, use, stair, closed).
+    const recorded: [string, Partial<SpaceSummary>, string, string][] = [
+      ['hall-room', { kind: 'room', use: 'hall' }, 'hall-badge', 'a hall room'],
+      ['corridor', { kind: 'corridor', use: null }, 'kind-badge', 'a hallway'],
+      ['lobby', { kind: 'lobby', use: null }, 'kind-badge', 'a lobby or hall'],
+      ['stair', { kind: 'lobby', use: 'stair', stair: true }, 'stair-badge', 'a stair'],
+      [
+        'closed',
+        { kind: 'lobby', use: 'closed', stair: false, closed: true },
+        'closed-badge',
+        'closed',
+      ],
+      ['room', { kind: 'room', use: null, closed: false }, 'kind-badge', 'a room'],
+    ];
+    for (const [role, fields, badge, words] of recorded) {
+      const select = within<HTMLSelectElement>(row(el, 'r1'), 'region-kind');
+      select.value = role;
+      select.dispatchEvent(new Event('change'));
+      const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/kind`);
+      expect(req.request.body).toEqual(
+        jasmineLike({ floorId: 'floor-1', spaceId: 'r1', kind: role, reviewer: 'Sam' }),
+      );
+      req.flush({
+        building,
+        summary: withSpaces([{ ...base, ...fields }, ...regionSpaces.slice(1)]),
+      });
+      await renderOverlay();
+      fixture.detectChanges();
+      expect(within<HTMLSelectElement>(row(el, 'r1'), 'region-kind').value).toBe(role);
+      expect(within(row(el, 'r1'), badge)).not.toBeNull();
+      expect(page.message()).toContain(`101 is now ${words}`);
+    }
+    expect(page.message()).toBe('101 is now a room. It is open again.');
+  });
+
+  it('shows a hall room with its badge and finds it with the filter', async () => {
+    const { fixture, el } = await startMapped(
+      withSpaces([{ ...regionSpaces[0], use: 'hall' }, ...regionSpaces.slice(1)]),
+    );
+    expect(within(row(el, 'r1'), 'hall-badge').textContent!.trim()).toBe('Hall room');
+    expect(within(row(el, 'r1'), 'kind-badge')).toBeNull();
+    expect(within<HTMLSelectElement>(row(el, 'r1'), 'region-kind').value).toBe('hall-room');
+    const filter = within<HTMLInputElement>(el, 'region-filter');
+    filter.value = 'hall room';
+    filter.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    const rows = [...el.querySelectorAll('[data-testid="region"]')] as HTMLElement[];
+    expect(rows.map((r) => r.dataset['regionId'])).toEqual(['r1']);
+  });
+
+  it('lists a closed region with its badge and re-opens it by choosing another role', async () => {
+    const { fixture, page, el } = await startMapped(
+      withSpaces([
+        ...regionSpaces.slice(0, 2),
+        { ...regionSpaces[2], use: 'closed', closed: true },
+      ]),
+    );
+    expect(within(row(el, 'l1'), 'closed-badge').textContent!.trim()).toBe('Closed');
+    expect(row(el, 'l1').classList).toContain('closed');
+    expect(within<HTMLSelectElement>(row(el, 'l1'), 'region-kind').value).toBe('closed');
+    expect(within(el, 'region-counts').textContent).toContain('2 walkable');
+    expect(within(el, 'region-counts').textContent).toContain('1 closed');
+    const filter = within<HTMLInputElement>(el, 'region-filter');
+    filter.value = 'closed';
+    filter.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(
+      [...el.querySelectorAll<HTMLElement>('[data-testid="region"]')].map(
+        (r) => r.dataset['regionId'],
+      ),
+    ).toEqual(['l1']);
+
+    const select = within<HTMLSelectElement>(row(el, 'l1'), 'region-kind');
+    select.value = 'lobby';
+    select.dispatchEvent(new Event('change'));
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/kind`);
+    expect(req.request.body).toEqual(jasmineLike({ spaceId: 'l1', kind: 'lobby' }));
+    req.flush({
+      building,
+      summary: withSpaces([
+        ...regionSpaces.slice(0, 2),
+        { ...regionSpaces[2], use: null, closed: false },
+      ]),
+    });
+    await renderOverlay();
+    filter.value = '';
+    filter.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(within(row(el, 'l1'), 'closed-badge')).toBeNull();
+    expect(within(row(el, 'l1'), 'kind-badge').textContent!.trim()).toBe('lobby');
+    expect(row(el, 'l1').classList).not.toContain('closed');
+    expect(within(el, 'region-counts').textContent).not.toContain('closed');
+    expect(page.message()).toBe(
+      'Open lobby 2 is now a lobby or hall; routes and doorway placement treat it as circulation. It is open again.',
+    );
+  });
+
+  it('turns a stair into a hallway without asking, and says it is no longer a stair', async () => {
+    const confirm = vi.spyOn(window, 'confirm');
+    const { fixture, page, el } = await startMapped(
+      withSpaces([{ ...regionSpaces[0], kind: 'lobby', stair: true }, ...regionSpaces.slice(1)]),
+    );
+    const select = within<HTMLSelectElement>(row(el, 'r1'), 'region-kind');
+    expect(select.value).toBe('stair');
+
+    select.value = 'corridor';
+    select.dispatchEvent(new Event('change'));
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/spaces/kind`);
+    expect(req.request.body).toEqual(jasmineLike({ spaceId: 'r1', kind: 'corridor' }));
+    expect(page.busy()).toBe(true);
+    fixture.detectChanges();
+    expect(within<HTMLSelectElement>(row(el, 'r1'), 'region-kind').disabled).toBe(true);
+    req.flush({
+      building,
+      summary: withSpaces([
+        { ...regionSpaces[0], kind: 'corridor', stair: false },
+        ...regionSpaces.slice(1),
+      ]),
+    });
+    await renderOverlay();
+    fixture.detectChanges();
+    expect(confirm).not.toHaveBeenCalled();
+    expect(page.message()).toBe(
+      '101 is now a hallway; routes and doorway placement treat it as circulation. It is no longer a stair.',
+    );
+    expect(within(row(el, 'r1'), 'stair-badge')).toBeNull();
+    expect(within(row(el, 'r1'), 'kind-badge').textContent!.trim()).toBe('hallway');
+    expect(within<HTMLSelectElement>(row(el, 'r1'), 'region-kind').value).toBe('corridor');
+    confirm.mockRestore();
+  });
+
+  it('shows a refused role change as an error and keeps the region role', async () => {
+    const { fixture, page, el } = await startMapped();
+    const select = within<HTMLSelectElement>(row(el, 'h1'), 'region-kind');
+    expect(select.value).toBe('corridor');
+    select.value = 'room';
+    select.dispatchEvent(new Event('change'));
+    http
+      .expectOne(`${PIPELINE_BASE}/authoring/spaces/kind`)
+      .flush({ error: 'Unknown kind.' }, { status: 400, statusText: 'Bad Request' });
+    await flush();
+    fixture.detectChanges();
+    expect(page.error()).toBe('Unknown kind.');
+    expect(page.busy()).toBe(false);
+    expect(within<HTMLSelectElement>(row(el, 'h1'), 'region-kind').value).toBe('corridor');
+    expect(within(el, 'error').textContent).toContain('Unknown kind.');
   });
 
   it('cleans a building plan into its floors before mapping', async () => {

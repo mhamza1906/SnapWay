@@ -14,9 +14,11 @@ import { geometryIssues, validateBuilding } from "../../shared/building/validati
 import { applyAccessDecisions, accessInventory, validateOpening } from "../../shared/building/access.js";
 import { roomAvailability } from "../../shared/building/routing.js";
 import { doorAccessState, doorRecord, regionNeedsSemanticReview } from "../../shared/building/access-state.js";
-import { clone, inside, centre, distance } from "../../shared/map.js";
+import { clone, inside, centre, distance, emptyMap, validateMap } from "../../shared/map.js";
+import { rasterRoomsMap } from "./raster-rooms.js";
 
 export const SMART_MAP_VERSION = "hybrid-map-v1-2026-10-16";
+const RASTER_VERSION = "raster-rooms-v1-2026-10-17";
 export const SmartOptions = z.object({
   floorIds: z.array(z.string()).min(1).max(20),
   rebuild: z.boolean().default(false),
@@ -29,6 +31,10 @@ export const SmartOptions = z.object({
   deadlineMs: z.number().int().min(1000).max(3600000).default(1200000),
   // One model request; several floors in flight make each reply slower.
   requestTimeoutMs: z.number().int().min(1000).max(600000).default(300000),
+  // Room and hallway geometry: "raster" segments a clean redraw locally,
+  // "model" traces detail tiles with the model, "auto" picks raster for
+  // clean redraws and model otherwise.
+  segmentation: z.enum(["auto", "raster", "model"]).default("auto"),
   maxDetailTiles: z.number().int().min(1).max(30).default(8),
   maxSemanticBatches: z.number().int().min(0).max(10).default(4),
   maxRepairTiles: z.number().int().min(0).max(10).default(2),
@@ -470,7 +476,10 @@ export async function runSmartMap(building, inputOptions, {
         notify("inventory", `Reading labels and floor footprint: ${floor.label}`);
         const inventory = await api.inventory(normalized);
         proposal.sourceNotes = inventory.notes || [];
-        const tiles = footprintTiles(source, inventory, vectors), sections = [];
+        const asset = building.assets[source.assetId],
+          rasterMode = options.segmentation === "raster" ||
+            (options.segmentation === "auto" && /^Clean redraw/.test(asset.provenance || ""));
+        const tiles = rasterMode ? [] : footprintTiles(source, inventory, vectors), sections = [];
         proposal.plannedTiles = tiles.length;
         const extractDetail = async (rect, refinement = false, target = null) => {
           const crop = await sourceCrop(building, floor, source, rect, refinement ? 7 : 2.5), actual = crop.metadata.sourceRect,
@@ -485,6 +494,27 @@ export async function runSmartMap(building, inputOptions, {
           const reconciled = consolidateCoverage(normalized, sections, { inventory: inventory.items, footprints: inventory.footprints });
           proposal.map = reconciled.map; proposal.coverage = reconciled.coverage;
         };
+        if (rasterMode) {
+          // Clean redraw: rooms, hallways, lobbies and doorway gaps come from the
+          // image itself; the inventory only names the regions.
+          notify("segment", `${floor.label}: segmenting rooms and hallways from the clean plan`);
+          const started = Date.now(),
+            raster = await rasterRoomsMap(Buffer.from(asset.dataUrl.split(",")[1], "base64"), { inventory: inventory.items });
+          stats.localMs += Date.now() - started;
+          const g = emptyMap(normalized);
+          Object.assign(g, { floorName: floor.label, spaces: raster.spaces, doors: raster.doors, walls: raster.walls });
+          g.review.issues = [{ id: "raster-review", resolved: false, resolution: "",
+            message: "Regions, hallways and doorway gaps were segmented locally from the clean redraw; compare them with the original before review." }];
+          g.extraction = { ...g.extraction, provider: "Local raster segmentation", model: RASTER_VERSION, mode: "live",
+            notes: `Raster segmentation: ${raster.stats.regions} regions (${raster.stats.corridors} hallways, ${raster.stats.lobbies} lobbies), ${raster.stats.doors} doorway gaps; names from the ${provider.model} inventory.` };
+          proposal.map = g;
+          proposal.segmentation = { method: "raster", ...raster.stats };
+          proposal.coverage = { version: 1, createdAt: new Date().toISOString(), stage: "needs-review", tiles: 0, diagnostics: [],
+            items: inventory.items.map((i) => ({ ...i, spaceId: g.spaces.find((s) => inside(i.position, s.polygon))?.id || null })),
+            geometryIssues: validateMap(g).filter((i) => !["review", "scale", "disconnected"].includes(i.code))
+              .map((i) => ({ code: i.code, message: i.message, target: i.target?.id, severity: i.severity })) };
+          sections.push({ map: g, crop: { x: 0, y: 0, width: source.width, height: source.height }, order: 0 });
+        }
         const selectedTiles = tiles.slice(0, options.maxDetailTiles);
         proposal.tileFailures = [];
         let nextTile = 0, completedTiles = 0;
@@ -520,7 +550,7 @@ export async function runSmartMap(building, inputOptions, {
         const limited = workers.find(w => w.status === "rejected");
         if (limited) throw limited.reason;
         const attemptedLabels = new Set();
-        for (let repair = 0; repair < options.maxRepairTiles && proposal.map; repair++) {
+        for (let repair = 0; !rasterMode && repair < options.maxRepairTiles && proposal.map; repair++) {
           // Corridor labels are usually carried by unlabelled corridor pieces, not
           // missing geometry; spend repairs on missing rooms before stairs.
           const rank = i => i.kind === "stair" || i.kind === "elevator" ? 1 : 0,
@@ -546,7 +576,9 @@ export async function runSmartMap(building, inputOptions, {
         proposal.classifications = [];
         proposal.coverage.extractionIssues = sections.flatMap(section => section.map.review.issues.filter(i => i.id !== "source-review")
           .map(i => ({ ...i, crop: section.crop })));
-        const sensitive = semanticCandidates(proposal.map, { items: inventory.items.map(i => ({ ...i, spaceId: proposal.coverage.items.find(x => x.label === i.label)?.spaceId })), issues: proposal.coverage.extractionIssues });
+        // Clean-redraw (raster) floors: the model only names rooms; stairs, voids and
+        // merges are the user's decisions in the editor, so no region classification.
+        const sensitive = rasterMode ? [] : semanticCandidates(proposal.map, { items: inventory.items.map(i => ({ ...i, spaceId: proposal.coverage.items.find(x => x.label === i.label)?.spaceId })), issues: proposal.coverage.extractionIssues });
         for (let i = 0; i < Math.min(sensitive.length, options.maxSemanticBatches * 8); i += 8) {
           notify("semantics", `${floor.label}: checking voids, levels and stair regions`);
           proposal.classifications.push(...await verifyRegionSemantics(building, floor, source, proposal.map, sensitive.slice(i, i + 8), api));

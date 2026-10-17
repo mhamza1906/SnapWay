@@ -113,3 +113,153 @@ select {
   border-radius: 0.35rem;
   background: #fff;
 }
+.side-panels {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.side-panels > * {
+  min-width: 0;
+}
+.map-svg ::ng-deep [data-room-id] {
+  cursor: pointer;
+}
+// Selected or located regions, drawn in the browser (the service's highlight colours).
+.map-svg ::ng-deep [data-room-id].is-selected > polygon {
+  fill: #1565c0;
+  fill-opacity: 0.25;
+  stroke: #1565c0;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  stroke-dasharray: none;
+}
+.saving {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.regions-body {
+  display: grid;
+  gap: 0.6rem;
+}
+.regions-body .field {
+  margin-bottom: 0;
+}
+.selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.merge-box {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #f3c9b5;
+  border-radius: 0.5rem;
+  background: #fff8f4;
+}
+.merge-box .btn {
+  justify-self: start;
+}
+.region-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow: auto;
+}
+.region {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.region.selected {
+  background: #fff6f1;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.region-head,
+.rename-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.region-pick {
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-weight: 600;
+}
+.region-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.region-label.default {
+  font-style: italic;
+  color: #b45309;
+}
+.rename-row .input {
+  flex: 1 1 9rem;
+  width: auto;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+// "Show on map": the bar above a zoomed map.
+.focus-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #f0c4d6;
+  border-radius: 0.5rem;
+  background: #fdf1f6;
+  font-size: 0.85rem;
+}
+.focus-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.item-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.opens-onto {
+  margin: 0;
+}
+.opens-onto-value {
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.region-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.kind-field {
+  display: flex;
+  flex: 1 1 12rem;
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+.kind-field select {
+  flex: 1 1 8rem;
+  width: auto;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+.region.closed .region-label {
+  color: var(--muted);
+}

@@ -13,7 +13,7 @@ const ExtractionSchema = MapSchema.pick({
   pois: true,
 }).extend({
   spaces: z
-    .array(MapSchema.shape.spaces.element.omit({ access: true }))
+    .array(MapSchema.shape.spaces.element.omit({ access: true, use: true }))
     .max(500),
   issues: MapSchema.shape.review.shape.issues,
 });

@@ -246,7 +246,31 @@
               >
             </div>
             <div class="panel-body">
-              <div class="map-svg" [innerHTML]="svg()" data-testid="map"></div>
+              <div class="focus-slot" aria-live="polite">
+                @if (focused(); as fx) {
+                  <div class="focus-bar" data-testid="focus-bar">
+                    <span class="focus-text"
+                      >Showing <strong>{{ focusLabel() }}</strong
+                      >{{ fx.door ? ' and its doorway (magenta)' : '' }}</span
+                    >
+                    <button
+                      class="btn small secondary"
+                      (click)="showWholeFloor()"
+                      data-testid="whole-floor"
+                    >
+                      <app-icon name="zoom-out" /> Show whole floor
+                    </button>
+                  </div>
+                }
+              </div>
+              <!-- Mouse shortcut only; the Regions list has the keyboard-accessible checkboxes. -->
+              <div
+                #mapView
+                class="map-svg"
+                [innerHTML]="svg()"
+                (click)="mapClick($event)"
+                data-testid="map"
+              ></div>
               <div class="route-row">
                 <select aria-label="Route start" (change)="routeFrom.set(value($event))">
                   <option value="">Start room</option>
@@ -274,136 +298,394 @@
             </div>
           </section>
 
-          <section class="panel tools-panel" aria-labelledby="doors-title">
-            <div class="panel-heading">
-              <h2 id="doors-title">3. Doorways</h2>
-              <button class="btn secondary small" [disabled]="busy()" (click)="placeAll()">
-                Place assumed doorways
-              </button>
-            </div>
-            <div class="panel-body">
-              <label class="field"
-                >Your name (recorded on confirmations and room decisions)
-                <input [value]="reviewer()" (input)="reviewer.set(value($event))" />
-              </label>
+          <div class="side-panels">
+            <section class="panel tools-panel" aria-labelledby="doors-title">
+              <div class="panel-heading">
+                <h2 id="doors-title">3. Doorways</h2>
+                <button class="btn secondary small" [disabled]="busy()" (click)="placeAll()">
+                  Place assumed doorways
+                </button>
+              </div>
+              <div class="panel-body">
+                <label class="field"
+                  >Your name (recorded on confirmations and room decisions)
+                  <input [value]="reviewer()" (input)="reviewer.set(value($event))" />
+                </label>
 
-              <h3>Needs attention ({{ f.needsAttention.length }})</h3>
-              @for (q of f.needsAttention; track q.spaceId) {
-                <div class="item" data-testid="needs-attention">
-                  <strong>{{ q.label }}</strong>
-                  <small>{{ q.reason }}</small>
-                  <div class="button-row">
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy()"
-                      (click)="makeRoom(q.spaceId, q.label)"
-                    >
-                      Make it a room
-                    </button>
-                    <button
-                      class="btn small danger"
-                      [disabled]="busy()"
-                      (click)="notRoom(q.spaceId, q.label)"
-                    >
-                      Not a room
-                    </button>
+                <h3>Needs attention ({{ f.needsAttention.length }})</h3>
+                @for (q of f.needsAttention; track q.spaceId) {
+                  <div class="item" data-testid="needs-attention">
+                    <div class="item-head">
+                      <strong>{{ q.label }}</strong>
+                      @if (isSaving('attention:' + q.spaceId)) {
+                        <span class="saving" role="status" data-testid="saving">Saving…</span>
+                      }
+                    </div>
+                    <small>{{ q.reason }}</small>
+                    <div class="button-row">
+                      <button
+                        class="btn small secondary"
+                        (click)="locate(q.spaceId, q.label)"
+                        [attr.aria-label]="'Show ' + q.label + ' on the map'"
+                        data-testid="locate"
+                      >
+                        <app-icon name="pin" /> Show on map
+                      </button>
+                      <button
+                        class="btn small secondary"
+                        [disabled]="busy()"
+                        (click)="makeRoom(q.spaceId, q.label)"
+                      >
+                        Make it a room
+                      </button>
+                      <button
+                        class="btn small danger"
+                        [disabled]="busy()"
+                        (click)="notRoom(q.spaceId, q.label)"
+                      >
+                        Not a room
+                      </button>
+                    </div>
                   </div>
-                </div>
-              } @empty {
-                <p class="hint">Every region has a usable doorway or is non-walkable.</p>
-              }
-
-              <h3>Add a doorway to any room</h3>
-              <p class="hint">
-                A room can have several doorways, and one edge can hold several. Routes use
-                whichever doorway is closest.
-              </p>
-              <select aria-label="Room to add a doorway to" (change)="chooseAddRoom(value($event))">
-                <option value="">Choose a room</option>
-                @for (sp of f.spaces; track sp.id) {
-                  <option [value]="sp.id">{{ sp.label }} · {{ sp.doors }} doorway(s)</option>
+                } @empty {
+                  <p class="hint">Every region has a usable doorway or is non-walkable.</p>
                 }
-              </select>
-              @if (addRoom()) {
-                <select aria-label="Edge for the new doorway" (change)="addEdge.set(value($event))">
-                  <option value="">Best available edge</option>
-                  @for (e of addEdges(); track e.key) {
-                    <option [value]="e.key">
-                      {{ e.adjacentLabel }} ·
-                      {{ e.hallway ? e.adjacentKind : 'neighbouring room' }} · {{ e.length }} px ·
-                      {{ e.doors }} doorway(s) on it
-                    </option>
+
+                <h3>Add a doorway to any room</h3>
+                <p class="hint">
+                  A room can have several doorways, and one edge can hold several. Routes use
+                  whichever doorway is closest.
+                </p>
+                <select
+                  aria-label="Room to add a doorway to"
+                  (change)="chooseAddRoom(value($event))"
+                >
+                  <option value="">Choose a room</option>
+                  @for (sp of f.spaces; track sp.id) {
+                    <option [value]="sp.id">{{ sp.label }} · {{ sp.doors }} doorway(s)</option>
                   }
                 </select>
-                <button class="btn small primary" [disabled]="busy()" (click)="addDoor()">
-                  Add doorway
-                </button>
-              }
+                @if (addRoom()) {
+                  <select
+                    aria-label="Edge for the new doorway"
+                    (change)="addEdge.set(value($event))"
+                  >
+                    <option value="">Best available edge</option>
+                    @for (e of addEdges(); track e.key) {
+                      <option [value]="e.key">
+                        {{ edgeLabel(e)
+                        }}{{ e.doors != null ? ' · ' + e.doors + ' doorway(s) on it' : '' }}
+                      </option>
+                    }
+                  </select>
+                  <button class="btn small primary" [disabled]="busy()" (click)="addDoor()">
+                    Add doorway
+                  </button>
+                }
 
-              <h3>Assumed doorways ({{ f.assumed.length }})</h3>
-              @for (d of f.assumed; track d.doorId) {
-                <div class="item" data-testid="assumed-door">
-                  <strong>{{ d.roomLabel }}</strong>
-                  <span class="badge orange">assumed · room has {{ d.roomDoors }} doorway(s)</span>
-                  <label class="field"
-                    >Opens onto
-                    <select (change)="setEdit(d, { edgeKey: num($event), t: 0.5 })">
-                      @for (c of d.candidates; track c.key) {
-                        <option [value]="c.key" [selected]="c.key === editOf(d).edgeKey">
-                          {{ c.adjacentLabel }} ·
-                          {{ c.hallway ? c.adjacentKind : 'neighbouring room' }} · {{ c.length }} px
-                        </option>
+                <h3>Assumed doorways ({{ f.assumed.length }})</h3>
+                @for (d of f.assumed; track d.doorId) {
+                  <div class="item" data-testid="assumed-door" [attr.data-door-id]="d.doorId">
+                    <div class="item-head">
+                      <strong>{{ d.roomLabel }}</strong>
+                      <span class="badge orange">assumed doorway</span>
+                      @if (isSaving('door:' + d.doorId)) {
+                        <span class="saving" role="status" data-testid="saving">Saving…</span>
                       }
-                    </select>
-                  </label>
-                  <label class="field"
-                    >Position along edge · {{ (editOf(d).t * 100).toFixed(0) }}%
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      [value]="editOf(d).t"
-                      (input)="setEdit(d, { t: num($event) })"
-                    />
-                  </label>
-                  <label class="field"
-                    >Width (px)
-                    <input
-                      type="number"
-                      min="2"
-                      [value]="editOf(d).width"
-                      (change)="setEdit(d, { width: num($event) })"
-                    />
-                  </label>
-                  <div class="button-row">
-                    <button class="btn small primary" [disabled]="busy()" (click)="applyMove(d)">
-                      Apply move
-                    </button>
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy() || !reviewer()"
-                      (click)="applyMove(d, true)"
-                    >
-                      Confirm doorway
-                    </button>
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy()"
-                      (click)="addDoor(d.roomId)"
-                    >
-                      Add another
-                    </button>
-                    <button class="btn small danger" [disabled]="busy()" (click)="removeDoor(d)">
-                      Remove
-                    </button>
+                    </div>
+                    @if (d.roomDoors > 0) {
+                      <small data-testid="room-doors"
+                        >This room has {{ d.roomDoors }} doorway(s).</small
+                      >
+                    }
+                    @if (d.candidates.length > 1) {
+                      <label class="field"
+                        >Opens onto ({{ d.candidates.length }} options)
+                        <select
+                          (change)="setEdit(d, { edgeKey: num($event), t: 0.5 })"
+                          data-testid="opens-onto"
+                        >
+                          @for (c of d.candidates; track c.key) {
+                            <option [value]="c.key" [selected]="c.key === editOf(d).edgeKey">
+                              {{ candidateLabel(d, c) }}
+                            </option>
+                          }
+                        </select>
+                      </label>
+                    } @else {
+                      <p class="field opens-onto" data-testid="opens-onto-text">
+                        <span>Opens onto</span>
+                        <span class="opens-onto-value">{{
+                          d.candidates.length
+                            ? candidateLabel(d, d.candidates[0])
+                            : 'No shared edge with a walkable space found'
+                        }}</span>
+                      </p>
+                    }
+                    <label class="field"
+                      >Position along edge · {{ (editOf(d).t * 100).toFixed(0) }}%
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        [value]="editOf(d).t"
+                        (input)="setEdit(d, { t: num($event) })"
+                      />
+                    </label>
+                    <label class="field"
+                      >Width (px)
+                      <input
+                        type="number"
+                        min="2"
+                        [value]="editOf(d).width"
+                        (change)="setEdit(d, { width: num($event) })"
+                      />
+                    </label>
+                    <div class="button-row">
+                      <button
+                        class="btn small secondary"
+                        (click)="locate(d.roomId, d.roomLabel, d)"
+                        [attr.aria-label]="'Show the doorway of ' + d.roomLabel + ' on the map'"
+                        data-testid="locate"
+                      >
+                        <app-icon name="pin" /> Show on map
+                      </button>
+                      <button class="btn small primary" [disabled]="busy()" (click)="applyMove(d)">
+                        Apply move
+                      </button>
+                      <button
+                        class="btn small secondary"
+                        [disabled]="busy() || !reviewer()"
+                        (click)="applyMove(d, true)"
+                      >
+                        Confirm doorway
+                      </button>
+                      <button
+                        class="btn small secondary"
+                        [disabled]="busy()"
+                        (click)="addDoor(d.roomId, 'door:' + d.doorId)"
+                      >
+                        Add another
+                      </button>
+                      <button class="btn small danger" [disabled]="busy()" (click)="removeDoor(d)">
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                </div>
-              } @empty {
-                <p class="hint">No assumed doorways on this floor.</p>
-              }
-            </div>
-          </section>
+                } @empty {
+                  <p class="hint">No assumed doorways on this floor.</p>
+                }
+              </div>
+            </section>
+
+            <section
+              class="panel regions-panel"
+              aria-labelledby="regions-title"
+              data-testid="regions"
+            >
+              <div class="panel-heading">
+                <h2 id="regions-title">Regions</h2>
+                <span class="badge" data-testid="region-counts"
+                  >{{ f.spaces.length - closedCount() }} walkable · {{ stairCount() }} stair(s){{
+                    closedCount() ? ' · ' + closedCount() + ' closed' : ''
+                  }}</span
+                >
+              </div>
+              <div class="panel-body regions-body">
+                <p class="hint">
+                  You decide names, roles and merges; the AI only suggests room names and never
+                  changes them for you.
+                  @if (reviewer()) {
+                    Changes are recorded as {{ reviewer() }}.
+                  } @else {
+                    Enter your name under Doorways to record it on these changes.
+                  }
+                </p>
+                <p class="hint" data-testid="role-intro">
+                  Choose how each region is used under “Use as”. A hall room is a room people also
+                  walk through and is still a destination; a closed region stays on the map but
+                  routes never use it.
+                </p>
+                <p class="hint">
+                  Tick regions to highlight them on the map, or click a region on the map. “Show on
+                  map” zooms the map to one region.
+                </p>
+                <label class="field"
+                  >Filter regions
+                  <input
+                    type="search"
+                    placeholder="Name or role, e.g. hallway or closed"
+                    [value]="regionFilter()"
+                    (input)="regionFilter.set(value($event))"
+                    data-testid="region-filter"
+                  />
+                </label>
+
+                @if (selectedSpaces(); as sel) {
+                  @if (sel.length) {
+                    <div class="selection-bar" data-testid="region-selection">
+                      <span>{{ sel.length }} selected</span>
+                      <button
+                        class="btn small ghost"
+                        (click)="clearSelection()"
+                        data-testid="clear-selection"
+                      >
+                        Clear selection
+                      </button>
+                    </div>
+                  }
+                  @if (sel.length >= 2) {
+                    <div class="merge-box" data-testid="merge-box">
+                      <p class="hint">
+                        Merge {{ sel.length }} regions into one walkable region:
+                        @for (m of sel; track m.id; let last = $last) {
+                          <strong>{{ m.label }}</strong
+                          >{{ last ? '.' : ', ' }}
+                        }
+                      </p>
+                      <label class="field"
+                        >Name for the merged region (optional)
+                        <input
+                          [maxLength]="nameMax"
+                          [value]="mergeName()"
+                          (input)="mergeName.set(value($event))"
+                          data-testid="merge-name"
+                        />
+                      </label>
+                      <label class="choice">
+                        <input
+                          type="checkbox"
+                          [checked]="mergeStair()"
+                          (change)="mergeStairChoice.set(!mergeStair())"
+                          data-testid="merge-stair"
+                        />
+                        Merged region is a stair
+                      </label>
+                      <button
+                        class="btn small primary"
+                        [disabled]="busy()"
+                        (click)="mergeRegions()"
+                        data-testid="merge-regions"
+                      >
+                        Merge {{ sel.length }} regions
+                      </button>
+                      @if (isSaving('merge')) {
+                        <span class="saving" role="status" data-testid="saving">Saving…</span>
+                      }
+                    </div>
+                  } @else if (sel.length === 1) {
+                    <p class="hint">Tick another region to merge them.</p>
+                  }
+                }
+
+                <p class="hint" aria-live="polite">
+                  Showing {{ regions().length }} of {{ f.spaces.length }} region(s).
+                </p>
+                <ul class="region-list" aria-label="Regions on this floor">
+                  @for (sp of regions(); track sp.id) {
+                    <li
+                      class="region"
+                      [class.selected]="isSelected(sp.id)"
+                      [class.closed]="isClosed(sp)"
+                      [attr.data-region-id]="sp.id"
+                      data-testid="region"
+                    >
+                      <div class="region-head">
+                        <label class="choice region-pick">
+                          <input
+                            type="checkbox"
+                            [checked]="isSelected(sp.id)"
+                            (change)="toggleRegion(sp.id)"
+                            data-testid="region-select"
+                          />
+                          <span class="region-label" [class.default]="isDefaultName(sp.label)">{{
+                            sp.label
+                          }}</span>
+                        </label>
+                        @switch (roleOf(sp)) {
+                          @case ('stair') {
+                            <span class="badge blue" data-testid="stair-badge">Stair</span>
+                          }
+                          @case ('hall-room') {
+                            <span class="badge green" data-testid="hall-badge">Hall room</span>
+                          }
+                          @case ('closed') {
+                            <span class="badge red" data-testid="closed-badge">Closed</span>
+                          }
+                          @default {
+                            <span class="badge" data-testid="kind-badge">{{ kindBadge(sp) }}</span>
+                          }
+                        }
+                        @if (isDefaultName(sp.label)) {
+                          <span class="badge orange" data-testid="default-name">default name</span>
+                        }
+                        @if (isSaving('region:' + sp.id)) {
+                          <span class="saving" role="status" data-testid="saving">Saving…</span>
+                        }
+                      </div>
+                      <div class="rename-row">
+                        <label class="sr-only" [for]="'region-name-' + sp.id"
+                          >New name for {{ sp.label }}</label
+                        >
+                        <input
+                          class="input"
+                          [id]="'region-name-' + sp.id"
+                          [maxLength]="nameMax"
+                          [value]="draftOf(sp)"
+                          (input)="setDraft(sp, value($event))"
+                          (keydown.enter)="rename(sp)"
+                          data-testid="region-name"
+                        />
+                        <button
+                          class="btn small primary"
+                          [disabled]="busy() || !canSaveName(sp)"
+                          (click)="rename(sp)"
+                          data-testid="region-save"
+                        >
+                          Save name
+                        </button>
+                      </div>
+                      <div class="region-actions">
+                        <label class="kind-field">
+                          <span aria-hidden="true">Use as</span>
+                          <select
+                            class="input"
+                            [disabled]="busy()"
+                            (change)="setRole(sp, $event)"
+                            [attr.aria-label]="'Use ' + sp.label + ' as'"
+                            data-testid="region-kind"
+                          >
+                            @for (k of roleChoices; track k.value) {
+                              <option [value]="k.value" [selected]="roleOf(sp) === k.value">
+                                {{ k.label }}
+                              </option>
+                            }
+                          </select>
+                        </label>
+                        <button
+                          class="btn small secondary"
+                          (click)="locate(sp.id, sp.label)"
+                          [attr.aria-label]="'Show ' + sp.label + ' on the map'"
+                          data-testid="locate"
+                        >
+                          <app-icon name="pin" /> Show on map
+                        </button>
+                      </div>
+                    </li>
+                  } @empty {
+                    <li class="hint">
+                      {{
+                        regionFilter().trim()
+                          ? 'No region matches “' + regionFilter().trim() + '”.'
+                          : 'No regions on this floor yet.'
+                      }}
+                    </li>
+                  }
+                </ul>
+              </div>
+            </section>
+          </div>
         </div>
       }
     }

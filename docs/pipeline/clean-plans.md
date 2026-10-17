@@ -36,6 +36,57 @@ floor count and names, so a re-run reuses the same crops and redraws.
 Then all floors run through the existing pipeline **as separate pipelines at the
 same time** (`floorConcurrency`, default 6), each with its own request budget.
 
+## Rooms and hallways from the clean redraw (raster segmentation)
+
+The model-traced tiles missed open circulation on complex floors (the Level B
+atrium and hallways never became regions). Clean-redraw floors are therefore
+segmented locally from the image (`server/pipelines/raster-rooms.js` and
+`raster-walls.js`, option `segmentation: "auto" | "raster" | "model"`; auto uses
+raster for sources whose asset provenance starts with "Clean redraw"):
+
+1. **Walls:** dark strokes; hollow double-line walls are filled (also when the
+   two lines are up to 18 px apart, with checks that reject stair treads, seat
+   rows and glazing); thin lines, door arcs and text are dropped; isolated blobs
+   (bold labels, furniture, columns) are removed; sealed doorways with a matching
+   door-swing arc are reopened.
+2. **Building footprint:** a disk rolled in from the image border marks the
+   outside, so entrances and short breaks in the outer wall do not leak.
+3. **Spaces:** regions grow over the distance-to-wall field and split only at
+   constrictions (doorways); a corridor junction or a bend merges.
+4. Regions tile the floor and share exact boundaries; regions too narrow to walk
+   are merged away; a region that encloses another (a corridor ring around a
+   void) is cut into pieces joined by an "Open circulation join".
+5. **Doorways** are where two regions meet across open floor; **walls** are the
+   other shared boundaries.
+6. **Names** come from the model's label inventory by position. The model only
+   names rooms: printed stair names stay rooms, generic descriptions never
+   override shape, and unnamed regions become "Hallway N" (long or
+   well-connected), "Open lobby N" (large with 3+ doorways) or "Unlabelled room N".
+   No model stair/void classification runs on these floors.
+
+The model is still used for the label inventory and to check each doorway gap.
+On Level B (Claude Sonnet 5.5, high) this gave 42/43 routable rooms in 49 s with
+10 requests (the model-traced run had left the atrium and hallways out).
+Each floor's raster stage takes about 3 s.
+
+## Editing regions (the user's decisions)
+
+The editor's **Regions** panel (map authoring screen) lets the user:
+
+- rename any region (default names such as "Unlabelled room 3" are flagged);
+- mark or unmark a region as a **stair** (stored as `kind: "lobby"`,
+  `use: "stair"`; drawn with tread hatching);
+- tick two or more regions that share a boundary and **merge** them into one,
+  optionally as a stair (the first region keeps its id; the doorway and wall
+  between them are removed; doors to other regions and their evidence move to
+  the merged region);
+- select regions by ticking them or clicking them on the map; selected regions
+  are highlighted.
+
+Every edit goes through the access transaction (`applyAccessDecisions`, ops
+`rename-space`, `set-space-use`, `merge-spaces`), so walking paths are rebuilt
+and route checks re-run. API: [api.md](api.md) "Region tools".
+
 ## Configuration
 
 Same Vertex key and project as the team's prod setup (`apps/pipeline/.env.prod`), whichever `AI_PROVIDER` maps the floors:

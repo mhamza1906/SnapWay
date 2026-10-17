@@ -11,6 +11,12 @@ const imageData = z
     (s) => /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(s),
     "Expected embedded PNG, JPEG or WebP image",
   );
+// A 1×1 PNG that stands in for an image the server does not need: floor
+// history geometry, and the "light" buildings the editor sends to the
+// authoring endpoints (the client keeps the real images and restores them).
+// Valid for both the map image schema and the building asset schema.
+export const LIGHT_IMAGE =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 export const MapSchema = z.object({
   id: ID,
   version: z.literal(1),
@@ -56,6 +62,12 @@ export const MapSchema = z.object({
         polygon: z.array(Point).min(3),
         confidence: z.number().min(0).max(1),
         access: z.enum(["known", "unknown", "nonwalkable"]).optional(),
+        // A developer-chosen role (absent otherwise): "stair" is a walkable
+        // stair stored as kind "lobby" (the stair landing convention); "hall"
+        // is a room (a destination) that also works as a hall; "closed" is a
+        // region that cannot be entered (access "nonwalkable"; its doors are
+        // kept but unused until it is re-opened).
+        use: z.enum(["stair", "hall", "closed"]).optional(),
       }),
     )
     .max(500),
@@ -208,7 +220,61 @@ export function centre(poly) {
       if (inside({ x, y }, poly)) return { x, y };
   return poly[0];
 }
-export function edgeProblem(map, edge) {
+export const boxOf = (points) => {
+  let x0 = Infinity,
+    y0 = Infinity,
+    x1 = -Infinity,
+    y1 = -Infinity;
+  for (const p of points) {
+    if (p.x < x0) x0 = p.x;
+    if (p.x > x1) x1 = p.x;
+    if (p.y < y0) y0 = p.y;
+    if (p.y > y1) y1 = p.y;
+  }
+  return { x0, y0, x1, y1 };
+};
+// Bounding boxes within `pad` of each other. Every intersection, inside and
+// near-segment test below needs this, so failing it skips exact geometry.
+const near = (a, b, pad) =>
+  a.x0 <= b.x1 + pad &&
+  b.x0 <= a.x1 + pad &&
+  a.y0 <= b.y1 + pad &&
+  b.y0 <= a.y1 + pad;
+export const nearPoint = (p, box, pad) =>
+  p.x >= box.x0 - pad &&
+  p.x <= box.x1 + pad &&
+  p.y >= box.y0 - pad &&
+  p.y <= box.y1 + pad;
+// What edgeProblem derives from the map's spaces, doors and walls alone. One
+// context can serve many edge checks while those stay unchanged.
+export function edgeContext(map) {
+  const spaceById = new Map();
+  for (const s of map.spaces) if (!spaceById.has(s.id)) spaceById.set(s.id, s);
+  return {
+    validDoors: map.doors.filter(
+      (d) =>
+        d.spaceIds.every((id) => spaceById.has(id)) &&
+        d.spaceIds.every((id) => {
+          const s = spaceById.get(id);
+          return s.polygon.some(
+            (v, i) =>
+              pointSegment(d.a, v, s.polygon[(i + 1) % s.polygon.length]) <=
+                3 &&
+              pointSegment(d.b, v, s.polygon[(i + 1) % s.polygon.length]) <= 3,
+          );
+        }),
+    ),
+    spaces: map.spaces.map((s) => ({ s, box: boxOf(s.polygon) })),
+    walls: map.walls.flatMap((w) =>
+      w.points.slice(1).map((d, i) => ({
+        c: w.points[i],
+        d,
+        box: boxOf([w.points[i], d]),
+      })),
+    ),
+  };
+}
+export function edgeProblem(map, edge, context = edgeContext(map)) {
   const a = map.graph.nodes.find((n) => n.id === edge.from),
     b = map.graph.nodes.find((n) => n.id === edge.to);
   if (!a || !b) return "references a missing node";
@@ -244,19 +310,9 @@ export function edgeProblem(map, edge) {
       return "uses a shared node without a door";
   }
   const p = a.position,
-    q = b.position;
-  const validDoors = map.doors.filter(
-    (d) =>
-      d.spaceIds.every((id) => map.spaces.some((s) => s.id === id)) &&
-      d.spaceIds.every((id) => {
-        const s = map.spaces.find((s) => s.id === id);
-        return s.polygon.some(
-          (v, i) =>
-            pointSegment(d.a, v, s.polygon[(i + 1) % s.polygon.length]) <= 3 &&
-            pointSegment(d.b, v, s.polygon[(i + 1) % s.polygon.length]) <= 3,
-        );
-      }),
-  );
+    q = b.position,
+    span = boxOf([p, q]);
+  const { validDoors } = context;
   const gate = (hit, spaceId) =>
     validDoors.some(
       (d) =>
@@ -264,24 +320,20 @@ export function edgeProblem(map, edge) {
         pointSegment(hit, d.a, d.b) < 1,
     );
   // Any intersection with an explicit wall is blocked unless inside a valid door gap.
-  for (const w of map.walls)
-    for (let i = 1; i < w.points.length; i++) {
-      const c = w.points[i - 1],
-        d = w.points[i],
-        hit = intersection(p, q, c, d);
-      if (hit && !gate(hit)) return "crosses a wall";
-      if (
-        Math.abs(cross(p, q, c)) < 0.001 &&
-        Math.abs(cross(p, q, d)) < 0.001
-      ) {
-        const mid = midpoint(c, d);
-        if (pointSegment(mid, p, q) < 0.01 && !gate(mid))
-          return "runs along a wall";
-      }
+  for (const { c, d, box } of context.walls) {
+    if (!near(span, box, 0.01)) continue;
+    const hit = intersection(p, q, c, d);
+    if (hit && !gate(hit)) return "crosses a wall";
+    if (Math.abs(cross(p, q, c)) < 0.001 && Math.abs(cross(p, q, d)) < 0.001) {
+      const mid = midpoint(c, d);
+      if (pointSegment(mid, p, q) < 0.01 && !gate(mid))
+        return "runs along a wall";
     }
+  }
   // Split at every space boundary, inspect each open interval (no sampling gaps).
   const cuts = [0, 1];
-  for (const s of map.spaces)
+  for (const { s, box } of context.spaces) {
+    if (!near(span, box, 0.01)) continue;
     for (let i = 0; i < s.polygon.length; i++) {
       const hit = intersection(
         p,
@@ -295,11 +347,16 @@ export function edgeProblem(map, edge) {
           return "crosses a space boundary without a door";
       }
     }
+  }
   cuts.sort((a, b) => a - b);
   for (let i = 1; i < cuts.length; i++) {
     const t = (cuts[i - 1] + cuts[i]) / 2,
       pt = { x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t };
-    if (!map.spaces.some((s) => inside(pt, s.polygon)))
+    if (
+      !context.spaces.some(
+        ({ s, box }) => nearPoint(pt, box, 0.02) && inside(pt, s.polygon),
+      )
+    )
       return "leaves walkable space";
   }
   // A graph endpoint on a boundary must be an actual doorway if connecting different spaces.
@@ -319,6 +376,8 @@ export function shortestPath(map, from, to) {
   const nodes = map.graph.nodes;
   if (!nodes.some((n) => n.id === from) || !nodes.some((n) => n.id === to))
     return null;
+  const context = edgeContext(map),
+    usable = map.graph.edges.filter((e) => !edgeProblem(map, e, context));
   const dist = new Map(nodes.map((n) => [n.id, Infinity])),
     previous = new Map(),
     pending = new Set(nodes.map((n) => n.id));
@@ -334,8 +393,7 @@ export function shortestPath(map, from, to) {
       while (previous.has(path[0])) path.unshift(previous.get(path[0]));
       return { nodeIds: path, length: dist.get(to) };
     }
-    for (const e of map.graph.edges) {
-      if (edgeProblem(map, e)) continue;
+    for (const e of usable) {
       let next = e.from === current ? e.to : e.to === current ? e.from : null;
       if (!next || !pending.has(next)) continue;
       const n = nodes.find((n) => n.id === current),
@@ -352,6 +410,7 @@ export function shortestPath(map, from, to) {
 export function deriveGraph(map) {
   const m = clone(map);
   m.graph = { nodes: [], edges: [] };
+  const context = edgeContext(m);
   for (const s of m.spaces)
     m.graph.nodes.push({
       id: `n-${s.id}`,
@@ -370,7 +429,7 @@ export function deriveGraph(map) {
     });
     for (const id of d.spaceIds) {
       const e = { id: `e-${d.id}-${id}`, from: `n-${id}`, to: `n-${d.id}` };
-      if (!edgeProblem(m, e)) m.graph.edges.push(e);
+      if (!edgeProblem(m, e, context)) m.graph.edges.push(e);
     }
   }
   return m.graph;
@@ -445,15 +504,18 @@ export function validateMap(m) {
     poly.every(
       (a, i) => pointSegment(p, a, poly[(i + 1) % poly.length]) > 0.05,
     );
+  const boxes = m.spaces.map((s) => boxOf(s.polygon)),
+    centres = m.spaces.map((s) => centre(s.polygon));
   for (let i = 0; i < m.spaces.length; i++)
     for (let j = i + 1; j < m.spaces.length; j++) {
+      if (!near(boxes[i], boxes[j], 0.05)) continue;
       const a = m.spaces[i],
         b = m.spaces[j];
       const overlap =
         a.polygon.some((p) => strictlyInside(p, b.polygon)) ||
         b.polygon.some((p) => strictlyInside(p, a.polygon)) ||
-        strictlyInside(centre(a.polygon), b.polygon) ||
-        strictlyInside(centre(b.polygon), a.polygon) ||
+        strictlyInside(centres[i], b.polygon) ||
+        strictlyInside(centres[j], a.polygon) ||
         a.polygon.some((p, pi) =>
           b.polygon.some((q, qi) => {
             const p2 = a.polygon[(pi + 1) % a.polygon.length],
@@ -508,8 +570,9 @@ export function validateMap(m) {
         add("node", `${n.label}: node is detached from its door`, t);
     }
   }
+  const context = edgeContext(m);
   for (const e of m.graph.edges) {
-    const problem = edgeProblem(m, e);
+    const problem = edgeProblem(m, e, context);
     if (problem)
       add("edge", `Edge ${e.id} ${problem}`, { kind: "edges", id: e.id });
   }

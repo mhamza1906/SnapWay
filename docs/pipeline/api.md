@@ -42,6 +42,16 @@ Sources: `server/index.js`, `server/authoring-routes.js`, `server/map-jobs.js`,
   every endpoint re-parses it. It embeds the plan images as base64 `dataUrl`
   assets, so request bodies are often several MB. The authoring endpoints are
   stateless: the client keeps the current building and sends it with every call.
+  Floor `history` entries never keep the source image: parsing replaces it with
+  `LIGHT_IMAGE` (a 1×1 PNG from `shared/map.js`). The summary, render, routes,
+  doorway and region endpoints never read image bytes, so the editor sends them a
+  light building (every image `dataUrl` replaced by `LIGHT_IMAGE`) and puts its
+  own images back into the answer. Saving a copy, building with AI, uploads,
+  clean plans, source crops, map jobs and exports need the full building.
+  Read-only passes (validation, room availability, route checks) derive each
+  floor's segment context once (`segmentContext`, `edgeContext`) instead of per
+  edge. On the six-floor Sam Ibrahim building a summary takes about 1.2 s and a
+  rename about 2.4 s (before: 10.4 s and 18.4 s), with identical results.
 - **Errors.** Unknown `/api/*` paths return `404 {"error":"Unknown API route"}`.
   Every other failure goes through one error handler that returns **400** with
   `{"error": string}`:
@@ -160,7 +170,8 @@ A `FloorSummary` contains these fields:
 | --- | --- |
 | `floorId`, `label`, `level`, `geometryStatus`, `regions` | `regions` is the number of geometry spaces |
 | `rooms[]` | `{id, label, kind, ready, reason, doors}`: routable destinations and whether each is ready |
-| `spaces[]` | `{id, label, kind, doors}`: every walkable space, sorted by label in natural order |
+| `spaces[]` | `{id, label, kind, use, role, stair, closed, doors}`: every walkable space plus every closed one (so it can be re-opened), sorted by label in natural order. `use` is `"stair"`, `"hall"`, `"closed"` or `null`. `role` is the region's current kind as `spaces/kind` names it (`room`, `hall-room`, `corridor`, `lobby`, `stair`, `closed`; another stored kind such as `restroom` is passed through). `stair` is `true` for a stair (stored as `kind: "lobby"`, `use: "stair"`); `closed` is `true` for a closed region. Regions made non-walkable any other way (source classification, `not-room`) are not listed |
+| `stairs[]` | `{id, label}`: the walkable spaces marked as stairs, in the same order |
 | `needsAttention[]` | `{spaceId, label, kind, status, reason}`: the access queue |
 | `assumed[]` | `{doorId, roomId, roomLabel, roomDoors, edgeKey, t, width, segment:{a,b}, candidates[]}` |
 | `counts` | `{verified, assumed, ready, destinations}` |
@@ -169,22 +180,55 @@ Each edge candidate is
 `{key, adjacentId, adjacentLabel, adjacentKind, hallway, length, doors, a, b}`.
 `a` and `b` are the shared edge's endpoints, as `{x, y}` in floor coordinates.
 
-`key` is a number: the candidate's index in a list sorted so that hallway edges
-come first and longer edges come before shorter ones. It is recomputed from the
-geometry on every call, so always take it from the latest response.
+`key` is a number: the candidate's index in the full list of shared stretches,
+sorted so that hallway edges (corridors, then lobbies and hall-rooms) come first
+and longer edges come before shorter ones. It is recomputed from the geometry on
+every call, so always take it from the latest response.
+
+The lists shown (`assumed[].candidates` and `doorways/edges`) are short: one
+option per neighbouring region, its longest shared straight stretch at least
+`minDoorStretch` long (half the widest door the source frame allows, never
+under 10 px; 13.1 px on a 2400 px source). A stretch with that much room beside
+the doors already on it is preferred to a longer one they fill. Stretches are
+not joined across polygon vertices, because a doorway must lie on one shared
+edge. `assumed[].candidates` always includes the door's current stretch
+(`edgeKey`), however short, and counts the other doors on each stretch in
+`doors`. Every listed key is valid for `doorways/edit` and `doorways/add`.
+Automatic placement still tries every stretch.
 
 ### `POST /api/authoring/render` (local)
 
-- **Request:** `{building, floorId, overlay?: {segments?: [{a:{x,y}, b:{x,y}, color?}], routes?: [[{x,y}, …]]}}`.
+- **Request:** `{building, floorId, overlay?: {focus?: spaceId, highlight?: [spaceId, …], segments?: [{a:{x,y}, b:{x,y}, color?}], routes?: [[{x,y}, …]]}}`.
 - **Response:** `{svg: string}`. This is the designed floor SVG. When an
   overlay is given, the SVG also contains a
-  `<g data-overlay="true">` with route polylines (blue) and segment lines
-  (`#c2185b` unless `color` is set).
+  `<g data-overlay="true" pointer-events="none">` with, in drawing order:
+  - highlighted regions: one `<polygon data-highlight="<spaceId>">` per known
+    id, filled `#1565c0` at 0.25 opacity with a 3 px `#1565c0` stroke. The
+    outline comes from the floor geometry; ids not on the floor are ignored.
+  - route polylines (blue).
+  - segment lines (`#c2185b` unless `color` is set).
+
+  `focus` crops the view to one region so a small room on a big floor is
+  visible: the root `<svg>` gets `viewBox` = the region's bounding box padded
+  by 25% of its size on each side, at least 250 px wide and tall (centred on
+  the region), moved and clipped to stay inside the floor's full drawing box;
+  `width`/`height` match the crop and the root tag gets
+  `data-focus="<spaceId>"`. The whole floor is still drawn (coordinates are
+  unchanged, so clicks and overlays work as usual). A `focus` that is not a
+  region ID on this floor is ignored. It combines with the other overlay
+  fields.
+
+  Nothing in the overlay takes pointer events, so clicks reach the
+  `<g data-room-id>` region underneath. Developer-marked stairs are drawn with
+  tread lines, their `<title>` ends in ` · Stair`, and the label gets a
+  ` (stair)` suffix unless it already says stair.
 - **Errors:**
   - An unknown floor returns `Choose an existing floor.`
   - Any overlay coordinate that is not a finite number returns
     `400 Overlay coordinates must be numbers.` Only finite numbers reach the
     SVG.
+  - A `highlight` that is not an array returns
+    `400 overlay.highlight must be a list of region IDs.`
 
 ### `POST /api/authoring/routes` (local)
 
@@ -213,7 +257,7 @@ it.
 | `place` | `floorId?`, `spaceIds?` | `results: [{floorId, placed[], skipped[], roomed[], enabled[], bridged[]}]` | Places assumed doorways for rooms that have no usable door. Without `floorId`, it runs on every floor whose `geometryStatus` is `reviewed`. In order, it: <br>1. treats unclear regions as rooms (`roomed`) <br>2. re-enables doors the source already supports (`enabled`) <br>3. places a door at the middle of each shared hallway edge (`placed`: `{spaceId, label, doorId, opensOnto, viaRoom}`) <br>4. bridges disconnected areas (`bridged`) <br>Rooms it cannot place a door for are listed in `skipped: {spaceId, label, reason}`. |
 | `define-room` | `spaceId` | `placed`, `skipped` | Classifies the space as a room and immediately places an assumed door for it. |
 | `not-room` | `spaceId` | (none) | Makes the space non-walkable and rejects every door into it. |
-| `edges` | `spaceId` | Returns **only** `{edges: [candidate…]}` | Lists the shared edges available for a new door, with the number of doors already on each edge. |
+| `edges` | `spaceId` | Returns **only** `{edges: [candidate…]}` | Lists the shared edges available for a new door, one per neighbouring region (see above), with the number of doors already on each edge. |
 | `add` | `spaceId`, `edgeKey?` | `doorId`, `opensOnto` | Adds another assumed door. When `edgeKey` is given, the door goes on that edge (take the key from `edges`). Otherwise the best edge is chosen. Door ids follow the pattern `<spaceId>:assumed-door[-n]`. |
 | `edit` | `doorId`, `edgeKey`, `t` (0–1 along the edge), `width`, `confirm?` | (none) | Moves or resizes an assumed door. Take `edgeKey` from `summary…assumed[].candidates`, which are computed without the door being edited. Setting `confirm: true` records the door as a manual, human-reviewed opening. This requires a non-empty `reviewer`. |
 | `remove` | `doorId` | (none) | Rejects an assumed door. |
@@ -235,6 +279,79 @@ Review status:
   `Unnamed editor action` and the status is `agent-inspected`.
 - Confirmed edits always require a name and are recorded as `human-reviewed`.
 - Assumed placement, moves and removals are recorded as `agent-inspected`.
+
+### Region tools: `POST /api/authoring/spaces/*` (local)
+
+Every region route takes `{building, floorId, …, reviewer?}` and responds with
+`{building, summary, …extra}`. `reviewer` may be empty. Each edit is one
+`applyAccessDecisions` transaction (ops `rename-space`, `set-space-use`,
+`set-space-kind`, `merge-spaces`), so the floor graph is rebuilt and evidence is
+recorded as a `classification` record with `evidence.method: "manual"`.
+
+| Path | Extra request fields | Extra response fields | What it does |
+| --- | --- | --- | --- |
+| `rename` | `spaceId`, `label` (trimmed, 1–120 characters) | (none) | Renames the region. Graph node labels follow on the rebuild, and a display-only label override for the region is cleared. A rename does not lift a hold for source classification. Renaming to the current name changes nothing. |
+| `stair` | `spaceId`, `stair` (boolean, required) | (none) | `true` marks a walkable stair: `kind: "lobby"`, `use: "stair"`. A non-walkable region becomes walkable with access `unknown`. `false` makes it `kind: "room"` and removes `use`. Asking for the current state changes nothing. |
+| `kind` | `spaceId`, `kind` (required, one of the kinds below) | (none) | Sets the region's role. Asking for the current role changes nothing. A pending classification hold on the region is superseded. |
+| `merge` | `spaceIds` (2 or more distinct ids on this floor), `label?`, `stair?` (boolean) | `spaceId`: the merged region's id, which is always `spaceIds[0]` | Merges the regions into one, described below. |
+
+Kinds for `spaces/kind` (each sets `kind`, `use` and access together):
+
+| `kind` | Stored as | Behaviour |
+| --- | --- | --- |
+| `room` | `kind: "room"`, no `use` | A destination. Routes end at its doors, as before. |
+| `hall-room` | `kind: "room"`, `use: "hall"` | A room that works as a hall. It stays a destination (in `rooms[]` and routes), and is also circulation: neighbours' assumed doors may open onto it (ranked with lobbies, after corridors; `hallway: true`), and it joins the centreline circulation clusters, so routes run along its centre. |
+| `corridor`, `lobby` | that `kind`, no `use` | Circulation, never a destination. A lobby chosen here stays a lobby when doorways are placed (placement no longer turns it into a room). |
+| `stair` | `kind: "lobby"`, `use: "stair"` | The same as `stair` with `stair: true`. |
+| `closed` | `use: "closed"`, `access: "nonwalkable"`, `kind` unchanged | A region that cannot be entered. It is drawn on the map (hatched, title `… · Closed`, label `… (closed)`), listed in `spaces[]` with `closed: true`, never a destination, never routed through and never given an assumed door (none placed for it or onto it). Its doors are kept, but doorways into a non-walkable region get no graph node, so they are not used. |
+
+Any kind other than `closed` re-opens a closed (or otherwise non-walkable)
+region with its doors: the access it had before it was closed is restored, or
+`unknown` when that is not recorded, and the doorways work again. Any kind
+other than `stair` makes a stair no longer a stair. Errors:
+`Choose a region kind: room, hall-room, corridor, lobby, stair or closed.` (400)
+and `Unknown region.`
+
+How `merge` builds the region:
+
+- The outline is the union of the polygons. Hairline gaps of up to 2 px
+  between outlines are closed first. The result never overlaps other regions.
+- The first id is kept, so references to it stay valid.
+- The label is `label` when it is given and not blank. Otherwise it is the
+  first label that does not start with Unlabelled, Hallway or Open lobby, or
+  else the first label.
+- The kind is a stair (`lobby` + `use: "stair"`) when `stair` is `true`.
+  Otherwise it is `corridor` when every region is a corridor, `lobby` when
+  they are all corridors or lobbies with at least one lobby, and `room` in
+  every other case. When `stair` is omitted, the result stays a stair only
+  if every merged region was one.
+- Doors between merged regions are removed, each with a `rejected-door`
+  record. Doors to other regions are re-pointed to the kept id.
+- Walls along the merged-away boundaries are cut. That covers traced and
+  raster walls within 1.5 px. Boundary-traced walls are regenerated around
+  the new outline only if the regions had them.
+- Access records, POIs, connector landings and source coverage items that
+  name a removed id are re-pointed to the kept id. Nav overrides, source
+  `geometryIds` and presentation overrides for removed ids are dropped.
+  Pending classification proposals for the merged regions are superseded.
+- A merged region with no usable doorway is left with access `unknown`, so
+  it appears in `needsAttention`.
+
+Errors from these routes:
+
+- `Unknown floor.` and `Unknown region.`, or `Unknown region <id>` from `merge`
+- `Enter a region name of 1–120 characters.`
+- `Say whether the region is a stair (stair: true or false).`
+- `Choose a region kind: room, hall-room, corridor, lobby, stair or closed.`
+- `Choose at least two regions to merge.`
+- `Each region can be listed only once.`
+- `Regions must share a boundary to be merged.` A corner contact does not count.
+- `The merged region would surround an area that is not part of it; include that area too or merge fewer regions.`
+- `Geometry validation failed: …` when the result would break a geometry check
+
+As with the doorway tools, an edit is recorded as `human-reviewed` only when
+`reviewer` is non-empty. Without one, the reviewer is
+`Unnamed editor action` and the status is `agent-inspected`.
 
 ## Angular end-to-end sequence
 
@@ -492,7 +609,10 @@ notes below. The records stay proposals.
 
 - **Tests.** `tests/authoring.test.js` covers the authoring routes over HTTP:
   upload, summary, the place/edit/remove doorway tools, render overlays, routes
-  and bad input. `tests/server.test.js` covers `normalize`, `project`, the
+  and bad input. `tests/region-edits.test.js` covers rename, stair marking and
+  merges, directly and over HTTP, including the highlight overlay. `tests/authoring-locate.test.js` covers the short doorway option lists on a
+  fragmented (raster-style) boundary, every `spaces/kind` kind and its effects,
+  and the `focus` overlay. `tests/server.test.js` covers `normalize`, `project`, the
   origin check and map-job errors. The doorway helpers are also tested directly
   in `tests/assumed-doors.test.js`.
 - **Most errors are 400.** Apart from the explicit 404s and 403, every failure

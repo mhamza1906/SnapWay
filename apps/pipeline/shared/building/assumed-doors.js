@@ -11,6 +11,7 @@ import { roomAvailability } from "./routing.js";
 import { edgeIssue } from "./validation.js";
 import {
   doorRecord,
+  lastClassification,
   regionNeedsSemanticReview,
   spaceAccessState,
 } from "./access-state.js";
@@ -31,20 +32,31 @@ const lerp = (l, t) => ({ x: l.a.x + (l.b.x - l.a.x) * t, y: l.a.y + (l.b.y - l.
 
 export const isAssumed = (record) => record?.evidence?.method === "assumed";
 
-// Edges a door could open onto, best first: corridors, then lobbies, then a
-// neighbouring room when no hallway touches; within each, the longest shared
-// stretch. `near` lists spaces within a few pixels that do not share a boundary,
-// which only a geometry edit can resolve.
+// Edges a door could open onto, best first: corridors, then lobbies and rooms
+// that work as halls (use "hall"), then a neighbouring room when no hallway
+// touches; within each, the longest shared stretch. `near` lists spaces within
+// a few pixels that do not share a boundary, which only a geometry edit can
+// resolve.
 const RANK = { corridor: 0, lobby: 1 };
+const hallRank = (s) => RANK[s.kind] ?? (s.use === "hall" ? 1 : 2);
+const bounds = (p) => {
+  const xs = p.map((v) => v.x), ys = p.map((v) => v.y);
+  return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
+};
 export function neighbourEdges(floor, spaceId) {
   const g = floor.geometry,
     room = g.spaces.find((s) => s.id === spaceId);
   if (!room) throw new Error(`Unknown region ${spaceId}`);
+  const box = bounds(room.polygon),
+    // Regions whose bounding boxes are further apart than NEAR_GAP can neither
+    // share an edge nor be near; skipping them changes no result.
+    far = (o) => o.x0 > box.x1 + NEAR_GAP || o.x1 < box.x0 - NEAR_GAP || o.y0 > box.y1 + NEAR_GAP || o.y1 < box.y0 - NEAR_GAP;
   const neighbours = g.spaces.filter(
     (s) =>
       s.id !== spaceId &&
       s.access !== "nonwalkable" &&
       !NOT_A_ROOM.test(s.label) &&
+      !far(bounds(s.polygon)) &&
       !regionNeedsSemanticReview(floor, s.id),
   );
   const shared = [],
@@ -59,7 +71,7 @@ export function neighbourEdges(floor, spaceId) {
         if (o && o.length >= 4) {
           touching = true;
           shared.push({ adjacentId: other.id, adjacentLabel: other.label, adjacentKind: other.kind,
-            hallway: other.kind in RANK, edgeIndex: e.index, a: o.a, b: o.b, length: o.length });
+            hallway: hallRank(other) < 2, rank: hallRank(other), edgeIndex: e.index, a: o.a, b: o.b, length: o.length });
         }
       }
     if (!touching) {
@@ -68,8 +80,54 @@ export function neighbourEdges(floor, spaceId) {
       if (gap <= NEAR_GAP) near.push({ adjacentId: other.id, adjacentLabel: other.label, gap: Math.round(gap * 10) / 10 });
     }
   }
-  shared.sort((x, z) => (RANK[x.adjacentKind] ?? 2) - (RANK[z.adjacentKind] ?? 2) || z.length - x.length);
+  shared.sort((x, z) => x.rank - z.rank || z.length - x.length);
   return { candidates: shared.map((c, i) => ({ ...c, key: i })), near: near.sort((x, z) => x.gap - z.gap) };
+}
+
+// The shortest shared stretch offered as a doorway choice: half the widest door
+// this source frame allows (placement defaults to three quarters of it), and
+// never under 10 px.
+export const MIN_DOOR_STRETCH = 10;
+export const minDoorStretch = (floor, spaceId) =>
+  Math.max(MIN_DOOR_STRETCH, openingWidthLimit(floor, spaceId, "door") * 0.5);
+
+const doorMid = (d) => ({ x: (d.a.x + d.b.x) / 2, y: (d.a.y + d.b.y) / 2 });
+const onStretch = (d, c) => pointSegment(doorMid(d), c.a, c.b) < 1;
+export const doorsOnStretch = (floor, c) => floor.geometry.doors.filter((d) => onStretch(d, c)).length;
+// The longest part of a stretch that no doorway on it covers.
+function freeLength(floor, c) {
+  const u = { x: (c.b.x - c.a.x) / c.length, y: (c.b.y - c.a.y) / c.length },
+    along = (p) => (p.x - c.a.x) * u.x + (p.y - c.a.y) * u.y,
+    spans = floor.geometry.doors.filter((d) => onStretch(d, c))
+      .map((d) => [along(d.a), along(d.b)].sort((x, z) => x - z))
+      .sort((x, z) => x[0] - z[0]);
+  let free = 0, at = 0;
+  for (const [lo, hi] of spans) { free = Math.max(free, lo - at); at = Math.max(at, hi); }
+  return Math.max(free, c.length - at);
+}
+
+// The doorway choices shown to a person, from `neighbourEdges` candidates: one
+// per neighbouring region, its longest shared stretch at least minDoorStretch
+// long. A stretch that still has that much room beside the doors already on
+// `floor` is preferred over a longer one they fill. The `keep` keys (the
+// stretch a door sits on now) are always listed, however short.
+// Raster outlines split one shared boundary into many short polygon edges.
+// They are not joined into one: a doorway must lie on a single edge
+// (validateOpening snaps it onto one shared edge), so a joined stretch would
+// offer positions that cannot be placed. Keys are unchanged, so every listed
+// key works for edit and add; placement still uses every candidate.
+export function doorwayChoices(floor, spaceId, candidates, keep = []) {
+  const min = minDoorStretch(floor, spaceId),
+    best = new Map();
+  for (const c of candidates) {
+    if (c.length < min) continue;
+    const roomy = freeLength(floor, c) >= min,
+      kept = best.get(c.adjacentId);
+    if (!kept || (roomy && !kept.roomy) || (roomy === kept.roomy && c.length > kept.c.length))
+      best.set(c.adjacentId, { c, roomy });
+  }
+  const keys = new Set([...[...best.values()].map((b) => b.c.key), ...keep.filter((k) => k !== null && k !== undefined)]);
+  return candidates.filter((c) => keys.has(c.key));
 }
 
 export function defaultDoorWidth(floor, spaceId, edge) {
@@ -137,12 +195,18 @@ export function roomsNeedingDoors(floor) {
 // Stairs, lobbies and held regions are treated as rooms: there is no separate
 // stair type. Corridor pieces stay corridors. Never applied to areas labelled
 // as ducts, shafts, roofs, balconies or voids.
+// A region the developer marked as a stair stays a stair, and a kind the
+// developer chose (for example a lobby) is kept.
+const decidedKind = (floor, s) => {
+  const r = lastClassification(floor, s.id);
+  return r?.status === "accepted" && r.evidence.method === "manual" && r.change?.to.kind === s.kind;
+};
 const becomesRoom = (floor, s) =>
-  !NOT_A_ROOM.test(s.label) && (s.kind === "lobby" || regionNeedsSemanticReview(floor, s.id));
+  s.use !== "stair" && !NOT_A_ROOM.test(s.label) && !decidedKind(floor, s) && (s.kind === "lobby" || regionNeedsSemanticReview(floor, s.id));
 
 // A developer's explicit "Make it a room" outranks the label heuristic.
 const decidedRoom = (floor, spaceId) => {
-  const r = (floor.access?.records || []).findLast((x) => x.spaceId === spaceId && x.kind === "classification");
+  const r = lastClassification(floor, spaceId);
   return r?.status === "accepted" && r.evidence.method === "manual" && r.change?.to.kind === "room";
 };
 
@@ -291,9 +355,10 @@ export function placeAssumedDoorways(building, floorId, { spaceIds = null, roomi
 // Groups of walking paths on one floor, keyed by node, over usable edges.
 function components(building, floorId) {
   const nodes = building.nodes.filter((n) => n.floorId === floorId),
-    adjacency = new Map(nodes.map((n) => [n.id, []]));
+    adjacency = new Map(nodes.map((n) => [n.id, []])),
+    contexts = new Map();
   for (const e of building.edges)
-    if (adjacency.has(e.from) && adjacency.has(e.to) && !e.restricted && !edgeIssue(building, e)) {
+    if (adjacency.has(e.from) && adjacency.has(e.to) && !e.restricted && !edgeIssue(building, e, { contexts })) {
       adjacency.get(e.from).push(e.to);
       adjacency.get(e.to).push(e.from);
     }
@@ -373,19 +438,20 @@ export function enableSupportedDoors(building, floorId, spaceIds) {
   return { building: next, doors };
 }
 
+// Shared edges a room can get another doorway on, with how many doors each
+// already has: one per neighbouring region (see doorwayChoices). `all` lists
+// every shared stretch instead.
+export function doorEdgeOptions(floor, spaceId, { all = false } = {}) {
+  const { candidates } = neighbourEdges(floor, spaceId);
+  return (all ? candidates : doorwayChoices(floor, spaceId, candidates))
+    .map((c) => ({ ...c, doors: doorsOnStretch(floor, c) }));
+}
+
 // Adds another doorway to a room that may already have some. Hallways come
 // before neighbouring rooms, and spaces the room has no door to yet before ones
 // it does; on an edge that already has a door, the new one is offset along it.
+// `edgeKey` is any candidate key (every key doorEdgeOptions lists is one).
 // Move it afterwards like any assumed door.
-// Shared edges a room can get a doorway on, with how many doors each already has.
-export function doorEdgeOptions(floor, spaceId) {
-  return neighbourEdges(floor, spaceId).candidates.map((c) => ({
-    ...c,
-    doors: floor.geometry.doors.filter((d) =>
-      pointSegment({ x: (d.a.x + d.b.x) / 2, y: (d.a.y + d.b.y) / 2 }, c.a, c.b) < 1).length,
-  }));
-}
-
 export function addAssumedDoor(building, floorId, spaceId, reviewer = "", { edgeKey = null } = {}) {
   const floor = building.floors.find((f) => f.id === floorId),
     room = floor?.geometry.spaces.find((s) => s.id === spaceId);
@@ -445,6 +511,9 @@ export function defineNotRoom(building, floorId, spaceId, reviewer = "") {
 }
 
 // Assumed doors on a floor, with their current edge and position for editing.
+// `candidates` lists every shared stretch (computed without the door itself);
+// `options` is the short list for a person to choose from, which always
+// includes the current edge, with the other doors on each stretch counted.
 export function assumedDoors(floor) {
   return floor.geometry.doors
     .map((door) => ({ door, record: doorRecord(floor, door.id) }))
@@ -452,10 +521,12 @@ export function assumedDoors(floor) {
     .map(({ door, record }) => {
       const roomId = record.spaceId,
         room = floor.geometry.spaces.find((s) => s.id === roomId),
-        { candidates } = neighbourEdges({ ...floor, geometry: { ...floor.geometry, doors: floor.geometry.doors.filter((d) => d.id !== door.id) } }, roomId),
-        mid = { x: (door.a.x + door.b.x) / 2, y: (door.a.y + door.b.y) / 2 },
+        without = { ...floor, geometry: { ...floor.geometry, doors: floor.geometry.doors.filter((d) => d.id !== door.id) } },
+        { candidates } = neighbourEdges(without, roomId),
+        mid = doorMid(door),
         edge = candidates.find((c) => c.adjacentId === door.spaceIds[1] && pointSegment(mid, c.a, c.b) < 1) || candidates[0] || null;
       return { door, record, room, candidates, edgeKey: edge?.key ?? null,
+        options: doorwayChoices(without, roomId, candidates, [edge?.key]).map((c) => ({ ...c, doors: doorsOnStretch(without, c) })),
         t: edge ? distance(edge.a, mid) / edge.length : 0.5, width: distance(door.a, door.b) };
     });
 }
