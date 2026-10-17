@@ -47,7 +47,7 @@ Moving the calls behind Django `Job`/`JobAttempt` records, or porting to Python,
 | CI | `scripts/ci_changes.py` (new `pipeline` output), `.github/workflows/ci.yml` (new `pipeline` job: `npm ci` + `npm test`, offline) |
 | Docs | `docs/pipeline/*.md`, this file, `README.md` (pointer) |
 
-## Verification (local, no paid calls)
+## Original feature verification (local, no paid calls)
 
 | Check | Result |
 |---|---|
@@ -56,7 +56,7 @@ Moving the calls behind Django `Job`/`JobAttempt` records, or porting to Python,
 | `scripts/ci_changes.py` | ruff check and format pass; classifies `apps/pipeline/` changes and leaves docs-only changes alone |
 | Browser, with `/authoring` through the dev proxy | Open the 003E3 building, render the map, preview a route (15 steps), move an assumed door with a live preview, no horizontal overflow at 280 px |
 
-Not verified:
+Not verified in the original feature handoff (see later acceptance results below):
 
 - **Vertex Gemini:** no live mapping run on this pipeline yet. Its quality and cost are unmeasured.
 - **Node versions:** local runs used Node 23; CI pins Node 24.
@@ -122,7 +122,63 @@ and human review. The Angular [AI build action](../apps/web/src/app/features/aut
 also places explicitly assumed doorways after applying the checked proposal.
 SVGs and raster previews are rendered locally; there is no GPT Image call or
 automated Opus backup in this path. The configured default model ID remains
-`gemini-4-argon`; live availability is unverified. Offline tests do not satisfy
+`gemini-4-argon`; access was subsequently verified in the live IA-1 run below.
+Offline tests do not satisfy
 the original raster-generation acceptance requirement. This is a recorded
 implementation difference, not approval to remove that requirement; no provider,
 API, dependency or architecture changes were made.
+
+### Real IA-1 photo acceptance — October 17, 2026
+
+Requester authorized a live Vertex run against ignored
+`local/test-source/IA-1-floor-original.jpg` (2048 × 1536 JPEG). Baseline:
+`3edd14e` on `acceptance/map-authoring-pipeline`. The original SHA-256 matched
+the preserved source asset. No source edits, manually invented rooms or user
+identities were introduced.
+
+- Used the existing HTTP flow: `POST /api/authoring/plans`, save an input copy,
+  `POST /api/map-jobs`, poll the durable state, then apply checked proposals and
+  place assumed doorways only if the checked apply gate succeeds.
+- Job: `34dc6f6c-2021-454c-af02-dee9fad417d2`; provider: Vertex AI,
+  configured model: `gemini-4-argon`, effort: high. Default limits remain
+  40 calls, 500,000 reported tokens (soft) and 20 minutes.
+- Evidence directory: `local/test-results/IA-1-2026-10-17T07-33-21-079Z/`.
+  Provider response caches, durable job data and saved building copies remain
+  ignored under `apps/pipeline/.local/`. No Django database, R2 or OAuth is used
+  by this flow. The real credential reached a successful inventory response.
+- Initial observation: inventory detects two plan footprints and explicitly
+  identifies the cropped lower plan, while upload creates only one floor.
+  Floor separation therefore needs manual checking before accepting any route.
+- **Outcome: not accepted for this real fixture.** One cold run finished as
+  `needs-review` after 469.836 seconds: 9 provider attempts, 98,224 reported
+  tokens, zero cache hits. No billing amount was inferred from token totals.
+- Retained proposal: **24 regions / 8 doors**; accepted mapped regions and
+  usable destinations: **0**. Semantic checking retained 8 classifications,
+  then a Vertex response hit `MAX_TOKENS`; no opening-verification records
+  were produced. Applying the job was actually tested and returned HTTP 400:
+  `No checked proposal is ready. Resolve the review queue first.`
+- Visual overlay fails: extraction is concentrated on the photo's left side;
+  Brainstorm and The Cave have no matching proposal region; Dark Matter and
+  Muffler appear at visibly incorrect locations. Coordinate-frame mismatch
+  (potential normalized-coordinate/pixel mixing) is a hypothesis requiring a
+  separate test, not a confirmed fix. No image/model output was manually repaired.
+- Coverage retains 17 unmapped entries out of 28, 6 overlap diagnostics and
+  4 doorway-boundary diagnostics. The entries include generated aliases and
+  are not a ground-truth recall score. The top-level queue has only one failure
+  because semantics aborted before later review queues were populated; one
+  reported item must not be presented as one remaining defect.
+- Input copy is saved in the pipeline catalog; raw results/state/caches and
+  `overlay.svg`, `overlay.png`, `inspection.json`, `apply-rejection.json`,
+  `index.html`, `review.png` and a detailed `README.md` are in the evidence
+  directory. The overlay is an inspection artifact of an **unaccepted proposal**,
+  not a published map. There is no mapped `building.json` or portable accepted
+  package for this run. The input copy was reopened through Angular `/authoring`.
+- Local review page: `http://127.0.0.1:5176/` while its loopback-only static
+  server runs. Application/proxy were restarted to load the branch's pipeline
+  proxy. This run did not verify the absent GPT Image stage or human publication.
+
+Browser cleanup remains incomplete: 18 earlier Figma-capture tabs belong to an
+older browser session and could not be claimed. The browser security policy also
+blocked opening Chrome's internal memory-management page (HTTP/HTTPS only); no
+workaround or unrelated tab closure was attempted. This turn keeps only its
+application and acceptance-report tabs as deliverables.
