@@ -20,6 +20,11 @@ export const routes: Routes = [
       import('./features/contributions/contributions').then((m) => m.ContributionsPage),
   },
   {
+    path: 'graph-editor',
+    loadComponent: () =>
+      import('./features/graph-editor/graph-editor').then((m) => m.GraphEditorPage),
+  },
+  {
     path: 'editor/:id',
     loadComponent: () => import('./features/editor/editor').then((m) => m.EditorPage),
     canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],

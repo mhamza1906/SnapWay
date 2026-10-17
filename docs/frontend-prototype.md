@@ -22,6 +22,11 @@ a compact sans-serif scale, with map objects and routes providing the distinctiv
 visual focus. Desktop editing uses a persistent navigation rail and inspector;
 visitor guidance uses a responsive map and bottom instruction panel.
 
+**Graph editing (API-backed):** the primary contributor map-editing entry is now
+`/graph-editor` (waypoints + connections + underlay upload against Django). See
+[map-graph-tools.md](map-graph-tools.md). The Local Storage `/editor/:id` prototype
+remains for older simulated flows but is no longer the recommended mapping path.
+
 ```text
 Contributor: Overview → Targets → Target detail → Draft editor → Review
                                       ↓              ↓            ↓

@@ -19,7 +19,8 @@ reuse Eric’s existing `Membership` model.
 ## Non-goals
 
 - Product Membership REST CRUD (list/grant/revoke over HTTP for the UI)
-- Map target / contribution CRUD APIs (next story; will consume these permissions)
+- Map target / contribution CRUD APIs (graph draft/node/edge writes land in
+  [map-graph-tools.md](map-graph-tools.md); broader CRUD remains later)
 - Auto-grant from Google email domain
 - Guest / public navigation capabilities (AUTH-04)
 - Committing `.cursor/rules` (guidance stays in `AGENTS.md` + this doc)
@@ -63,7 +64,11 @@ Views must expose `get_map_target()` or set `map_target` before permission check
 | `GET /api/auth/me/` | Includes read-only `memberships: [{target_id, role}]` when authenticated |
 | `GET /api/maps/targets/<uuid>/access/` | Diagnostic: caller’s role or 403 (not product UI) |
 
-Secrets: `local/.env` only (never repo-root `.env`).
+Graph editing APIs (ensure draft, nodes, edges, underlay) consume these
+permission helpers — see [map-graph-tools.md](map-graph-tools.md).
+
+Secrets: `local/.env` only (never repo-root `.env`). See
+[environment-sync.md](environment-sync.md).
 
 ## Tests
 

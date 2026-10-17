@@ -54,3 +54,7 @@ if env.bool("DJANGO_TRUST_PROXY", default=False):
 STATIC_ROOT = env("STATIC_ROOT")
 STATIC_URL = env("STATIC_URL", default=STATIC_URL)  # noqa: F405
 MEDIA_ROOT = env("MEDIA_ROOT")
+
+from config.storage_backends import apply_storages  # noqa: E402
+
+apply_storages(globals())

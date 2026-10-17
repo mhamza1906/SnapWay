@@ -16,3 +16,8 @@ else:
 STATIC_ROOT = ROOT / "local" / "static"
 MEDIA_ROOT = ROOT / "local" / "media"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Cloudflare R2 / S3-compatible media when S3_* (or R2_* aliases) are set in local/.env.
+from config.storage_backends import apply_storages  # noqa: E402
+
+apply_storages(globals())
