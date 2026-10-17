@@ -19,6 +19,25 @@ scanning and a matched entrance. It is decorative and requests no camera permiss
 Both animations respect reduced-motion preferences. Small screens retain the same
 order; short viewports may scroll so content remains accessible.
 
+The refined header uses an original vector wordmark inspired by the supplied logo:
+rounded navy lettering, a blue road-shaped w, a six-blade aperture inside the first
+a, and an upward arrow on y. Its 247-pixel width makes those details legible.
+After a one-second bounce, only y begins changing into the travelling arrow;
+the remaining letters open sequentially from right to left (a, w, p, a, n, s).
+Native SVG morphs start only after Angular binds their frames, preventing a premature
+arrow flash. Main letter, thread and arrow strokes remain eight CSS pixels without
+scale compression. Interior aperture and lane markings use finer decorative strokes.
+The moving brand fully leaves by 6.2 seconds and does not restore itself.
+
+The subtitle stays on one line on the same horizontal axis as the arrow on desktop
+and narrow layouts; its font size adapts instead of moving to a second header row.
+On narrow screens its reveal starts later to avoid the remaining letters.
+Reduced motion shows a static brand and subtitle without the bounce, flight or morph.
+Larger italic card headings accompany an illustrative architectural floor plan with
+room labels, door swings, furniture and stairs; waypoint nodes precede connections
+through door openings. This artwork is decorative, not an accepted IA floor map.
+Narrow cards stack text above artwork to prevent overlap.
+
 Clicking either card submits a same-origin, CSRF-protected native form directly
 into the existing Google OAuth / PKCE flow. The selected mode is stored in the
 server-side OAuth state, never trusted from the callback URL or local storage.
@@ -114,6 +133,10 @@ durations are 2.4 seconds, and there is no horizontal or vertical page overflow.
 Responsive CSS is implemented; a physical mobile-device OAuth/camera test is not
 part of this acceptance. Screenshots remain under ignored
 `local/test-results/experience-auth/`; execution history is `local/ACTIONS.md`.
+The presentation refinement also passed 320px and 390px iframe viewport reviews,
+desktop inspection of the y-first morph and complete exit, and a computed-style
+check showing eight-pixel strokes for all main glyphs and the travelling thread.
+Web and Visitor production builds pass without style-budget warnings.
 
 ## Implementation references
 
@@ -129,6 +152,8 @@ part of this acceptance. Screenshots remain under ignored
   [card template](../apps/web/src/app/features/sign-in/sign-in.html),
   [layout](../apps/web/src/app/features/sign-in/sign-in.scss),
   [motion](../apps/web/src/app/features/sign-in/sign-in-motion.scss),
+  [header motion and responsive title](../apps/web/src/app/features/sign-in/sign-in-header.scss),
+  [illustrative floor-plan SVG](../apps/web/public/assets/developer-floor-plan.svg),
   [camera SVG](../apps/web/public/assets/navigation-camera.svg),
   [session service/guards](../apps/web/src/app/core/auth.service.ts),
   [routes](../apps/web/src/app/app.routes.ts),

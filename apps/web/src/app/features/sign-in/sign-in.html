@@ -1,9 +1,76 @@
 <div class="entry">
   <header class="entry-header">
-    <a class="entry-brand" routerLink="/map"
-      ><span><app-icon name="route" /></span>snapway.</a
-    >
-    <h1 class="header-title">One account.<br /><span>Two ways to find your place.</span></h1>
+    <a class="entry-brand" routerLink="/map" aria-label="Snapway · Explore the map">
+      <svg #brandMotion class="brand-motion" viewBox="0 0 190 44" aria-hidden="true">
+        @for (glyph of brandGlyphs; track $index) {
+          <g
+            [attr.data-glyph]="$index"
+            [class.lead-y]="glyph.letter === 'y'"
+            [class.letter-unroll]="glyph.letter !== 'y'"
+            [class.road-glyph]="glyph.letter === 'w'"
+            [style.--unroll-delay]="glyph.begin"
+          >
+            <path [attr.d]="glyph.path">
+              <animate
+                attributeName="d"
+                begin="indefinite"
+                [attr.values]="glyph.frames"
+                [attr.dur]="glyph.duration"
+                keyTimes="0;.5;1"
+                calcMode="spline"
+                keySplines=".4 0 .2 1;.4 0 .2 1"
+                fill="freeze"
+              />
+            </path>
+            @if (glyph.letter === 'w') {
+              <path class="road-center" [attr.d]="glyph.path" />
+            }
+            @if (glyph.letter === 'y') {
+              <path class="initial-arrow" d="M173 10L181 9L180 17" />
+            }
+          </g>
+        }
+        <g class="camera-aperture">
+          <circle cx="66.5" cy="23.5" r="6.4" fill="#079bfa" />
+          <path
+            d="M66.5 17.1L69 22M72 20.3L68.9 25M72 26.7L66.5 26.3M66.5 29.9L64 25M61 26.7L64.1 22M61 20.3L66.5 20.7"
+          />
+          <path
+            d="M66.5 20.7L68.9 22.1L68.9 24.9L66.5 26.3L64.1 24.9L64.1 22.1Z"
+            fill="#fff"
+            stroke="none"
+          />
+        </g>
+      </svg>
+      <svg class="brand-rest" viewBox="0 0 190 44" aria-hidden="true">
+        @for (glyph of brandGlyphs; track $index) {
+          <path [class.road-glyph]="glyph.letter === 'w'" [attr.d]="glyph.path" />
+          @if (glyph.letter === 'w') {
+            <path class="road-center" [attr.d]="glyph.path" />
+          }
+          @if (glyph.letter === 'y') {
+            <path class="initial-arrow" d="M173 10L181 9L180 17" />
+          }
+        }
+        <g class="camera-aperture">
+          <circle cx="66.5" cy="23.5" r="6.4" fill="#079bfa" />
+          <path
+            d="M66.5 17.1L69 22M72 20.3L68.9 25M72 26.7L66.5 26.3M66.5 29.9L64 25M61 26.7L64.1 22M61 20.3L66.5 20.7"
+          />
+          <path
+            d="M66.5 20.7L68.9 22.1L68.9 24.9L66.5 26.3L64.1 24.9L64.1 22.1Z"
+            fill="#fff"
+            stroke="none"
+          />
+        </g>
+      </svg>
+    </a>
+    <div class="header-flight" aria-hidden="true">
+      <svg viewBox="0 0 1000 8" preserveAspectRatio="none">
+        <path d="M0 4H1000" />
+      </svg>
+    </div>
+    <h1 class="header-title"><span>One account. Two ways to find your place.</span></h1>
   </header>
   <main class="entry-main">
     <div class="experience-cards" [attr.aria-busy]="auth.busy()">
@@ -23,51 +90,13 @@
           ></span>
         </div>
         <div class="illustration" aria-hidden="true">
-          <svg class="map-art" viewBox="0 0 440 250" fill="none">
-            <defs>
-              <pattern id="entry-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor" opacity=".13" />
-              </pattern>
-            </defs>
-            <rect x="0" y="0" width="440" height="250" fill="url(#entry-grid)" />
-            <g class="floor-plan" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-              <path d="M54 59H176V39H354V192H264V215H91V174H54Z" fill="#fff9f5" fill-opacity=".7" />
-              <path
-                d="M54 103H131V59M54 151H131V128M91 174H159V215M176 39V99H226V39M270 39V99H354M309 99V150H354M264 192V150H214V215M131 103H176M159 174V128H214M270 150V126"
-              />
-              <path
-                d="M131 103V117M176 99V116M226 99H245M264 150H283"
-                stroke-dasharray="3 5"
-                opacity=".25"
-              />
-            </g>
-            <g class="route-lines" stroke="#a7424f" stroke-width="3" stroke-linecap="round">
-              <path class="route-edge edge-a" pathLength="1" d="M91 128H177V128H246V72" />
-              <path class="route-edge edge-b" pathLength="1" d="M177 128V191" />
-              <path class="route-edge edge-c" pathLength="1" d="M246 128H326" />
-            </g>
-            <g fill="#a7424f" stroke="#fff6f2" stroke-width="4">
-              <circle class="map-node node-a" cx="91" cy="128" r="7" />
-              <circle class="map-node node-b" cx="177" cy="128" r="7" />
-              <circle class="map-node node-c" cx="246" cy="72" r="7" />
-              <circle class="map-node node-d" cx="177" cy="191" r="7" />
-              <circle class="map-node node-e" cx="326" cy="128" r="7" />
-            </g>
-            <g class="drawing-tag">
-              <rect x="277" y="201" width="129" height="30" rx="15" fill="#fff9f5" />
-              <circle cx="295" cy="216" r="3" fill="#a7424f" />
-              <text
-                x="306"
-                y="220"
-                fill="#84434b"
-                font-size="10"
-                font-family="sans-serif"
-                letter-spacing="1"
-              >
-                IDEAS → PATHS
-              </text>
-            </g>
-          </svg>
+          <img
+            class="floor-scene"
+            src="assets/developer-floor-plan.svg"
+            alt=""
+            width="640"
+            height="340"
+          />
         </div>
       </button>
       <button
