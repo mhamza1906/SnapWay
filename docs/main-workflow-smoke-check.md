@@ -1,7 +1,9 @@
 # Main workflow smoke check
 
-**Status:** Preliminary check; awaiting requester manual validation. This is not
-the revised audit structure or final gap document. Those follow the manual review.
+**Status:** Historical preliminary check of the main SHA below; broader manual
+validation remains pending. Following the separate AI-branch trial, the requester
+authorized the [pipeline phase audit and gap record](audits/2026-10-17-map-authoring-pipeline.md).
+That report does not retroactively change the results of this main-only check.
 
 **Date:** October 17, 2026 (America/Toronto).
 **Baseline:** `main` / `origin/main` at
@@ -110,9 +112,9 @@ the chosen callback origin/port must match Google Console exactly.
 - No migration against local/shared development data, no live provider calls and
   no real Google consent/token exchange.
 - No new production/visitor bundle build or native device acceptance in this quick pass.
-- No revised audit structure or final gap/prioritization document until the requester
-  supplies manual validation results. Reconcile observed results against the initial
-  stakeholder/acceptance documents in that subsequent stage.
+- At this main-only pass, audit restructuring and gap prioritization were deferred.
+  The subsequently requested [pipeline phase audit](audits/2026-10-17-map-authoring-pipeline.md)
+  now records AI-branch findings; broader manual/product validation remains pending.
 
 Private probe implementation and detailed execution history remain under ignored
 `local/workflow-check/` and `local/ACTIONS.md`. The source links above plus baseline

@@ -1,5 +1,10 @@
 # Map-authoring pipeline
 
+**Acceptance status (October 17, 2026):** real IA-1 photo output failed acceptance.
+See the [phase audit, requirement gaps and screenshots](../audits/2026-10-17-map-authoring-pipeline.md).
+The workflow below describes the implementation; it does not establish faithful
+output for a real target or completion of the required GPT Image stage.
+
 `apps/pipeline/` is a private Node service. It turns an uploaded floor plan
 (PDF, PNG or JPEG) into a draft indoor map: rooms and other spaces, doorways, and
 a walking graph that can be routed. Everything it produces is a draft for review.
@@ -144,6 +149,8 @@ the tests in more detail.
 
 Related SnapWay documents:
 
+- [Phase audit](../audits/2026-10-17-map-authoring-pipeline.md): model roles,
+  promised versus implemented flow, real IA-1 evidence and remaining acceptance.
 - [Development guide](../development.md): repository bootstrap and the Django
   and Angular toolchain.
 - [Architecture and dependency plan](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md):

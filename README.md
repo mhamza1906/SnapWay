@@ -3,8 +3,10 @@
 Collaborative indoor mapping and reviewed visual navigation. The current work is
 **Stage 1: Map Platform**. The `feature/frontend-prototype` branch contains an
 interactive Angular prototype covering map editing, contribution review,
-publication and visitor navigation. Prototype data is saved in browser Local
-Storage; AI, authentication and Android hardware are explicitly simulated.
+publication and visitor navigation. Those prototype workflows save business data
+in browser Local Storage and simulate AI and Android hardware. The acceptance
+branch also contains separate Node AI authoring and Django OAuth foundations;
+their integration and acceptance limits are recorded below.
 
 Start with the [prototype walkthrough and integration guide](docs/frontend-prototype.md)
 and [Figma prototype](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa).
@@ -84,6 +86,11 @@ The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
 (Claude). See [docs/pipeline](docs/pipeline/README.md) and the
 [feature record](docs/map-authoring-pipeline.md).
 
+**IA-1 real-photo acceptance failed.** Read the
+[phase audit, model/pipeline gaps and committed screenshots](docs/audits/2026-10-17-map-authoring-pipeline.md)
+before using this result as evidence of a completed authoring workflow. Real
+Vertex access succeeded, but the generated proposal was not accepted as a map.
+
 ## Dependencies and collaboration
 
 Share `pyproject.toml`, `uv.lock` and `apps/web/package-lock.json`. Each teammate
@@ -96,6 +103,7 @@ Current leads: Erfang (frontend), Hamza (basic backend APIs), Eric (schema and
 CI/CD), Arjun (map-authoring AI/MCP). Collective ownership and cross-review
 follow the [assignment plan](docs/initial/Indoor_Navigation_Stage_1_Assignment_Plan_EN.md).
 
-CI checks changed components on pushes/PRs. Deployment, cloud database/OAuth/AI
-integration, device installation and product acceptance remain unverified.
+CI checks changed components on main pushes and PRs. Deployment, shared cloud
+database/live OAuth integration, device installation and full product acceptance
+remain unverified in this review. The AI trial above has its own recorded outcome.
 No paid provider calls are made by setup or CI.
