@@ -119,6 +119,9 @@ def test_attach_list_delete_node_photo(actors, draft, settings, tmp_path):
     assert listed.status_code == 200
     assert len(listed.json()["photos"]) == 1
 
+    from maps.models import Asset, ReferencePhoto
+
+    asset_id = body["asset_id"]
     deleted = client.delete(
         reverse(
             "map-revision-photo-detail",
@@ -127,6 +130,9 @@ def test_attach_list_delete_node_photo(actors, draft, settings, tmp_path):
     )
     assert deleted.status_code == 204
     assert client.get(photos_url).json()["photos"] == []
+    # Asset is append-only: association is removed, Asset row remains.
+    assert not ReferencePhoto.objects.filter(pk=body["id"]).exists()
+    assert Asset.objects.filter(pk=asset_id).exists()
 
 
 @pytest.mark.django_db

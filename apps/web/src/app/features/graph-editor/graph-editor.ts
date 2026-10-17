@@ -1,11 +1,6 @@
 import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import {
-  GraphApiService,
-  GraphEdge,
-  GraphNode,
-  NodePhoto,
-} from '../../core/graph-api.service';
+import { GraphApiService, GraphEdge, GraphNode, NodePhoto } from '../../core/graph-api.service';
 import { GraphCanvas, GraphTool } from './graph-canvas';
 
 @Component({

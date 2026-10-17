@@ -1,8 +1,9 @@
 """REST surfaces for draft bootstrap and graph Node/Edge editing."""
 
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -41,7 +42,17 @@ class EnsureDraftView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(summary="Ensure demo draft contribution + unfrozen revision")
+    @extend_schema(
+        summary="Ensure demo draft contribution + unfrozen revision",
+        request=inline_serializer(
+            "EnsureDraftRequest",
+            {
+                "target_id": serializers.UUIDField(required=False, allow_null=True),
+                "force_new": serializers.BooleanField(required=False),
+            },
+        ),
+        responses={200: OpenApiTypes.OBJECT},
+    )
     def post(self, request):
         target_id = request.data.get("target_id") or None
         force_new = bool(request.data.get("force_new"))
@@ -75,14 +86,29 @@ class RevisionGraphMixin:
 
 
 class GraphListView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="List nodes and edges for a revision")
+    @extend_schema(
+        summary="List nodes and edges for a revision",
+        responses={200: OpenApiTypes.OBJECT},
+    )
     def get(self, request, revision_id):
         revision = self.get_revision()
         return Response(list_graph(revision))
 
 
 class NodeCollectionView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="Add a waypoint node")
+    @extend_schema(
+        summary="Add a waypoint node",
+        request=inline_serializer(
+            "AddNodeRequest",
+            {
+                "x": serializers.FloatField(),
+                "y": serializers.FloatField(),
+                "label": serializers.CharField(required=False, allow_blank=True),
+                "kind": serializers.CharField(required=False),
+            },
+        ),
+        responses={201: OpenApiTypes.OBJECT},
+    )
     def post(self, request, revision_id):
         revision = self.get_revision()
         try:
@@ -109,7 +135,14 @@ class NodeCollectionView(RevisionGraphMixin, APIView):
 
 
 class NodeDetailView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="Update a node label")
+    @extend_schema(
+        summary="Update a node label",
+        request=inline_serializer(
+            "UpdateNodeRequest",
+            {"label": serializers.CharField(allow_blank=True)},
+        ),
+        responses={200: OpenApiTypes.OBJECT},
+    )
     def patch(self, request, revision_id, node_id):
         revision = self.get_revision()
         if "label" not in request.data:
@@ -133,7 +166,10 @@ class NodeDetailView(RevisionGraphMixin, APIView):
             }
         )
 
-    @extend_schema(summary="Remove a node and incident edges")
+    @extend_schema(
+        summary="Remove a node and incident edges",
+        responses={204: OpenApiTypes.NONE},
+    )
     def delete(self, request, revision_id, node_id):
         revision = self.get_revision()
         try:
@@ -146,7 +182,10 @@ class NodeDetailView(RevisionGraphMixin, APIView):
 class NodePhotoCollectionView(RevisionGraphMixin, APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    @extend_schema(summary="List reference photos for a node")
+    @extend_schema(
+        summary="List reference photos for a node",
+        responses={200: OpenApiTypes.OBJECT},
+    )
     def get(self, request, revision_id, node_id):
         revision = self.get_revision()
         try:
@@ -155,7 +194,16 @@ class NodePhotoCollectionView(RevisionGraphMixin, APIView):
             return _error_response(exc)
         return Response({"photos": photos})
 
-    @extend_schema(summary="Attach a reference photo to a node")
+    @extend_schema(
+        summary="Attach a reference photo to a node",
+        request={
+            "multipart/form-data": inline_serializer(
+                "AttachNodePhotoRequest",
+                {"file": serializers.FileField()},
+            )
+        },
+        responses={201: OpenApiTypes.OBJECT},
+    )
     def post(self, request, revision_id, node_id):
         revision = self.get_revision()
         uploaded = request.FILES.get("file")
@@ -175,7 +223,10 @@ class NodePhotoCollectionView(RevisionGraphMixin, APIView):
 
 
 class PhotoDetailView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="Remove a reference photo")
+    @extend_schema(
+        summary="Remove a reference photo",
+        responses={204: OpenApiTypes.NONE},
+    )
     def delete(self, request, revision_id, photo_id):
         revision = self.get_revision()
         try:
@@ -186,7 +237,17 @@ class PhotoDetailView(RevisionGraphMixin, APIView):
 
 
 class EdgeCollectionView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="Add a graph edge")
+    @extend_schema(
+        summary="Add a graph edge",
+        request=inline_serializer(
+            "AddEdgeRequest",
+            {
+                "from_node_id": serializers.UUIDField(),
+                "to_node_id": serializers.UUIDField(),
+            },
+        ),
+        responses={201: OpenApiTypes.OBJECT},
+    )
     def post(self, request, revision_id):
         revision = self.get_revision()
         try:
@@ -210,7 +271,10 @@ class EdgeCollectionView(RevisionGraphMixin, APIView):
 
 
 class EdgeDetailView(RevisionGraphMixin, APIView):
-    @extend_schema(summary="Remove an edge")
+    @extend_schema(
+        summary="Remove an edge",
+        responses={204: OpenApiTypes.NONE},
+    )
     def delete(self, request, revision_id, edge_id):
         revision = self.get_revision()
         try:
@@ -223,7 +287,16 @@ class EdgeDetailView(RevisionGraphMixin, APIView):
 class UnderlayUploadView(RevisionGraphMixin, APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    @extend_schema(summary="Upload display underlay for a revision")
+    @extend_schema(
+        summary="Upload display underlay for a revision",
+        request={
+            "multipart/form-data": inline_serializer(
+                "UnderlayUploadRequest",
+                {"file": serializers.FileField()},
+            )
+        },
+        responses={201: OpenApiTypes.OBJECT},
+    )
     def post(self, request, revision_id):
         revision = self.get_revision()
         uploaded = request.FILES.get("file")

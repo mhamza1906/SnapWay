@@ -10,7 +10,7 @@ from django.db import transaction
 from maps.models import Asset, Node, ReferencePhoto, Revision
 from maps.services import graph as graph_svc
 from maps.services.graph import GraphError
-from maps.services.media_store import delete_bytes, put_bytes, signed_url
+from maps.services.media_store import put_bytes, signed_url
 
 MAX_BYTES = 5 * 1024 * 1024
 ALLOWED = {
@@ -114,18 +114,10 @@ def attach_node_photo(
 
 @transaction.atomic
 def remove_node_photo(revision: Revision, *, reference_id, actor) -> None:
+    """Detach a ReferencePhoto. Asset rows are append-only — leave bytes + Asset intact."""
     graph_svc._require_writable(actor, revision)
     try:
-        ref = ReferencePhoto.objects.select_related("asset").get(pk=reference_id, revision=revision)
+        ref = ReferencePhoto.objects.get(pk=reference_id, revision=revision)
     except ReferencePhoto.DoesNotExist as exc:
         raise GraphError("Reference photo not found on this revision.") from exc
-    asset = ref.asset
-    storage_key = asset.storage_key
     ref.delete()
-    # Asset may still be referenced elsewhere; only delete orphan photo assets.
-    if (
-        not asset.source_revisions.exists()
-        and not ReferencePhoto.objects.filter(asset=asset).exists()
-    ):
-        asset.delete()
-        delete_bytes(storage_key)

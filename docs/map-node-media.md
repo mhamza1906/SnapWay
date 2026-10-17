@@ -52,8 +52,14 @@ Install: `uv sync --locked --extra ai --extra geometry --extra mcp --extra stora
 | `PATCH` | `/api/maps/revisions/<uuid>/nodes/<uuid>/` | `{label}` |
 | `GET` | `/api/maps/revisions/<uuid>/nodes/<uuid>/photos/` | Signed URLs |
 | `POST` | `/api/maps/revisions/<uuid>/nodes/<uuid>/photos/` | Multipart `file` |
-| `DELETE` | `/api/maps/revisions/<uuid>/photos/<uuid>/` | |
+| `DELETE` | `/api/maps/revisions/<uuid>/photos/<uuid>/` | Detaches `ReferencePhoto` only |
 | `POST` | `/api/maps/revisions/<uuid>/underlay/` | Bytes → R2 when configured |
+
+Photo delete removes the `ReferencePhoto` association only. `maps_asset` is
+append-only (Postgres trigger); Asset rows and stored bytes are left in place.
+
+Graph REST views use `@extend_schema` request/response annotations so
+`manage.py check --deploy` stays free of `drf_spectacular.W002`.
 
 MCP: `graph_update_node` in addition to existing `graph_*` tools.
 
@@ -83,6 +89,8 @@ cd apps/web && npm test && npm run build
 1. Branched `feature/node-photos-r2` from `feature/map-graph-tools`.
 2. Wired django-storages for R2; node label PATCH; ReferencePhoto attach/list/delete.
 3. Graph editor inspector for label + photos.
+4. CI: OpenAPI schemas on graph APIViews; photo remove no longer deletes Asset;
+   Prettier on graph-editor web sources.
 
 ## Commits
 

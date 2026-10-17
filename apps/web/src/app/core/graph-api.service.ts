@@ -58,9 +58,7 @@ export class GraphApiService {
   }
 
   getGraph(revisionId: string) {
-    return firstValueFrom(
-      this.http.get<GraphPayload>(`/api/maps/revisions/${revisionId}/graph/`),
-    );
+    return firstValueFrom(this.http.get<GraphPayload>(`/api/maps/revisions/${revisionId}/graph/`));
   }
 
   addNode(revisionId: string, body: { x: number; y: number; label?: string; kind?: string }) {
@@ -110,10 +108,7 @@ export class GraphApiService {
     const form = new FormData();
     form.append('file', file);
     return firstValueFrom(
-      this.http.post<NodePhoto>(
-        `/api/maps/revisions/${revisionId}/nodes/${nodeId}/photos/`,
-        form,
-      ),
+      this.http.post<NodePhoto>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/photos/`, form),
     );
   }
 

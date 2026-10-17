@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { GraphEdge, GraphNode } from '../../core/graph-api.service';
 
 export type GraphTool = 'select' | 'add' | 'connect' | 'cut';
