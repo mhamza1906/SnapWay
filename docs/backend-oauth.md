@@ -119,3 +119,4 @@ empty-credential provider settings, and staff-stripping adapter behavior. They d
 ## Commits
 
 - `45b3089` — Enable Google OAuth via allauth with local SQLite session identity.
+- `b64aa70` — Document OAuth feature commit SHA in backend-oauth.md.
