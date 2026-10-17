@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DemoRole } from '../../core/prototype.models';
+import { AuthService } from '../../core/auth.service';
 import { MAX_PROTOTYPE_IMPORT_BYTES, PrototypeRepository } from '../../core/prototype.repository';
 import { validatePrototypeState } from '../../core/prototype.validation';
 import { UiService } from '../../core/ui.service';
@@ -21,6 +21,7 @@ import { Icon } from '../../shared/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPage {
+  readonly auth = inject(AuthService);
   readonly repository = inject(PrototypeRepository);
   readonly ui = inject(UiService);
   private readonly destroyRef = inject(DestroyRef);
@@ -41,12 +42,6 @@ export class SettingsPage {
       ? `${(bytes / 1024).toFixed(1)} KB`
       : `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   });
-
-  changeRole(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.ui.run(() => this.repository.setRole(select.value as DemoRole), 'Demo role updated.');
-    select.value = this.repository.profile().role;
-  }
 
   exportData(): void {
     this.ui.run(() => {

@@ -2,12 +2,62 @@
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from maps.models import MapTarget
+from maps.models import MapTarget, Publication
 from maps.permissions import IsAuthenticatedMapMember
 from maps.services.membership import get_active_membership
+
+
+class PublicBuildingListView(APIView):
+    """Public discovery metadata only, never draft geometry or private membership."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    @extend_schema(exclude=True)
+    def get(self, request):
+        publications = (
+            Publication.objects.filter(
+                is_current=True,
+                invalidated_at__isnull=True,
+                target__status=MapTarget.Status.OPEN,
+                target__floor__building__latitude__isnull=False,
+                target__floor__building__longitude__isnull=False,
+            )
+            .select_related("target__floor__building")
+            .order_by("target__floor__building__name", "target__floor__sort_order", "target_id")
+        )
+        buildings = {}
+        for publication in publications:
+            target = publication.target
+            floor = target.floor
+            building = floor.building
+            entry = buildings.setdefault(
+                str(building.id),
+                {
+                    "id": str(building.id),
+                    "name": building.name,
+                    "address": building.address,
+                    "latitude": float(building.latitude),
+                    "longitude": float(building.longitude),
+                    "floors": [],
+                },
+            )
+            entry["floors"].append(
+                {
+                    "target_id": str(target.id),
+                    "name": floor.name,
+                    "code": floor.code,
+                    "publication_id": str(publication.id),
+                    "sequence": publication.sequence,
+                }
+            )
+        response = Response({"buildings": list(buildings.values())})
+        response["Cache-Control"] = "no-store"
+        return response
 
 
 class TargetAccessView(APIView):

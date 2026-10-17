@@ -1,0 +1,140 @@
+<div class="discovery">
+  <header class="map-header">
+    <a class="map-brand" routerLink="/map"><app-icon name="route" />snapway.</a>
+    <nav aria-label="Account navigation">
+      @if (contributorEnabled) {
+        @if (auth.signedIn()) {
+          <a class="btn secondary small" routerLink="/graph-editor">Map workspace</a>
+          <a class="account-link" routerLink="/settings">{{ auth.name() }}</a>
+          <button class="btn ghost small" (click)="auth.signOut()" [disabled]="auth.busy()">
+            Sign out
+          </button>
+        } @else {
+          <a class="btn secondary small" routerLink="/welcome">Sign in</a>
+        }
+      } @else {
+        <a class="btn secondary small" routerLink="/navigate">Navigation preview</a>
+      }
+    </nav>
+  </header>
+  <main class="map-layout" id="map-content">
+    <section class="building-panel" aria-labelledby="map-heading">
+      @if (auth.error()) {
+        <p class="notice error" role="alert">{{ auth.error() }}</p>
+      }
+      <p class="eyebrow">FROM THE STREET TO YOUR DESTINATION</p>
+      <h1 id="map-heading">Find your way inside.</h1>
+      <p class="muted">Explore buildings with available indoor maps.</p>
+      <label class="field"
+        ><span>Find a building</span>
+        <input
+          type="search"
+          placeholder="Building name or address"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
+      </label>
+      <button
+        class="btn secondary location-button"
+        (click)="locate()"
+        [disabled]="locating() || loading() || !!error() || !!sdk.error()"
+      >
+        <app-icon name="compass" />{{ locating() ? 'Finding location…' : 'Use my location' }}
+      </button>
+      <p class="location-note" role="status">{{ locationMessage() }}</p>
+      @if (buildingsError()) {
+        <div class="notice error" role="alert">
+          {{ buildingsError() }}
+          <button class="btn ghost small" (click)="initialize()">Retry</button>
+        </div>
+      }
+      <div class="building-list" aria-label="Available buildings">
+        @for (building of filtered(); track building.id) {
+          <button
+            class="building-card"
+            [class.selected]="selected()?.id === building.id"
+            [attr.aria-pressed]="selected()?.id === building.id"
+            (click)="choose(building)"
+          >
+            <span class="building-symbol"><app-icon name="building" /></span>
+            <span
+              ><strong>{{ building.name }}</strong
+              ><small>{{ building.address || 'Address not provided' }}</small
+              ><small>{{ building.floors.length }} available floor(s)</small></span
+            >
+            <app-icon name="arrow-right" />
+          </button>
+        } @empty {
+          @if (!loading() && !buildingsError()) {
+            <div class="empty-buildings">
+              <app-icon name="map" /><strong>{{
+                query() ? 'No matching buildings' : 'No published buildings yet'
+              }}</strong>
+              <p>
+                {{
+                  query()
+                    ? 'Try another building name or address.'
+                    : 'Buildings appear here when a reviewed map is published and its location is set.'
+                }}
+              </p>
+            </div>
+          }
+        }
+      </div>
+      @if (selected(); as building) {
+        <section class="destination" aria-label="Selected building">
+          <div class="destination-heading">
+            <h2>{{ building.name }}</h2>
+            <button
+              class="btn ghost icon-only"
+              aria-label="Close building details"
+              (click)="selected.set(null)"
+            >
+              <app-icon name="close" />
+            </button>
+          </div>
+          <p>{{ building.address }}</p>
+          <h3>Available indoor maps</h3>
+          <ul>
+            @for (floor of building.floors; track floor.target_id) {
+              <li>
+                {{ floor.name }} <span>Published revision {{ floor.sequence }}</span>
+              </li>
+            }
+          </ul>
+          <a
+            class="btn primary"
+            [href]="directions(building)"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Walking directions <app-icon name="arrow-right"
+          /></a>
+          <small>Outdoor directions open in Google Maps.</small>
+        </section>
+      }
+      <p class="privacy-note">
+        Location is optional, centers Google Maps, and is not saved by SnapWay. Google Maps receives
+        map requests when this view opens.
+      </p>
+    </section>
+    <section class="map-stage" aria-label="Google map">
+      <div #canvas class="google-map" aria-label="Map of available buildings"></div>
+      @if (loading()) {
+        <div class="map-status" role="status"><span class="status-dot"></span>Opening the map…</div>
+      }
+      @if (error() || sdk.error()) {
+        <div class="map-error" role="alert">
+          <app-icon name="map" />
+          <h2>Unable to open the map</h2>
+          <p>{{ error() || sdk.error() }}</p>
+          <button class="btn primary" (click)="retryMap()">Retry map</button>
+        </div>
+      }
+      @if (!location() && !loading() && !error() && !sdk.error()) {
+        <div class="map-status map-caption">
+          {{ buildings().length ? 'Select a building to explore' : 'Default area · Toronto' }}
+        </div>
+      }
+    </section>
+  </main>
+</div>

@@ -8,6 +8,12 @@ The repository root [`.env.example`](../.env.example) is the sole maintained app
 
 Production keeps its one private file at `/etc/indoor-nav/api.env` (root-owned, mode 0600). Keeping this established path avoids an unnecessary server path migration. Its key set and `ENV_SCHEMA_VERSION` must exactly match the root template; optional and unavailable keys remain present with empty values. Private values never go into templates, Git, chat, CI output, client bundles or shared action history.
 
+Explicit browser exception: `PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY` is a restricted
+website credential that must reach the Maps browser SDK. Export only that key
+and `GOOGLE_MAPS_MAP_ID`, never the private file or other settings. Local and
+production use separately restricted website keys and may use different map IDs;
+these fields are approved host overrides, not server secrets suitable for reuse.
+
 The template describes key names, common non-secret defaults, empty private placeholders, the allowed host-specific exceptions and required-value groups. `@secret` includes private credentials and account/project identifiers whose real values are distributed outside Git. The validator checks structure and common defaults; comparing actual shared credentials requires the external reference file or a member's explicit synchronization confirmation. A matching schema version alone does not prove equal secret values.
 
 ## Initial setup and migration
@@ -153,3 +159,43 @@ add the five defaults above, validate and restart affected services. The deploym
 owner must align the server file and reviewed controller/validator before relying
 on the new gate. None of those server actions was performed. The
 [merge-readiness report](audits/2026-10-17-merge-readiness.md) records verification.
+
+## Object storage and Google Maps contract updates
+
+Main PR #10 advanced the shared template to contract **2026-10-17.4** (**63 keys**)
+by adding the seven `S3_*` runtime fields used by Cloudflare R2 media (plus the
+existing optional `R2_*` aliases). See [map-node-media.md](map-node-media.md).
+
+Branch `feature/frontend-iteration` then advances to **2026-10-17.5** (**65 keys**)
+with `PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY=` and `GOOGLE_MAPS_MAP_ID=DEMO_MAP_ID`.
+The restricted browser Maps key is both `@secret` and an approved `@override`
+(local versus production website keys / map IDs may differ). Retired root
+`.env.web.example` / `.env.google-auth.example` and ignored
+`local/env/web.env` / `local/env/google-auth.env` consolidate through
+`python scripts/env_contract.py migrate`. See
+[frontend-iteration.md](frontend-iteration.md).
+
+Members must pull the matching commit, add the new blank or default keys to
+`local/.env` (or migrate legacy Google scaffold files), obtain real Maps/OAuth
+values only through the external private channel, run
+`python scripts/env_contract.py check`, and restart Django plus any Maps probe.
+The deployment owner must align `/etc/indoor-nav/api.env` to the same schema
+before relying on the production gate. No live server file was changed here.
+
+The connected frontend uses contract **2026-10-17.6** (still **65 keys**).
+`S3_ENDPOINT_URL` and `S3_BUCKET_NAME` now carry `@secret` classification for
+private resource identifiers, matching the equivalent R2 alias policy. They were
+incorrectly classified as empty shared defaults in `.4`/`.5`; their actual values
+are preserved and must be reconciled through the private team channel rather than
+placed in the public template. This is a classification repair, not a rotation.
+This machine's check passes after updating only the schema version. Other members
+must obtain the matching template/code, update their existing file's version,
+validate and restart Django. Production owners must do the same through the
+release process; no production update has been performed here.
+
+The live application reads `GET /api/client-config/` at runtime. Its explicit
+allowlist exports only the restricted Maps browser key, map ID and a Boolean
+Google-login availability flag. It never serializes arbitrary env variables.
+No credential needs to be baked into Angular build artifacts; changes require
+the Django process to reload settings, then a browser reload. Existing OAuth
+Client ID and Secret remain server-side.

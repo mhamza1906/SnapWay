@@ -1,10 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { PrototypeRepository } from './core/prototype.repository';
 import { UiService } from './core/ui.service';
 import { Icon } from './shared/icon';
+import { AuthService } from './core/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,8 @@ import { Icon } from './shared/icon';
   styleUrls: ['./app.scss', './app-overlays.scss'],
   host: { '(window:keydown.escape)': 'mobileOpen.set(false)' },
 })
-export class App {
+export class App implements OnInit {
+  readonly auth = inject(AuthService);
   readonly repo = inject(PrototypeRepository);
   readonly ui = inject(UiService);
   private readonly router = inject(Router);
@@ -25,7 +27,7 @@ export class App {
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
   readonly fullScreen = computed(() =>
-    /^\/(navigate|welcome|graph-editor)(\/|\?|$)/.test(this.url()),
+    /^\/(map|auth|navigate|welcome|graph-editor)(\/|\?|$)/.test(this.url()),
   );
   readonly mobileOpen = signal(false);
   readonly query = signal('');
@@ -57,6 +59,7 @@ export class App {
       })[this.url().split('/')[1]] ?? 'Workspace',
   );
   readonly links = [
+    { path: '/map', label: 'Explore buildings', icon: 'compass' },
     { path: '/overview', label: 'Overview', icon: 'grid' },
     { path: '/targets', label: 'Mapping targets', icon: 'map' },
     { path: '/graph-editor', label: 'Graph editor', icon: 'edit' },
@@ -65,11 +68,11 @@ export class App {
     { path: '/review', label: 'Review queue', icon: 'review' },
     { path: '/activity', label: 'Activity', icon: 'activity' },
   ];
-  changeRole(event: Event) {
-    const role = (event.target as HTMLSelectElement).value;
-    this.ui.run(
-      () => this.repo.setRole(role === 'admin' ? 'admin' : 'volunteer'),
-      'Demo role updated',
-    );
+  ngOnInit() {
+    void this.auth.refresh().catch(() => undefined);
+  }
+
+  async signOut() {
+    if (await this.auth.signOut()) await this.router.navigateByUrl('/map');
   }
 }

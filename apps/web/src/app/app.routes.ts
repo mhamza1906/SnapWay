@@ -1,7 +1,13 @@
 import { Routes } from '@angular/router';
+import { sessionGuard } from './core/auth.service';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'overview' },
+  { path: '', pathMatch: 'full', redirectTo: 'map' },
+  { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
+  {
+    path: 'auth/complete',
+    loadComponent: () => import('./features/welcome/auth-complete').then((m) => m.AuthCompletePage),
+  },
   {
     path: 'overview',
     loadComponent: () => import('./features/overview/overview').then((m) => m.OverviewPage),
@@ -66,4 +72,21 @@ export const routes: Routes = [
     path: '**',
     loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFoundPage),
   },
-];
+].map((route) =>
+  [
+    'overview',
+    'targets',
+    'targets/:id',
+    'contributions',
+    'graph-editor',
+    'editor/:id',
+    'authoring',
+    'review',
+    'review/:id',
+    'activity',
+    'settings',
+    'connection-check',
+  ].includes(route.path ?? '')
+    ? { ...route, canActivate: [sessionGuard] }
+    : route,
+) as Routes;

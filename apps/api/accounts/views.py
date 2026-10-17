@@ -1,6 +1,8 @@
 """Session identity endpoints for the Angular contributor workspace."""
 
 from django.contrib.auth import logout
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import extend_schema
 from maps.services.membership import list_active_memberships
 from rest_framework.decorators import api_view, permission_classes
@@ -36,6 +38,8 @@ def _user_payload(user):
 )
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@ensure_csrf_cookie
+@never_cache
 def me(request):
     user = request.user
     if not user.is_authenticated:

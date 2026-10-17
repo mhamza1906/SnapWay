@@ -145,3 +145,33 @@ def test_legacy_engine_token_migrates_to_canonical_shared_key(tmp_path, monkeypa
     assert values["PLACEMATCH_ENGINE_TOKEN"] == "synthetic-legacy-token"
     assert "MOBILE_API_TOKEN" not in values
     assert not legacy.exists()
+
+
+def test_google_scaffold_migration_preserves_credentials(tmp_path, monkeypatch):
+    legacy, private = tmp_path / "web.env", tmp_path / ".env"
+    legacy.write_text(
+        "PUBLIC_GOOGLE_OAUTH_CLIENT_ID=synthetic-client\n"
+        "PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY=synthetic-browser-key\n"
+        "GOOGLE_MAPS_MAP_ID=DEMO_MAP_ID\n"
+        "GOOGLE_OAUTH_SCOPES=openid,email,profile\n"
+        "GOOGLE_OAUTH_CALLBACK_URL=\n"
+        "GOOGLE_CLOUD_PROJECT_ID=\n"
+        "PUBLIC_APP_ORIGIN=http://localhost:4200\n"
+    )
+    monkeypatch.setattr(contract, "PRIVATE", private)
+    monkeypatch.setattr(contract, "LEGACY", (legacy,))
+    contract.migrate()
+    values = contract.read_values(private)
+    assert values["GOOGLE_OAUTH_CLIENT_ID"] == "synthetic-client"
+    assert values["PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY"] == "synthetic-browser-key"
+    assert not legacy.exists()
+
+
+def test_custom_retired_oauth_settings_need_review(tmp_path, monkeypatch):
+    legacy, private = tmp_path / "google.env", tmp_path / ".env"
+    legacy.write_text("GOOGLE_OAUTH_CALLBACK_URL=https://custom.invalid/callback\n")
+    monkeypatch.setattr(contract, "PRIVATE", private)
+    monkeypatch.setattr(contract, "LEGACY", (legacy,))
+    with pytest.raises(contract.ContractError, match="GOOGLE_OAUTH_CALLBACK_URL"):
+        contract.migrate()
+    assert legacy.exists() and not private.exists()
