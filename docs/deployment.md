@@ -1,6 +1,8 @@
 # Vultr deployment
 
-Owner: Eric. Updated October 17, 2026. Commit: pending on `ci/deployment`.
+Owner: Eric. Updated October 17, 2026. Demo TLS fix: pending on `ci/deployment`.
+Earlier deployment commits: [native deployment](https://github.com/mhamza1906/SnapWay/commit/8d0a005)
+and [single environment file](https://github.com/mhamza1906/SnapWay/commit/32a5abf).
 
 Deploys the Angular website and Django API using the approved
 [native architecture](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md#selected-fast-cicd-strategy).
@@ -24,9 +26,11 @@ hosting the API does not connect unfinished product features automatically.
 - Production deployment is disabled until the repository Actions **variable**
   `PRODUCTION_DEPLOY_ENABLED` is explicitly set to the string `true`.
 
-The HTTPS/account/secrets setup above was reported by the contributor during
-guided setup. No remote installation, database access, workflow execution or
-release promotion has been performed by this implementation.
+The contributor completed server setup during guided installation. The first
+release attempt passed SSH upload, dependency installation and settings checks,
+then stopped at migration connection setup because the Free-plan Tiger service
+presented a certificate outside the VM's system trust store. No successful
+application release promotion has been confirmed.
 
 ## One-time server preparation
 
@@ -80,10 +84,12 @@ Complete the server-only environment template:
   The migration launcher temporarily selects this connection as `DATABASE_URL`
   before Django starts. A missing value fails migrations explicitly. Normal API
   and management processes have `DATABASE_MIGRATOR` removed from their environment.
-- Keep `PGSSLMODE=verify-full`. Use `PGSSLROOTCERT=system` only if the service
+- The default is `PGSSLMODE=verify-full`. Use `PGSSLROOTCERT=system` only if the service
   certificate chains to a trusted system root. Otherwise copy the CA from Tiger
-  Data to `/etc/indoor-nav/tiger-ca.pem`, make it root-owned and world-readable
-  (the certificate is public), and configure that absolute path. Do not weaken TLS.
+  Data to `/etc/ssl/certs/tiger-ca.pem`, make it root-owned and world-readable
+  (the certificate is public), and configure that absolute path. The application
+  user must be able to traverse its parent directories; `/etc/indoor-nav` is
+  intentionally root-only. The approved Free-plan demo exception is below.
 - Keep the explicit hosts, HTTPS CSRF origins and `DJANGO_TRUST_PROXY=true`.
 - Google client credentials are optional for process startup; Google sign-in
   requires the real client configuration and exact HTTPS callback registration.
@@ -122,6 +128,39 @@ updated controller. Existing running API processes pick up environment changes
 on restart; subsequent releases generate the API service's migration-variable
 exclusion. Local development still reads `local/env/api.env` and uses its
 `DATABASE_URL`; this change does not alter the local management entrypoint.
+
+### Free-plan demo TLS
+
+On October 17, the requesting contributor explicitly approved `require` for this
+Free-plan demo. Traffic remains encrypted, but the database server's identity is
+not verified. This exception applies to both runtime and migration connections;
+verified TLS remains the default and the target before storing production data.
+No dependency, database-role, or service-topology change is needed.
+
+Before deploying the settings fix, edit the file **on the VM**:
+
+```bash
+sudo nano /etc/indoor-nav/api.env
+```
+
+1. Set `PGSSLMODE=require`.
+2. Remove the `PGSSLROOTCERT` line. `sslrootcert=system` is incompatible with
+   `require`, and other CA files can activate certificate verification.
+3. In **both** `DATABASE_URL` and `DATABASE_MIGRATOR`, change any `sslmode=verify-full`
+   query parameter to `sslmode=require` and remove any `sslrootcert` parameter.
+   URLs without either parameter can stay as they are; settings supply the mode.
+   Keep the two distinct logins and all other connection details unchanged.
+4. Save, then commit/push the settings fix and merge it into `main` to trigger a
+   fresh CI/deployment run. If deploying manually, use **CI → Run workflow → main**
+   with **deploy** enabled after the merge. Do not rerun the failed deploy job
+   alone: its attempt-specific artifact name no longer matches the package
+   artifact from the earlier attempt.
+
+Settings reject plaintext-capable modes, mismatched URL/environment modes, and
+CA options left in the demo configuration. Revert to `PGSSLMODE=verify-full`,
+matching URL modes, and an appropriate `PGSSLROOTCERT` when verified TLS becomes
+available. See [PostgreSQL connection parameters](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-SSLROOTCERT)
+for the special behavior of `sslrootcert=system`.
 
 ## First release and automatic releases
 
@@ -209,7 +248,10 @@ Data. Recovery exercises must restore DB records and matching private assets.
 - [Change classifier](../scripts/ci_changes.py) and [release packager](../scripts/package_release.py)
 - [Server installer](../infra/install-server.sh), [upload script](../infra/upload-release.sh),
   [activation controller](../infra/deploy.py), [environment template](../infra/api.env.example)
-- [Production static configuration](../apps/api/config/settings/production.py)
+- [Production TLS/static configuration](../apps/api/config/settings/production.py)
+  and [configuration regression tests](../apps/api/tests/test_configuration.py)
+- [Architecture baseline](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)
+  and [infrastructure TLS policy](initial/Indoor_Navigation_Infrastructure_Integration_EN.md#32-tls-and-certificate-verification)
 - [Release failure tests](../infra/tests/test_deploy.py),
   [package/input tests](../infra/tests/test_package_release.py),
   [infrastructure entrypoint](../infra/README.md)
@@ -232,3 +274,9 @@ configuration into one `api.env`. Regression coverage also checks migration
 connection selection, a missing migration connection failing before Django starts,
 and normal management/API processes excluding the migration variable. No dependency
 or service-topology change accompanies this configuration simplification.
+
+Demo TLS fix verification: all 18 configuration tests passed, including effective
+Django/libpq options for the default and demo modes, demo deployment checks,
+plaintext rejection, and URL/CA conflict rejection. Ruff lint/format and Git
+whitespace checks passed. The VM environment and live release still need the
+steps above; this local result does not claim a successful database connection.

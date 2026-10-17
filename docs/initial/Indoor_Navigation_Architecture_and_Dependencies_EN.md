@@ -56,6 +56,13 @@ flowchart TB
 
 The first production deployment has one Vultr Linux VM for the reverse proxy, API, workers, broker, and private MCP adapter. Tiger Data is the PostgreSQL server; it is not an additional database layered on another production PostgreSQL instance. A native local PostgreSQL service is a development/test substitute with a compatible major version and selected extensions. Use WSL2/Linux for a local Celery/Redis integration profile on Windows; ordinary Django/Angular development can remain on Windows.
 
+**Approved demo exception, October 17, 2026:** the requesting contributor approved
+`PGSSLMODE=require` for the Tiger Data Free-plan demo after certificate verification
+blocked the first deployment. This encrypts database traffic without verifying
+the server's identity. Verified TLS remains the default and the production target
+shown above; see the [deployment configuration](../deployment.md#free-plan-demo-tls)
+for the scoped exception and return to `verify-full`.
+
 The API and workers share the same backend codebase and domain rules. Separate processes isolate slow image/model work from request handling. Two bounded queues prevent a long authoring job from occupying the only localization execution slot. If the VM cannot support both workloads, suspend authoring during a walk and record that operating limit.
 
 Keep media and index bundles in persistent directories outside releases initially. Object storage is an interchangeable storage adapter when required. Database rows store identity, ownership, revisions, associations, review state, and artifact locations; photographs and model binaries do not need to be database blobs. Back up metadata and assets as one recoverable publication set.
