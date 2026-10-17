@@ -56,9 +56,9 @@ uv run python manage.py build_reference_index <revision_uuid> --email you@exampl
 
 ## Still later
 
-- Visitor match against this index — draft:
+- Visitor match against this index — **backend done**:
   [localization-visitor-match.md](localization-visitor-match.md)
-  (`feature/visitor-localization-match`)
+  (`feature/visitor-localization-match`); frontend UI is teammates’ work
 - `LocalizationResult` / Capture persistence
 - Multi-angle authoring UX / full visitor navigation loop
 - Auto-build on photo upload; Celery; publish gates

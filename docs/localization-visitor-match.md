@@ -1,156 +1,113 @@
-# Visitor localization against stored MegaLoc indexes (draft)
+# Visitor localization against stored MegaLoc indexes
 
 **Branch:** `feature/visitor-localization-match`  
-**Status:** Draft plan — not implemented yet.  
-**Depends on:** [localization-megaloc.md](localization-megaloc.md) (developer embed + store, merged via PR #13).  
+**Status:** Backend implemented (no frontend UI in this PR).  
+**Depends on:** [localization-megaloc.md](localization-megaloc.md) (developer embed + store).  
 Personal history: ignored `local/ACTIONS.md`.
 
 ## Goal
 
-Let a **visitor** submit a camera JPEG (no floor prompt) and get back **which floor and node** by MegaLoc cosine search over **all ready floor-map index zips**.
+Visitor submits a camera JPEG (**no floor prompt**). MegaLoc embeds once and cosine-searches the **union of all ready floor index zips**. Response includes building/floor/target/node + decision.
 
 ```text
-Developer half (done)
-  Per MapTarget/floor revision: ReferencePhotos → MegaLoc → index zip on RevisionArtifact
-
-Visitor half (this branch)
-  JPEG frame only (no floor / target / revision from the user)
-    → embed once with MegaLoc
-    → cosine vs every ready floor index (published preferred)
-    → best global hit → building/floor/target + node_id + decision
+JPEG → Django POST /api/navigation/localize/
+  → sync ready RevisionArtifact index zips to place-match catalog
+  → POST engine /v1/match-global
+  → JSON: decision, node_id, target_id, floor_id, building_id, …
 ```
 
-## Design decision (updated)
+Frontend is owned by teammates; this document is the **API handoff**.
 
-**Do not ask the user which floor they are on.** The app does not rely on GPS for indoor floor. Instead:
+## Design
 
-1. Embed the visitor photo **once**.  
-2. Score it against **all** eligible MegaLoc indexes (one gallery per floor map revision).  
-3. Take the **global** top candidate(s); the winning reference’s index carries `target_id` / `revision_id` / `node_id` (and thus floor).
+- **Eligible indexes:** current `Publication` revisions with `RevisionArtifact(kind=index, state=ready)`. When `DEBUG=True`, also unfrozen draft revisions with a ready index.
+- **Engine:** [`placematch/catalog_index.py`](../apps/place-match/placematch/catalog_index.py) + `/v1/catalog`, `/v1/catalog/sync`, `/v1/match-global` on [`mobile_api.py`](../apps/place-match/placematch/mobile_api.py).
+- **Django:** [`maps/services/index_catalog.py`](../apps/api/maps/services/index_catalog.py), [`navigation/services/placematch.py`](../apps/api/navigation/services/placematch.py), [`LocalizeView`](../apps/api/navigation/views.py) (default `mode=global`; `mode=legacy` keeps old single-set match).
+- **Cross-floor guard:** if top-1/top-2 are different `target_id` and cosine margin is thin → `uncertain`.
+- **Not in this PR:** Angular UI, Capture/`LocalizationResult` persistence, Vertex/verify on global path.
 
-Indexes remain stored **per revision** (one floor version each). Search is **cross-floor**, not “one big floorplan embedding.”
+## Frontend handoff — `POST /api/navigation/localize/`
 
-Optional **debug** query params (`revision_id` / `target_id`) may restrict search for developers; they are not part of the visitor UX.
+Auth: session user, navigation capability, or DEBUG `PLACEMATCH_DEV_TOKEN` (same as before).
 
-## What already exists
+Multipart:
 
-| Piece | Role |
+| Field | Content |
 | --- | --- |
-| Index zip on `RevisionArtifact` | `vectors.npy`, `index.txt`, `meta.json`, `locations.json` (`image_id` → `node_id`) |
-| place-match `/v1/match` | MegaLoc match against a **single** named reference set |
-| Django `/api/navigation/localize/` | Forwards one frame to the engine; no multi-index / floor resolution yet |
-| iOS / live-locate | Capture UI; still assumes a fixed engine set today |
+| `image` | JPEG ≤ 3 MiB, ≤ 4096 px longest side |
+| `meta` | JSON e.g. `{"client_frame_id": 1, "timestamp_s": 1.0}` |
 
-## Design (chosen for first implementation)
+Query (optional):
 
-### 1. Which indexes are eligible
+| Param | Meaning |
+| --- | --- |
+| *(none)* | Global search (default) |
+| `revision_id` / `target_id` | Debug: restrict catalog to one revision or floor target |
+| `mode=legacy` | Old single reference-set `/v1/match` (engine default set) |
 
-Default visitor catalog:
-
-- Each `MapTarget` (floor) with a **current `Publication`**, and  
-- That publication’s revision has `RevisionArtifact(kind=index, state=ready)`.
-
-Dev/DEBUG may also include unfrozen drafts with a ready index (membership-gated), so testers can run without a full publish loop.
-
-If **no** ready indexes exist → `503` / `index_not_ready`.
-
-### 2. Global search mechanics
-
-- MegaLoc **embed query once** (same backend key as embed half, e.g. `megaloc:5fe0dd6:322x322`).  
-- Load each eligible index zip into the engine (or one concatenated gallery with per-row metadata: `target_id`, `revision_id`, `node_id`, `reference_id`).  
-- Cosine top-k **across the union**; apply existing place-match decision thresholds on the global ranking (or calibrated multi-set policy: margin vs 2nd place, including 2nd place on another floor).  
-- Response includes floor context derived from the winning target (`building` / `floor` / `target_id` / `revision_id` / `node_id`).
-
-**Risk:** visually similar corridors on different floors. Mitigation for v1: keep calibrated `uncertain` when top-1 and top-2 are close (especially cross-target); do not invent a floor. Optional later: building filter if outdoor/context ever provides building only (still no floor prompt).
-
-### 3. Engine / Django split
-
-- **place-match:** support multi-set or merged-index match from zips (vectors + locations + set metadata); still no torch in Django.  
-- **Django:** list eligible artifacts, ensure engine has them loaded (keyed by asset sha256 / `input_content_hash`), forward JPEG, map engine hit → SnapWay IDs.
-
-Reject re-implementing MegaLoc inside the API venv.
-
-### 4. API contract (Django)
-
-```http
-POST /api/navigation/localize/
-multipart: image (JPEG) + meta (JSON)
-# visitor: no floor fields required
-# optional debug: revision_id=… or target_id=… to search one gallery only
-```
-
-Example success body:
+Success **200** (shape abbreviated):
 
 ```json
 {
-  "decision": "likely_match",
+  "decision": {
+    "outcome": "likely_match",
+    "node_id": "<uuid>",
+    "location_id": "<uuid>",
+    "revision_id": "<uuid>",
+    "target_id": "<uuid>",
+    "reference_id": "reference:…",
+    "reasons": ["…"]
+  },
   "node_id": "<uuid>",
-  "revision_id": "<uuid>",
   "target_id": "<uuid>",
   "floor_id": "<uuid>",
   "building_id": "<uuid>",
-  "reference_id": "…",
-  "backend_used": "megaloc",
+  "floor_code": "4",
+  "floor_name": "…",
+  "building_name": "…",
+  "building_slug": "…",
   "candidates": [ … ],
-  "timings_ms": { … }
+  "backend_used": "megaloc",
+  "timings_ms": { … },
+  "caller": "user"
 }
 ```
 
-**Auth for v1 (dev):** existing localize auth (session / nav capability / DEBUG token). Full visitor `NavigationSession` productization later.
+`outcome` is `likely_match` | `uncertain` | `no_supported_match`.
 
-**Out of scope for first PR:** `Capture` / `LocalizationResult` persistence (frame retention).
+Errors:
 
-### 5. Minimal tester UI
+| Status | `error` | When |
+| --- | --- | --- |
+| 503 | `index_not_ready` | No ready indexes in catalog |
+| 503 | `not_configured` / `unavailable` | Engine URL/token missing or down |
+| 415 / 413 / 400 | `invalid_image` / validation | Bad JPEG / meta |
 
-Upload/capture one JPEG → show **floor + node + decision** (no floor picker). Debug-only optional “limit to revision” control behind a flag.
+## How to run (backend)
 
-## Non-goals (this branch)
+```sh
+# Terminal 1 — engine
+cd apps/place-match
+uv sync
+uv run python -c "from placematch.backends.megaloc import download; download()"
+uv run placematch serve-mobile
 
-- Prompting the user for floor / map  
-- Multi-angle authoring UX  
-- Auto-rebuild index on photo upload  
-- Celery / Cloud Run hosting  
-- Continuous tracking / IMU  
-- Persisting visitor frames  
-- Vertex / geometric verification (MegaLoc-only defaults)
+# local/.env — PLACEMATCH_ENGINE_URL=http://127.0.0.1:8790 and matching TOKEN
 
-## Implementation slices
+# Terminal 2 — API
+python scripts/dev.py api
 
-| Slice | Work |
-| --- | --- |
-| A | place-match: load many index zips; match query vs union (metadata per row) |
-| B | Django: discover eligible published (and DEBUG draft) indexes; sync to engine; localize → floor + node |
-| C | Tests: multi-floor fake indexes; correct floor wins; uncertain when scores collide |
-| D | Tester UI: photo in → floor/node out (no floor prompt) |
-| E | Docs mark implemented; keep link from `localization-megaloc.md` |
+# Build indexes on drafts (DEBUG) or publish revisions, then:
+# POST /api/navigation/localize/ with JPEG + meta (no floor fields)
+```
 
-Order: **A → B → C → D → E**.
+## Tests
 
-## Env
-
-| Variable | Role |
-| --- | --- |
-| `PLACEMATCH_ENGINE_URL` / `TOKEN` / `TIMEOUT_S` | Django → engine |
-| `S3_*` / `MEDIA_ROOT` | Read index Asset bytes |
-
-No new keys required for the design change. Scale note: embedding once + scoring all refs is fine for demo floor counts; revisit if galleries grow huge.
-
-## How to verify (once built)
-
-1. Build ready indexes on **two** floor revisions (different photos).  
-2. Run engine + API with `PLACEMATCH_ENGINE_*`.  
-3. `POST /localize/` with a photo from floor A **without** floor params.  
-4. Expect `likely_match` (or calibrated `uncertain`) and `target_id` / `node_id` for floor A.
-
-## Open points
-
-- Exact catalog: published-only vs DEBUG drafts.  
-- Engine: merged matrix vs N sequential score merges (same math).  
-- Thresholds when top-2 are different floors.  
-- Cache invalidation when any floor’s index is rebuilt.
+- `apps/api/tests/test_localize_global.py` — catalog eligibility, global localize enrichment, empty catalog (mocked engine).
+- `apps/api/tests/test_localization.py` — legacy `mode=legacy` path.
+- `apps/place-match/tests/test_catalog_index.py` — cross-target uncertain helper.
 
 ## Commits / evidence
 
-- Draft opened on `feature/visitor-localization-match` (2026-10-17).  
-- Design update: **global multi-floor search, no floor prompt** (2026-10-17).  
-- Implementation commits TBD.
+- Draft + multi-floor design on this branch (2026-10-17).
+- Backend global catalog + localize (2026-10-17).

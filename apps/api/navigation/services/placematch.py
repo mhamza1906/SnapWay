@@ -120,3 +120,90 @@ def thumbnail(reference_set: str, reference_id: str) -> EngineResponse:
 def megaloc_index(reference_set: str) -> dict:
     path = f"/v1/references/{urllib.parse.quote(reference_set, safe='')}/megaloc-index"
     return _send(urllib.request.Request(_url(path))).json()
+
+
+def catalog_get() -> dict:
+    return _send(urllib.request.Request(_url("/v1/catalog"))).json()
+
+
+def catalog_sync(desired: list[dict], zips: dict[str, bytes]) -> dict:
+    """Push desired catalog sets; ``zips`` only for new/changed ``set_key`` values."""
+    boundary = f"snapway-{secrets.token_hex(12)}"
+    parts: list[bytes] = [
+        (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="meta"\r\n'
+            "Content-Type: application/json\r\n\r\n"
+        ).encode()
+        + json.dumps({"sets": desired}).encode()
+        + b"\r\n"
+    ]
+    for set_key, raw in zips.items():
+        parts.append(
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="zip_{set_key}"; '
+                f'filename="{set_key}.zip"\r\n'
+                "Content-Type: application/zip\r\n\r\n"
+            ).encode()
+            + raw
+            + b"\r\n"
+        )
+    parts.append(f"--{boundary}--\r\n".encode())
+    request = urllib.request.Request(
+        _url("/v1/catalog/sync"),
+        data=b"".join(parts),
+        method="POST",
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    return _send(request).json()
+
+
+def match_global(image: bytes, meta: dict) -> dict:
+    boundary = f"snapway-{secrets.token_hex(12)}"
+    parts = [
+        (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="meta"\r\n'
+            "Content-Type: application/json\r\n\r\n"
+        ).encode()
+        + json.dumps(meta).encode()
+        + b"\r\n",
+        (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="image"; filename="frame.jpg"\r\n'
+            "Content-Type: image/jpeg\r\n\r\n"
+        ).encode()
+        + image
+        + b"\r\n",
+        f"--{boundary}--\r\n".encode(),
+    ]
+    request = urllib.request.Request(
+        _url("/v1/match-global"),
+        data=b"".join(parts),
+        method="POST",
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    return _send(request).json()
+
+
+def ensure_catalog_synced(entries: list) -> dict:
+    """Compare engine catalog hashes and upload missing/stale index zips."""
+    from maps.services.media_store import read_bytes
+
+    remote = catalog_get()
+    remote_by_key = {s["set_key"]: s.get("content_hash") for s in remote.get("sets", [])}
+    desired = [
+        {
+            "set_key": e.set_key,
+            "content_hash": e.content_hash,
+            "revision_id": e.revision_id,
+            "target_id": e.target_id,
+        }
+        for e in entries
+    ]
+    zips: dict[str, bytes] = {}
+    for e in entries:
+        if remote_by_key.get(e.set_key) != e.content_hash:
+            zips[e.set_key] = read_bytes(e.storage_key)
+    return catalog_sync(desired, zips)
