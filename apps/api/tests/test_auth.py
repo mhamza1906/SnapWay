@@ -28,6 +28,7 @@ def test_auth_me_authenticated():
     assert payload["email"] == "mapper@example.com"
     assert payload["is_staff"] is False
     assert payload["is_superuser"] is False
+    assert payload["memberships"] == []
 
 
 @pytest.mark.django_db
