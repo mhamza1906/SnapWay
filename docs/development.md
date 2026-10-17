@@ -5,6 +5,10 @@ architecture are indexed in [initial/README.md](initial/README.md). This guide
 describes implemented setup behavior; the initial files retain their original
 planning status and content.
 
+For the interactive frontend, use the [prototype walkthrough](frontend-prototype.md).
+Its Local Storage service and simulated AI/device flows run without the API; this
+guide remains the initialization and backend/toolchain reference.
+
 ## Toolchain and locked dependencies
 
 | Layer | Selected line / manager |
@@ -90,7 +94,8 @@ uv run --locked python apps/api/manage.py createsuperuser
 
 Google allauth is installed but no Google OAuth route or provider is enabled.
 Provider SDKs likewise remain inactive. No application authoring job, paid API
-call or guest-navigation capability is implemented.
+call or server-backed guest-navigation capability is implemented. The separate
+frontend prototype exercises these workflows locally with explicit simulations.
 
 ## Development commands and health
 

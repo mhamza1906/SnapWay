@@ -265,9 +265,33 @@ checkpoint hashes are recorded below as each milestone completes.
 ### Implementation checkpoint
 
 - Initial scope and Figma smoke-test record: commit `d0711db`.
+- Interactive application and first Figma sync: commit `984b00d`.
 - First screen sync: [Overview, frame 8:2](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-2).
   Readback: 100 editable text nodes, 84 vectors, 248 frames and 3 shared-component
   instances, with zero missing fonts or UI raster images. Screenshot inspected.
 - Format check passed; 51 tests across 8 files passed in 2.70 seconds of runner
   time. Production build passed with no bundle warnings. Original 14 documents
   still match their migration inventory. Additional final validation follows.
+
+### Final code validation
+
+- **57 tests / 10 files passed**, runner time 3.23 seconds. Added regressions cover
+  canonical room-name search, capture fragments in full-screen routes and actual
+  `File`/`FileReader` upload behavior (jsdom image decoding is simulated).
+- Formatting passed. Production build: 326.36 kB initial JS/CSS, estimated 92.20 kB
+  transfer; no budget warnings. Visitor build: 230.40 kB initial, 78.68 kB lazy
+  navigation. These numbers exclude the separately served 352,240-byte font asset.
+- `cap sync android` passed. Native Gradle build, emulator and real-device hardware
+  tests were not run. Camera/location/AR/provider behavior remains simulated.
+- Browser acceptance covered persisted room edits, submission, publication of v4,
+  visitor readback, reference/AI proposal controls, manual route/arrival, camera
+  recovery and mobile navigation/editor layouts. No horizontal overflow was found
+  at the tested 390 px mobile width.
+- Automated browser file attachment was blocked by the Chrome extension's disabled
+  **Allow access to file URLs** permission. File validation, data-URL persistence,
+  decode failure and stale-upload recovery passed component tests; this is not a
+  claim of a completed browser file-upload test. The ordinary input and synthetic
+  sample workflows remain available for manual testing.
+- The backend, dependency manifests/locks and preserved initial documentation are
+  unchanged. CI configuration remains as initialized; these are local validation
+  results, not a claim that a new remote CI run passed.

@@ -118,4 +118,45 @@ describe('visitor navigation session', () => {
     expect(page.session()).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('No published maps yet');
   });
+
+  it('searches and displays canonical room names while preserving custom checkpoint labels', async () => {
+    const { page, targets, fixture } = await setup();
+    const id = page.session()!.id;
+    targets.update((items) =>
+      items.map((target) => {
+        if (target.id !== id) return target;
+        const next = structuredClone(target);
+        const room = next.published!.document.rooms[0];
+        room.name = 'Studio 777';
+        next.published!.document.nodes.find((node) => node.roomId === room.id)!.label =
+          'North studio doorway';
+        return next;
+      }),
+    );
+    page.refreshPublication();
+    const before = JSON.stringify(page.map());
+    page.query.set('777');
+    await fixture.whenStable();
+    expect(page.destinations()).toHaveLength(1);
+    expect(page.destinations()[0].label).toBe('Studio 777');
+    expect(fixture.nativeElement.querySelector('.destination-list').textContent).toContain(
+      'Studio 777',
+    );
+    page.query.set('doorway');
+    expect(page.destinations()[0].label).toBe('Studio 777');
+    page.chooseDestination(page.destinations()[0].id);
+    expect(page.destinationNode()?.label).toBe('Studio 777');
+    expect(page.map().nodes.find((node) => node.id === page.destination())!.label).toBe(
+      'North studio doorway',
+    );
+    expect(JSON.stringify(page.map())).toBe(before);
+    expect(
+      fixture.nativeElement.querySelectorAll(
+        '.connection[role="button"], .annotation[role="button"]',
+      ),
+    ).toHaveLength(0);
+    expect(fixture.nativeElement.querySelectorAll('.room[role="button"]').length).toBeGreaterThan(
+      0,
+    );
+  });
 });

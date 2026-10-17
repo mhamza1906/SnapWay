@@ -23,7 +23,7 @@ svg {
   letter-spacing: 2px;
 }
 .room {
-  cursor: pointer;
+  cursor: default;
   outline: none;
   rect {
     fill: #fff;
@@ -65,7 +65,7 @@ svg {
   font-size: 18px;
 }
 .connection {
-  cursor: pointer;
+  cursor: default;
   outline: none;
   .edge-hit {
     stroke: transparent;
@@ -92,7 +92,7 @@ svg {
   pointer-events: none;
 }
 .waypoint {
-  cursor: pointer;
+  cursor: default;
   outline: none;
   .node-hit {
     fill: transparent;
@@ -131,7 +131,7 @@ svg {
   pointer-events: none;
 }
 .annotation {
-  cursor: pointer;
+  cursor: default;
   outline: none;
   .pin {
     fill: #df754c;
@@ -195,4 +195,8 @@ svg {
   * {
     transition: none !important;
   }
+}
+
+[role='button'] {
+  cursor: pointer;
 }

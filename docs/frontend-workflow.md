@@ -41,11 +41,11 @@ bidirectional file watcher. Captured layers are not automatically library compon
 native components/variables need the supported
 [canvas-writing workflow](https://developers.figma.com/docs/figma-mcp-server/write-to-canvas/).
 
-The test imported the existing initialization interface from an ignored copy of
+The connection test imported the then-current initialization interface from an ignored copy of
 the built web app, served on loopback only. Its source remains
 [the workspace](../apps/web/src/app/features/workspace/workspace.ts),
 [app shell](../apps/web/src/app/app.html), and
-[styles](../apps/web/src/styles.scss), unchanged from initialization commit
+[styles](../apps/web/src/styles.scss), at initialization commit
 [`e79a65b`](https://github.com/mhamza1906/SnapWay/commit/e79a65b9f7b7f64227d06bb0a7536566ead31d38).
 
 - Readback: 45 descendants, comprising 20 native text nodes and 25 frames;
@@ -67,3 +67,7 @@ part of this minimum test; no application source or dependency was changed.
 
 This document summarizes the setup entries in the private action history; the
 links above identify the local files created by this preparation.
+
+The subsequent [interactive frontend prototype](frontend-prototype.md) now owns
+product pages, its own Figma file, component synchronization and test evidence.
+The connection-test file remains a historical setup check.

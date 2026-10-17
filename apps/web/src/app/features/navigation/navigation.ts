@@ -60,15 +60,24 @@ export class NavigationPage {
   readonly suggestedBuilding = signal('');
   readonly cameraOpen = signal(false);
   readonly outcome = signal<CaptureOutcome>('accepted');
+  readonly destinationOptions = computed(() =>
+    this.map().nodes.map((node) => ({
+      ...node,
+      label: this.map().rooms.find((room) => room.id === node.roomId)?.name ?? node.label,
+      checkpointLabel: node.label,
+    })),
+  );
   readonly destinations = computed(() => {
-    const roomNodes = this.map().nodes.filter((node) => node.roomId);
-    const candidates = roomNodes.length ? roomNodes : this.map().nodes;
+    const roomNodes = this.destinationOptions().filter((node) => node.roomId);
+    const candidates = roomNodes.length ? roomNodes : this.destinationOptions();
     return candidates.filter((node) =>
-      node.label.toLowerCase().includes(this.query().trim().toLowerCase()),
+      `${node.label} ${node.checkpointLabel}`
+        .toLowerCase()
+        .includes(this.query().trim().toLowerCase()),
     );
   });
   readonly destinationNode = computed(() =>
-    this.map().nodes.find((node) => node.id === this.destination()),
+    this.destinationOptions().find((node) => node.id === this.destination()),
   );
   readonly startNode = computed(() => this.map().nodes.find((node) => node.id === this.start()));
   readonly route = computed(() =>

@@ -20,9 +20,9 @@ export class App {
   readonly url = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
-      map((event) => event.urlAfterRedirects),
+      map((event) => event.urlAfterRedirects.split(/[?#]/)[0]),
     ),
-    { initialValue: this.router.url },
+    { initialValue: this.router.url.split(/[?#]/)[0] },
   );
   readonly fullScreen = computed(() => /^\/(navigate|welcome)(\/|\?|$)/.test(this.url()));
   readonly mobileOpen = signal(false);

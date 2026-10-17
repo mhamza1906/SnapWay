@@ -9,7 +9,6 @@
   <title>Floor plan with rooms, walking connections and landmarks</title>
   <rect class="building" x="65" y="90" width="870" height="470" rx="5" />
   <path class="corridor" d="M 65 280 H 935 V 370 H 65 Z" />
-  <text class="corridor-label" x="500" y="339" text-anchor="middle">Main corridor</text>
   @for (room of document().rooms; track room.id) {
     <g
       class="room"
@@ -23,6 +22,7 @@
       (keydown.enter)="keySelect(room.id)"
       (keydown.space)="$event.preventDefault(); keySelect(room.id)"
     >
+      <title>{{ room.name }}</title>
       <rect
         [attr.x]="room.x"
         [attr.y]="room.y"
@@ -31,7 +31,9 @@
         rx="4"
       />
       <text class="room-kind" [attr.x]="room.x + 18" [attr.y]="room.y + 30">{{ room.kind }}</text>
-      <text class="room-name" [attr.x]="room.x + 18" [attr.y]="room.y + 57">{{ room.name }}</text>
+      <text class="room-name" [attr.x]="room.x + 18" [attr.y]="room.y + 57">
+        {{ roomLabel(room) }}
+      </text>
       @if (room.accessible) {
         <text
           class="accessible-symbol"
@@ -51,8 +53,8 @@
           class="connection"
           [class.blocked]="edge.blocked"
           [class.selected]="selected() === edge.id"
-          [attr.role]="canSelect() ? 'button' : null"
-          [attr.tabindex]="interactive() ? 0 : null"
+          [attr.role]="canInspect() ? 'button' : null"
+          [attr.tabindex]="canInspect() ? 0 : null"
           [attr.aria-label]="
             'Connection ' + edge.from + ' to ' + edge.to + (edge.blocked ? ', blocked' : '')
           "
@@ -110,8 +112,8 @@
     <g
       class="annotation"
       [class.selected]="selected() === annotation.id"
-      [attr.role]="canSelect() ? 'button' : null"
-      [attr.tabindex]="canSelect() ? 0 : null"
+      [attr.role]="canInspect() ? 'button' : null"
+      [attr.tabindex]="canInspect() ? 0 : null"
       [attr.aria-label]="annotation.type + ': ' + annotation.text"
       (click)="pick($event, annotation.id)"
       (keydown.enter)="keySelect(annotation.id)"

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { MapDocument } from '../core/prototype.models';
+import { MapDocument, Room } from '../core/prototype.models';
 
 /** Pure SVG presentation, shared by contributor and visitor bundles. */
 @Component({
@@ -15,7 +15,9 @@ export class MapCanvas {
   readonly position = input('');
   readonly interactive = input(false);
   readonly selectable = input(false);
+  readonly destinationsOnly = input(false);
   readonly canSelect = computed(() => this.interactive() || this.selectable());
+  readonly canInspect = computed(() => this.canSelect() && !this.destinationsOnly());
   readonly compact = input(false);
   readonly objectSelected = output<string>();
   readonly pointSelected = output<{ x: number; y: number }>();
@@ -37,15 +39,30 @@ export class MapCanvas {
     this.document().nodes.find((node) => node.id === this.position()),
   );
 
+  roomLabel(room: Room): string {
+    const limit = Math.max(1, Math.floor((room.width - 36) / 9));
+    const characters = Array.from(room.name);
+    return characters.length > limit ? `${characters.slice(0, limit - 1).join('')}…` : room.name;
+  }
+
   pick(event: MouseEvent, id: string): void {
-    if (!this.canSelect()) return;
+    if (!this.canPick(id)) return;
     event.stopPropagation();
     this.objectSelected.emit(id);
     this.point(event);
   }
 
   keySelect(id: string): void {
-    if (this.canSelect()) this.objectSelected.emit(id);
+    if (this.canPick(id)) this.objectSelected.emit(id);
+  }
+
+  private canPick(id: string): boolean {
+    return (
+      this.canSelect() &&
+      (!this.destinationsOnly() ||
+        this.document().rooms.some((room) => room.id === id) ||
+        this.document().nodes.some((node) => node.id === id))
+    );
   }
 
   point(event: MouseEvent): void {
