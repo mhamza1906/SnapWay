@@ -95,3 +95,34 @@ The [main smoke-check record](main-workflow-smoke-check.md) remains tied to its
 original main SHA; it does not describe the newly added Node service as missing
 from this acceptance branch. Manual review, revised audit structure and the final
 gap document remain pending. Detailed contributor history is in `local/ACTIONS.md`.
+
+### Credential boundaries and workflow clarification
+
+The requester supplied additional database/R2 configuration names. Their private
+location is `local/env/api.env`; missing names were added there as blank entries
+without replacing existing settings. `DATABASE_URL` is consumed by Django
+[development settings](../apps/api/config/settings/development.py). `R2_ACCOUNT_ID`,
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_BUCKET_NAME` are currently
+[template placeholders](../.env.example), with no configured R2 storage backend or
+runtime consumer. Filling them does not enable cloud uploads. See
+[Cloudflare's credential documentation](https://developers.cloudflare.com/r2/api/tokens/).
+The Node pipeline still uses its own `.env.prod` and local files
+([jobs](../apps/pipeline/server/map-jobs.js),
+[saved copies](../apps/pipeline/server/building-library.js)); it does not use the
+Django database or R2. No shared database connection, migration or cloud-storage
+operation was performed in this clarification.
+
+The original [required raster stage](initial/Indoor_Navigation_AI_and_Maps_Integration_EN.md#5-required-gpt-image-raster-adapter-and-conditional-opus-backup)
+specifies GPT Image raster editing/generation before Gemini vector modeling.
+Current [orchestration](../apps/pipeline/server/pipelines/smart-map.js) instead
+reads the original PDF/image directly: deterministic normalization and PDF vector
+hints, Vertex Gemini inventory/detail extraction, coverage reconciliation,
+semantic/opening checks, local geometry/graph validation, then editable results
+and human review. The Angular [AI build action](../apps/web/src/app/features/authoring/authoring.ts)
+also places explicitly assumed doorways after applying the checked proposal.
+SVGs and raster previews are rendered locally; there is no GPT Image call or
+automated Opus backup in this path. The configured default model ID remains
+`gemini-4-argon`; live availability is unverified. Offline tests do not satisfy
+the original raster-generation acceptance requirement. This is a recorded
+implementation difference, not approval to remove that requirement; no provider,
+API, dependency or architecture changes were made.
