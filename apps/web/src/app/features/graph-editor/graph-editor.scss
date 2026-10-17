@@ -38,6 +38,13 @@
   font-weight: 600;
 }
 
+.workspace-return {
+  display: inline-block;
+  margin: 0 0 8px 16px;
+  color: var(--blue);
+  font-size: 13px;
+}
+
 .lede {
   margin: 0;
   color: var(--muted);

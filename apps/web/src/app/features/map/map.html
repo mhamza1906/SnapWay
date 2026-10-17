@@ -4,7 +4,7 @@
     <nav aria-label="Account navigation">
       @if (contributorEnabled) {
         @if (auth.signedIn()) {
-          <a class="btn secondary small" routerLink="/graph-editor">Map workspace</a>
+          <a class="btn secondary small" routerLink="/overview">Open workspace</a>
           <a class="account-link" routerLink="/settings">{{ auth.name() }}</a>
           <button class="btn ghost small" (click)="auth.signOut()" [disabled]="auth.busy()">
             Sign out

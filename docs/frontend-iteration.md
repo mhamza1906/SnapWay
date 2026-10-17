@@ -28,6 +28,31 @@ deployment gate must remain enabled; an old server contract must block activatio
 rather than accepting missing configuration. PR checks and production activation
 are separate outcomes.
 
+### Merge and production verification
+
+PR [#11](https://github.com/mhamza1906/SnapWay/pull/11) merged into main as
+[`a0e6d79`](https://github.com/mhamza1906/SnapWay/commit/a0e6d79). All seven PR
+checks passed in [run 39064393074](https://github.com/mhamza1906/SnapWay/actions/runs/39064393074),
+including Linux, Windows and PostgreSQL. The retained iteration branch was
+fast-forwarded to that merge; subsequent acceptance notes continue here.
+
+Main [run 39064525583](https://github.com/mhamza1906/SnapWay/actions/runs/39064525583)
+passed all checks, packaging and automatic production activation. Independent
+HTTPS checks confirmed the exact new release, database readiness and both new
+public endpoints return HTTP 200. The public config currently reports **no Maps
+browser key** and **Google OAuth disabled**; discovery has zero published buildings.
+Deployment success therefore does not establish working production Google services.
+
+The deployment owner must populate `PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY`,
+`GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in the existing protected
+`/etc/indoor-nav/api.env`, reconcile the full `.6` contract, and restart the active
+Django service through the operations process. Use a production website-restricted
+Maps key and register the HTTPS OAuth callback listed below. Obtain values through
+the external private channel; do not blindly upload the laptop env or replace
+production database/Django secrets. Reload the browser after restart and run a
+production map/login smoke test. The remote private env was not inspected or
+modified during this merge. Local credentials remain only in ignored `local/.env`.
+
 ## Scope
 
 Follow the [architecture](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)
@@ -40,6 +65,30 @@ Ordinary email/password registration with verified email remains future work;
 the current backend enables social login only. No new dependency was introduced.
 
 ## Connected application behavior
+
+Local recovery/navigation correction: a running Django process returned 500 from
+`/api/client-config/` because its loaded settings lacked
+`PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY`, despite the current source defining it.
+Restarting the verified project Django process restored HTTP 200 directly and
+through the Angular proxy on both localhost and 127.0.0.1. Restart Django after
+branch changes affecting settings rather than relying only on its autoreloader.
+No private env value or backend API contract was changed for this repair.
+
+The map header's **Open workspace** now enters `/overview` and its complete
+sidebar instead of bypassing it for the fullscreen graph editor. That editor
+also provides **Back to workspace**. Existing target, contribution, AI authoring,
+review, activity, settings and help routes were preserved and individually opened
+through their visible navigation links. They retain their documented prototype
+versus backend-connected boundaries. The existing map regression test now checks
+the workspace destination; all 70 frontend tests and the web build pass.
+
+Design iteration direction: the requesting contributor's explicit page and
+interaction requirements govern the next redesign, preserving existing API
+contracts. The optional personal `frontend-design` and `angular-developer`
+downloads under ignored `local/skills/` are inactive references and should not
+be proactively loaded unless explicitly requested again. They were never
+registered for automatic skill discovery; this is a workflow preference, not
+an application dependency change.
 
 - `/` redirects to `/map`: a public Google map, building/address search, clickable
   published-building markers, floor summaries and Google Maps walking directions.
@@ -297,6 +346,19 @@ No map role or administrator privilege was granted. Angular proxy login on port
 4200, production/native login and live logout remain unverified; the current
 session was retained for further development. Maps interaction/GPS acceptance
 remain separate from this OAuth result.
+
+Subsequent frontend diagnosis inspected another live Google error: its rejected
+callback was `http://localhost:4200/accounts/google/login/callback/`. The earlier
+successful frontend session used `127.0.0.1:4200`; that registration does not cover
+`localhost:4200`. Add the exact localhost callback to the same running OAuth
+client's **Authorized redirect URIs**, preserve the existing entries, save, and
+start a fresh login from `http://localhost:4200/welcome`. Alternatively, keep
+development on the already validated `http://127.0.0.1:4200/` origin. These hosts
+also have separate browser sessions. No application, env-template, private-env or
+Console setting was changed during this diagnosis. The contributor subsequently
+confirmed the callback configuration was repaired and authorized pushing and
+merging these updates. This is contributor-reported resolution; the previously
+recorded agent-observed login acceptance remains specific to 127.0.0.1.
 
 The earlier local env validator separately reported shared-default drift for
 `S3_ENDPOINT_URL` and `S3_BUCKET_NAME`. Values were not printed or overwritten.

@@ -223,8 +223,10 @@ h1 {
 }
 @media (max-width: 760px) {
   .map-header {
-    height: 64px;
-    padding: 0 18px;
+    min-height: 64px;
+    height: auto;
+    padding: 12px 18px;
+    gap: 12px;
   }
   .map-layout {
     height: auto;
@@ -241,6 +243,8 @@ h1 {
   }
   .map-header nav {
     gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   .account-link {
     max-width: 95px;
