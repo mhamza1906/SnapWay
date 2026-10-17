@@ -66,6 +66,14 @@ the current backend enables social login only. No new dependency was introduced.
 
 ## Connected application behavior
 
+Design iteration direction: the requesting contributor's explicit page and
+interaction requirements govern the next redesign, preserving existing API
+contracts. The optional personal `frontend-design` and `angular-developer`
+downloads under ignored `local/skills/` are inactive references and should not
+be proactively loaded unless explicitly requested again. They were never
+registered for automatic skill discovery; this is a workflow preference, not
+an application dependency change.
+
 - `/` redirects to `/map`: a public Google map, building/address search, clickable
   published-building markers, floor summaries and Google Maps walking directions.
   Only buildings with a current, non-invalidated publication on an open target
