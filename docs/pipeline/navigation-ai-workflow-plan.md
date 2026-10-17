@@ -207,6 +207,8 @@ Flash 接收选中对象、限定区域和当前修订，返回结构化 ChangeS
 
 若要求箭头/位标在移动相机中稳定附着于真实位置，则进入**世界坐标配准阶段**：需要相机内参、持续姿态/视觉惯性跟踪、地图与跟踪坐标对齐、真实尺度以及跟踪丢失恢复。四向照片 + 周期 LLM 识别只提供位置/朝向假设，不自动产生连续 6DoF 相机位姿；首版不承诺该效果。ARCore 用视觉特征和惯性数据进行跟踪，集成与地图配准仍是独立工程。[ARCore 基本原理](https://developers.google.com/ar/develop/fundamentals)
 
+后续[Google Indoor Live View 技术研究](indoor-live-view-research.md)给出公开证据、云端定位与本地跟踪的对齐原理，以及 COLMAP/hloc/LightGlue/OpenVINS 等候选。其研究建议是额外的受控试验，不代表主系统已引入这些依赖或替换本计划指定的 Gemini 工作流。
+
 ## 10. 与现有仓库的映射及缺口
 
 | 现有基础 | 可复用职责 | 仍需实现/约定 |

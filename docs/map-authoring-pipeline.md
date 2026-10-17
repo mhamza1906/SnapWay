@@ -180,3 +180,10 @@ durable uploads, capture backpressure, review gates and proposed acceptance.
 Continuous world-registered AR remains a separate, unverified capability.
 This update changes documentation only; existing APIs/schema/dependencies and
 paid-call settings remain unchanged.
+
+The [Indoor Live View research note](pipeline/indoor-live-view-research.md)
+separates Google disclosures from inference about its private indoor product.
+It explains server visual localization plus local visual-inertial pose tracking,
+compares open-source reconstruction/localization/tracking components, and proposes
+isolated alignment and markerless-location experiments without changing runtime
+architecture, model choices or demo boundaries.
