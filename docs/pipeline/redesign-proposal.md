@@ -250,3 +250,9 @@ semantic annotation, alongside direct tracing of the original source. Public
 Figma native-vectorize access was not found; local VTracer and the documented
 commercial API are candidates, not installed or integrated dependencies. Retain
 source registration, canonical geometry, topology, review and total-cost gates.
+
+The audit's subsequent Vector Magic investigation makes commercial tracing
+experiments conditional on a supported API contract and written clarification
+of downstream AI/ML processing and comparison rights. Public Vector Magic and
+Vectorizer.AI terms do not establish permission for the planned workflow; no
+commercial trial is authorized by this proposal alone.

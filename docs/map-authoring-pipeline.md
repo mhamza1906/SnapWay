@@ -145,3 +145,10 @@ public API investigation. Dedicated tracing plus separate semantic extraction is
 proposed for the next controlled trial; VTracer and a commercial API remain
 untested. No runtime/API/dependency changes or additional model calls accompany
 this audit; Figma latency and credits were not instrumented.
+
+The same report's [Vector Magic follow-up](audits/2026-10-17-figma-vectorization.md)
+now distinguishes desktop batch conversion from a supported current cloud API.
+Current API onboarding is unverified; published Vector Magic and Vectorizer.AI
+terms require clarification/authorization for downstream AI processing and the
+planned comparisons. Commercial candidates remain conditional, with no purchase,
+upload, software installation or supplier message made for this investigation.
