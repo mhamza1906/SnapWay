@@ -104,4 +104,4 @@ payload for the visitor app; that integration is separate work.
 
 ## Commits
 
-- Pending: recorded after the first commit on `feature/mobile-ios`.
+- `4dd1045` feat(ios): add Capacitor iOS visitor app with phone layout
