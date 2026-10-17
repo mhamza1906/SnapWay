@@ -303,7 +303,7 @@ checkpoint hashes are recorded below as each milestone completes.
 
 ### Final Figma synchronization
 
-The 15 review frames below cover the main journeys and selected interaction states.
+The 14 review frames below cover the main journeys and selected interaction states.
 Text, vectors and layout layers are editable. Shared foundations use the app's
 Inter typography and CSS color tokens. Desktop navigation and the 390 px mobile
 view include an active route; the AI frame shows the explicit Apply/Discard gate.
@@ -311,25 +311,62 @@ Screenshots were inspected, including correction of mobile map scaling after
 import. Figma snapshots do not execute the Local Storage workflows; use the local
 app for behavior testing.
 
-| View or state | Editable Figma frame |
+| Exact frame name in Figma | Editable Figma frame |
 | --- | --- |
-| Workspace overview | [8:2](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-2) |
-| Mapping targets | [21:828](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-828) |
-| Target detail | [21:1232](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1232) |
-| Map editor | [21:1794](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1794) |
-| Contributions | [21:2713](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2713) |
-| Review queue | [21:2938](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2938) |
-| Review comparison | [21:3248](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-3248) |
-| Activity | [21:4060](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4060) |
-| Settings | [21:4359](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4359) |
-| Getting started | [21:4697](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4697) |
-| Welcome | [27:3154](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3154) |
-| Desktop visitor with active route | [27:3451](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3451) |
-| Scene reference and simulated analysis | [27:3915](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3915) |
-| AI proposal awaiting application | [33:2406](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-2406) |
-| Mobile visitor with active route | [33:3324](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-3324) |
+| 01 Overview | [8:2](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-2) |
+| 02 Mapping targets | [21:828](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-828) |
+| 03 Target details | [21:1232](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1232) |
+| 04 Map editor — AI proposal | [33:2406](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-2406) |
+| 04b Map editor — Reference photos | [27:3915](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3915) |
+| 05 Contributions | [21:2713](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2713) |
+| 06 Review queue | [21:2938](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-2938) |
+| 07 Review comparison | [21:3248](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-3248) |
+| 08 Activity | [21:4060](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4060) |
+| 09 Settings | [21:4359](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4359) |
+| 10 Getting started | [21:4697](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-4697) |
+| 11 Welcome | [27:3154](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3154) |
+| 12 Visitor navigation — Desktop | [27:3451](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-3451) |
+| 12b Visitor navigation — Mobile | [33:3324](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-3324) |
 
-For the next iteration, provide the affected route/frame and desired behavior.
-Update source and relevant regression checks, synchronize the changed Figma
-frames, then record the commit and a concise feature note here; retain detailed
-execution history in each contributor's `local/ACTIONS.md`.
+### Editing and requesting the next iteration
+
+The file has only two Figma Pages:
+
+- **01 — Screens (edit here)** contains the final editable application views above.
+  Change page-specific text, spacing, layout and visual details here. The main
+  editor retains the explicit AI proposal state; the duplicate empty-assistant
+  editor frame was removed. Reference photos and mobile navigation remain because
+  they represent separate functional views.
+- **02 — Components (shared)** contains reusable main components. The redundant
+  button preview and unused editor-map component were removed. The remaining 24
+  component definitions include six button variants; no raw capture frames remain.
+
+Use these component entry points for shared visual changes:
+
+| Change | Main component |
+| --- | --- |
+| Button appearance and variants | [SnapWay / Button](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=4-16) |
+| Workspace top bar | [SnapWay / Header / Desktop](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=8-211) |
+| Editor navigation rail | [SnapWay / Sidebar / Editor](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=21-1887) |
+| Editor map drawing | [SnapWay / Map / Editor](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=27-4881) |
+| Visitor map on phones | [SnapWay / Map / Mobile 390px](https://www.figma.com/design/2VCOOU7UZ9yYISGD30qoGa?node-id=33-3892) |
+
+Main-component edits propagate to linked instances subject to their overrides.
+Some controls are native layers within a screen; specify global scope when a
+change should also update those controls and their implementation.
+
+After editing, select the exact frame, component or layer and use **Copy link to
+selection** in Figma's context menu. Send that link in this conversation with the
+change scope and expected behavior, for example:
+
+> I edited [selection link] in `04 Map editor — AI proposal`. Apply the new right
+> panel layout to the web editor only. Clicking Apply should commit one undoable
+> change; mobile navigation stays as it is.
+
+For feedback without editing, attach a Figma comment to the relevant layer and
+send its link with an instruction to implement or review it. Figma changes and
+comments are not automatically watched and do not rewrite Angular code. On an
+explicit iteration request, read the supplied selection, update source and relevant
+regression checks, synchronize affected Figma frames while preserving user edits,
+then record the commit and concise feature note here. Detailed execution history
+remains in each contributor's `local/ACTIONS.md`.
