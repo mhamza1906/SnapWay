@@ -66,6 +66,22 @@ the current backend enables social login only. No new dependency was introduced.
 
 ## Connected application behavior
 
+Local recovery/navigation correction: a running Django process returned 500 from
+`/api/client-config/` because its loaded settings lacked
+`PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY`, despite the current source defining it.
+Restarting the verified project Django process restored HTTP 200 directly and
+through the Angular proxy on both localhost and 127.0.0.1. Restart Django after
+branch changes affecting settings rather than relying only on its autoreloader.
+No private env value or backend API contract was changed for this repair.
+
+The map header's **Open workspace** now enters `/overview` and its complete
+sidebar instead of bypassing it for the fullscreen graph editor. That editor
+also provides **Back to workspace**. Existing target, contribution, AI authoring,
+review, activity, settings and help routes were preserved and individually opened
+through their visible navigation links. They retain their documented prototype
+versus backend-connected boundaries. The existing map regression test now checks
+the workspace destination; all 70 frontend tests and the web build pass.
+
 Design iteration direction: the requesting contributor's explicit page and
 interaction requirements govern the next redesign, preserving existing API
 contracts. The optional personal `frontend-design` and `angular-developer`
