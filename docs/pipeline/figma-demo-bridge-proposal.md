@@ -1,5 +1,7 @@
 # 私人 Figma 账号作为矢量化中转站：hackathon 可行性评估
 
+**已被取代（2026-10-17）：** 成员决定放弃中转站/自动插件方案，改为[Vectorizer.AI 接口代码与 IA 四楼预构建 mock](vectorizer-api-demo.md)。下文仅保留历史评估，不再是执行计划；IA 一楼用于独立导航 demo route。
+
 日期：2026-10-17；分支 `acceptance/map-authoring-pipeline`，评估基线 `60e92cd`。
 状态：**方案评估，未实现或运行中转链路**。遵循[现有架构](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)，
 应用 API、schema、依赖、Figma 文件和账号设置均未变更。

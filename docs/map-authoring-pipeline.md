@@ -153,10 +153,16 @@ terms require clarification/authorization for downstream AI processing and the
 planned comparisons. Commercial candidates remain conditional, with no purchase,
 upload, software installation or supplier message made for this investigation.
 
-The [personal-Figma demo bridge assessment](pipeline/figma-demo-bridge-proposal.md)
-proposes user-run image import, one native Vectorize operation, and a second
-plugin command to export/return the result. Native Vectorize remains unavailable
-through the public Plugin API; unattended UI control is unverified. An available
-Weave connector catalogue check returned an account-link requirement, with no
-generation or credit consumption. The proposal details storage mapping, resume
-checks, measured costs and demo acceptance without implementing or changing APIs.
+The historical [personal-Figma bridge assessment](pipeline/figma-demo-bridge-proposal.md)
+is superseded by the member-approved [Vectorizer.AI adapter and demo contract](pipeline/vectorizer-api-demo.md),
+which links every changed implementation/configuration/test file and the import/run commands.
+The additive Node routes implement disabled-by-default official API access and
+an explicitly disclosed **IA-4-only mock**; its actual floor asset is pending.
+The supplied IA-1 Figma SVG is stored in local SQLite for the separate navigation
+demo prebuild, with exact bytes/source hashes and navigation review still pending.
+No subscription, paid request, Figma relay, shared DB migration or existing API
+contract change was made. Nine offline tests pass; the full pipeline suite reports
+151 passes, 18 existing optional-fixture skips and zero failures.
+
+Implementation checkpoint: [f65ac91](https://github.com/mhamza1906/SnapWay/commit/f65ac91)
+(local commit; remote link becomes available when this branch is next pushed).

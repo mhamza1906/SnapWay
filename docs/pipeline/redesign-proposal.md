@@ -257,8 +257,10 @@ of downstream AI/ML processing and comparison rights. Public Vector Magic and
 Vectorizer.AI terms do not establish permission for the planned workflow; no
 commercial trial is authorized by this proposal alone.
 
-The subsequent [personal Figma bridge assessment](figma-demo-bridge-proposal.md)
-offers a bounded operator-assisted hackathon path using supported plugin import
-and export around native Vectorize. It keeps an explicit manual conversion step;
-external UI automation and the separate Weave path require their own feasibility
-checks. The assessment introduces no runtime dependency or API change.
+The [personal Figma bridge assessment](figma-demo-bridge-proposal.md) is historical
+and superseded by the member-approved [Vectorizer.AI API/demo implementation](vectorizer-api-demo.md).
+Implement the official adapter with empty credentials and live calls disabled;
+manually prepare Figma SVG assets for the navigation demo. The separate workflow
+mock returns only **IA floor 4**, whose real asset is pending. IA floor 1 remains
+a navigation-demo prebuild, never a substitute for the mock floor. Presentation
+tracing does not satisfy semantic/topology acceptance, and paid API access is untested.

@@ -1,5 +1,10 @@
 # Map-authoring pipeline
 
+**Current vectorization slice:** [Vectorizer.AI adapter and prebuilt demo assets](vectorizer-api-demo.md).
+Live calls are disabled with empty credentials. The mock is reserved for **IA floor 4**
+(asset pending); IA floor 1 belongs to the separate prebuilt navigation demo route.
+The Figma relay proposal is superseded; no relay/plugin automation is being built.
+
 **Acceptance status (October 17, 2026):** real IA-1 photo output failed acceptance.
 See the [phase audit, requirement gaps and screenshots](../audits/2026-10-17-map-authoring-pipeline.md).
 The workflow below describes the implementation; it does not establish faithful
