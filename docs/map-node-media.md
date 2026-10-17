@@ -86,4 +86,4 @@ cd apps/web && npm test && npm run build
 
 ## Commits
 
-- (pending until requested)
+- `5836b4e` — Add API-backed graph editor with node photos on Cloudflare R2.
