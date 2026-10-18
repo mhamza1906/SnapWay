@@ -77,12 +77,15 @@ The UI's **Build with AI** controls remain the normal authoring workflow. Re-run
 
 ## PDF and SVG evidence
 
-The unchanged 45-page review PDF is now bundled on `feature/map-authoring-pipeline`
+The unchanged 45-page review PDF is bundled on `feature/map-authoring-pipeline`
 at [apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf](../apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf).
 Every checkout/deployment of this branch includes the local file. The existing
 Angular public-asset handling serves it at
 `/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf` without login or workspace
-ownership. Links are available in the [workspace navigation](../apps/web/src/app/app.html),
+ownership. The current UI links use **Cloudflare R2** for both this original
+review and a new 12-page numbered photo-point plan; see the
+[40-stop plan and shared R2 PDFs](photo-capture.md#current-40-stop-plan-and-shared-r2-pdfs).
+The original local URL remains a fallback. Links are available in the [workspace navigation](../apps/web/src/app/app.html),
 [authoring source controls](../apps/web/src/app/features/authoring/authoring.html),
 and [public map page](../apps/web/src/app/features/map/map.html), including phone browsers.
 Anyone with the app URL can open or save a copy. The temporary phone-preview URL

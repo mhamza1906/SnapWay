@@ -2,6 +2,127 @@
 
 **Status (October 18, 2026):** mobile photo-walk UI and four reference views per point are implemented on `feature/map-authoring-pipeline`. A temporary HTTPS preview reaches the app/API, Google accepts its callback, and a real synthetic R2 write/read/signed-URL test passed. Sam Ibrahim's saved collection walks are installed in the local API. No physical-phone camera test or completed human Google sign-in was performed by the agent; computer use was disabled at the user's request. Earlier test counts below document previous checkpoints.
 
+## Current 40-stop plan and shared R2 PDFs
+
+Implementation: [cb985bb](https://github.com/mhamza1906/SnapWay/commit/cb985bb).
+
+The current ceiling is **40 active photo stops per circulation**, at the user's
+request. Large walks now have 40 stops; smaller walks receive a modest expansion
+and the tiny basement area retains one. Earlier density sections below record
+historical checkpoints.
+
+| Floor | Circulation | Previous | Current |
+| --- | --- | ---: | ---: |
+| B | 2 / 3 / 4 | 30 / 5 / 1 | 40 / 6 / 1 |
+| 1 | 2 | 26 | 40 |
+| 2 | 2 / 3 / 4 | 16 / 13 / 30 | 19 / 15 / 40 |
+| 3 | 1 | 30 | 40 |
+| 4 | 1 | 30 | 40 |
+| 5 | 1 / 2 | 18 / 30 | 21 / 40 |
+| Total | 11 walks | 229 | **302** |
+
+The project-only [density helper](../experiments/sam-ibrahim-hardcoded/photo-walk-density.mjs)
+appends 73 stops in the largest uncovered gaps measured along existing walking
+edges, subdividing those edges. It does not move or relabel old nodes, bridge
+disconnected routes, change walls or add door openings. The frozen 30-cap
+baseline in [the exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs)
+is intentional: it preserves collected locations before expanding to 40.
+Small walks grow by about 15%; walks that previously hit the 30-stop budget
+grow to 40. Additional labels append after the existing/reserved numbers.
+
+The same saved drafts were upgraded after a consistent SQLite backup and full
+node/edge/reference snapshots. Every old node ID, stable ID, label, kind and
+coordinate, every target/revision/underlay ID, and all **156 uploaded photo
+references** were preserved (104 Level 1, 52 Level 2). Original-node connectivity
+and graph distances were checked across 35,174 ordered node pairs. Level 1's
+retired Points 5, 6, 23 and 30 remain retired; its 14 additions are Points 31-44,
+giving 40 active stops. The index of a label is not the active-stop count.
+
+### Cloud documents
+
+The original review and the **12-page, 4.62 MB point-plan PDF** are uploaded to
+the existing Cloudflare R2 bucket and verified by reading back the complete
+objects and checking SHA-256/length. The point plan includes all 11 circulation
+maps on original SVG source backgrounds, 302 numbered stops, added-stop markers,
+and four-direction checklists with the upload snapshot. Positions remain
+source-plan locations requiring field confirmation.
+
+Stable, anonymous app endpoints:
+
+- `/api/maps/public/documents/sam-ibrahim-points/`
+- `/api/maps/public/documents/sam-ibrahim-review/`
+- `/api/maps/public/documents/` lists public document metadata.
+
+The [allowlisted download views](../apps/api/maps/views_documents.py) mint a fresh
+short-lived R2 URL on each open, using the existing storage adapter. Redirects
+are not cached. Arbitrary bucket keys, private photos, uploads and filesystem
+fallback are not exposed. The bucket's permissions and photo access did not
+change. This follows [Cloudflare's private-object signed URL mechanism](https://developers.cloudflare.com/r2/api/s3/presigned-urls/).
+The temporary phone-preview app URL still requires the computer/services to stay
+on; the PDF objects themselves persist in R2. The original local review copy is
+retained as source evidence, while generated PDFs and render previews are ignored
+by Git. No new dependencies, credentials or environment keys are needed.
+
+Source review SHA-256:
+`7891a1bc9bc7e43d4726fbd4bc76b6126040f85d0d1e8d89e6ba6c980a0187fa`.
+Point-plan SHA-256:
+`ed7971fa7e894a0cd86799052ffb152d65b51e0909189449b9914a84907d600a`.
+Storage object keys and public metadata are in the
+[R2 document registry](../apps/api/maps/shared_documents.json); signed URLs and
+credentials are never committed.
+
+### Reproduce and validate
+
+With the existing Node/Python environments, export the source-authored walks,
+then use the existing `import_photo_walks --upgrade-existing` command for the
+chosen contributor after a database backup. The
+[importer](../apps/api/maps/management/commands/import_photo_walks.py) accepts up
+to 40 while retaining existing IDs/photos. The API/UI defaults and budget
+validation are 40 in [the planner](../apps/pipeline/shared/building/capture-points.js),
+[authoring API](../apps/pipeline/server/authoring-routes.js),
+[client service](../apps/web/src/app/features/authoring/pipeline.service.ts) and
+[component](../apps/web/src/app/features/authoring/authoring.ts).
+
+Prepare the read-only upload-direction snapshot and render the PDF:
+
+```sh
+.venv/bin/python experiments/sam-ibrahim-hardcoded/export-point-progress.py \
+  --username USER --walks WALKS_JSON --output OUTPUT_FOLDER
+node experiments/sam-ibrahim-hardcoded/point-pdf-assets.mjs WALKS_JSON OUTPUT_FOLDER
+PDF_PYTHON experiments/sam-ibrahim-hardcoded/export-point-pdf.py OUTPUT_FOLDER
+.venv/bin/python experiments/sam-ibrahim-hardcoded/publish-point-pdfs.py \
+  --original /path/to/Sam_Ibrahim_Indoor_Navigation_Review.pdf --plan-folder OUTPUT_FOLDER
+```
+
+Use the existing PDF runtime with ReportLab/Pillow/pypdf for `PDF_PYTHON`.
+[Progress export](../experiments/sam-ibrahim-hardcoded/export-point-progress.py),
+[asset preparation](../experiments/sam-ibrahim-hardcoded/point-pdf-assets.mjs),
+[PDF generation](../experiments/sam-ibrahim-hardcoded/export-point-pdf.py), and
+[R2 publication](../experiments/sam-ibrahim-hardcoded/publish-point-pdfs.py) are
+reproducible source tools. All 12 pages were rendered and visually checked;
+automated checks confirm point numbers and nonoverlapping number badges.
+The R2 registry is updated only after both uploaded objects pass read-back checks.
+
+The [workspace](../apps/web/src/app/app.html),
+[authoring screen](../apps/web/src/app/features/authoring/authoring.html), and
+[public map](../apps/web/src/app/features/map/map.html) expose the cloud PDFs.
+[API URLs](../apps/api/maps/urls.py) use anonymous read-only routes. The
+[root entry point](../README.md) links this record; [ignore rules](../.gitignore)
+exclude generated artifacts and backups.
+
+Validation: 233 pipeline tests pass (18 optional-fixture skips), 41 project tests,
+22 API tests and 44 frontend tests pass; production web build, Ruff, Prettier and
+preserved-document checks pass. Coverage includes
+[density preservation](../experiments/sam-ibrahim-hardcoded/photo-walk-density.test.mjs),
+[budget/API regressions](../apps/pipeline/tests/sam-ibrahim-project.test.js),
+[40-node import and photo preservation](../apps/api/tests/test_node_media.py),
+[public-download isolation](../apps/api/tests/test_shared_documents.py), and
+[authoring controls](../apps/web/src/app/features/authoring/authoring.spec.ts).
+Live authenticated graph responses report 302 points / 156 uploaded directions;
+anonymous phone HTTPS downloads return the exact R2 PDFs. Restarted only the API
+and pipeline; the pipeline's full health response is unchanged, including
+`claude-sonnet-5-5` / `high`. Git `main` is unchanged.
+
 Changed files:
 [capture-points.js](../apps/pipeline/shared/building/capture-points.js),
 [capture-map-routes.js](../apps/pipeline/server/capture-map-routes.js),
