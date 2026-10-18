@@ -471,13 +471,13 @@ Current Sam Ibrahim collection counts (each stop has four directional photos):
 | Floor | Stops per saved circulation |
 | --- | --- |
 | Level B | 30, 5, 1 |
-| Level 1 | 30 |
+| Level 1 | 26 (completed stops; original numbers retained) |
 | Level 2 | 16, 13, 30 |
 | Level 3 | 30 |
 | Level 4 | 30 |
 | Level 5 | 18, 30 |
 
-There are 233 recommended stops across 11 saved walks (932 possible directional photos), up from 163. Regions with no traced corridor path are not given invented photo locations.
+There are 229 active stops across 11 saved walks (916 possible directional photos). The denser planner produced 233; the user subsequently removed four uncollected Level 1 checkpoints. Regions with no traced corridor path are not given invented photo locations.
 
 Sparse planning: [planner](../apps/pipeline/shared/building/capture-points.js), [HTTP endpoint](../apps/pipeline/server/authoring-routes.js), [API client](../apps/web/src/app/features/authoring/pipeline.service.ts), [controls](../apps/web/src/app/features/authoring/authoring.html), [planner/API regressions](../apps/pipeline/tests/sam-ibrahim-project.test.js). The existing per-corridor mobile capture planner is unchanged.
 
@@ -532,7 +532,7 @@ node --experimental-strip-types experiments/sam-ibrahim-hardcoded/phone-walks.mj
 DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python apps/api/manage.py import_photo_walks --username YOUR_EXISTING_USERNAME --file local/phone-walks.json --upgrade-existing
 ```
 
-The local database was backed up before import and again before each density update. The initial 11 walks contained 121 stops, the first adaptive version 163, and the same walks now contain 233, including both Level 5 areas (48 stops / 192 possible directional photos). All existing targets, revision IDs, node IDs/coordinates and source underlays were verified unchanged. No global staff role or other user's membership was changed. The export is single-floor collection data; it does not alter the project's cross-floor routes.
+The local database was backed up before import and again before each density update. The initial 11 walks contained 121 stops, the first adaptive version 163 and the denser version 233. After removing four uncollected Level 1 checkpoints, the same walks now contain 229, including both Level 5 areas (48 stops / 192 possible directional photos). All existing targets, revision IDs, node IDs/coordinates and source underlays were verified unchanged. No global staff role or other user's membership was changed. The export is single-floor collection data; it does not alter the project's cross-floor routes.
 
 Phone-workflow verification on 2026-10-18: 11 editor/queue/graph-conversion tests and 18 related Django tests passed; the production web build passed without style-budget warnings. Django system checks and migration checks passed (no schema changes), and source/diff checks passed. Re-importing the saved walks preserved existing drafts. Public page and session API returned 200; the CSRF-protected OAuth start generated the exact public HTTPS callback, accepted by Google after the user updated it. R2 and OAuth credentials were never printed or committed.
 
@@ -545,10 +545,14 @@ Adaptive-update verification: 47 authoring/graph-conversion/phone-editor tests, 
 
 Adaptive planning and preserved saved-walk updates: [b9ffb2b](https://github.com/mhamza1906/SnapWay/commit/b9ffb2b).
 
-Local image handoff (2026-10-18): exported `Hack_The_valley/Sam-Ibrahim-Circulation-Maps/` beside this checkout, then replaced it with the denser 30-stop-ceiling version. Open `index.html` there for the offline gallery. It contains 11 full-floor PNGs with the saved numbered stops, 11 zoomed PNGs, six floor overviews and 11 SVGs. `manifest.json` records all 233 point coordinates and counts. Images use the original SVG source frame and the same planner/renderer as the app; every point was checked against the saved adaptive export. All 28 PNGs and 11 SVGs were verified, and representative images were visually inspected. The previous 20-stop-ceiling export was preserved in `Hack_The_valley/output/backups/`. These exports are plan images rather than captured camera photographs.
+Local image handoff (2026-10-18): exported `Hack_The_valley/Sam-Ibrahim-Circulation-Maps/` beside this checkout, then updated it for the denser 30-stop ceiling and the four removed Level 1 checkpoints. Open `index.html` there for the offline gallery. It contains 11 full-floor PNGs with the saved numbered stops, 11 zoomed PNGs, six floor overviews and 11 SVGs. `manifest.json` records all 229 active point coordinates and counts. Images use the original SVG source frame and the same planner/renderer as the app; every point was checked against the saved export. All 28 PNGs and 11 SVGs were verified, and representative images were visually inspected. Previous exports were preserved in `Hack_The_valley/output/backups/`. These exports are plan images rather than captured camera photographs.
 
 The user requested clearing the uploaded Level 1 Point 13 views before rebuilding. A read-only check found exactly four front/right/back/left attachments there and none on Point 3. After a database backup, the four attachments were removed using [remove_node_photo](../apps/api/maps/services/references.py); all other references were preserved. The original physical location is now **Point 19** after renumbering and has no attached photos. As in the existing removal API, append-only Asset rows and R2 bytes remain retained; this clears active map attachments rather than purging storage. No camera photo was downloaded or re-uploaded.
 
 Denser-plan verification: 47 focused frontend tests, 17 planner/project tests and 14 node-media/import tests passed, including expansion to 30 with existing photos and node identity preserved. The production build, lint and source checks passed. Local image files match the same 233 website stop locations. The live planner was restarted with the same provider settings; no model calls or computer-use tools were used.
 
 Thirty-stop ceiling and increased density: [4fbcadc](https://github.com/mhamza1906/SnapWay/commit/4fbcadc).
+
+The user removed Level 1 Points **5, 6, 23 and 30** after collection. [Project-specific exclusions](../experiments/sam-ibrahim-hardcoded/data/photo-stop-exclusions.json) are applied by the [exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs) so these markers stay out of subsequent exports. Their path vertices remain, preserving every walking edge and point coordinate. Completed points retain their existing numbers, node IDs and all 104 photo references. The saved Level 1 walk now reports **26/26 complete**. Verified the API response, exact graph/photo identity before and after import, unchanged content for the other ten walks, and local PNG/SVG marker counts. The previous database and local images were backed up. No uploaded photograph was deleted, no provider call was made and no app restart was needed. The public preview returned 200 on retry after a transient timeout.
+
+Completed Level 1 checklist exclusions: [dd4fbce](https://github.com/mhamza1906/SnapWay/commit/dd4fbce).
