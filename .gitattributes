@@ -8,3 +8,4 @@
 *.toml text eol=lf
 *.lock text eol=lf
 /docs/initial/** -text
+/apps/web/public/documents/*.pdf binary

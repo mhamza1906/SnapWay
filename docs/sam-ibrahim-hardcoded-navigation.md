@@ -77,6 +77,32 @@ The UI's **Build with AI** controls remain the normal authoring workflow. Re-run
 
 ## PDF and SVG evidence
 
+The unchanged 45-page review PDF is now bundled on `feature/map-authoring-pipeline`
+at [apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf](../apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf).
+Every checkout/deployment of this branch includes the local file. The existing
+Angular public-asset handling serves it at
+`/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf` without login or workspace
+ownership. Links are available in the [workspace navigation](../apps/web/src/app/app.html),
+[authoring source controls](../apps/web/src/app/features/authoring/authoring.html),
+and [public map page](../apps/web/src/app/features/map/map.html), including phone browsers.
+Anyone with the app URL can open or save a copy. The temporary phone-preview URL
+still requires the computer and preview services to remain running.
+
+The bundled copy is exactly 12,419,871 bytes and matches the recorded source
+SHA-256 `7891a1bc9bc7e43d4726fbd4bc76b6126040f85d0d1e8d89e6ba6c980a0187fa`.
+The original external PDF remains unchanged. This is a shared reference document;
+it is not imported as a new building or automatically run through paid AI jobs.
+No database ownership, existing uploads, pipeline behavior, dependency or
+environment changes are needed.
+
+The [repository entry point](../README.md) links the local PDF.
+[Git attributes](../.gitattributes) mark shared PDFs as binary, preserving their
+original encoding and excluding PDF object whitespace from text-diff checks.
+Validation passed 40 existing workspace/map/authoring UI tests and the production
+web build. The built asset, anonymous local download and anonymous phone-preview
+HTTPS download all matched the original hash and returned `application/pdf`.
+Shared PDF and links: [470bb9d](https://github.com/mhamza1906/SnapWay/commit/470bb9d).
+
 [source-manifest.json](../experiments/sam-ibrahim-hardcoded/data/source-manifest.json) records source hashes, dimensions and frames. Frozen originals: [B](../experiments/sam-ibrahim-hardcoded/source/Level-B-original.svg), [1](../experiments/sam-ibrahim-hardcoded/source/Level-1-original.svg), [2](../experiments/sam-ibrahim-hardcoded/source/Level-2-original.svg), [3](../experiments/sam-ibrahim-hardcoded/source/Level-3-original.svg), [4](../experiments/sam-ibrahim-hardcoded/source/Level-4-original.svg), [5](../experiments/sam-ibrahim-hardcoded/source/Level-5-original.svg). Clean redraws are not source evidence. Embedded PNGs in the installed project are display renderings of those SVGs, never the source of graph coordinates.
 
 The PDF's normalized crop frame differs from each original SVG frame. `crossFrameTransform` stays null: report centres and annotation boxes never become walking coordinates. `L2:original-svg-viewbox` and `svg-original-L2` are naming aliases for the same SVG frame, and similarly for other floors. Geometry is authored in SVG units, normalized in the source spec and restored to SVG units by the adapter. There is no metres-per-unit scale.
@@ -104,7 +130,11 @@ To regenerate side-by-side comparisons from locally rendered PDF overview pages:
 node experiments/sam-ibrahim-hardcoded/cli.mjs compare --report-images /absolute/path/to/rendered-review-pages
 ```
 
-The external PDF and page PNGs are not required for ordinary builds. [tools/extract-review.py](../experiments/sam-ibrahim-hardcoded/tools/extract-review.py) reproduces the inventory with an existing Python environment containing `pypdf` and Pillow; it validates this report's specific hash and counts.
+The PDF and rendered page PNGs are not required for ordinary project builds. For
+evidence extraction, the bundled PDF can be passed to
+[tools/extract-review.py](../experiments/sam-ibrahim-hardcoded/tools/extract-review.py)
+with an existing Python environment containing `pypdf` and Pillow; it validates
+this report's specific hash and counts. Page PNGs remain optional local artifacts.
 
 ## Strict reference and implementation files
 
