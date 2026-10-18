@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'org.snapway.app',
-  appName: 'SnapWay',
+  appId: 'org.snapway.motionlab',
+  appName: 'SnapWay Motion Lab',
   webDir: 'dist/snapway-visitor/browser',
   plugins: {
     // Use the existing native HTTP bridge for HTTPS JSON and multipart frame uploads.

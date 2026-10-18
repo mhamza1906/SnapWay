@@ -5,5 +5,6 @@ import UIKit
 class SnapWayViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(FrameCapturePlugin())
+        bridge?.registerPluginInstance(NavigationSensorsPlugin())
     }
 }

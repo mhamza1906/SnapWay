@@ -4,7 +4,7 @@ android {
     namespace = "org.snapway.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "org.snapway.app"
+        applicationId "org.snapway.motionlab"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

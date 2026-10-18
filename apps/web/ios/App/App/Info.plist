@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>SnapWay</string>
+	<string>SnapWay Motion Lab</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>SnapWay uses the camera to recognise where you are inside a building. Frames stay on this iPhone and are sent to a matching server only when you choose to.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>SnapWay estimates your movement from step counts and phone rotation while the indoor experiment is open. Motion data is not stored.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SnapWay uses your approximate location for the outdoor walking map and to suggest when to continue indoors.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

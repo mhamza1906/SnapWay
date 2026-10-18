@@ -3,8 +3,16 @@ import type { Routes } from '@angular/router';
 /** One shared installed-app entry for Android and iOS, with no editor bundle. */
 export const mobileRoutes: Routes = [
   {
+    path: 'movement-lab',
+    loadComponent: () => import('./features/movement-lab/movement-lab').then((m) => m.MovementLab),
+  },
+  {
     path: '',
     pathMatch: 'full',
+    redirectTo: 'movement-lab',
+  },
+  {
+    path: 'app-home',
     loadComponent: () => import('./features/mobile-entry/mobile-entry').then((m) => m.MobileEntry),
   },
   {

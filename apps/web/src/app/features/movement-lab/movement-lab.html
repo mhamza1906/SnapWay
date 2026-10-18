@@ -1,0 +1,246 @@
+<main class="lab">
+  <header><span class="brand">snapway.</span><span class="badge">LOCAL EXPERIMENT</span></header>
+  <h1>Outdoor GPS → indoor movement</h1>
+  <p class="intro">
+    A separate test of arrival at the Sam Ibrahim Building and approximate walking on Level 1. Your
+    saved maps, photos and active preview stay untouched.
+  </p>
+  <aside class="notice">
+    The UTSC Health &amp; Wellness Centre is on floor 5 (IA5061). Point 19 here is your designated
+    Level 1 entrance, not the clinic door. The outdoor coordinate is an approximate building centre;
+    confirm the entrance on site.
+  </aside>
+  @if (mode() === 'simulation') {
+    <div class="simulation" role="status">
+      SIMULATION — synthetic location and movement. No live GPS or motion sensors.
+    </div>
+  }
+  <p class="status" role="status" aria-live="polite">{{ message() }}</p>
+  @if (plan(); as map) {
+    @if (phase() === 'outdoor') {
+      <section class="card">
+        <h2>1. Approach the building</h2>
+        <p>
+          GPS requires a secure HTTPS page (localhost also works) and foreground location
+          permission. Arrival needs two fresh fixes, at least 2 seconds apart, with accuracy of 20
+          metres or better.
+        </p>
+        <div class="fields">
+          <label
+            >Entrance latitude<input
+              type="number"
+              step="0.000001"
+              [(ngModel)]="latitude"
+              [disabled]="mode() !== 'idle'"
+          /></label>
+          <label
+            >Entrance longitude<input
+              type="number"
+              step="0.000001"
+              [(ngModel)]="longitude"
+              [disabled]="mode() !== 'idle'"
+          /></label>
+          <label
+            >Arrival radius (metres)<input
+              type="number"
+              min="25"
+              max="200"
+              [(ngModel)]="radius"
+              [disabled]="mode() !== 'idle'"
+          /></label>
+        </div>
+        @if (fix(); as gps) {
+          <p class="reading">
+            GPS accuracy ±{{ gps.accuracy | number: '1.0-0' }} m · distance to configured coordinate
+            {{ distance() | number: '1.0-0' }} m
+          </p>
+        }
+        <div class="actions">
+          <button class="primary" (click)="startGps()" [disabled]="mode() !== 'idle'">
+            Start outdoor GPS</button
+          ><button (click)="pause()" [disabled]="mode() === 'idle'">Stop</button>
+        </div>
+        <a
+          [href]="
+            'https://www.google.com/maps/dir/?api=1&destination=' + latitude + ',' + longitude
+          "
+          target="_blank"
+          rel="noopener noreferrer"
+          >Open outdoor directions in Google Maps ↗</a
+        >
+        <p class="small">
+          Directions open separately. This experiment does not request a Maps API key. Arrival
+          radius includes GPS uncertainty; proximity cannot confirm that you passed through a door.
+        </p>
+      </section>
+    } @else {
+      <section class="card">
+        <div class="map-title">
+          <h2>{{ map.floor }} · entrance estimate</h2>
+          <button (click)="resetOutdoor()">Back to GPS</button>
+        </div>
+        <div class="map-wrap">
+          <img [src]="map.underlay" alt="Original Level 1 SVG floor plan, without graph markers" />
+          <svg
+            class="overlay"
+            [attr.viewBox]="'0 0 ' + map.width + ' ' + map.height"
+            role="img"
+            aria-label="Approximate indoor position"
+          >
+            @if (showTrail && trail().length > 1) {
+              <polyline
+                [attr.points]="trailPoints()"
+                fill="none"
+                stroke="#24726a"
+                stroke-width="2"
+                stroke-dasharray="4 3"
+              />
+            }
+            @if (position(); as p) {
+              <circle [attr.cx]="p.x" [attr.cy]="p.y" r="9" fill="#168378" opacity="0.18" />
+              <circle
+                [attr.cx]="p.x"
+                [attr.cy]="p.y"
+                r="4"
+                fill="#12635b"
+                stroke="white"
+                stroke-width="1.5"
+              />
+            }
+          </svg>
+        </div>
+        <p class="small">
+          Only your estimated position is drawn. No graph nodes or numbered photo points appear on
+          the map. The original SVG may contain architectural labels.
+        </p>
+        <div class="metrics">
+          <span>{{ count() }} estimated steps</span
+          ><span>Drift allowance ±{{ uncertainty() | number: '1.1-1' }} m*</span
+          ><span>{{
+            heading()
+              ? (heading()!.degrees | number: '1.0-0') + '° ' + heading()!.reference
+              : 'Waiting for heading'
+          }}</span>
+        </div>
+        <label class="check"
+          ><input type="checkbox" [(ngModel)]="showTrail" /> Show recent approximate trail</label
+        >
+        <p class="small">
+          *Heuristic drift allowance, not a measured accuracy guarantee. Nearby distances below are
+          straight-line estimates, not room entrance routes.
+        </p>
+      </section>
+      <section class="card">
+        <h2>2. Confirm and calibrate</h2>
+        <label
+          >My known reference point<select
+            [(ngModel)]="anchorId"
+            (ngModelChange)="pause('Reference changed. Confirm your position before resuming.')"
+          >
+            @for (point of photoStops(); track point.id) {
+              <option [value]="point.id">{{ point.label }}</option>
+            }
+          </select></label
+        >
+        <button (click)="confirmAnchor()">I am at the selected reference point</button>
+        @if (mode() !== 'simulation') {
+          <div class="actions">
+            <button
+              class="primary"
+              (click)="startMotion()"
+              [disabled]="!confirmed() || mode() !== 'idle'"
+            >
+              Allow motion &amp; heading</button
+            ><button (click)="pause()" [disabled]="mode() === 'idle'">Pause sensors</button>
+          </div>
+        }
+        <p>
+          Use a measured walking distance along the existing corridor to the point below. At your
+          reference point, face the <strong>first corridor segment toward that point</strong> and
+          keep the phone facing forward. Heading and scale have not been surveyed.
+        </p>
+        <div class="fields">
+          <label
+            >Calibration destination<select
+              [(ngModel)]="targetId"
+              (ngModelChange)="calibrated.set(false)"
+            >
+              @for (point of photoStops(); track point.id) {
+                @if (point.id !== anchorId) {
+                  <option [value]="point.id">{{ point.label }}</option>
+                }
+              }
+            </select></label
+          ><label
+            >Measured corridor distance (metres)<input
+              type="number"
+              min="0.1"
+              step="0.1"
+              [(ngModel)]="measuredMetres"
+              (ngModelChange)="calibrated.set(false)" /></label
+          ><label
+            >Estimated stride (metres)<input
+              type="number"
+              min="0.2"
+              max="1.5"
+              step="0.01"
+              [(ngModel)]="stride"
+          /></label>
+        </div>
+        @if (mode() !== 'simulation') {
+          <button
+            class="primary"
+            (click)="calibrate()"
+            [disabled]="!confirmed() || mode() !== 'motion'"
+          >
+            Calibrate scale &amp; current facing
+          </button>
+        }
+        <p class="small">
+          Movement stays on connected graph edges. It cannot detect doors, identify a floor change,
+          or replace camera matching. Browser step counts are motion-based estimates. Pausing or
+          rotating the phone requires re-anchoring and calibration.
+        </p>
+      </section>
+      <section class="card">
+        <h2>Nearby on this floor</h2>
+        <ul>
+          @for (place of nearby(); track place.label) {
+            <li>
+              <span>{{ place.label }}</span
+              ><span>{{
+                place.distanceM === null
+                  ? 'Scale not calibrated'
+                  : (place.distanceM | number: '1.0-0') + ' m approx.'
+              }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+    <details class="card demo">
+      <summary>Simulation controls · no real sensor readings</summary>
+      <p>
+        Exercise the arrival transition and graph-constrained step logic without visiting the
+        building. Synthetic scale and heading are explicit test values.
+      </p>
+      <div class="actions">
+        <button (click)="simulateArrival()">Simulate far → entrance GPS</button>
+        @if (mode() === 'simulation' && phase() === 'indoor') {
+          <button (click)="calibrateDemo()">Use DEMO calibration</button
+          ><button (click)="demoStep()" [disabled]="!calibrated()">Simulate one step</button
+          ><button (click)="demoTurn()">Simulate 90° turn</button>
+        }
+        <button (click)="pause('Simulation stopped. Start fresh GPS for real sensor testing.')">
+          Stop simulation / sensors
+        </button>
+      </div>
+    </details>
+    <footer>
+      No sensor readings are stored or uploaded.
+      <a [href]="map.outdoor.addressSource" target="_blank" rel="noopener noreferrer"
+        >UTSC location information ↗</a
+      >
+    </footer>
+  }
+</main>

@@ -9,6 +9,10 @@ import {
 
 export const routes: Routes = [
   {
+    path: 'movement-lab',
+    loadComponent: () => import('./features/movement-lab/movement-lab').then((m) => m.MovementLab),
+  },
+  {
     path: 'app-preview',
     loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
   },
