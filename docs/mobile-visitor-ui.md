@@ -103,7 +103,8 @@ contributor's request. The outside footer says **Follow Google Maps. When you ar
 continue indoors.** No welcome-back message persists when switching modes. Camera
 help is condensed to the hint below Take photo; the building question has no photo
 subtitle. GPS is requested only through the map's re-center control; there is no
-Use/Update location action or initial location hint. Accuracy/progress/permission
+Use/Update location action. Before a location or destination is set, the map prompts
+**Tap the re-center button to find your location.** Accuracy/progress/permission
 feedback remains available after a GPS request. Google default map controls
 (including camera/zoom buttons) are disabled in this view, preserving map gestures and provider attribution.
 One custom GPS-center control appears outdoors; only the photo re-center appears
@@ -296,6 +297,12 @@ history. See [Gradle Java selection](https://docs.gradle.org/current/userguide/b
 and [Temurin downloads](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64).
 
 ## Implementation and verification
+
+The startup location prompt now directs visitors to the re-center button instead
+of reporting unavailable location. This copy-only change passes the visitor build,
+Android sync/debug assembly/signature verification, changed-file formatting and
+environment/whitespace checks. The phone is disconnected, so this updated APK
+has not been installed; unit tests were not rerun for the text edit.
 
 | Area | Changed files |
 | --- | --- |
