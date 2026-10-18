@@ -31,6 +31,24 @@ const building: VisitorBuilding = {
   ],
 };
 
+const anotherBuilding: VisitorBuilding = {
+  ...building,
+  id: 'ic',
+  slug: 'ic',
+  name: 'Instructional Centre (IC)',
+  floors: [
+    {
+      ...building.floors[0],
+      target_id: 'ic-floor1',
+      publication_id: 'ic-published-v1',
+      name: 'Floor 1',
+      code: '1',
+      checkpoints: [],
+      destinations: [{ id: 'ic-room101', label: 'IC101', name: 'Classroom' }],
+    },
+  ],
+};
+
 describe('Installed visitor journey', () => {
   it('renders a supplied guidance photo and its explicit directional arrow', () => {
     const fixture = TestBed.createComponent(GuidancePhotoView);
@@ -81,7 +99,7 @@ describe('Installed visitor journey', () => {
   async function setup(published: VisitorBuilding[] = [building]) {
     const fixture = TestBed.createComponent(VisitorJourney);
     TestBed.inject(HttpTestingController)
-      .expectOne('/api/maps/public/buildings/')
+      .expectOne('/api/maps/public/building-directory/')
       .flush({ buildings: published });
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
     return fixture;
@@ -98,37 +116,17 @@ describe('Installed visitor journey', () => {
     expect(page.destination()?.room?.id).toBe('room-2021');
     expect(page.building()?.id).toBe('ia');
   });
-  it('offers both real-location demos and requires a room in either building', async () => {
-    const page = (await setup([])).componentInstance;
-    expect(page.buildings()).toHaveLength(2);
-    page.choose(searchDestinations(page.buildings(), 'IA', null).find((option) => !option.room)!);
-    expect(page.locationPrompt()).toBe(false);
-    page.choose(page.options().find((option) => option.room?.label === 'IA5061')!);
-    expect(page.destination()?.floor?.name).toBe('5th floor');
-    expect(new URL(page.directions()).searchParams.get('destination')).toBe('43.788609,-79.191116');
-    page.chooseEnvironment(true);
-    expect(page.cameraOpen()).toBe(true);
-    page.demoPhotoCaptured();
-    expect(page.cameraOpen()).toBe(false);
-    expect(page.confirmedLocation()).toBe('');
-    expect(page.message()).toContain('Location matching is not connected');
-    page.end();
-    page.selectBuilding('');
-    page.choose(
-      searchDestinations(page.buildings(), 'IC', null).find(
-        (option) => option.building.slug === 'ic',
-      )!,
-    );
-    expect(page.destination()).toBeNull();
-    expect(page.locationPrompt()).toBe(false);
-    page.selectRoom(page.options()[0].key);
-    expect(page.destinationLabel()).toBe('IC101');
-    expect(page.locationPrompt()).toBe(true);
-    expect(page.destination()?.floor?.name).toBe('1st floor (demo)');
-    expect(new URL(page.directions()).searchParams.get('destination')).toBe('43.786816,-79.189484');
+  it('shows an empty directory without supplying demo destinations', async () => {
+    const fixture = await setup([]);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    expect(page.buildings()).toEqual([]);
+    expect(page.buildingSuggestions()).toEqual([]);
+    expect(page.active()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('No buildings are available yet.');
   });
   it('filters building and room searches, clears rooms when editing a building, and starts only on a room suggestion', async () => {
-    const fixture = await setup([]);
+    const fixture = await setup([building, anotherBuilding]);
     const page = fixture.componentInstance;
     fixture.detectChanges();
     const buildingInput = fixture.nativeElement.querySelector(
@@ -150,8 +148,8 @@ describe('Installed visitor journey', () => {
     option().click();
     fixture.detectChanges();
     expect(roomInput.disabled).toBe(false);
-    type(roomInput, 'ia 5061');
-    expect(option().textContent).toContain('IA5061');
+    type(roomInput, 'ia 2021');
+    expect(option().textContent).toContain('IA2021');
     expect(page.locationPrompt()).toBe(false);
     type(buildingInput, 'IC');
     expect(roomInput.disabled).toBe(true);
@@ -159,7 +157,7 @@ describe('Installed visitor journey', () => {
     expect(option().textContent).toContain('Instructional Centre');
     option().click();
     fixture.detectChanges();
-    type(roomInput, 'IA5061');
+    type(roomInput, 'IA2021');
     expect(fixture.nativeElement.querySelectorAll('[role="option"]')).toHaveLength(0);
     expect(fixture.nativeElement.textContent).toContain('No matches found.');
     type(roomInput, 'ic 101');
@@ -201,18 +199,17 @@ describe('Installed visitor journey', () => {
     expect(page.destination()).toBeNull();
     expect(page.active()).toBe(false);
   });
-  it('prefers a matching published building and retains demos if discovery is unavailable', async () => {
+  it('loads only database buildings and exposes retry when the directory fails', async () => {
     const first = (await setup()).componentInstance;
-    expect(first.buildings().filter((item) => item.slug === 'ia')).toEqual([building]);
+    expect(first.buildings()).toEqual([building]);
     const fixture = TestBed.createComponent(VisitorJourney);
     TestBed.inject(HttpTestingController)
-      .expectOne('/api/maps/public/buildings/')
+      .expectOne('/api/maps/public/building-directory/')
       .flush({}, { status: 503, statusText: 'Unavailable' });
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
-    expect(fixture.componentInstance.buildings()).toHaveLength(2);
-    expect(
-      searchDestinations(fixture.componentInstance.buildings(), 'IA5061', null)[0].room?.label,
-    ).toBe('IA5061');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.buildings()).toEqual([]);
+    expect(fixture.nativeElement.textContent).toContain('Buildings could not be loaded.');
   });
   it('matches a room number prefixed with the published building slug', () => {
     const fixture = structuredClone(building);

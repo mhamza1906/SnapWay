@@ -16,7 +16,6 @@ import { VisitorCamera } from './visitor-camera';
 import { WalkingMap } from './walking-map';
 import { GuidancePhotoView, type GuidancePhoto } from './guidance-photo';
 import { type DestinationOption, type VisitorBuilding } from './visitor.models';
-import { withDemoBuildings } from './visitor-demo';
 import { DestinationSearch } from './visitor-destination-search';
 import { type PhotoRoute, type RoutePreference } from './visitor-route';
 import { timeout } from 'rxjs';
@@ -37,7 +36,7 @@ export class VisitorJourney {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
-  readonly buildings = signal<VisitorBuilding[]>(withDemoBuildings([]));
+  readonly buildings = signal<VisitorBuilding[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly building = signal<VisitorBuilding | null>(null);
@@ -62,7 +61,12 @@ export class VisitorJourney {
     this.buildings().map((building) => ({
       key: building.id,
       label: building.name,
-      detail: `${building.demo ? 'Demo · ' : ''}${building.address}`,
+      detail: [
+        building.address,
+        `${building.floors.length} ${building.floors.length === 1 ? 'floor' : 'floors'}`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
       searchText: `${building.slug ?? ''} ${building.name} ${building.address}`,
     })),
   );
@@ -237,15 +241,12 @@ export class VisitorJourney {
     this.error.set('');
     try {
       const response = await firstValueFrom(
-        this.http.get<{ buildings: VisitorBuilding[] }>('/api/maps/public/buildings/'),
+        this.http.get<{ buildings: VisitorBuilding[] }>('/api/maps/public/building-directory/'),
       );
-      if (!this.destroyed && attempt === this.loadAttempt)
-        this.buildings.set(withDemoBuildings(response.buildings));
+      if (!this.destroyed && attempt === this.loadAttempt) this.buildings.set(response.buildings);
     } catch {
       if (!this.destroyed && attempt === this.loadAttempt)
-        this.error.set(
-          'Live destinations could not be loaded. You can still try the demo destinations.',
-        );
+        this.error.set('Buildings could not be loaded.');
     } finally {
       if (!this.destroyed && attempt === this.loadAttempt) this.loading.set(false);
     }
@@ -323,7 +324,7 @@ export class VisitorJourney {
     this.message.set(finished ? 'Navigation finished. Where to next?' : '');
   }
   acceptMatch(result: MatchResult) {
-    if (!this.active() || !this.indoor() || this.building()?.demo) return;
+    if (!this.active() || !this.indoor()) return;
     this.clearRoute();
     this.suggestedLocation.set('');
     this.clearDetectedNode();
@@ -392,11 +393,6 @@ export class VisitorJourney {
     this.suggestedNode.set(null);
     this.suggestedLocation.set('');
     void this.loadRoute();
-  }
-  demoPhotoCaptured() {
-    if (!this.active() || !this.indoor() || !this.building()?.demo) return;
-    this.cameraOpen.set(false);
-    this.message.set('Photo captured. Location matching is not connected for this demo.');
   }
   recenter() {
     if (!this.active() || !this.indoor() || !this.destination()) return;

@@ -124,9 +124,7 @@ class WorkspaceMapsView(WorkspaceView):
             publication = (getattr(target, "current_pubs", None) or [None])[0]
             shared = (getattr(target, "shared_contributions", None) or [None])[0]
             shared_revision = (
-                None
-                if contribution or publication or not shared
-                else shared.head_revision
+                None if contribution or publication or not shared else shared.head_revision
             )
             if not contribution and not publication and not shared_revision:
                 continue

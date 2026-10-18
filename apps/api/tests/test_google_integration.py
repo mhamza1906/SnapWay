@@ -129,7 +129,10 @@ def test_discovery_hides_drafts_archived_invalid_and_unlocated_buildings():
     assert str(missing.target.floor.building_id) not in response.content.decode()
 
 
-def test_public_destinations_use_only_published_revision_and_safe_room_fields():
+@pytest.mark.parametrize(
+    "endpoint", ["/api/maps/public/buildings/", "/api/maps/public/building-directory/"]
+)
+def test_public_destinations_use_only_published_revision_and_safe_room_fields(endpoint):
     user = get_user_model().objects.create_user(username="room-publisher")
 
     def populate_revision(revision):
@@ -160,7 +163,7 @@ def test_public_destinations_use_only_published_revision_and_safe_room_fields():
         created_by=user,
     )
     Node.objects.create(revision=draft, kind="checkpoint", x=1, y=2, label="private-draft-node")
-    response = APIClient().get("/api/maps/public/buildings/")
+    response = APIClient().get(endpoint)
     floor = response.json()["buildings"][0]["floors"][0]
     assert floor["destinations"] == [
         {"id": str(node.stable_id), "label": "IA2021", "name": "Classroom"}
@@ -170,6 +173,37 @@ def test_public_destinations_use_only_published_revision_and_safe_room_fields():
     assert "private-purpose" not in body
     assert "never-show" not in body
     assert "private-draft-node" not in body
+
+
+def test_building_directory_lists_stored_metadata_without_publishing_drafts():
+    user = get_user_model().objects.create_user(username="directory-owner")
+    published = publish(user)
+    unpublished = publish(user)
+    Publication.objects.filter(pk=unpublished.pk).update(is_current=False)
+    archived = publish(user)
+    MapTarget.objects.filter(pk=archived.target_id).update(
+        status="archived", archived_at=timezone.now()
+    )
+    unlocated = publish(user, coordinates=False)
+    response = APIClient().get("/api/maps/public/building-directory/")
+    assert response.status_code == 200
+    rows = {row["id"]: row for row in response.json()["buildings"]}
+    assert set(rows) == {
+        str(published.target.floor.building_id),
+        str(unpublished.target.floor.building_id),
+    }
+    draft_floor = rows[str(unpublished.target.floor.building_id)]["floors"][0]
+    assert draft_floor["name"] == unpublished.target.floor.name
+    assert draft_floor["publication_id"] is None
+    assert draft_floor["destinations"] == []
+    assert draft_floor["checkpoints"] == []
+    published_floors = rows[str(published.target.floor.building_id)]["floors"]
+    assert len(published_floors) == 1
+    assert published_floors[0]["publication_id"] == str(published.id)
+    assert "never-disclose" not in response.content.decode()
+    assert "Private instructions" not in response.content.decode()
+    assert str(unlocated.target.floor.building_id) not in response.content.decode()
+    assert response["Cache-Control"] == "no-store"
 
 
 def test_session_get_bootstraps_csrf_and_logout_requires_it():

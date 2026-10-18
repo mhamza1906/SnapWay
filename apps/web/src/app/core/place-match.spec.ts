@@ -46,6 +46,19 @@ describe('place-match results', () => {
     expect(similarity(0.33091)).not.toContain('%');
   });
 
+  it.each([
+    ['index_not_ready', 'prepare its reference photos'],
+    ['not_configured', 'has not been set up yet'],
+    ['unavailable', 'temporarily offline'],
+  ])('explains the %s service failure without presenting a location', (error, message) => {
+    const outcome = parseMatchResponse(
+      { status: 503, body: JSON.stringify({ error }), roundTripMs: 1 },
+      1,
+    );
+    expect(outcome.kind).toBe('error');
+    if (outcome.kind === 'error') expect(outcome.message).toContain(message);
+  });
+
   it('suggests a checkpoint only for an exact name match', () => {
     const nodes = [
       { id: 'n1', label: 'Studio 101' },

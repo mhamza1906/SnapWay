@@ -71,6 +71,7 @@ export const OUTCOME_LABEL: Record<MatchDecisionOutcome, string> = {
 const OUTCOMES = new Set<string>(Object.keys(OUTCOME_LABEL));
 
 const STATUS_MESSAGE: Record<number, string> = {
+  0: 'Cannot reach photo matching. Check your connection and try again.',
   401: 'The server rejected the token. Check debug settings.',
   403: 'Not allowed to localize with this account.',
   409: 'The map changed. Take another photo.',
@@ -79,6 +80,13 @@ const STATUS_MESSAGE: Record<number, string> = {
   429: 'Too many frames; wait a moment and try again.',
   502: 'The localization service is misconfigured.',
   503: 'No matching backend is available right now.',
+};
+
+const UNAVAILABLE_MESSAGE: Record<string, string> = {
+  index_not_ready:
+    'Photo matching is not ready for this building yet. The map team needs to prepare its reference photos.',
+  not_configured: 'Photo matching has not been set up yet. Please contact the map team.',
+  unavailable: 'Photo matching is temporarily offline. Please try again later.',
 };
 
 /** Raw cosine with three decimals. Deliberately not a percentage or a confidence. */
@@ -148,6 +156,10 @@ export function parseMatchResponse(
     payload && typeof payload === 'object'
       ? String((payload as { detail?: unknown }).detail ?? '')
       : '';
+  const code =
+    payload && typeof payload === 'object' ? (payload as { error?: unknown }).error : null;
+  const unavailableMessage =
+    http.status === 503 && typeof code === 'string' ? UNAVAILABLE_MESSAGE[code] : undefined;
   const message =
     STATUS_MESSAGE[http.status] ??
     (http.status === 200
@@ -157,7 +169,9 @@ export function parseMatchResponse(
     kind: 'error',
     clientFrameId,
     status: http.status,
-    message: detail && http.status !== 401 ? `${message} ${detail}`.slice(0, 240) : message,
+    message:
+      unavailableMessage ??
+      (detail && http.status !== 401 ? `${message} ${detail}`.slice(0, 240) : message),
   };
 }
 

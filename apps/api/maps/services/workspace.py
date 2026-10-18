@@ -74,9 +74,7 @@ def visible_targets(user, admin=False):
 
 def shared_source_revision(target, *, exclude_author=None):
     """Best revision to clone when a developer joins a map without a published base."""
-    rows = target.contributions.filter(head_revision__isnull=False).select_related(
-        "head_revision"
-    )
+    rows = target.contributions.filter(head_revision__isnull=False).select_related("head_revision")
     if exclude_author is not None:
         rows = rows.exclude(author=exclude_author)
     shared = rows.order_by("-updated_at").first()

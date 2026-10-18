@@ -43,13 +43,22 @@
         <app-destination-search
           fieldId="destination-room"
           label="Room"
-          [placeholder]="building() && !options().length ? 'No rooms available' : 'Room number'"
+          [placeholder]="building() && !options().length ? 'Rooms not ready' : 'Room number'"
           [options]="roomSuggestions()"
           [disabled]="!building() || !options().length"
           [selectedKey]="destination()?.key ?? ''"
           (selected)="selectRoom($event)"
         />
       </div>
+      @if (loading()) {
+        <p class="catalog-status" role="status">Loading buildings…</p>
+      } @else if (!error() && !buildings().length) {
+        <p class="catalog-status" role="status">No buildings are available yet.</p>
+      } @else if (building() && !options().length) {
+        <p class="catalog-status" role="status">
+          Indoor destinations are not available for this building yet.
+        </p>
+      }
       @if (error()) {
         <button class="retry" (click)="load()">{{ error() }} Retry</button>
       }
@@ -202,9 +211,7 @@
 </main>
 @if (cameraOpen()) {
   <app-visitor-camera
-    [demo]="building()?.demo ?? false"
     [publicationId]="destination()?.floor?.publication_id ?? ''"
-    (captured)="demoPhotoCaptured()"
     (closed)="cameraOpen.set(false)"
     (matched)="acceptMatch($event)"
   />

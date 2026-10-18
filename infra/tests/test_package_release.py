@@ -82,6 +82,7 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(tmp_
     ("paths", "expected"),
     [
         (["infra/deploy.py"], (True, True, True)),
+        ([".gitattributes"], (True, True, True)),
         (["infra/install-server.sh"], (True, True, True)),
         (["infra/README.md", "docs/deployment.md"], (False, False, False)),
         (["local/.env"], (False, False, False)),

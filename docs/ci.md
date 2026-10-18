@@ -1,4 +1,4 @@
-# CI documentation exclusions
+# CI checks and deployment readiness
 
 Owner: Eric. Updated October 16, 2026. Commit: pending.
 
@@ -49,3 +49,40 @@ source is hash-verified. No real provider calls enter the shared CI path.
 Validation: 14 local documentation/mixed/code classification cases passed;
 GitHub output, rename handling, workflow YAML/job conditions, Ruff lint/format
 and diff whitespace checks passed. Remote CI has not been run by this change.
+
+## October 18 readiness check
+
+The [latest inspected main run](https://github.com/mhamza1906/SnapWay/actions/runs/39107438652)
+passed Linux/Windows backend checks, PostgreSQL, web, the aggregate gate and release
+packaging. Its deployment job was **skipped**. The existing production variable
+gate in the [workflow](../.github/workflows/ci.yml) still requires
+`PRODUCTION_DEPLOY_ENABLED=true`; this audit did not enable it, push code or deploy.
+That remote run predates the current uncommitted visitor changes.
+
+This branch's Ruff format gate failed on two inherited expressions; formatting
+was corrected in [workspace queries](../apps/api/maps/services/workspace.py) and
+[workspace views](../apps/api/maps/views_workspace.py). Windows checkouts also
+produced 132 frontend formatter warnings caused solely by CRLF. The
+[Git attributes](../.gitattributes) now require LF for TypeScript, HTML and SCSS,
+matching the existing formatter/editor rules. Local files were normalized without
+changing their Git-normalized source content. Attribute changes now trigger all
+component checks in the [classifier](../scripts/ci_changes.py), covered by a
+[routing regression](../infra/tests/test_package_release.py).
+
+Validation of this working tree: 178 PostgreSQL tests pass after migrations;
+160 SQLite tests pass with 18 PostgreSQL-only skips; all 30 infrastructure tests,
+119 frontend tests and 152 pipeline tests pass. The pipeline's 18 existing skips
+require an absent Waterloo regression fixture. Ruff lint/format, frontend
+formatting, workflow actionlint, deployment Bash syntax, Python lock freshness,
+public env-template and immutable audit checks pass. Web/visitor production builds
+and Android asset sync pass, with the existing stylesheet budget warning. Tests
+used this machine's installed toolchain; GitHub retains its pinned versions.
+
+The private local environment check separately reports the unknown key
+`NAVIGATION_SESSION_RATE`. No current consumer or template entry exists. Reconcile
+it with the team's external configuration owner against schema `2026-10-17.6`
+using the [single-env contract](environment-sync.md), then rerun the check; this
+audit preserves the private file. CI validates the public template and uses
+synthetic settings, so this private-file drift does not enter CI. Production must
+pass its own environment gate before activation. No template/schema, dependencies
+or architecture changed. Current repair commit is pending.

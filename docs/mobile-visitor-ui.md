@@ -46,17 +46,15 @@ available rooms. Editing the chosen building immediately clears the selection an
 room query; the visitor chooses another building suggestion before searching rooms.
 Suggestions support pointer selection, Arrow keys, Enter, Escape and Tab/blur.
 The shared autocomplete has empty-result feedback and exposes combobox/listbox
-relationships and the active suggestion to assistive technology. Published
-destinations are supplemented by the two bundled demos below. Both require a room
-suggestion before navigation starts.
+relationships and the active suggestion to assistive technology. Building suggestions now come only from the database-backed directory below.
+A real published room suggestion is required before navigation starts.
 
 The Google map uses walking-scale zoom 17. The visitor's approximate-location
 marker is red (`#dc3c35`); the destination building marker is blue (`#2563eb`).
 Each uses its own local SVG pin with a white border/center, passed to the existing
 AdvancedMarkerElement content option. Marker titles retain **Your approximate
-location** and **Destination building** so meaning is available beyond color. No location question appears on initial load. Selecting
-either building enables room selection; selecting IA5061 or IC101 completes the
-destination.
+location** and **Destination building** so meaning is available beyond color. No location question appears on initial load. Selecting a stored building enables room selection when published rooms exist;
+selecting a room completes the destination.
 A complete destination starts the journey and covers the map
 with **Are you inside [destination building name]?**, using the selected destination's
 actual building name. The search fields are replaced by a red cancel SVG button
@@ -85,9 +83,8 @@ scroll the dialog. Under **Show us where you are**, the camera preview leads dir
 view and hold your phone steady.** The photo shows the visitor's current scene to
 find their starting position, not the destination room. **Take photo** captures/submits
 one fresh photo; opening the camera alone does not submit a photo. **No, I'm outside** keeps the walking map available.
-For a bundled demo, Take photo exercises capture locally without uploading to the
-localization API or claiming a recognized location; completion feedback explains
-that demo location matching is not connected and never claims a position.
+The bundled sample catalog and capture-only demo branch have been removed.
+Every actual capture now follows the existing localization transport.
 
 GPS is used for the outdoor map; it does not automatically reopen the question or
 infer indoor entry. The previous proximity-triggered prompt was removed to follow
@@ -125,53 +122,60 @@ or finishing clears the destination and hides the question until another is sele
 
 ## Published data and remaining integration
 
-### Bundled campus demos
+### Database-backed building directory
 
-The visitor build and `/app-preview` include these two **Demo** entries from
-[visitor-demo.ts](../apps/web/src/app/features/visitor/visitor-demo.ts). They are
-available immediately, including when discovery is empty or unavailable. Matching
-published buildings (by slug or name) take precedence. They are not inserted into
-the database or returned as publications by the public website's discovery API.
-No credentials, network lookup, schema migration or configuration flag is needed
-to select them. Embedded Google tiles still require the existing Maps configuration;
-the walking-navigation URL can open Google Maps independently.
+The visitor screen loads `GET /api/maps/public/building-directory/` from the
+configured backend. The directory returns stored building names, IDs, place IDs,
+slugs, addresses and coordinates, plus public floor names/codes for open map
+targets. It lists buildings with an open floor map and valid stored coordinates,
+including buildings whose maps have not been published. Archived-only and
+unlocated seed records are excluded. Different database building IDs remain
+separate records; the UI does not combine graphs by name or coordinates.
 
-| Demo destination | Address | Latitude | Longitude | University map location / marker |
-| --- | --- | --- | --- | --- |
-| Sam Ibrahim Building (IA), IA5061, 5th floor | 1050 Military Trail, Scarborough, ON M1C 1G9 | 43.788609 | -79.191116 | 959718 / 723740 |
-| Instructional Centre (IC), IC101 (fictional demo room) | 1095 Military Trail, Scarborough, ON M1C 5J9 | 43.786816 | -79.189484 | 493695 / 363654 |
+A floor without a current publication has null `publication_id`/`sequence` and
+empty checkpoints/destinations. Current, noninvalidated published floors replace
+that metadata row in place, supplying their actual stable node IDs and room
+labels without duplicate floors. Draft nodes/geometry, room purpose/provenance,
+asset keys, memberships and private map instructions remain excluded. The older
+`GET /api/maps/public/buildings/` contract remains published-only for the website
+map; navigation sessions/routing keep their existing publication requirements.
 
-Coordinates were read on October 17, 2026 from the **Buildings** category (48600)
-of the [University of Toronto campus map](https://map.utoronto.ca/?id=1809).
-The [source snapshot](assets/mobile-visitor/utsc-building-markers.source.json)
-contains the two original public marker objects with fields/values unchanged;
-only JSON formatting and selection from the full catalogue differ. The complete
-original response is retained in ignored local research. No map-service key is
-included in the snapshot or app data. These are building markers, not surveyed
-entrances, room coordinates, floor plans or localization checkpoints.
+The visitor begins with an empty catalog, shows loading/retry/empty feedback,
+and uses only the API response. There are no injected IA5061/IC101 sample rooms,
+no fallback catalog and no camera demo flag/event. Selecting a building without
+published rooms disables Room with **Rooms not ready** and explains **Indoor
+destinations are not available for this building yet.** Suggestions show the
+stored address and floor count. Database rows are not deleted or reclassified.
+Historical October 17 [coordinate source evidence](assets/mobile-visitor/utsc-building-markers.source.json)
+is preserved unchanged; its bundled sample entries are no longer application data.
 
-[UTSC Health & Wellness](https://www.utsc.utoronto.ca/hwc/) independently confirms
-IA5061, the fifth floor and 1050 Military Trail. Addresses/postcodes retain the
-requesting contributor's supplied text; the university map supplied the coordinates.
-An older OSM record used the general campus mailing address for IA, so it was not
-used as the address or coordinate authority. IC101 and its first-floor grouping are
-fictional test data added at the contributor's request, not verified university
-room records. Both demo floors use empty publication IDs, sequence 0 and no
-checkpoints. Building options retain a compact Demo label; no persistent demo
-banner takes space from navigation.
+October 18 read-only verification against the running localhost API returned
+**IA** and **IA Building**, with five open-map floors and no published room
+destinations. Browser evidence renders those real API records; Google Maps and
+sign-in responses are disabled in that check to avoid provider requests. The
+absence of published rooms is shown rather than substituted with sample rooms.
+Android uses the same directory path on its configured HTTPS backend, so that
+backend must receive this release before the new directory is available there.
 
-Demo capture emits only a local completion event. Android/browser does not upload
-or retain the captured JPEG; iOS uses its existing app-sandbox frame storage and
-skips matching credentials/network calls. Demo results cannot confirm an indoor
-position. Published destinations retain the existing authenticated matching path.
+Changed files: [directory view](../apps/api/maps/views.py), [URL](../apps/api/maps/urls.py),
+[privacy/publication tests](../apps/api/tests/test_google_integration.py),
+[visitor controller](../apps/web/src/app/features/visitor/visitor.ts),
+[template](../apps/web/src/app/features/visitor/visitor.html),
+[loading/status styles](../apps/web/src/app/features/visitor/visitor-search.scss),
+[nullable publication types](../apps/web/src/app/features/visitor/visitor.models.ts),
+[camera](../apps/web/src/app/features/visitor/visitor-camera.ts),
+[journey tests](../apps/web/src/app/features/visitor/visitor.spec.ts) and
+[camera tests](../apps/web/src/app/features/visitor/visitor-camera.spec.ts).
+The `visitor-demo.ts` source catalog was deleted. Applicable commit is pending;
+suggested `feat(visitor): replace demo destinations with stored buildings`.
 
-`GET /api/maps/public/buildings/` adds building `slug` and per-floor `destinations`
-(`id`, `label`, `name`) and `checkpoints` (`id`, `label`). IDs are stable node IDs
-from the current, non-invalidated publication of an open target. Draft geometry,
-internal room purpose/provenance, asset paths, memberships and private instructions
-remain excluded. No migration is required. Existing clients can ignore the new
-fields. Selection exposes unavailable-room/retry states for unavailable live data while retaining
-the two labelled demos for visitor UI testing.
+Validation: **178 PostgreSQL backend tests**, **160 SQLite tests with 18
+PostgreSQL-only skips**, and **115 frontend tests** pass. Web/visitor production
+builds, Android asset sync and browser checks pass. Isolated routing checks use
+synthetic data; a separate browser check reads actual localhost directory data.
+Ignored artifacts are under `local/artifacts/building-directory/`. No database
+writes, new dependencies, migrations, env keys/private values, deployment,
+physical-device test or APK installation were performed for this change.
 
 The browser/Android capture path uses rear-facing `getUserMedia`, creates a JPEG
 at most 1024 px on its longest side, and calls the existing authenticated
@@ -431,7 +435,7 @@ has not been installed; unit tests were not rerun for the text edit.
 | Area | Changed files |
 | --- | --- |
 | Visitor state and screen | [controller](../apps/web/src/app/features/visitor/visitor.ts), [template](../apps/web/src/app/features/visitor/visitor.html), [base styles](../apps/web/src/app/features/visitor/visitor.scss), [search layout](../apps/web/src/app/features/visitor/visitor-search.scss), [autocomplete control](../apps/web/src/app/features/visitor/visitor-destination-search.ts), [guidance styles](../apps/web/src/app/features/visitor/visitor-guidance.scss), [map prompt styles](../apps/web/src/app/features/visitor/visitor-prompt.scss) |
-| Selection, location, media | [destination models](../apps/web/src/app/features/visitor/visitor.models.ts), [demo catalogue](../apps/web/src/app/features/visitor/visitor-demo.ts), [coordinate evidence](assets/mobile-visitor/utsc-building-markers.source.json), [walking map](../apps/web/src/app/features/visitor/walking-map.ts), [single-photo capture](../apps/web/src/app/features/visitor/visitor-camera.ts), [image/arrow renderer](../apps/web/src/app/features/visitor/guidance-photo.ts) |
+| Selection, location, media | [destination models](../apps/web/src/app/features/visitor/visitor.models.ts), [coordinate evidence](assets/mobile-visitor/utsc-building-markers.source.json), [walking map](../apps/web/src/app/features/visitor/walking-map.ts), [single-photo capture](../apps/web/src/app/features/visitor/visitor-camera.ts), [image/arrow renderer](../apps/web/src/app/features/visitor/guidance-photo.ts) |
 | Entry points | [Capacitor entry](../apps/web/src/main.visitor.ts), [web preview route](../apps/web/src/app/app.routes.ts), [fullscreen preview shell](../apps/web/src/app/app.ts) |
 | Native permissions | [Android manifest](../apps/web/android/app/src/main/AndroidManifest.xml), [iOS usage text](../apps/web/ios/App/App/Info.plist) |
 | Published discovery | [public view](../apps/api/maps/views.py), [privacy/publication tests](../apps/api/tests/test_google_integration.py) |
@@ -479,7 +483,7 @@ building-specific inside/outside prompts only after room selection, automatic ca
 opening from **Yes**, automatic journey start on room selection, and mutually exclusive
 GPS/photo controls. It confirms no upload before **Take photo**, no initial prompt,
 no premature prompt for either building before room selection, and no automatic GPS-triggered prompt.
-With an empty discovery response it also selects both actual-location demos, checks
+Historical October 17 checks (superseded by demo removal above): with an empty discovery response, the former harness selected both actual-location demos and checked
 both coordinate-based walking URLs and captures a demo photo without a localization
 request or confirmed position. There is no horizontal
 overflow at 320/375/390/430 px. The check uses
