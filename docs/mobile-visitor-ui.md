@@ -1,8 +1,8 @@
 # Mobile visitor navigation UI
 
 Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
-baseline is `a0564a9`. Current refinement is uncommitted; suggested commit:
-`style(mobile): distinguish user and building map markers` within the pending visitor UI refinement.
+implementation commits include `a0564a9` and `ca59f45`. Heading spacing and
+local Android packaging notes are pending in the working tree.
 Personal execution details remain in ignored `local/ACTIONS.md`.
 
 ## Entry points and interaction
@@ -16,6 +16,7 @@ not switch the website into that experience.
 
 **Find your destination** sits beside the existing SnapWay route mark in a single
 vertically aligned header row, with the 32 px logo on the left and a 20 px heading.
+The row has 12 px of additional top margin.
 The two search fields remain on the same row beneath it. Each field has a separate
 underline, without a filled box or rounded border. An 18 px gap separates the wider Building field from
 Room. Focus strengthens the underline; the disabled room field has a muted line.
@@ -50,8 +51,9 @@ actual building name. The search fields are replaced by a red cancel SVG button
 (accessible name **Cancel navigation**) and **Finish**. The icon retains a 44 px
 tap target. Cancelling returns silently to search, without a cancellation status
 message. The original taller active panel is preserved (730 px high with an
-89 px header at a 390 by 844 viewport). Only the search header is compacted to
-match that top edge. Map, inside/outside question and indoor photo panels share a
+89 px header at a 390 by 844 viewport). The search header is compact, with an
+additional 12 px top margin requested for the logo/heading row; its map starts
+12 px lower while retaining the same panel height. Map, inside/outside question and indoor photo panels share a
 viewport-based height, reserving 114 px for header/footer, with a 320 px minimum
 and safe-area adjustments. Footer content cannot shrink the panel. Longer footer messages remain
 in the page flow rather than squeezing the panel.
@@ -185,8 +187,9 @@ Release integration is still pending:
   token transport remains debug-only. Anonymous browser captures may be denied;
   this change does not bypass that authorization boundary or embed a shared token.
 - Verify Android camera/GPS, iOS capture/GPS, external Maps handoff, background/return,
-  safe areas and permission recovery on actual phones. Android SDK is unavailable
-  on this machine, so sync is not an APK build or signed installable artifact.
+  safe areas and permission recovery on actual phones. Android SDK Platform 36 is
+  now installed locally; a successful asset sync alone still does not verify an APK
+  build or physical-device behavior.
 
 The single-env check passes against the current local contract. No template/private
 env keys, schema version, credential values or dependency versions changed. Existing
@@ -194,6 +197,38 @@ Maps/OAuth/native transport credentials must come from the responsible owner thr
 the team's external private channel; this UI does not distribute them. Future API
 origin/guest-session architecture or dependency changes require the requesting
 member's approval under [AGENTS.md](../AGENTS.md).
+
+## Android CLI Java setup
+
+The existing Capacitor 8 Android modules compile Java 21 sources. Gradle itself can
+start under JDK 17, but that compiler rejects the modules with **invalid source
+release: 21**. Use a complete JDK 21 for both the Gradle launcher and daemon. Set
+`JAVA_HOME` in the build terminal and use `-Dorg.gradle.java.home` when needed to
+make the daemon selection explicit; `gradlew.bat --version` should show Java 21
+for both. These are build-tool settings, not application `local/.env` keys.
+
+From `apps/web/android`, after selecting an installed JDK 21:
+
+```powershell
+$env:JAVA_HOME = '<complete-JDK-21-root>'
+.\gradlew.bat "-Dorg.gradle.java.home=$env:JAVA_HOME" --version
+.\gradlew.bat "-Dorg.gradle.java.home=$env:JAVA_HOME" --no-daemon assembleDebug
+```
+
+The expected artifact is `apps/web/android/app/build/outputs/apk/debug/app-debug.apk`.
+An incomplete Android Studio bundled runtime is not a usable JDK: verify that
+`bin/java.exe`, `bin/javac.exe` and `lib/jvm.cfg` exist and that Java launches.
+This machine's bundled runtime was incomplete while Android Studio was being
+updated. The new Studio then selected JDK 25, which is too new for Gradle 8.14.3.
+An official portable Temurin JDK 21 was downloaded into ignored `local/tools/jdk21`
+and verified against its publisher-provided SHA-256. It was selected for the build
+process and for the ignored `android/.gradle/config.properties` Java-home setting
+used by Studio's existing `GRADLE_LOCAL_JAVA_HOME` option. Studio should be synced
+after that local setting changes; no AGP/Gradle upgrade is needed. No system Java
+setting, Gradle/AGP/Capacitor dependency, template or private application env value
+was changed. Runtime provenance and host-specific paths remain in ignored local
+history. See [Gradle Java selection](https://docs.gradle.org/current/userguide/build_environment.html)
+and [Temurin downloads](https://adoptium.net/temurin/releases/?version=21&os=windows&arch=x64).
 
 ## Implementation and verification
 
@@ -206,7 +241,11 @@ member's approval under [AGENTS.md](../AGENTS.md).
 | Published discovery | [public view](../apps/api/maps/views.py), [privacy/publication tests](../apps/api/tests/test_google_integration.py) |
 | Frontend coverage and related record | [journey tests](../apps/web/src/app/features/visitor/visitor.spec.ts), [camera permission/lifecycle tests](../apps/web/src/app/features/visitor/visitor-camera.spec.ts), [existing frontend feature record](frontend-iteration.md) |
 
-Validation: the preceding autocomplete implementation passed **89 frontend tests**.
+Latest 12 px heading-margin adjustment: visitor production build, Android asset
+sync, changed-file formatting, whitespace and env-contract checks pass; browser
+and unit suites were not rerun for this one-line CSS edit.
+
+Prior validation: the autocomplete implementation passed **89 frontend tests**.
 This presentation-only refinement passes web/visitor production builds, Android
 asset/plugin sync, browser acceptance at four phone widths, changed-file Prettier, local env
 contract and Git whitespace checks; unit tests were not rerun for these
@@ -214,7 +253,12 @@ presentation-only changes.
 Earlier backend validation passed **7 focused tests**;
 backend code is unchanged here. Earlier iOS sync, Ruff and plist checks are recorded
 for the original implementation, not rerun for this Android-facing refinement.
-No physical-device run, signed APK or deployed-release acceptance is claimed.
+Android packaging now passes: Gradle 8.14.3 assembled the debug APK using
+Temurin 21.0.12.1+1; Android SDK apksigner verifies its v2 signature, and APK
+metadata identifies `org.snapway.app`, version 1.0, target SDK 36. The 4,591,471-byte
+archive passes CRC checks and contains the manifest, DEX and bundled visitor
+entry. This is a debug-signed APK, not a release-signing or physical-device
+acceptance result. No deployment was performed.
 
 Browser acceptance passes consistent panel bounds across search/prompt/indoor/outdoor
 states at the original taller height, a centered camera with a larger preview,
