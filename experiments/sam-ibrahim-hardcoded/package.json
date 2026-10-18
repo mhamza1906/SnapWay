@@ -1,0 +1,10 @@
+{
+  "name": "@snapway/experiment-sam-ibrahim-hardcoded",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node cli.mjs build",
+    "test": "node --test *.test.mjs",
+    "check": "node cli.mjs check"
+  }
+}
