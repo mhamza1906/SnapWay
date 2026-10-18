@@ -1,0 +1,6024 @@
+{
+ "frame": {
+  "width": 843,
+  "height": 367,
+  "origin": "top_left",
+  "y": "down"
+ },
+ "source": {
+  "manifest": "../manifest.json",
+  "target": {
+   "id": "fda54111-8056-4133-8894-b4fc5cdb1028",
+   "title": "Sam Ibrahim · Level 1 circulation 2"
+  },
+  "revision_id": "2995ef09-76b1-4c22-9b1c-2b0b70c884d6"
+ },
+ "heading_convention": "degrees in the plan frame from +x (plan right) toward +y (plan down), clockwise seen from above; three.js front vector = (cos h, 0, sin h); right = h+90, back = h+180, left = h+270",
+ "heading_note": "No camera heading is stored, so each stop's 'front' bearing was estimated. Method: for every one of the 26 stops the four photos were compared with the floor plan around the stop (entrance doors, reception desk, exterior glazing, Elevators B/C, Stairs B/D, the long east-west corridor, the purple 'Dark Matter' corridor). The rule that fits best is 'front faces the previous-numbered stop' (the photographer walked the main route in descending order, 19 -> 13 -> 10 and 4 -> 1, facing the walking direction); the plain walk-order rule ('front faces the next stop') matched only 4 stops. 13 stops use the rule as is; 13 stops use a visual override (1, 7, 8, 9, 10, 18, 20, 21, 22, 24, 25, 28, 29) such as 'toward Point 9', 'away from Point 24' or a fixed landmark bearing. Bearings are taken toward a point 25 plan units along the graph path; they are not snapped to corridor axes (the look-ahead already follows the corridor). Expect about +/-15 deg error on 'high' stops and +/-30 deg on 'medium' stops (heading_confidence / heading_evidence per stop). Convention: degrees in the plan frame from +x toward +y (clockwise seen from above); photo bearing = heading + 0/90/180/270 for front/right/back/left.",
+ "stops": [
+  {
+   "id": "dced20e4-b110-44da-a456-e3c2eee2730d",
+   "label": "Point 1",
+   "num": 1,
+   "kind": "junction",
+   "x": 298.5,
+   "y": 87.5,
+   "heading_deg": 265.5,
+   "heading_source": "visual override: away from Point 2 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "high",
+   "heading_evidence": "first stop: front = entrance doors at the north end; back = long hall with seating + reception desk",
+   "photos": {
+    "front": {
+     "full": "../photos/point-01-front.jpg",
+     "thumb": "thumbs/point-01-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 265.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-01-right.jpg",
+     "thumb": "thumbs/point-01-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 355.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-01-back.jpg",
+     "thumb": "thumbs/point-01-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 85.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-01-left.jpg",
+     "thumb": "thumbs/point-01-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 175.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+     "label": "Point 2",
+     "num": 2,
+     "path": [
+      [
+       298.5,
+       87.5
+      ],
+      [
+       301.25,
+       122.37
+      ],
+      [
+       301.5,
+       125.5
+      ]
+     ],
+     "length": 38.118,
+     "first_bearing_deg": 85.49
+    }
+   ]
+  },
+  {
+   "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+   "label": "Point 2",
+   "num": 2,
+   "kind": "junction",
+   "x": 301.5,
+   "y": 125.5,
+   "heading_deg": 265.5,
+   "heading_source": "rule toward-previous-stop: toward Point 1 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = entrance doors (north); left = printer/desk area; right = glass railing + seating",
+   "photos": {
+    "front": {
+     "full": "../photos/point-02-front.jpg",
+     "thumb": "thumbs/point-02-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 265.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-02-right.jpg",
+     "thumb": "thumbs/point-02-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 355.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-02-back.jpg",
+     "thumb": "thumbs/point-02-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 85.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-02-left.jpg",
+     "thumb": "thumbs/point-02-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 175.5,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "dced20e4-b110-44da-a456-e3c2eee2730d",
+     "label": "Point 1",
+     "num": 1,
+     "path": [
+      [
+       301.5,
+       125.5
+      ],
+      [
+       301.25,
+       122.37
+      ],
+      [
+       298.5,
+       87.5
+      ]
+     ],
+     "length": 38.118,
+     "first_bearing_deg": 265.43
+    },
+    {
+     "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+     "label": "Point 3",
+     "num": 3,
+     "path": [
+      [
+       301.5,
+       125.5
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       309.317,
+       166.471
+      ]
+     ],
+     "length": 41.999,
+     "first_bearing_deg": 82.87
+    },
+    {
+     "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+     "label": "Point 4",
+     "num": 4,
+     "path": [
+      [
+       301.5,
+       125.5
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       320.283,
+       192.239
+      ]
+     ],
+     "length": 96.652,
+     "first_bearing_deg": 82.87
+    },
+    {
+     "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+     "label": "Point 7",
+     "num": 7,
+     "path": [
+      [
+       301.5,
+       125.5
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       360.5,
+       290.5
+      ]
+     ],
+     "length": 191.988,
+     "first_bearing_deg": 82.87
+    },
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       301.5,
+       125.5
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 159.416,
+     "first_bearing_deg": 82.87
+    }
+   ]
+  },
+  {
+   "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+   "label": "Point 3",
+   "num": 3,
+   "kind": "checkpoint",
+   "x": 309.317,
+   "y": 166.471,
+   "heading_deg": 256.7,
+   "heading_source": "rule toward-previous-stop: toward Point 2 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = entrance + seating (north); left = reception desk; right = glass railing over the void",
+   "photos": {
+    "front": {
+     "full": "../photos/point-03-front.jpg",
+     "thumb": "thumbs/point-03-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 256.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-03-right.jpg",
+     "thumb": "thumbs/point-03-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 346.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-03-back.jpg",
+     "thumb": "thumbs/point-03-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 76.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-03-left.jpg",
+     "thumb": "thumbs/point-03-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 166.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+     "label": "Point 2",
+     "num": 2,
+     "path": [
+      [
+       309.317,
+       166.471
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       301.5,
+       125.5
+      ]
+     ],
+     "length": 41.999,
+     "first_bearing_deg": 246.95
+    },
+    {
+     "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+     "label": "Point 4",
+     "num": 4,
+     "path": [
+      [
+       309.317,
+       166.471
+      ],
+      [
+       320.283,
+       192.239
+      ]
+     ],
+     "length": 28.004,
+     "first_bearing_deg": 66.95
+    },
+    {
+     "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+     "label": "Point 7",
+     "num": 7,
+     "path": [
+      [
+       309.317,
+       166.471
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       360.5,
+       290.5
+      ]
+     ],
+     "length": 169.488,
+     "first_bearing_deg": 246.95
+    },
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       309.317,
+       166.471
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 136.917,
+     "first_bearing_deg": 246.95
+    }
+   ]
+  },
+  {
+   "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+   "label": "Point 4",
+   "num": 4,
+   "kind": "checkpoint",
+   "x": 320.283,
+   "y": 192.239,
+   "heading_deg": 246.9,
+   "heading_source": "rule toward-previous-stop: toward Point 3 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = reception desk on the left, entrance beyond; right = atrium stair; back = south glazing",
+   "photos": {
+    "front": {
+     "full": "../photos/point-04-front.jpg",
+     "thumb": "thumbs/point-04-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 246.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-04-right.jpg",
+     "thumb": "thumbs/point-04-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 336.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-04-back.jpg",
+     "thumb": "thumbs/point-04-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 66.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-04-left.jpg",
+     "thumb": "thumbs/point-04-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 156.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+     "label": "Point 2",
+     "num": 2,
+     "path": [
+      [
+       320.283,
+       192.239
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       301.5,
+       125.5
+      ]
+     ],
+     "length": 96.652,
+     "first_bearing_deg": 66.95
+    },
+    {
+     "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+     "label": "Point 3",
+     "num": 3,
+     "path": [
+      [
+       320.283,
+       192.239
+      ],
+      [
+       309.317,
+       166.471
+      ]
+     ],
+     "length": 28.004,
+     "first_bearing_deg": 246.95
+    },
+    {
+     "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+     "label": "Point 7",
+     "num": 7,
+     "path": [
+      [
+       320.283,
+       192.239
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       360.5,
+       290.5
+      ]
+     ],
+     "length": 121.985,
+     "first_bearing_deg": 66.95
+    },
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       320.283,
+       192.239
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 89.414,
+     "first_bearing_deg": 66.95
+    }
+   ]
+  },
+  {
+   "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+   "label": "Point 7",
+   "num": 7,
+   "kind": "checkpoint",
+   "x": 360.5,
+   "y": 290.5,
+   "heading_deg": 180.0,
+   "heading_source": "visual override: toward Point 8 along the graph (look-ahead 25u)",
+   "heading_confidence": "high",
+   "heading_evidence": "front = west down the south hall (stair at far end); left = exterior glass/patio (south); right = reception (north); back = south doors",
+   "photos": {
+    "front": {
+     "full": "../photos/point-07-front.jpg",
+     "thumb": "thumbs/point-07-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 180.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-07-right.jpg",
+     "thumb": "thumbs/point-07-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 270.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-07-back.jpg",
+     "thumb": "thumbs/point-07-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 0.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-07-left.jpg",
+     "thumb": "thumbs/point-07-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 90.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+     "label": "Point 2",
+     "num": 2,
+     "path": [
+      [
+       360.5,
+       290.5
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       301.5,
+       125.5
+      ]
+     ],
+     "length": 191.988,
+     "first_bearing_deg": 277.59
+    },
+    {
+     "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+     "label": "Point 3",
+     "num": 3,
+     "path": [
+      [
+       360.5,
+       290.5
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       309.317,
+       166.471
+      ]
+     ],
+     "length": 169.488,
+     "first_bearing_deg": 277.59
+    },
+    {
+     "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+     "label": "Point 4",
+     "num": 4,
+     "path": [
+      [
+       360.5,
+       290.5
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       320.283,
+       192.239
+      ]
+     ],
+     "length": 121.985,
+     "first_bearing_deg": 277.59
+    },
+    {
+     "id": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+     "label": "Point 8",
+     "num": 8,
+     "path": [
+      [
+       360.5,
+       290.5
+      ],
+      [
+       328.49,
+       290.5
+      ]
+     ],
+     "length": 32.01,
+     "first_bearing_deg": 180.0
+    },
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       360.5,
+       290.5
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 131.009,
+     "first_bearing_deg": 277.59
+    }
+   ]
+  },
+  {
+   "id": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+   "label": "Point 8",
+   "num": 8,
+   "kind": "checkpoint",
+   "x": 328.49,
+   "y": 290.5,
+   "heading_deg": 180.0,
+   "heading_source": "visual override: toward Point 9 along the graph (look-ahead 25u)",
+   "heading_confidence": "high",
+   "heading_evidence": "front = west (white stair at far end); left = exterior glazing; right = reception desk + atrium",
+   "photos": {
+    "front": {
+     "full": "../photos/point-08-front.jpg",
+     "thumb": "thumbs/point-08-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 180.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-08-right.jpg",
+     "thumb": "thumbs/point-08-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 270.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-08-back.jpg",
+     "thumb": "thumbs/point-08-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 0.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-08-left.jpg",
+     "thumb": "thumbs/point-08-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 90.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+     "label": "Point 7",
+     "num": 7,
+     "path": [
+      [
+       328.49,
+       290.5
+      ],
+      [
+       360.5,
+       290.5
+      ]
+     ],
+     "length": 32.01,
+     "first_bearing_deg": 0.0
+    },
+    {
+     "id": "596fbd78-4fd2-4188-97e7-316d54685e2b",
+     "label": "Point 9",
+     "num": 9,
+     "path": [
+      [
+       328.49,
+       290.5
+      ],
+      [
+       290.5,
+       290.5
+      ]
+     ],
+     "length": 37.99,
+     "first_bearing_deg": 180.0
+    }
+   ]
+  },
+  {
+   "id": "596fbd78-4fd2-4188-97e7-316d54685e2b",
+   "label": "Point 9",
+   "num": 9,
+   "kind": "checkpoint",
+   "x": 290.5,
+   "y": 290.5,
+   "heading_deg": 180.0,
+   "heading_source": "visual override: away from Point 8 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "high",
+   "heading_evidence": "dead end: front = west (angled white stair); left = exterior glazing; right = reception desk straight ahead",
+   "photos": {
+    "front": {
+     "full": "../photos/point-09-front.jpg",
+     "thumb": "thumbs/point-09-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 180.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-09-right.jpg",
+     "thumb": "thumbs/point-09-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 270.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-09-back.jpg",
+     "thumb": "thumbs/point-09-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 0.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-09-left.jpg",
+     "thumb": "thumbs/point-09-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 90.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+     "label": "Point 8",
+     "num": 8,
+     "path": [
+      [
+       290.5,
+       290.5
+      ],
+      [
+       328.49,
+       290.5
+      ]
+     ],
+     "length": 37.99,
+     "first_bearing_deg": 0.0
+    }
+   ]
+  },
+  {
+   "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+   "label": "Point 10",
+   "num": 10,
+   "kind": "checkpoint",
+   "x": 389.5,
+   "y": 212.5,
+   "heading_deg": 113.6,
+   "heading_source": "visual override: away from Point 11 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "high",
+   "heading_evidence": "right = reception desk (WSW); left = wooden bleacher stair (ESE); back = diagonal corridor NNE toward Point 11 (the path toward Point 9 bends, so the look-ahead rule overshoots to ~149 deg)",
+   "photos": {
+    "front": {
+     "full": "../photos/point-10-front.jpg",
+     "thumb": "thumbs/point-10-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 113.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-10-right.jpg",
+     "thumb": "thumbs/point-10-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 203.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-10-back.jpg",
+     "thumb": "thumbs/point-10-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 293.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-10-left.jpg",
+     "thumb": "thumbs/point-10-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 23.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+     "label": "Point 2",
+     "num": 2,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       301.5,
+       125.5
+      ]
+     ],
+     "length": 159.416,
+     "first_bearing_deg": 143.75
+    },
+    {
+     "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+     "label": "Point 3",
+     "num": 3,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       316.2,
+       182.645
+      ],
+      [
+       305.5,
+       157.5
+      ],
+      [
+       309.317,
+       166.471
+      ]
+     ],
+     "length": 136.917,
+     "first_bearing_deg": 143.75
+    },
+    {
+     "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+     "label": "Point 4",
+     "num": 4,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       325.5,
+       204.5
+      ],
+      [
+       320.283,
+       192.239
+      ]
+     ],
+     "length": 89.414,
+     "first_bearing_deg": 143.75
+    },
+    {
+     "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+     "label": "Point 7",
+     "num": 7,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       374.5,
+       223.5
+      ],
+      [
+       362.5,
+       226.5
+      ],
+      [
+       358.517,
+       225.836
+      ],
+      [
+       344.5,
+       223.5
+      ],
+      [
+       363.5,
+       228.5
+      ],
+      [
+       363.476,
+       229.65
+      ],
+      [
+       362.986,
+       252.65
+      ],
+      [
+       362.5,
+       275.5
+      ],
+      [
+       360.5,
+       290.5
+      ]
+     ],
+     "length": 131.009,
+     "first_bearing_deg": 143.75
+    },
+    {
+     "id": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+     "label": "Point 11",
+     "num": 11,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       409.773,
+       166.161
+      ]
+     ],
+     "length": 50.579,
+     "first_bearing_deg": 293.63
+    },
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 78.581,
+     "first_bearing_deg": 293.63
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       438.5,
+       125.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 108.181,
+     "first_bearing_deg": 293.63
+    },
+    {
+     "id": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+     "label": "Point 22",
+     "num": 22,
+     "path": [
+      [
+       389.5,
+       212.5
+      ],
+      [
+       378.5,
+       219.5
+      ],
+      [
+       375.5,
+       223.5
+      ],
+      [
+       384.0,
+       232.0
+      ]
+     ],
+     "length": 30.059,
+     "first_bearing_deg": 147.53
+    }
+   ]
+  },
+  {
+   "id": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+   "label": "Point 11",
+   "num": 11,
+   "kind": "checkpoint",
+   "x": 409.773,
+   "y": 166.161,
+   "heading_deg": 113.6,
+   "heading_source": "rule toward-previous-stop: toward Point 10 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "medium",
+   "heading_evidence": "left = stair up with planters, right = stair down; matches Points 10/12 orientation",
+   "photos": {
+    "front": {
+     "full": "../photos/point-11-front.jpg",
+     "thumb": "thumbs/point-11-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 113.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-11-right.jpg",
+     "thumb": "thumbs/point-11-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 203.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-11-back.jpg",
+     "thumb": "thumbs/point-11-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 293.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-11-left.jpg",
+     "thumb": "thumbs/point-11-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 23.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       409.773,
+       166.161
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 50.579,
+     "first_bearing_deg": 113.63
+    },
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       409.773,
+       166.161
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 28.002,
+     "first_bearing_deg": 293.64
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       409.773,
+       166.161
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       438.5,
+       125.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 57.602,
+     "first_bearing_deg": 293.64
+    }
+   ]
+  },
+  {
+   "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+   "label": "Point 12",
+   "num": 12,
+   "kind": "checkpoint",
+   "x": 426.488,
+   "y": 143.759,
+   "heading_deg": 127.6,
+   "heading_source": "rule toward-previous-stop: toward Point 11 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "medium",
+   "heading_evidence": "back = toward Elevator C wall + banner; left = planters/stair up; right = stair down",
+   "photos": {
+    "front": {
+     "full": "../photos/point-12-front.jpg",
+     "thumb": "thumbs/point-12-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 127.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-12-right.jpg",
+     "thumb": "thumbs/point-12-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 217.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-12-back.jpg",
+     "thumb": "thumbs/point-12-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 307.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-12-left.jpg",
+     "thumb": "thumbs/point-12-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 37.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 78.581,
+     "first_bearing_deg": 127.63
+    },
+    {
+     "id": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+     "label": "Point 11",
+     "num": 11,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       409.773,
+       166.161
+      ]
+     ],
+     "length": 28.002,
+     "first_bearing_deg": 127.63
+    },
+    {
+     "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+     "label": "Point 13",
+     "num": 13,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       482.18,
+       110.85
+      ]
+     ],
+     "length": 70.0,
+     "first_bearing_deg": 307.63
+    },
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 113.666,
+     "first_bearing_deg": 307.63
+    },
+    {
+     "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+     "label": "Point 20",
+     "num": 20,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       441.5,
+       96.5
+      ]
+     ],
+     "length": 74.138,
+     "first_bearing_deg": 307.63
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       426.488,
+       143.759
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 39.367,
+     "first_bearing_deg": 307.63
+    }
+   ]
+  },
+  {
+   "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+   "label": "Point 13",
+   "num": 13,
+   "kind": "checkpoint",
+   "x": 482.18,
+   "y": 110.85,
+   "heading_deg": 173.9,
+   "heading_source": "rule toward-previous-stop: toward Point 12 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = Elevator C wall + banner (west); right = north glazing with trees; back = long east corridor",
+   "photos": {
+    "front": {
+     "full": "../photos/point-13-front.jpg",
+     "thumb": "thumbs/point-13-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 173.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-13-right.jpg",
+     "thumb": "thumbs/point-13-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 263.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-13-back.jpg",
+     "thumb": "thumbs/point-13-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 353.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-13-left.jpg",
+     "thumb": "thumbs/point-13-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 83.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       482.18,
+       110.85
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 70.0,
+     "first_bearing_deg": 187.44
+    },
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       482.18,
+       110.85
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 43.687,
+     "first_bearing_deg": 7.43
+    },
+    {
+     "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+     "label": "Point 20",
+     "num": 20,
+     "path": [
+      [
+       482.18,
+       110.85
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       441.5,
+       96.5
+      ]
+     ],
+     "length": 57.451,
+     "first_bearing_deg": 187.44
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       482.18,
+       110.85
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 40.533,
+     "first_bearing_deg": 187.44
+    }
+   ]
+  },
+  {
+   "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+   "label": "Point 14",
+   "num": 14,
+   "kind": "junction",
+   "x": 525.5,
+   "y": 116.5,
+   "heading_deg": 187.4,
+   "heading_source": "rule toward-previous-stop: toward Point 13 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = Elevator C wall + banner; right = glazing with trees; back = long east corridor",
+   "photos": {
+    "front": {
+     "full": "../photos/point-14-front.jpg",
+     "thumb": "thumbs/point-14-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 187.4,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-14-right.jpg",
+     "thumb": "thumbs/point-14-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 277.4,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-14-back.jpg",
+     "thumb": "thumbs/point-14-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 7.4,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-14-left.jpg",
+     "thumb": "thumbs/point-14-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 97.4,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 113.666,
+     "first_bearing_deg": 188.75
+    },
+    {
+     "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+     "label": "Point 13",
+     "num": 13,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       482.18,
+       110.85
+      ]
+     ],
+     "length": 43.687,
+     "first_bearing_deg": 187.43
+    },
+    {
+     "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+     "label": "Point 15",
+     "num": 15,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       579.14,
+       111.24
+      ]
+     ],
+     "length": 55.997,
+     "first_bearing_deg": 328.39
+    },
+    {
+     "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+     "label": "Point 16",
+     "num": 16,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       607.08,
+       113.123
+      ]
+     ],
+     "length": 124.933,
+     "first_bearing_deg": 328.39
+    },
+    {
+     "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+     "label": "Point 17",
+     "num": 17,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       646.429,
+       124.533
+      ]
+     ],
+     "length": 126.0,
+     "first_bearing_deg": 328.39
+    },
+    {
+     "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+     "label": "Point 18",
+     "num": 18,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       687.5,
+       123.5
+      ]
+     ],
+     "length": 187.308,
+     "first_bearing_deg": 328.39
+    },
+    {
+     "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+     "label": "Point 19",
+     "num": 19,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       713.0,
+       142.0
+      ]
+     ],
+     "length": 197.561,
+     "first_bearing_deg": 328.39
+    },
+    {
+     "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+     "label": "Point 20",
+     "num": 20,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       441.5,
+       96.5
+      ]
+     ],
+     "length": 101.117,
+     "first_bearing_deg": 188.75
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 84.199,
+     "first_bearing_deg": 188.75
+    },
+    {
+     "id": "91949835-12f4-49ad-8eea-5db551190bef",
+     "label": "Point 26",
+     "num": 26,
+     "path": [
+      [
+       525.5,
+       116.5
+      ],
+      [
+       531.5,
+       125.5
+      ],
+      [
+       532.5,
+       133.5
+      ],
+      [
+       531.5,
+       138.5
+      ],
+      [
+       521.5,
+       153.5
+      ],
+      [
+       517.72,
+       167.66
+      ]
+     ],
+     "length": 56.662,
+     "first_bearing_deg": 56.31
+    }
+   ]
+  },
+  {
+   "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+   "label": "Point 15",
+   "num": 15,
+   "kind": "checkpoint",
+   "x": 579.14,
+   "y": 111.24,
+   "heading_deg": 183.9,
+   "heading_source": "rule toward-previous-stop: toward Point 14 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = long corridor to Elevator C wall; right = glass-walled room (north); back = east corridor",
+   "photos": {
+    "front": {
+     "full": "../photos/point-15-front.jpg",
+     "thumb": "thumbs/point-15-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 183.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-15-right.jpg",
+     "thumb": "thumbs/point-15-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 273.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-15-back.jpg",
+     "thumb": "thumbs/point-15-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 3.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-15-left.jpg",
+     "thumb": "thumbs/point-15-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 93.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       579.14,
+       111.24
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 55.997,
+     "first_bearing_deg": 183.86
+    },
+    {
+     "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+     "label": "Point 16",
+     "num": 16,
+     "path": [
+      [
+       579.14,
+       111.24
+      ],
+      [
+       607.08,
+       113.123
+      ]
+     ],
+     "length": 28.003,
+     "first_bearing_deg": 3.86
+    },
+    {
+     "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+     "label": "Point 17",
+     "num": 17,
+     "path": [
+      [
+       579.14,
+       111.24
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       646.429,
+       124.533
+      ]
+     ],
+     "length": 151.468,
+     "first_bearing_deg": 183.86
+    },
+    {
+     "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+     "label": "Point 18",
+     "num": 18,
+     "path": [
+      [
+       579.14,
+       111.24
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       687.5,
+       123.5
+      ]
+     ],
+     "length": 212.776,
+     "first_bearing_deg": 183.86
+    },
+    {
+     "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+     "label": "Point 19",
+     "num": 19,
+     "path": [
+      [
+       579.14,
+       111.24
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       713.0,
+       142.0
+      ]
+     ],
+     "length": 223.029,
+     "first_bearing_deg": 183.86
+    }
+   ]
+  },
+  {
+   "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+   "label": "Point 16",
+   "num": 16,
+   "kind": "checkpoint",
+   "x": 607.08,
+   "y": 113.123,
+   "heading_deg": 183.9,
+   "heading_source": "rule toward-previous-stop: toward Point 15 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = long west corridor; right = glass room with lettering; left = angled concrete wall",
+   "photos": {
+    "front": {
+     "full": "../photos/point-16-front.jpg",
+     "thumb": "thumbs/point-16-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 183.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-16-right.jpg",
+     "thumb": "thumbs/point-16-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 273.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-16-back.jpg",
+     "thumb": "thumbs/point-16-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 3.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-16-left.jpg",
+     "thumb": "thumbs/point-16-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 93.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       607.08,
+       113.123
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 124.933,
+     "first_bearing_deg": 3.86
+    },
+    {
+     "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+     "label": "Point 15",
+     "num": 15,
+     "path": [
+      [
+       607.08,
+       113.123
+      ],
+      [
+       579.14,
+       111.24
+      ]
+     ],
+     "length": 28.003,
+     "first_bearing_deg": 183.86
+    },
+    {
+     "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+     "label": "Point 17",
+     "num": 17,
+     "path": [
+      [
+       607.08,
+       113.123
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       646.429,
+       124.533
+      ]
+     ],
+     "length": 42.0,
+     "first_bearing_deg": 3.86
+    },
+    {
+     "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+     "label": "Point 18",
+     "num": 18,
+     "path": [
+      [
+       607.08,
+       113.123
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       687.5,
+       123.5
+      ]
+     ],
+     "length": 103.309,
+     "first_bearing_deg": 3.86
+    },
+    {
+     "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+     "label": "Point 19",
+     "num": 19,
+     "path": [
+      [
+       607.08,
+       113.123
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       713.0,
+       142.0
+      ]
+     ],
+     "length": 113.561,
+     "first_bearing_deg": 3.86
+    }
+   ]
+  },
+  {
+   "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+   "label": "Point 17",
+   "num": 17,
+   "kind": "checkpoint",
+   "x": 646.429,
+   "y": 124.533,
+   "heading_deg": 204.6,
+   "heading_source": "rule toward-previous-stop: toward Point 16 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "medium",
+   "heading_evidence": "front = west corridor with tables; back = east end with seating and glazing; right = door",
+   "photos": {
+    "front": {
+     "full": "../photos/point-17-front.jpg",
+     "thumb": "thumbs/point-17-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 204.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-17-right.jpg",
+     "thumb": "thumbs/point-17-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 294.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-17-back.jpg",
+     "thumb": "thumbs/point-17-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 24.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-17-left.jpg",
+     "thumb": "thumbs/point-17-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 114.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       646.429,
+       124.533
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 126.0,
+     "first_bearing_deg": 202.11
+    },
+    {
+     "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+     "label": "Point 15",
+     "num": 15,
+     "path": [
+      [
+       646.429,
+       124.533
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       579.14,
+       111.24
+      ]
+     ],
+     "length": 151.468,
+     "first_bearing_deg": 202.11
+    },
+    {
+     "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+     "label": "Point 16",
+     "num": 16,
+     "path": [
+      [
+       646.429,
+       124.533
+      ],
+      [
+       636.5,
+       120.5
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       607.08,
+       113.123
+      ]
+     ],
+     "length": 42.0,
+     "first_bearing_deg": 202.11
+    },
+    {
+     "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+     "label": "Point 18",
+     "num": 18,
+     "path": [
+      [
+       646.429,
+       124.533
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       687.5,
+       123.5
+      ]
+     ],
+     "length": 61.477,
+     "first_bearing_deg": 22.11
+    },
+    {
+     "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+     "label": "Point 19",
+     "num": 19,
+     "path": [
+      [
+       646.429,
+       124.533
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       713.0,
+       142.0
+      ]
+     ],
+     "length": 71.729,
+     "first_bearing_deg": 22.11
+    }
+   ]
+  },
+  {
+   "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+   "label": "Point 18",
+   "num": 18,
+   "kind": "junction",
+   "x": 687.5,
+   "y": 123.5,
+   "heading_deg": 178.6,
+   "heading_source": "visual override: straight-line bearing to Point 17",
+   "heading_confidence": "high",
+   "heading_evidence": "front = west corridor; back = east entrance doors; right = Stair D door. The graph path to Point 17 detours south-east first, so the straight bearing to Point 17 is used",
+   "photos": {
+    "front": {
+     "full": "../photos/point-18-front.jpg",
+     "thumb": "thumbs/point-18-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 178.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-18-right.jpg",
+     "thumb": "thumbs/point-18-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 268.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-18-back.jpg",
+     "thumb": "thumbs/point-18-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 358.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-18-left.jpg",
+     "thumb": "thumbs/point-18-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 88.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       687.5,
+       123.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 187.308,
+     "first_bearing_deg": 57.99
+    },
+    {
+     "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+     "label": "Point 15",
+     "num": 15,
+     "path": [
+      [
+       687.5,
+       123.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       579.14,
+       111.24
+      ]
+     ],
+     "length": 212.776,
+     "first_bearing_deg": 57.99
+    },
+    {
+     "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+     "label": "Point 16",
+     "num": 16,
+     "path": [
+      [
+       687.5,
+       123.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       607.08,
+       113.123
+      ]
+     ],
+     "length": 103.309,
+     "first_bearing_deg": 57.99
+    },
+    {
+     "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+     "label": "Point 17",
+     "num": 17,
+     "path": [
+      [
+       687.5,
+       123.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       646.429,
+       124.533
+      ]
+     ],
+     "length": 61.477,
+     "first_bearing_deg": 57.99
+    },
+    {
+     "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+     "label": "Point 19",
+     "num": 19,
+     "path": [
+      [
+       687.5,
+       123.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       713.0,
+       142.0
+      ]
+     ],
+     "length": 85.559,
+     "first_bearing_deg": 57.99
+    }
+   ]
+  },
+  {
+   "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+   "label": "Point 19",
+   "num": 19,
+   "kind": "checkpoint",
+   "x": 713.0,
+   "y": 142.0,
+   "heading_deg": 199.3,
+   "heading_source": "rule toward-previous-stop: toward Point 18 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "medium",
+   "heading_evidence": "back = entrance doors close-up (east); front = corridor west; path bearing is NW, corridor axis ~W",
+   "photos": {
+    "front": {
+     "full": "../photos/point-19-front.jpg",
+     "thumb": "thumbs/point-19-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 199.3,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-19-right.jpg",
+     "thumb": "thumbs/point-19-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 289.3,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-19-back.jpg",
+     "thumb": "thumbs/point-19-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 19.3,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-19-left.jpg",
+     "thumb": "thumbs/point-19-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 109.3,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       713.0,
+       142.0
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 197.561,
+     "first_bearing_deg": 285.16
+    },
+    {
+     "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+     "label": "Point 15",
+     "num": 15,
+     "path": [
+      [
+       713.0,
+       142.0
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       585.595,
+       111.675
+      ],
+      [
+       538.5,
+       108.5
+      ],
+      [
+       579.14,
+       111.24
+      ]
+     ],
+     "length": 223.029,
+     "first_bearing_deg": 285.16
+    },
+    {
+     "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+     "label": "Point 16",
+     "num": 16,
+     "path": [
+      [
+       713.0,
+       142.0
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       648.204,
+       124.094
+      ],
+      [
+       627.5,
+       114.5
+      ],
+      [
+       607.08,
+       113.123
+      ]
+     ],
+     "length": 113.561,
+     "first_bearing_deg": 285.16
+    },
+    {
+     "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+     "label": "Point 17",
+     "num": 17,
+     "path": [
+      [
+       713.0,
+       142.0
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       646.429,
+       124.533
+      ]
+     ],
+     "length": 71.729,
+     "first_bearing_deg": 285.16
+    },
+    {
+     "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+     "label": "Point 18",
+     "num": 18,
+     "path": [
+      [
+       713.0,
+       142.0
+      ],
+      [
+       713.55,
+       139.97
+      ],
+      [
+       693.5,
+       134.5
+      ],
+      [
+       681.984,
+       134.039
+      ],
+      [
+       668.5,
+       133.5
+      ],
+      [
+       677.5,
+       135.5
+      ],
+      [
+       692.5,
+       135.5
+      ],
+      [
+       692.5,
+       131.5
+      ],
+      [
+       687.5,
+       123.5
+      ]
+     ],
+     "length": 85.559,
+     "first_bearing_deg": 285.16
+    }
+   ]
+  },
+  {
+   "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+   "label": "Point 20",
+   "num": 20,
+   "kind": "junction",
+   "x": 441.5,
+   "y": 96.5,
+   "heading_deg": 190.0,
+   "heading_source": "visual override: fixed 190 deg from photo landmarks",
+   "heading_confidence": "high",
+   "heading_evidence": "front = Elevator C doors close-up (shaft is west of the stop); right = north glazing with trees; back = long east corridor",
+   "photos": {
+    "front": {
+     "full": "../photos/point-20-front.jpg",
+     "thumb": "thumbs/point-20-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 190.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-20-right.jpg",
+     "thumb": "thumbs/point-20-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 280.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-20-back.jpg",
+     "thumb": "thumbs/point-20-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 10.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-20-left.jpg",
+     "thumb": "thumbs/point-20-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 100.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       441.5,
+       96.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 74.138,
+     "first_bearing_deg": 75.96
+    },
+    {
+     "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+     "label": "Point 13",
+     "num": 13,
+     "path": [
+      [
+       441.5,
+       96.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       482.18,
+       110.85
+      ]
+     ],
+     "length": 57.451,
+     "first_bearing_deg": 75.96
+    },
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       441.5,
+       96.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 101.117,
+     "first_bearing_deg": 75.96
+    },
+    {
+     "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+     "label": "Point 21",
+     "num": 21,
+     "path": [
+      [
+       441.5,
+       96.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       444.0,
+       120.0
+      ]
+     ],
+     "length": 44.671,
+     "first_bearing_deg": 75.96
+    }
+   ]
+  },
+  {
+   "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+   "label": "Point 21",
+   "num": 21,
+   "kind": "junction",
+   "x": 444.0,
+   "y": 120.0,
+   "heading_deg": 180.0,
+   "heading_source": "visual override: fixed 180 deg from photo landmarks",
+   "heading_confidence": "medium",
+   "heading_evidence": "back = long east corridor with tables; right = Elevator C door + banner (north); left = stair with planters (diagonal corridor)",
+   "photos": {
+    "front": {
+     "full": "../photos/point-21-front.jpg",
+     "thumb": "thumbs/point-21-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 180.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-21-right.jpg",
+     "thumb": "thumbs/point-21-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 270.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-21-back.jpg",
+     "thumb": "thumbs/point-21-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 0.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-21-left.jpg",
+     "thumb": "thumbs/point-21-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 90.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       438.5,
+       125.5
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 108.181,
+     "first_bearing_deg": 135.0
+    },
+    {
+     "id": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+     "label": "Point 11",
+     "num": 11,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       438.5,
+       125.5
+      ],
+      [
+       410.5,
+       164.5
+      ],
+      [
+       409.773,
+       166.161
+      ]
+     ],
+     "length": 57.602,
+     "first_bearing_deg": 135.0
+    },
+    {
+     "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+     "label": "Point 12",
+     "num": 12,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       426.488,
+       143.759
+      ]
+     ],
+     "length": 39.367,
+     "first_bearing_deg": 315.0
+    },
+    {
+     "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+     "label": "Point 13",
+     "num": 13,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       479.5,
+       110.5
+      ],
+      [
+       482.18,
+       110.85
+      ]
+     ],
+     "length": 40.533,
+     "first_bearing_deg": 315.0
+    },
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       467.5,
+       110.5
+      ],
+      [
+       489.29,
+       111.862
+      ],
+      [
+       499.5,
+       112.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 84.199,
+     "first_bearing_deg": 315.0
+    },
+    {
+     "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+     "label": "Point 20",
+     "num": 20,
+     "path": [
+      [
+       444.0,
+       120.0
+      ],
+      [
+       447.5,
+       116.5
+      ],
+      [
+       456.5,
+       115.5
+      ],
+      [
+       446.5,
+       116.5
+      ],
+      [
+       441.5,
+       96.5
+      ]
+     ],
+     "length": 44.671,
+     "first_bearing_deg": 315.0
+    }
+   ]
+  },
+  {
+   "id": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+   "label": "Point 22",
+   "num": 22,
+   "kind": "junction",
+   "x": 384.0,
+   "y": 232.0,
+   "heading_deg": 113.6,
+   "heading_source": "visual override: same heading as Point 10",
+   "heading_confidence": "medium",
+   "heading_evidence": "back photo frames the same view as Point 10 back (diagonal corridor, 'MISS..' sign); right = reception desk; front = south glass doors",
+   "photos": {
+    "front": {
+     "full": "../photos/point-22-front.jpg",
+     "thumb": "thumbs/point-22-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 113.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-22-right.jpg",
+     "thumb": "thumbs/point-22-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 203.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-22-back.jpg",
+     "thumb": "thumbs/point-22-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 293.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-22-left.jpg",
+     "thumb": "thumbs/point-22-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 23.6,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+     "label": "Point 10",
+     "num": 10,
+     "path": [
+      [
+       384.0,
+       232.0
+      ],
+      [
+       375.5,
+       223.5
+      ],
+      [
+       378.5,
+       219.5
+      ],
+      [
+       389.5,
+       212.5
+      ]
+     ],
+     "length": 30.059,
+     "first_bearing_deg": 225.0
+    },
+    {
+     "id": "478eb2af-8116-4337-afc1-1ed9e1778623",
+     "label": "Point 24",
+     "num": 24,
+     "path": [
+      [
+       384.0,
+       232.0
+      ],
+      [
+       385.5,
+       233.5
+      ],
+      [
+       389.5,
+       244.5
+      ],
+      [
+       394.5,
+       249.5
+      ],
+      [
+       418.5,
+       249.5
+      ]
+     ],
+     "length": 44.897,
+     "first_bearing_deg": 45.0
+    }
+   ]
+  },
+  {
+   "id": "478eb2af-8116-4337-afc1-1ed9e1778623",
+   "label": "Point 24",
+   "num": 24,
+   "kind": "junction",
+   "x": 418.5,
+   "y": 249.5,
+   "heading_deg": 76.0,
+   "heading_source": "visual override: toward Point 25 along the graph (look-ahead 25u)",
+   "heading_confidence": "high",
+   "heading_evidence": "front = Elevator B doors at the end of a short corridor; back = reception/atrium",
+   "photos": {
+    "front": {
+     "full": "../photos/point-24-front.jpg",
+     "thumb": "thumbs/point-24-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 76.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-24-right.jpg",
+     "thumb": "thumbs/point-24-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 166.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-24-back.jpg",
+     "thumb": "thumbs/point-24-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 256.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-24-left.jpg",
+     "thumb": "thumbs/point-24-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 346.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+     "label": "Point 22",
+     "num": 22,
+     "path": [
+      [
+       418.5,
+       249.5
+      ],
+      [
+       394.5,
+       249.5
+      ],
+      [
+       389.5,
+       244.5
+      ],
+      [
+       385.5,
+       233.5
+      ],
+      [
+       384.0,
+       232.0
+      ]
+     ],
+     "length": 44.897,
+     "first_bearing_deg": 180.0
+    },
+    {
+     "id": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+     "label": "Point 25",
+     "num": 25,
+     "path": [
+      [
+       418.5,
+       249.5
+      ],
+      [
+       423.5,
+       269.5
+      ]
+     ],
+     "length": 20.616,
+     "first_bearing_deg": 75.96
+    }
+   ]
+  },
+  {
+   "id": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+   "label": "Point 25",
+   "num": 25,
+   "kind": "checkpoint",
+   "x": 423.5,
+   "y": 269.5,
+   "heading_deg": 76.0,
+   "heading_source": "visual override: away from Point 24 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "high",
+   "heading_evidence": "front = Elevator B doors close-up; back = open hall toward reception",
+   "photos": {
+    "front": {
+     "full": "../photos/point-25-front.jpg",
+     "thumb": "thumbs/point-25-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 76.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-25-right.jpg",
+     "thumb": "thumbs/point-25-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 166.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-25-back.jpg",
+     "thumb": "thumbs/point-25-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 256.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-25-left.jpg",
+     "thumb": "thumbs/point-25-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 346.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "478eb2af-8116-4337-afc1-1ed9e1778623",
+     "label": "Point 24",
+     "num": 24,
+     "path": [
+      [
+       423.5,
+       269.5
+      ],
+      [
+       418.5,
+       249.5
+      ]
+     ],
+     "length": 20.616,
+     "first_bearing_deg": 255.96
+    }
+   ]
+  },
+  {
+   "id": "91949835-12f4-49ad-8eea-5db551190bef",
+   "label": "Point 26",
+   "num": 26,
+   "kind": "junction",
+   "x": 517.72,
+   "y": 167.66,
+   "heading_deg": 292.7,
+   "heading_source": "rule toward-previous-stop: toward Point 25 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "left = door into the lecture room (west); front = north end opening to main corridor",
+   "photos": {
+    "front": {
+     "full": "../photos/point-26-front.jpg",
+     "thumb": "thumbs/point-26-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 292.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-26-right.jpg",
+     "thumb": "thumbs/point-26-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 22.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-26-back.jpg",
+     "thumb": "thumbs/point-26-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 112.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-26-left.jpg",
+     "thumb": "thumbs/point-26-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 202.7,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+     "label": "Point 14",
+     "num": 14,
+     "path": [
+      [
+       517.72,
+       167.66
+      ],
+      [
+       521.5,
+       153.5
+      ],
+      [
+       531.5,
+       138.5
+      ],
+      [
+       532.5,
+       133.5
+      ],
+      [
+       531.5,
+       125.5
+      ],
+      [
+       525.5,
+       116.5
+      ]
+     ],
+     "length": 56.662,
+     "first_bearing_deg": 284.95
+    },
+    {
+     "id": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+     "label": "Point 27",
+     "num": 27,
+     "path": [
+      [
+       517.72,
+       167.66
+      ],
+      [
+       517.57,
+       168.25
+      ],
+      [
+       517.5,
+       168.5
+      ],
+      [
+       516.793,
+       210.24
+      ]
+     ],
+     "length": 42.614,
+     "first_bearing_deg": 104.26
+    }
+   ]
+  },
+  {
+   "id": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+   "label": "Point 27",
+   "num": 27,
+   "kind": "checkpoint",
+   "x": 516.793,
+   "y": 210.24,
+   "heading_deg": 271.0,
+   "heading_source": "rule toward-previous-stop: toward Point 26 along the graph (look-ahead 25u); visually confirmed",
+   "heading_confidence": "high",
+   "heading_evidence": "front = purple corridor north ('Dark Matter' lettering left, bench right); right = double doors",
+   "photos": {
+    "front": {
+     "full": "../photos/point-27-front.jpg",
+     "thumb": "thumbs/point-27-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 271.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-27-right.jpg",
+     "thumb": "thumbs/point-27-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 1.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-27-back.jpg",
+     "thumb": "thumbs/point-27-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 91.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-27-left.jpg",
+     "thumb": "thumbs/point-27-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 181.0,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "91949835-12f4-49ad-8eea-5db551190bef",
+     "label": "Point 26",
+     "num": 26,
+     "path": [
+      [
+       516.793,
+       210.24
+      ],
+      [
+       517.5,
+       168.5
+      ],
+      [
+       517.57,
+       168.25
+      ],
+      [
+       517.72,
+       167.66
+      ]
+     ],
+     "length": 42.614,
+     "first_bearing_deg": 270.97
+    },
+    {
+     "id": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+     "label": "Point 28",
+     "num": 28,
+     "path": [
+      [
+       516.793,
+       210.24
+      ],
+      [
+       516.5,
+       227.5
+      ],
+      [
+       509.5,
+       245.5
+      ],
+      [
+       505.5,
+       249.5
+      ]
+     ],
+     "length": 42.232,
+     "first_bearing_deg": 90.97
+    }
+   ]
+  },
+  {
+   "id": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+   "label": "Point 28",
+   "num": 28,
+   "kind": "checkpoint",
+   "x": 505.5,
+   "y": 249.5,
+   "heading_deg": 358.9,
+   "heading_source": "visual override: away from Point 29 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "medium",
+   "heading_evidence": "left = purple 'Dark Matter' corridor toward Point 27 (north); back = long narrow corridor west; right = washroom sign (south)",
+   "photos": {
+    "front": {
+     "full": "../photos/point-28-front.jpg",
+     "thumb": "thumbs/point-28-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 358.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-28-right.jpg",
+     "thumb": "thumbs/point-28-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 88.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-28-back.jpg",
+     "thumb": "thumbs/point-28-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 178.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-28-left.jpg",
+     "thumb": "thumbs/point-28-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 268.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+     "label": "Point 27",
+     "num": 27,
+     "path": [
+      [
+       505.5,
+       249.5
+      ],
+      [
+       509.5,
+       245.5
+      ],
+      [
+       516.5,
+       227.5
+      ],
+      [
+       516.793,
+       210.24
+      ]
+     ],
+     "length": 42.232,
+     "first_bearing_deg": 315.0
+    },
+    {
+     "id": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+     "label": "Point 29",
+     "num": 29,
+     "path": [
+      [
+       505.5,
+       249.5
+      ],
+      [
+       453.5,
+       250.5
+      ]
+     ],
+     "length": 52.01,
+     "first_bearing_deg": 178.9
+    }
+   ]
+  },
+  {
+   "id": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+   "label": "Point 29",
+   "num": 29,
+   "kind": "junction",
+   "x": 453.5,
+   "y": 250.5,
+   "heading_deg": 178.9,
+   "heading_source": "visual override: away from Point 28 (reverse of look-ahead bearing toward it)",
+   "heading_confidence": "high",
+   "heading_evidence": "left = Stair B door (stair is just south); front = narrow corridor west; back = corridor east toward Point 28",
+   "photos": {
+    "front": {
+     "full": "../photos/point-29-front.jpg",
+     "thumb": "thumbs/point-29-front.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 178.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "right": {
+     "full": "../photos/point-29-right.jpg",
+     "thumb": "thumbs/point-29-right.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 268.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "back": {
+     "full": "../photos/point-29-back.jpg",
+     "thumb": "thumbs/point-29-back.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 358.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    },
+    "left": {
+     "full": "../photos/point-29-left.jpg",
+     "thumb": "thumbs/point-29-left.jpg",
+     "w": 1536,
+     "h": 2048,
+     "bearing_deg": 88.9,
+     "thumb_w": 384,
+     "thumb_h": 512
+    }
+   },
+   "neighbors": [
+    {
+     "id": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+     "label": "Point 28",
+     "num": 28,
+     "path": [
+      [
+       453.5,
+       250.5
+      ],
+      [
+       505.5,
+       249.5
+      ]
+     ],
+     "length": 52.01,
+     "first_bearing_deg": 358.9
+    }
+   ]
+  }
+ ],
+ "walk": [
+  [
+   298.5,
+   87.5
+  ],
+  [
+   301.25,
+   122.37
+  ],
+  [
+   301.5,
+   125.5
+  ],
+  [
+   305.5,
+   157.5
+  ],
+  [
+   309.317,
+   166.471
+  ],
+  [
+   320.283,
+   192.239
+  ],
+  [
+   325.5,
+   204.5
+  ],
+  [
+   344.5,
+   223.5
+  ],
+  [
+   363.5,
+   228.5
+  ],
+  [
+   363.476,
+   229.65
+  ],
+  [
+   362.986,
+   252.65
+  ],
+  [
+   362.5,
+   275.5
+  ],
+  [
+   360.5,
+   290.5
+  ],
+  [
+   328.49,
+   290.5
+  ],
+  [
+   290.5,
+   290.5
+  ],
+  [
+   328.49,
+   290.5
+  ],
+  [
+   360.5,
+   290.5
+  ],
+  [
+   362.5,
+   275.5
+  ],
+  [
+   362.986,
+   252.65
+  ],
+  [
+   363.476,
+   229.65
+  ],
+  [
+   363.5,
+   228.5
+  ],
+  [
+   344.5,
+   223.5
+  ],
+  [
+   358.517,
+   225.836
+  ],
+  [
+   362.5,
+   226.5
+  ],
+  [
+   374.5,
+   223.5
+  ],
+  [
+   389.5,
+   212.5
+  ],
+  [
+   409.773,
+   166.161
+  ],
+  [
+   410.5,
+   164.5
+  ],
+  [
+   426.488,
+   143.759
+  ],
+  [
+   447.5,
+   116.5
+  ],
+  [
+   467.5,
+   110.5
+  ],
+  [
+   479.5,
+   110.5
+  ],
+  [
+   482.18,
+   110.85
+  ],
+  [
+   525.5,
+   116.5
+  ],
+  [
+   538.5,
+   108.5
+  ],
+  [
+   579.14,
+   111.24
+  ],
+  [
+   607.08,
+   113.123
+  ],
+  [
+   627.5,
+   114.5
+  ],
+  [
+   636.5,
+   120.5
+  ],
+  [
+   646.429,
+   124.533
+  ],
+  [
+   668.5,
+   133.5
+  ],
+  [
+   677.5,
+   135.5
+  ],
+  [
+   692.5,
+   135.5
+  ],
+  [
+   692.5,
+   131.5
+  ],
+  [
+   687.5,
+   123.5
+  ],
+  [
+   692.5,
+   131.5
+  ],
+  [
+   692.5,
+   135.5
+  ],
+  [
+   677.5,
+   135.5
+  ],
+  [
+   668.5,
+   133.5
+  ],
+  [
+   681.984,
+   134.039
+  ],
+  [
+   693.5,
+   134.5
+  ],
+  [
+   713.55,
+   139.97
+  ],
+  [
+   713.0,
+   142.0
+  ],
+  [
+   713.55,
+   139.97
+  ],
+  [
+   693.5,
+   134.5
+  ],
+  [
+   681.984,
+   134.039
+  ],
+  [
+   668.5,
+   133.5
+  ],
+  [
+   648.204,
+   124.094
+  ],
+  [
+   627.5,
+   114.5
+  ],
+  [
+   585.595,
+   111.675
+  ],
+  [
+   538.5,
+   108.5
+  ],
+  [
+   525.5,
+   116.5
+  ],
+  [
+   499.5,
+   112.5
+  ],
+  [
+   489.29,
+   111.862
+  ],
+  [
+   467.5,
+   110.5
+  ],
+  [
+   456.5,
+   115.5
+  ],
+  [
+   446.5,
+   116.5
+  ],
+  [
+   441.5,
+   96.5
+  ],
+  [
+   446.5,
+   116.5
+  ],
+  [
+   456.5,
+   115.5
+  ],
+  [
+   447.5,
+   116.5
+  ],
+  [
+   444.0,
+   120.0
+  ],
+  [
+   438.5,
+   125.5
+  ],
+  [
+   410.5,
+   164.5
+  ],
+  [
+   389.5,
+   212.5
+  ],
+  [
+   378.5,
+   219.5
+  ],
+  [
+   375.5,
+   223.5
+  ],
+  [
+   384.0,
+   232.0
+  ],
+  [
+   385.5,
+   233.5
+  ],
+  [
+   389.5,
+   244.5
+  ],
+  [
+   394.5,
+   249.5
+  ],
+  [
+   418.5,
+   249.5
+  ],
+  [
+   423.5,
+   269.5
+  ],
+  [
+   418.5,
+   249.5
+  ],
+  [
+   394.5,
+   249.5
+  ],
+  [
+   389.5,
+   244.5
+  ],
+  [
+   385.5,
+   233.5
+  ],
+  [
+   384.0,
+   232.0
+  ],
+  [
+   375.5,
+   223.5
+  ],
+  [
+   378.5,
+   219.5
+  ],
+  [
+   389.5,
+   212.5
+  ],
+  [
+   410.5,
+   164.5
+  ],
+  [
+   426.488,
+   143.759
+  ],
+  [
+   447.5,
+   116.5
+  ],
+  [
+   467.5,
+   110.5
+  ],
+  [
+   489.29,
+   111.862
+  ],
+  [
+   499.5,
+   112.5
+  ],
+  [
+   525.5,
+   116.5
+  ],
+  [
+   531.5,
+   125.5
+  ],
+  [
+   532.5,
+   133.5
+  ],
+  [
+   531.5,
+   138.5
+  ],
+  [
+   521.5,
+   153.5
+  ],
+  [
+   517.72,
+   167.66
+  ],
+  [
+   517.57,
+   168.25
+  ],
+  [
+   517.5,
+   168.5
+  ],
+  [
+   516.793,
+   210.24
+  ],
+  [
+   516.5,
+   227.5
+  ],
+  [
+   509.5,
+   245.5
+  ],
+  [
+   505.5,
+   249.5
+  ],
+  [
+   453.5,
+   250.5
+  ]
+ ],
+ "edges": [
+  [
+   [
+    525.5,
+    116.5
+   ],
+   [
+    538.5,
+    108.5
+   ]
+  ],
+  [
+   [
+    538.5,
+    108.5
+   ],
+   [
+    579.14,
+    111.24
+   ]
+  ],
+  [
+   [
+    627.5,
+    114.5
+   ],
+   [
+    636.5,
+    120.5
+   ]
+  ],
+  [
+   [
+    668.5,
+    133.5
+   ],
+   [
+    677.5,
+    135.5
+   ]
+  ],
+  [
+   [
+    677.5,
+    135.5
+   ],
+   [
+    692.5,
+    135.5
+   ]
+  ],
+  [
+   [
+    692.5,
+    135.5
+   ],
+   [
+    692.5,
+    131.5
+   ]
+  ],
+  [
+   [
+    692.5,
+    131.5
+   ],
+   [
+    687.5,
+    123.5
+   ]
+  ],
+  [
+   [
+    517.57,
+    168.25
+   ],
+   [
+    517.5,
+    168.5
+   ]
+  ],
+  [
+   [
+    516.5,
+    227.5
+   ],
+   [
+    509.5,
+    245.5
+   ]
+  ],
+  [
+   [
+    509.5,
+    245.5
+   ],
+   [
+    505.5,
+    249.5
+   ]
+  ],
+  [
+   [
+    505.5,
+    249.5
+   ],
+   [
+    453.5,
+    250.5
+   ]
+  ],
+  [
+   [
+    693.5,
+    134.5
+   ],
+   [
+    713.55,
+    139.97
+   ]
+  ],
+  [
+   [
+    301.5,
+    125.5
+   ],
+   [
+    305.5,
+    157.5
+   ]
+  ],
+  [
+   [
+    320.283,
+    192.239
+   ],
+   [
+    325.5,
+    204.5
+   ]
+  ],
+  [
+   [
+    325.5,
+    204.5
+   ],
+   [
+    344.5,
+    223.5
+   ]
+  ],
+  [
+   [
+    344.5,
+    223.5
+   ],
+   [
+    363.5,
+    228.5
+   ]
+  ],
+  [
+   [
+    362.5,
+    275.5
+   ],
+   [
+    360.5,
+    290.5
+   ]
+  ],
+  [
+   [
+    441.5,
+    96.5
+   ],
+   [
+    446.5,
+    116.5
+   ]
+  ],
+  [
+   [
+    446.5,
+    116.5
+   ],
+   [
+    456.5,
+    115.5
+   ]
+  ],
+  [
+   [
+    456.5,
+    115.5
+   ],
+   [
+    467.5,
+    110.5
+   ]
+  ],
+  [
+   [
+    499.5,
+    112.5
+   ],
+   [
+    525.5,
+    116.5
+   ]
+  ],
+  [
+   [
+    301.25,
+    122.37
+   ],
+   [
+    301.5,
+    125.5
+   ]
+  ],
+  [
+   [
+    298.5,
+    87.5
+   ],
+   [
+    301.25,
+    122.37
+   ]
+  ],
+  [
+   [
+    384.0,
+    232.0
+   ],
+   [
+    385.5,
+    233.5
+   ]
+  ],
+  [
+   [
+    385.5,
+    233.5
+   ],
+   [
+    389.5,
+    244.5
+   ]
+  ],
+  [
+   [
+    389.5,
+    244.5
+   ],
+   [
+    394.5,
+    249.5
+   ]
+  ],
+  [
+   [
+    394.5,
+    249.5
+   ],
+   [
+    418.5,
+    249.5
+   ]
+  ],
+  [
+   [
+    418.5,
+    249.5
+   ],
+   [
+    423.5,
+    269.5
+   ]
+  ],
+  [
+   [
+    444.0,
+    120.0
+   ],
+   [
+    438.5,
+    125.5
+   ]
+  ],
+  [
+   [
+    438.5,
+    125.5
+   ],
+   [
+    410.5,
+    164.5
+   ]
+  ],
+  [
+   [
+    410.5,
+    164.5
+   ],
+   [
+    389.5,
+    212.5
+   ]
+  ],
+  [
+   [
+    389.5,
+    212.5
+   ],
+   [
+    378.5,
+    219.5
+   ]
+  ],
+  [
+   [
+    378.5,
+    219.5
+   ],
+   [
+    375.5,
+    223.5
+   ]
+  ],
+  [
+   [
+    375.5,
+    223.5
+   ],
+   [
+    384.0,
+    232.0
+   ]
+  ],
+  [
+   [
+    525.5,
+    116.5
+   ],
+   [
+    479.5,
+    110.5
+   ]
+  ],
+  [
+   [
+    479.5,
+    110.5
+   ],
+   [
+    467.5,
+    110.5
+   ]
+  ],
+  [
+   [
+    456.5,
+    115.5
+   ],
+   [
+    447.5,
+    116.5
+   ]
+  ],
+  [
+   [
+    447.5,
+    116.5
+   ],
+   [
+    444.0,
+    120.0
+   ]
+  ],
+  [
+   [
+    467.5,
+    110.5
+   ],
+   [
+    447.5,
+    116.5
+   ]
+  ],
+  [
+   [
+    389.5,
+    212.5
+   ],
+   [
+    374.5,
+    223.5
+   ]
+  ],
+  [
+   [
+    374.5,
+    223.5
+   ],
+   [
+    362.5,
+    226.5
+   ]
+  ],
+  [
+   [
+    627.5,
+    114.5
+   ],
+   [
+    627.61,
+    114.55
+   ]
+  ],
+  [
+   [
+    668.5,
+    133.5
+   ],
+   [
+    693.5,
+    135.5
+   ]
+  ],
+  [
+   [
+    517.72,
+    167.66
+   ],
+   [
+    517.57,
+    168.25
+   ]
+  ],
+  [
+   [
+    525.5,
+    116.5
+   ],
+   [
+    531.5,
+    125.5
+   ]
+  ],
+  [
+   [
+    531.5,
+    125.5
+   ],
+   [
+    532.5,
+    133.5
+   ]
+  ],
+  [
+   [
+    532.5,
+    133.5
+   ],
+   [
+    531.5,
+    138.5
+   ]
+  ],
+  [
+   [
+    531.5,
+    138.5
+   ],
+   [
+    521.5,
+    153.5
+   ]
+  ],
+  [
+   [
+    521.5,
+    153.5
+   ],
+   [
+    517.72,
+    167.66
+   ]
+  ],
+  [
+   [
+    424.0,
+    271.0
+   ],
+   [
+    424.0,
+    263.0
+   ]
+  ],
+  [
+   [
+    421.0,
+    249.0
+   ],
+   [
+    396.0,
+    249.0
+   ]
+  ],
+  [
+   [
+    396.0,
+    249.0
+   ],
+   [
+    390.0,
+    242.0
+   ]
+  ],
+  [
+   [
+    390.0,
+    242.0
+   ],
+   [
+    386.0,
+    230.0
+   ]
+  ],
+  [
+   [
+    386.0,
+    230.0
+   ],
+   [
+    384.0,
+    232.0
+   ]
+  ],
+  [
+   [
+    439.0,
+    95.0
+   ],
+   [
+    446.0,
+    110.0
+   ]
+  ],
+  [
+   [
+    446.0,
+    110.0
+   ],
+   [
+    441.0,
+    117.0
+   ]
+  ],
+  [
+   [
+    441.0,
+    117.0
+   ],
+   [
+    444.0,
+    120.0
+   ]
+  ],
+  [
+   [
+    506.0,
+    249.0
+   ],
+   [
+    512.0,
+    241.0
+   ]
+  ],
+  [
+   [
+    516.0,
+    226.0
+   ],
+   [
+    518.0,
+    204.0
+   ]
+  ],
+  [
+   [
+    519.0,
+    168.0
+   ],
+   [
+    517.72,
+    167.66
+   ]
+  ],
+  [
+   [
+    329.0,
+    116.0
+   ],
+   [
+    320.0,
+    117.0
+   ]
+  ],
+  [
+   [
+    320.0,
+    117.0
+   ],
+   [
+    306.0,
+    122.0
+   ]
+  ],
+  [
+   [
+    306.0,
+    122.0
+   ],
+   [
+    301.25,
+    122.37
+   ]
+  ],
+  [
+   [
+    704.0,
+    133.0
+   ],
+   [
+    713.0,
+    142.0
+   ]
+  ],
+  [
+   [
+    713.0,
+    142.0
+   ],
+   [
+    713.55,
+    139.97
+   ]
+  ],
+  [
+   [
+    646.429,
+    124.533
+   ],
+   [
+    668.5,
+    133.5
+   ]
+  ],
+  [
+   [
+    517.5,
+    168.5
+   ],
+   [
+    516.793,
+    210.24
+   ]
+  ],
+  [
+   [
+    409.773,
+    166.161
+   ],
+   [
+    389.5,
+    212.5
+   ]
+  ],
+  [
+   [
+    636.5,
+    120.5
+   ],
+   [
+    646.429,
+    124.533
+   ]
+  ],
+  [
+   [
+    516.793,
+    210.24
+   ],
+   [
+    516.5,
+    227.5
+   ]
+  ],
+  [
+   [
+    410.5,
+    164.5
+   ],
+   [
+    409.773,
+    166.161
+   ]
+  ],
+  [
+   [
+    525.5,
+    116.5
+   ],
+   [
+    482.18,
+    110.85
+   ]
+  ],
+  [
+   [
+    482.18,
+    110.85
+   ],
+   [
+    479.5,
+    110.5
+   ]
+  ],
+  [
+   [
+    426.488,
+    143.759
+   ],
+   [
+    410.5,
+    164.5
+   ]
+  ],
+  [
+   [
+    579.14,
+    111.24
+   ],
+   [
+    607.08,
+    113.123
+   ]
+  ],
+  [
+   [
+    309.317,
+    166.471
+   ],
+   [
+    320.283,
+    192.239
+   ]
+  ],
+  [
+   [
+    305.5,
+    157.5
+   ],
+   [
+    309.317,
+    166.471
+   ]
+  ],
+  [
+   [
+    328.49,
+    290.5
+   ],
+   [
+    290.5,
+    290.5
+   ]
+  ],
+  [
+   [
+    360.5,
+    290.5
+   ],
+   [
+    328.49,
+    290.5
+   ]
+  ],
+  [
+   [
+    447.5,
+    116.5
+   ],
+   [
+    426.488,
+    143.759
+   ]
+  ],
+  [
+   [
+    607.08,
+    113.123
+   ],
+   [
+    627.5,
+    114.5
+   ]
+  ],
+  [
+   [
+    362.986,
+    252.65
+   ],
+   [
+    362.5,
+    275.5
+   ]
+  ],
+  [
+   [
+    316.2,
+    182.645
+   ],
+   [
+    305.5,
+    157.5
+   ]
+  ],
+  [
+   [
+    358.517,
+    225.836
+   ],
+   [
+    344.5,
+    223.5
+   ]
+  ],
+  [
+   [
+    452.0,
+    249.0
+   ],
+   [
+    483.738,
+    249.0
+   ]
+  ],
+  [
+   [
+    483.738,
+    249.0
+   ],
+   [
+    506.0,
+    249.0
+   ]
+  ],
+  [
+   [
+    518.0,
+    204.0
+   ],
+   [
+    518.044,
+    202.401
+   ]
+  ],
+  [
+   [
+    452.0,
+    253.0
+   ],
+   [
+    452.0,
+    249.0
+   ]
+  ],
+  [
+   [
+    585.595,
+    111.675
+   ],
+   [
+    627.5,
+    114.5
+   ]
+  ],
+  [
+   [
+    423.79,
+    262.022
+   ],
+   [
+    421.0,
+    249.0
+   ]
+  ],
+  [
+   [
+    363.476,
+    229.65
+   ],
+   [
+    362.986,
+    252.65
+   ]
+  ],
+  [
+   [
+    538.5,
+    108.5
+   ],
+   [
+    585.595,
+    111.675
+   ]
+  ],
+  [
+   [
+    362.5,
+    226.5
+   ],
+   [
+    358.517,
+    225.836
+   ]
+  ],
+  [
+   [
+    627.61,
+    114.55
+   ],
+   [
+    649.523,
+    124.705
+   ]
+  ],
+  [
+   [
+    424.0,
+    263.0
+   ],
+   [
+    423.79,
+    262.022
+   ]
+  ],
+  [
+   [
+    686.853,
+    122.521
+   ],
+   [
+    704.0,
+    133.0
+   ]
+  ],
+  [
+   [
+    452.0,
+    254.0
+   ],
+   [
+    452.0,
+    253.0
+   ]
+  ],
+  [
+   [
+    512.0,
+    241.0
+   ],
+   [
+    512.896,
+    237.641
+   ]
+  ],
+  [
+   [
+    686.0,
+    122.0
+   ],
+   [
+    686.853,
+    122.521
+   ]
+  ],
+  [
+   [
+    681.984,
+    134.039
+   ],
+   [
+    693.5,
+    134.5
+   ]
+  ],
+  [
+   [
+    627.5,
+    114.5
+   ],
+   [
+    648.204,
+    124.094
+   ]
+  ],
+  [
+   [
+    649.523,
+    124.705
+   ],
+   [
+    668.5,
+    133.5
+   ]
+  ],
+  [
+   [
+    512.896,
+    237.641
+   ],
+   [
+    516.0,
+    226.0
+   ]
+  ],
+  [
+   [
+    363.5,
+    228.5
+   ],
+   [
+    363.476,
+    229.65
+   ]
+  ],
+  [
+   [
+    467.5,
+    110.5
+   ],
+   [
+    489.29,
+    111.862
+   ]
+  ],
+  [
+   [
+    518.044,
+    202.401
+   ],
+   [
+    519.0,
+    168.0
+   ]
+  ],
+  [
+   [
+    668.5,
+    133.5
+   ],
+   [
+    681.984,
+    134.039
+   ]
+  ],
+  [
+   [
+    489.29,
+    111.862
+   ],
+   [
+    499.5,
+    112.5
+   ]
+  ],
+  [
+   [
+    648.204,
+    124.094
+   ],
+   [
+    668.5,
+    133.5
+   ]
+  ],
+  [
+   [
+    325.5,
+    204.5
+   ],
+   [
+    316.2,
+    182.645
+   ]
+  ]
+ ]
+}

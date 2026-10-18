@@ -110,6 +110,28 @@
       <span class="eyebrow">MY MAPS / EDIT</span>
       <h1>{{ title() }}</h1>
     </div>
+    @if (map3dPath()) {
+      <div class="view-toggle" role="group" aria-label="Map view">
+        <button
+          type="button"
+          [class.active]="viewMode() === '2d'"
+          [attr.aria-pressed]="viewMode() === '2d'"
+          title="Edit the walking graph on the floor plan"
+          (click)="setView('2d')"
+        >
+          2D
+        </button>
+        <button
+          type="button"
+          [class.active]="viewMode() === '3d'"
+          [attr.aria-pressed]="viewMode() === '3d'"
+          title="Explore the 3D photo map (view only)"
+          (click)="setView('3d')"
+        >
+          3D
+        </button>
+      </div>
+    }
     <span class="save-state" role="status">{{ busy() ? 'Saving...' : status() }}</span>
   </header>
   @if (error()) {
@@ -122,7 +144,16 @@
   }
   <div class="editor-body" [class.ai-open]="layout.aiOpen()">
     <div class="canvas-area">
+      @if (viewMode() === '3d' && map3dSrc()) {
+        <iframe
+          class="map3d-frame"
+          [src]="map3dSrc()"
+          title="3D photo map of this floor"
+          allow="fullscreen"
+        ></iframe>
+      }
       <app-graph-canvas
+        [hidden]="viewMode() === '3d'"
         [width]="width()"
         [height]="height()"
         [underlayUrl]="underlayUrl()"
@@ -335,7 +366,7 @@
           }}</small>
         </div>
       }
-      <div class="canvas-hint">
+      <div class="canvas-hint" [hidden]="viewMode() === '3d'">
         {{ canvas()?.zoom() }}% <span>&middot;</span> {{ nodes().length }} waypoints
         <span>&middot;</span> {{ edges().length }} directed edges <span>&middot;</span> Shift: add
         to selection <span>&middot;</span> Space: pan <span>&middot;</span> Wheel: zoom

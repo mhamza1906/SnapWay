@@ -1,0 +1,1959 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sam Ibrahim Level 1 · 3D photo map</title>
+<meta name="description" content="Explorable 3D map of Sam Ibrahim Building Level 1 with the real photos at each of the 26 photo stops.">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --panel-2: #f8fafc;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --line-2: #cbd5e1;
+    --accent: #0d9488;
+    --accent-ink: #0f766e;
+    --accent-soft: #ccfbf1;
+    --focus: #2563eb;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 10px 28px rgba(15, 23, 42, .12);
+    --radius: 12px;
+    --sbw: 316px;
+    --peek: 58px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- layout ---------- */
+  #app { position: fixed; inset: 0; display: grid; grid-template-columns: var(--sbw) minmax(0, 1fr); transition: grid-template-columns .22s ease; }
+  #app.sb-collapsed { grid-template-columns: 0 minmax(0, 1fr); }
+  #viewport {
+    position: relative; overflow: hidden; min-width: 0;
+    background: radial-gradient(120% 90% at 50% 30%, #fbfcfd 0%, #eef2f6 55%, #dfe5ec 100%);
+  }
+  #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+
+  /* ---------- sidebar ---------- */
+  #sidebar {
+    display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+    background: var(--panel); border-right: 1px solid var(--line); z-index: 5;
+  }
+  .sb-head { padding: 16px 16px 10px; border-bottom: 1px solid var(--line); }
+  .sb-row { display: flex; align-items: flex-start; gap: 10px; }
+  .brand { flex: 1; min-width: 0; }
+  .brand-title { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
+  .brand-sub { color: var(--muted); font-size: 12.5px; margin-top: 1px; }
+  .sheet-handle { display: none; }
+  .icon-btn {
+    flex: none; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel); cursor: pointer; display: grid; place-items: center; color: var(--ink-2);
+  }
+  .icon-btn:hover { background: var(--panel-2); border-color: var(--line-2); }
+  .search { position: relative; display: block; margin-top: 12px; }
+  .search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .search input {
+    width: 100%; height: 36px; padding: 0 10px 0 32px; border-radius: 9px; border: 1px solid var(--line-2);
+    background: var(--panel-2); font: inherit; color: var(--ink);
+  }
+  .search input:focus { outline: 2px solid var(--focus); outline-offset: 0; background: #fff; }
+  .stop-list { list-style: none; margin: 0; padding: 6px 8px 12px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
+  .stop-item {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 7px 8px; border: 0; border-radius: 10px;
+    background: transparent; cursor: pointer; text-align: left;
+  }
+  .stop-item:hover { background: var(--panel-2); }
+  .stop-item[aria-current="true"] { background: var(--accent-soft); }
+  .stop-item img, .stop-item .ph {
+    flex: none; width: 42px; height: 56px; border-radius: 7px; object-fit: cover; background: #e2e8f0;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, .08);
+  }
+  .si-text { min-width: 0; flex: 1; }
+  .si-title { display: block; font-weight: 600; }
+  .si-sub { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .si-num {
+    flex: none; min-width: 26px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--ink);
+    color: #fff; font-size: 12px; font-weight: 650; display: grid; place-items: center;
+  }
+  .stop-item[aria-current="true"] .si-num { background: var(--accent); }
+  .empty { color: var(--muted); padding: 16px; text-align: center; }
+  .sb-foot { padding: 10px 16px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+  /* ---------- shared HUD bits ---------- */
+  .hud { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+  .hud > * { pointer-events: auto; }
+  .card { background: rgba(255, 255, 255, .94); border: 1px solid rgba(15, 23, 42, .08); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .btn {
+    height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-2); background: #fff;
+    cursor: pointer; font-weight: 550; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn:hover { background: var(--panel-2); }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primary:hover { background: #1e293b; }
+  .btn.small { height: 28px; padding: 0 9px; font-size: 12.5px; border-radius: 8px; }
+  .chip {
+    height: 30px; padding: 0 11px; border-radius: 15px; border: 1px solid var(--line-2); background: #fff;
+    cursor: pointer; font-size: 12.5px; font-weight: 550; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chip[aria-pressed="false"] { color: var(--muted); }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .8; }
+  .hint { color: var(--muted); font-size: 12px; }
+
+  /* ---------- map HUD ---------- */
+  #mapHud .toolbar { position: absolute; top: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; padding: 6px; max-width: calc(100% - 24px); }
+  #mapHud .hint-pill { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); padding: 7px 14px; border-radius: 18px; white-space: nowrap; }
+  #sbOpen { position: absolute; top: 12px; left: 12px; z-index: 6; }
+
+  /* ---------- stop HUD ---------- */
+  #stopHud .topbar { position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 8px; max-width: calc(100% - 24px); }
+  #stopHud h1 { font-size: 17px; margin: 0; font-weight: 680; letter-spacing: -.01em; line-height: 1.2; }
+  #stopSub { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .stepper { display: flex; gap: 4px; margin-left: 4px; }
+  .stepper .icon-btn { width: 30px; height: 30px; }
+  #minimapWrap { position: absolute; top: 12px; right: 12px; padding: 6px; }
+  #minimap { display: block; width: 260px; height: auto; aspect-ratio: 843 / 367; border-radius: 8px; cursor: pointer; background: #e2e8f0; touch-action: manipulation; }
+  #minimapWrap.big #minimap { width: min(540px, calc(100vw - 48px)); }
+  .mm-bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 2px 6px; gap: 8px; }
+  .mm-title { font-size: 11.5px; font-weight: 650; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+  .mm-bar .icon-btn { width: 24px; height: 24px; border-radius: 6px; font-size: 13px; }
+  #stopBottom { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: calc(100% - 24px); }
+  #compass { display: flex; gap: 8px; padding: 8px; }
+  #ways { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  #ways:empty { display: none; }
+  .way {
+    height: 30px; padding: 0 12px 0 8px; border-radius: 15px; border: 1px solid rgba(15, 23, 42, .1); background: rgba(255, 255, 255, .95);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .12); cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .way:hover, .way.hot { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .way svg { transition: transform .12s linear; flex: none; }
+  .way .ahead { font-weight: 500; opacity: .7; }
+  .cp {
+    position: relative; width: 66px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 9px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .cp img, .cp .ph { width: 66px; height: 88px; object-fit: cover; border-radius: 8px; background: #e2e8f0; display: block; box-shadow: 0 0 0 1px rgba(15, 23, 42, .1); transition: box-shadow .15s, transform .15s; }
+  .cp span { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .cp:hover img { transform: translateY(-2px); }
+  .cp[aria-pressed="true"] img { box-shadow: 0 0 0 3px var(--accent); }
+  .cp[aria-pressed="true"] span { color: var(--accent-ink); }
+  .cp-zoom { width: 66px; height: 88px; border-radius: 8px; border: 1px dashed var(--line-2); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: var(--ink-2); font-size: 11px; font-weight: 600; }
+  .cp-zoom:hover { background: var(--panel-2); }
+  .heading-row { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 6px 8px; padding: 6px 10px; font-size: 12px; color: var(--ink-2); }
+  .heading-row .note { color: var(--muted); }
+  .heading-row .sep { width: 1px; height: 16px; background: var(--line); }
+  #stopHint { font-size: 11.5px; }
+
+  /* floor-arrow labels (projected each frame) */
+  #arrowLabels { position: absolute; inset: 0; pointer-events: none; z-index: 3; overflow: hidden; }
+  .arrow-stack { position: absolute; left: 0; top: 0; display: flex; flex-direction: row; align-items: center; gap: 4px; will-change: transform; }
+  .arrow-label {
+    position: relative; pointer-events: auto; cursor: pointer; white-space: nowrap;
+    height: 24px; padding: 0 9px; border-radius: 12px; border: 0; background: rgba(15, 23, 42, .8); color: #fff;
+    font-size: 11.5px; font-weight: 600; box-shadow: 0 3px 10px rgba(15, 23, 42, .22);
+  }
+  .arrow-label:hover, .arrow-stack.hot .arrow-label:first-child { background: var(--accent); }
+
+  /* room labels */
+  #labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+  .room-label {
+    position: absolute; left: 0; top: 0; font-size: 10.5px; font-weight: 600; color: #475569; white-space: nowrap;
+    text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; letter-spacing: .01em; will-change: transform;
+  }
+
+  #tooltip {
+    position: absolute; z-index: 8; pointer-events: none; padding: 6px 10px; border-radius: 8px; font-size: 12.5px;
+    background: var(--ink); color: #fff; white-space: nowrap; box-shadow: var(--shadow);
+  }
+  #tooltip b { font-weight: 650; }
+  #loading {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9; padding: 12px 18px;
+    color: var(--ink-2); font-weight: 550; transition: opacity .3s;
+  }
+  #loading.gone { opacity: 0; pointer-events: none; }
+  #toast { position: absolute; left: 50%; top: 72px; transform: translateX(-50%); z-index: 9; padding: 8px 14px; font-size: 12.5px; white-space: nowrap; }
+
+  /* ---------- lightbox ---------- */
+  #lightbox { position: fixed; inset: 0; z-index: 50; background: rgba(2, 6, 23, .9); display: flex; align-items: center; justify-content: center; }
+  #lightbox figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 94vw; }
+  #lightbox img { max-width: 94vw; max-height: calc(100vh - 110px); border-radius: 8px; background: #111827; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }
+  #lightbox figcaption { color: #e2e8f0; font-size: 13.5px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  #lightbox figcaption a { color: #99f6e4; }
+  .lb-btn { position: absolute; width: 44px; height: 44px; border-radius: 22px; border: 0; background: rgba(255, 255, 255, .14); color: #fff; font-size: 20px; cursor: pointer; display: grid; place-items: center; }
+  .lb-btn:hover { background: rgba(255, 255, 255, .26); }
+  #lbClose { top: 14px; right: 14px; }
+  #lbPrev { left: 14px; top: 50%; transform: translateY(-50%); }
+  #lbNext { right: 14px; top: 50%; transform: translateY(-50%); }
+
+  /* ---------- narrow screens: bottom sheet ---------- */
+  @media (max-width: 760px) {
+    #app, #app.sb-collapsed { display: block; }
+    #viewport { position: absolute; inset: 0; }
+    #sidebar {
+      position: absolute; left: 0; right: 0; bottom: 0; height: var(--peek); z-index: 20;
+      border-right: 0; border-radius: 16px 16px 0 0; box-shadow: 0 -8px 30px rgba(15, 23, 42, .16);
+      transition: height .25s ease; padding-bottom: env(safe-area-inset-bottom);
+    }
+    #app.sheet-open #sidebar { height: min(72vh, 620px); }
+    .sb-head { padding: 0 14px 10px; border-bottom: 0; }
+    .sheet-handle {
+      display: flex; width: 100%; height: var(--peek); align-items: center; gap: 10px; border: 0; background: none;
+      cursor: pointer; padding: 0 2px; text-align: left;
+    }
+    .sheet-handle .grip { position: absolute; left: 50%; top: 7px; width: 38px; height: 4px; border-radius: 2px; background: var(--line-2); transform: translateX(-50%); }
+    .sheet-handle .chev { margin-left: auto; transition: transform .2s; color: var(--muted); }
+    #app.sheet-open .sheet-handle .chev { transform: rotate(180deg); }
+    .sb-row { display: none; }
+    .search { margin-top: 0; }
+    #app:not(.sheet-open) .search, #app:not(.sheet-open) .stop-list, #app:not(.sheet-open) .sb-foot { visibility: hidden; }
+    #sbOpen { display: none; }
+    #mapHud .toolbar { top: 10px; right: 10px; left: 10px; max-width: none; justify-content: center; }
+    #mapHud .hint-pill { bottom: calc(var(--peek) + 12px); font-size: 11.5px; }
+    #stopHud .topbar { top: 10px; left: 10px; right: 10px; gap: 8px; }
+    #stopHud .topbar .title-block { flex: 1; min-width: 0; }
+    #stopHud h1 { font-size: 16px; }
+    #minimapWrap { top: 70px; right: 10px; padding: 4px; }
+    #minimap { width: 128px; }
+    .mm-bar { padding: 0 2px 4px; }
+    .mm-title { font-size: 10px; }
+    #minimapWrap.big { left: 10px; }
+    #minimapWrap.big #minimap { width: 100%; }
+    #stopBottom { bottom: calc(var(--peek) + 10px); gap: 6px; width: calc(100% - 20px); }
+    #compass { gap: 6px; padding: 6px; justify-content: center; }
+    .cp { width: 52px; }
+    .cp img, .cp .ph { width: 52px; height: 69px; }
+    .cp-zoom { width: 52px; height: 69px; font-size: 10px; }
+    .cp span { font-size: 10.5px; }
+    .heading-row { font-size: 11.5px; padding: 5px 8px; gap: 4px 6px; }
+    .heading-row .sep, #stopHint { display: none; }
+    #toast { top: 120px; }
+  }
+  @media (max-width: 380px) {
+    .stepper { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" aria-label="Photo stops">
+    <div class="sb-head">
+      <button id="sheetHandle" class="sheet-handle" aria-expanded="false" aria-controls="stopList">
+        <span class="grip" aria-hidden="true"></span>
+        <span class="brand"><span class="brand-title">Sam Ibrahim · Level 1</span><br><span class="brand-sub"><span class="js-count">26</span> photo stops · tap to browse</span></span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+      </button>
+      <div class="sb-row">
+        <div class="brand">
+          <div class="brand-title">Sam Ibrahim · Level 1</div>
+          <div class="brand-sub">3D photo map · <span class="js-count">26</span> photo stops</div>
+        </div>
+        <button id="sbCollapse" class="icon-btn" aria-label="Hide stop list" title="Hide stop list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+      </div>
+      <label class="search">
+        <span class="sr-only">Search photo stops</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search stops, e.g. 13" autocomplete="off">
+      </label>
+    </div>
+    <ol id="stopList" class="stop-list" aria-label="All photo stops"></ol>
+    <div class="sb-foot">Every stop has 4 real photos. Photo headings are estimated.</div>
+  </aside>
+
+  <main id="viewport">
+    <canvas id="c" tabindex="-1" aria-label="3D map of Level 1"></canvas>
+    <div id="labels" aria-hidden="true"></div>
+    <div id="arrowLabels"></div>
+    <button id="sbOpen" class="btn" aria-label="Show stop list" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Stops
+    </button>
+
+    <div id="mapHud" class="hud">
+      <div class="toolbar card" role="group" aria-label="Map layers">
+        <button class="chip" id="tgWalls" aria-pressed="true"><span class="dot"></span>Walls</button>
+        <button class="chip" id="tgWalk" aria-pressed="true"><span class="dot"></span>Walking line</button>
+        <button class="chip" id="tgRooms" aria-pressed="true"><span class="dot"></span>Room labels</button>
+        <button class="chip" id="resetView" aria-label="Reset map view">Reset view</button>
+      </div>
+      <div class="hint-pill card hint" id="mapHint">Click a photo pin to step inside · drag to orbit · scroll to zoom</div>
+    </div>
+
+    <div id="stopHud" class="hud" hidden>
+      <div class="topbar card">
+        <button id="backBtn" class="btn primary" aria-label="Back to map">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Map
+        </button>
+        <div class="title-block">
+          <h1 id="stopTitle">Point</h1>
+          <div id="stopSub">photo stop</div>
+        </div>
+        <div class="stepper">
+          <button id="prevStop" class="icon-btn" aria-label="Previous photo stop" title="Previous stop">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button id="nextStop" class="icon-btn" aria-label="Next photo stop" title="Next stop">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="minimapWrap" class="card">
+        <div class="mm-bar">
+          <span class="mm-title">You are here</span>
+          <button id="mmExpand" class="icon-btn" aria-label="Enlarge minimap" aria-pressed="false" title="Enlarge minimap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>
+          </button>
+        </div>
+        <canvas id="minimap" aria-label="Minimap: click a dot to jump to that stop" role="img"></canvas>
+      </div>
+
+      <div id="stopBottom">
+        <div id="ways" role="group" aria-label="Walk to a neighbouring stop"></div>
+        <div id="compass" class="card" role="group" aria-label="Photos at this stop"></div>
+        <div class="heading-row card">
+          <span class="note" id="headingNote" title="">Photo headings are estimated.</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>Heading looks wrong? Rotate photos 90°</span>
+          <button id="rotL" class="btn small" aria-label="Rotate this stop's photos 90 degrees counter-clockwise" title="Rotate photos 90° counter-clockwise">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+          </button>
+          <button id="rotR" class="btn small" aria-label="Rotate this stop's photos 90 degrees clockwise" title="Rotate photos 90° clockwise">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          </button>
+          <button id="exportH" class="btn small" title="Download all headings, including your corrections, as JSON">Export headings</button>
+        </div>
+        <div class="hint" id="stopHint">Drag to look · ← → turn · ↑ walk · Esc map</div>
+      </div>
+    </div>
+
+    <div id="tooltip" hidden></div>
+    <div id="toast" class="card" role="status" hidden></div>
+    <div id="loading" class="card" role="status">Loading 3D map…</div>
+  </main>
+</div>
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lbCaption" hidden>
+  <figure>
+    <img id="lbImg" alt="">
+    <figcaption id="lbCaption"></figcaption>
+  </figure>
+  <button id="lbPrev" class="lb-btn" aria-label="Previous photo">‹</button>
+  <button id="lbNext" class="lb-btn" aria-label="Next photo">›</button>
+  <button id="lbClose" class="lb-btn" aria-label="Close photo">✕</button>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+/* =====================================================================
+   Constants and helpers
+   Plan (px, py), origin top-left, y down  ->  world (px - 421.5, h, py - 183.5), Y up.
+   Headings: degrees in the plan frame from +x toward +y (clockwise seen from above).
+   World direction for heading t = (cos t, 0, sin t).
+   ===================================================================== */
+const PLAN_W = 843, PLAN_H = 367, CX = PLAN_W / 2, CZ = PLAN_H / 2;
+const EYE = 5, PANEL_DIST = 7, PANEL_H = 7.1, ARROW_R = 6.6;
+const MAP_FOV = 40, STOP_FOV = 68, STOP_PITCH = -6;
+const DIRS = ['front', 'right', 'back', 'left'];
+const DIR_OFF = { front: 0, right: 90, back: 180, left: 270 };
+const DIR_NAME = { front: 'Front', right: 'Right', back: 'Back', left: 'Left' };
+const DEG = Math.PI / 180;
+const OVERRIDE_KEY = 'snapway.samIbrahimL1.headingOverrides.v1';
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const narrowMQ = matchMedia('(max-width: 760px)');
+
+const world = (x, y, h = 0) => new THREE.Vector3(x - CX, h, y - CZ);
+const norm360 = a => ((a % 360) + 360) % 360;
+const angDiff = (a, b) => { const d = norm360(a - b); return d > 180 ? d - 360 : d; };
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+const bearing = (x1, y1, x2, y2) => norm360(Math.atan2(y2 - y1, x2 - x1) / DEG);
+const pad2 = n => String(n).padStart(2, '0');
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* =====================================================================
+   Network queue. python3 -m http.server (HTTP/1.0, backlog 5) resets or
+   stalls connections when the browser opens 4-6 at once, so every asset goes
+   through this prioritized queue: 2 requests at a time, retries on network errors.
+   Priorities: 10 data, 9 level model, 5 current photos, 3 compass, 1 pins, 0 list.
+   ===================================================================== */
+const NET_CONC = 2;
+const netQ = []; let netActive = 0, netSeq = 0;
+class HttpError extends Error { constructor(url, status) { super(`${url}: HTTP ${status}`); this.status = status; } }
+function enqueue(prio, fn, onJob) {
+  return new Promise((resolve, reject) => {
+    const job = { prio, fn, resolve, reject, seq: netSeq++ };
+    if (onJob) onJob(job);
+    netQ.push(job); pump();
+  });
+}
+function pump() {
+  while (netActive < NET_CONC && netQ.length) {
+    let bi = 0;
+    for (let i = 1; i < netQ.length; i++) {
+      const a = netQ[i], b = netQ[bi];
+      if (a.prio > b.prio || (a.prio === b.prio && a.seq < b.seq)) bi = i;
+    }
+    const job = netQ.splice(bi, 1)[0]; job.started = true; netActive++;
+    Promise.resolve().then(job.fn).then(job.resolve, job.reject).finally(() => { netActive--; pump(); });
+  }
+}
+async function withRetry(fn, tries = 4) {
+  for (let i = 0; ; i++) {
+    try { return await fn(); }
+    catch (e) { if (e instanceof HttpError || i >= tries - 1) throw e; await sleep(200 * (i + 1) * (i + 1)); }
+  }
+}
+async function rawFetch(url, as) {
+  const r = await fetch(url, { cache: 'no-cache' });
+  if (!r.ok) throw new HttpError(url, r.status);
+  return as === 'json' ? r.json() : as === 'buffer' ? r.arrayBuffer() : r.blob();
+}
+const queuedFetch = (url, as, prio) => enqueue(prio, () => withRetry(() => rawFetch(url, as)));
+// blob URLs: one network request per file, shared by <img>, textures and the lightbox
+const blobCache = new Map();
+function loadBlobURL(url, prio = 1) {
+  let e = blobCache.get(url);
+  if (e) { if (e.job && !e.job.started && prio > e.job.prio) e.job.prio = prio; return e.p; }
+  e = { job: null, obj: null };
+  e.p = enqueue(prio, () => withRetry(() => rawFetch(url, 'blob')), j => { e.job = j; })
+    .then(b => { e.obj = URL.createObjectURL(b); return e.obj; })
+    .catch(err => { blobCache.delete(url); throw err; });
+  blobCache.set(url, e);
+  return e.p;
+}
+function releaseBlob(url) { const e = blobCache.get(url); if (e && e.obj) { URL.revokeObjectURL(e.obj); blobCache.delete(url); } }
+async function loadImage(url, prio = 1) {
+  const obj = await loadBlobURL(url, prio);
+  const img = new Image(); img.decoding = 'async'; img.src = obj;
+  await img.decode().catch(() => new Promise((res, rej) => { if (img.complete && img.naturalWidth) res(); else { img.onload = res; img.onerror = () => rej(new Error('cannot decode ' + url)); } }));
+  return img;
+}
+// Image with thumb -> full fallback, for <img> elements
+function setImgSrc(img, url, fallback, prio) {
+  loadBlobURL(url, prio).then(u => { img.src = u; })
+    .catch(() => { if (fallback && fallback !== url) setImgSrc(img, fallback, null, prio); });
+}
+
+/* =====================================================================
+   DOM
+   ===================================================================== */
+const app = $('app'), viewport = $('viewport'), canvas = $('c');
+const labelsEl = $('labels'), arrowLabelsEl = $('arrowLabels'), tooltip = $('tooltip');
+const mapHud = $('mapHud'), stopHud = $('stopHud'), stopBottom = $('stopBottom');
+const loadingEl = $('loading'), toastEl = $('toast');
+
+/* =====================================================================
+   Renderer, scene, camera
+   ===================================================================== */
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(MAP_FOV, 1, 2, 9000);
+camera.position.set(0, 600, 500);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.09;
+controls.maxPolarAngle = Math.PI * 0.46;
+controls.minDistance = 30;
+controls.maxDistance = 2800;
+controls.screenSpacePanning = false;
+controls.zoomSpeed = 0.9;
+controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xaab4c2, 1.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+sun.position.set(-260, 420, 200);
+sun.target.position.set(0, 0, 0);
+sun.castShadow = true;
+sun.shadow.mapSize.set(narrowMQ.matches ? 2048 : 4096, narrowMQ.matches ? 2048 : 4096);
+Object.assign(sun.shadow.camera, { left: -520, right: 520, top: 360, bottom: -360, near: 10, far: 1400 });
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.4;
+sun.shadow.radius = 3;
+scene.add(sun, sun.target);
+
+// diorama base under the plan + a soft contact shadow
+{
+  const base = new THREE.Mesh(new THREE.BoxGeometry(PLAN_W + 4, 5, PLAN_H + 4),
+    new THREE.MeshStandardMaterial({ color: 0xd5dbe3, roughness: 0.95 }));
+  base.position.y = -2.56;
+  scene.add(base);
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d'); const grd = g.createRadialGradient(128, 128, 20, 128, 128, 128);
+  grd.addColorStop(0, 'rgba(15,23,42,0.22)'); grd.addColorStop(0.6, 'rgba(15,23,42,0.08)'); grd.addColorStop(1, 'rgba(15,23,42,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(PLAN_W * 1.35, PLAN_H * 1.7),
+    new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+  sh.rotation.x = -Math.PI / 2; sh.position.y = -6; sh.renderOrder = -1;
+  scene.add(sh);
+}
+
+/* =====================================================================
+   State
+   ===================================================================== */
+let STOPS = [], byId = new Map(), EDGES = [], DATA_NOTE = '', dataSource = '';
+let mode = 'map';            // 'map' | 'stop'
+let cur = null;              // current stop (stop mode) or last visited
+let yaw = 0, pitch = STOP_PITCH, zoomK = 1;
+let busy = false;            // a camera move is running
+let navToken = 0;
+let wallsOn = true, walkOn = true, roomsOn = true;
+let overrides = loadOverrides();
+const proj = { top: 0, bottom: 0, fov: MAP_FOV, tTop: 0, tBottom: 0, tFov: MAP_FOV };
+let glbStatus = 'loading', wallMeshes = [], wallMat = null;
+
+function loadOverrides() {
+  try { const o = JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); return o && typeof o === 'object' ? o : {}; }
+  catch { return {}; }
+}
+function saveOverrides() {
+  try { localStorage.setItem(OVERRIDE_KEY, JSON.stringify(overrides)); } catch { /* storage unavailable */ }
+}
+const effHeading = s => norm360(s.heading + 90 * (overrides[s.id] || 0));
+const photoAngle = (s, dir) => norm360(effHeading(s) + DIR_OFF[dir]);
+
+/* =====================================================================
+   Data: stops.json (preferred) or derived from ../manifest.json
+   ===================================================================== */
+function fetchJSON(url) { return queuedFetch(url, 'json', 10); }
+
+function normalizeStops(data) {
+  const raw = data.stops || [];
+  const stops = raw.map(s => {
+    const num = Number.isFinite(+s.num) && s.num !== null ? +s.num : parseInt(String(s.label || '').replace(/\D+/g, ''), 10) || 0;
+    const photos = {};
+    for (const d of DIRS) {
+      const p = s.photos && s.photos[d];
+      const full = (p && (p.full || p.file)) || `../photos/point-${pad2(num)}-${d}.jpg`;
+      photos[d] = { full, thumb: (p && p.thumb) || null, w: (p && +p.w) || 1536, h: (p && +p.h) || 2048 };
+    }
+    return {
+      id: s.id, label: s.label || `Point ${num}`, num, x: +s.x, y: +s.y,
+      heading: Number.isFinite(+s.heading_deg) ? +s.heading_deg : 0,
+      headingSource: s.heading_source || '', photos, rawNeighbors: s.neighbors || [],
+    };
+  });
+  const map = new Map(stops.map(s => [s.id, s]));
+  for (const s of stops) {
+    s.neighbors = [];
+    for (const n of s.rawNeighbors) {
+      const t = map.get(n.id); if (!t || t.id === s.id) continue;
+      let path = Array.isArray(n.path) && n.path.length >= 2 ? n.path.map(p => [+p[0], +p[1]]) : [[s.x, s.y], [t.x, t.y]];
+      if (Math.hypot(path[0][0] - s.x, path[0][1] - s.y) > 0.5) path.unshift([s.x, s.y]);
+      const last = path[path.length - 1];
+      if (Math.hypot(last[0] - t.x, last[1] - t.y) > 0.5) path.push([t.x, t.y]);
+      let length = 0; for (let i = 1; i < path.length; i++) length += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
+      let b = Number.isFinite(+n.first_bearing_deg) && n.first_bearing_deg !== null ? +n.first_bearing_deg : null;
+      if (b === null) { let k = 1; while (k < path.length - 1 && Math.hypot(path[k][0] - path[0][0], path[k][1] - path[0][1]) < 0.5) k++; b = bearing(path[0][0], path[0][1], path[k][0], path[k][1]); }
+      s.neighbors.push({ id: t.id, label: t.label, num: t.num, path, length: Number.isFinite(+n.length) && n.length ? +n.length : length, bearing: b });
+    }
+    delete s.rawNeighbors;
+  }
+  stops.sort((a, b) => a.num - b.num);
+  stops.forEach((s, i) => s.order = i);
+  let edges = Array.isArray(data.edges) ? data.edges.filter(e => Array.isArray(e) && e.length === 2) : [];
+  if (!edges.length) for (const s of stops) for (const n of s.neighbors) for (let i = 1; i < n.path.length; i++) edges.push([n.path[i - 1], n.path[i]]);
+  return { stops, edges, note: data.heading_note || '' };
+}
+
+// Fallback when stops.json is not there: shortest walks between photo stops whose
+// interior nodes are not photo stops, from the manifest graph.
+function deriveFromManifest(m) {
+  const nodes = new Map(m.nodes.map(n => [n.id, n]));
+  const isStop = n => (n.photos || []).length >= 4;
+  const adj = new Map(m.nodes.map(n => [n.id, []]));
+  const edges = [];
+  for (const e of m.edges) {
+    const a = nodes.get(e.from), b = nodes.get(e.to); if (!a || !b) continue;
+    const c = Number.isFinite(+e.cost) ? +e.cost : Math.hypot(a.x - b.x, a.y - b.y);
+    adj.get(a.id).push([b.id, c]); adj.get(b.id).push([a.id, c]);
+    edges.push([[a.x, a.y], [b.x, b.y]]);
+  }
+  const stops = m.nodes.filter(isStop).map(n => {
+    const num = parseInt(String(n.label).replace(/\D+/g, ''), 10) || 0;
+    const photos = {};
+    for (const p of n.photos) photos[p.direction] = { full: '../' + p.file, thumb: `thumbs/point-${pad2(num)}-${p.direction}.jpg`, w: p.width, h: p.height };
+    // Dijkstra that stops expanding at other photo stops
+    const dist = new Map([[n.id, 0]]), prev = new Map(), done = new Set();
+    const neighbors = [];
+    while (true) {
+      let best = null, bd = Infinity;
+      for (const [id, d] of dist) if (!done.has(id) && d < bd) { bd = d; best = id; }
+      if (best === null) break;
+      done.add(best);
+      const bn = nodes.get(best);
+      if (best !== n.id && isStop(bn)) {
+        const ids = [best]; let k = best; while (prev.has(k)) { k = prev.get(k); ids.unshift(k); }
+        const path = ids.map(id => [nodes.get(id).x, nodes.get(id).y]);
+        neighbors.push({ id: best, label: bn.label, path, length: bd });
+        continue;
+      }
+      for (const [to, c] of adj.get(best)) {
+        if (done.has(to)) continue;
+        const nd = bd + c;
+        if (nd < (dist.has(to) ? dist.get(to) : Infinity)) { dist.set(to, nd); prev.set(to, best); }
+      }
+    }
+    return { id: n.id, label: n.label, num, x: n.x, y: n.y, photos, neighbors, heading_deg: null };
+  });
+  // No stored camera heading: fall back to the direction of the walk toward the next-numbered neighbour.
+  for (const s of stops) {
+    const nb = s.neighbors.slice().sort((a, b) => {
+      const na = parseInt(a.label.replace(/\D+/g, ''), 10), nb2 = parseInt(b.label.replace(/\D+/g, ''), 10);
+      return (na > s.num ? na - s.num : 1000 + s.num - na) - (nb2 > s.num ? nb2 - s.num : 1000 + s.num - nb2);
+    })[0];
+    s.heading_deg = nb ? bearing(nb.path[0][0], nb.path[0][1], nb.path[1][0], nb.path[1][1]) : 0;
+    s.heading_source = 'fallback: walking direction toward the next stop (stops.json missing)';
+  }
+  return normalizeStops({ stops, edges, heading_note: 'Derived in the browser from manifest.json; headings are a rough guess.' });
+}
+
+async function loadStops() {
+  try {
+    const d = await fetchJSON('./stops.json');
+    if (!Array.isArray(d.stops) || !d.stops.length) throw new Error('stops.json has no stops');
+    dataSource = 'stops.json';
+    return normalizeStops(d);
+  } catch (err) {
+    console.warn('stops.json unavailable, deriving stops from manifest.json:', err.message);
+    const m = await fetchJSON('../manifest.json');
+    dataSource = 'manifest.json (fallback)';
+    return deriveFromManifest(m);
+  }
+}
+
+/* =====================================================================
+   Textures (thumbs kept, full-res LRU)
+   ===================================================================== */
+const texCache = new Map();
+const fullLRU = [];
+function loadTex(url, isFull = false, prio = 5) {
+  let e = texCache.get(url);
+  if (!e) {
+    e = { tex: null };
+    e.p = loadImage(url, prio).then(img => {
+      const t = new THREE.Texture(img);
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(8, maxAniso); t.needsUpdate = true;
+      e.tex = t; return t;
+    }).catch(err => { texCache.delete(url); throw err; });
+    texCache.set(url, e);
+  } else if (!e.tex) loadBlobURL(url, prio).catch(() => {});  // bumps queue priority
+  if (isFull) {
+    const i = fullLRU.indexOf(url); if (i >= 0) fullLRU.splice(i, 1);
+    fullLRU.push(url);
+    while (fullLRU.length > 16) {
+      const old = fullLRU.shift();
+      const oe = texCache.get(old);
+      if (oe && oe.tex && !panels.some(p => p.photo.material.map === oe.tex)) { oe.tex.dispose(); texCache.delete(old); releaseBlob(old); }
+    }
+  }
+  return e.p;
+}
+const thumbUrl = (s, dir) => s.photos[dir].thumb || s.photos[dir].full;
+
+/* =====================================================================
+   Floor + walls (level1.glb), with underlay fallback
+   ===================================================================== */
+const levelRoot = new THREE.Group(); levelRoot.name = 'Level1'; scene.add(levelRoot);
+let corridorsFromGlb = false;
+
+function addUnderlayPlane() {
+  const tex = new THREE.Texture();
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Math.min(8, maxAniso);
+  loadImage('../underlay.png', 9).then(img => { tex.image = img; tex.needsUpdate = true; renderer.shadowMap.needsUpdate = true; })
+    .catch(e => console.warn('underlay.png not loaded', e.message));
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(PLAN_W, PLAN_H), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
+  plane.rotation.x = -Math.PI / 2; plane.name = 'UnderlayFallback'; plane.receiveShadow = true;
+  levelRoot.add(plane);
+}
+
+function makeWallMaterial() {
+  return new THREE.MeshStandardMaterial({ color: 0xe4e8ee, roughness: 0.82, metalness: 0, transparent: true, opacity: 0.92 });
+}
+
+const glbReady = new Promise(resolve => {
+  const onFail = err => {
+    console.warn('level1.glb not loaded; using the underlay fallback.', (err && err.message) || err);
+    glbStatus = 'fallback';
+    addUnderlayPlane();
+    resolve(false);
+  };
+  queuedFetch('./level1.glb', 'buffer', 9).then(buf => new GLTFLoader().parse(buf, './', gltf => {
+    const root = gltf.scene;
+    const floor = root.getObjectByName('Floor');
+    const walls = root.getObjectByName('Walls');
+    const corr = root.getObjectByName('Corridors');
+    wallMat = makeWallMaterial();
+    root.traverse(o => {
+      if (!o.isMesh) return;
+      const inside = (obj, parent) => { for (let p = obj; p; p = p.parent) if (p === parent) return true; return false; };
+      if (walls && inside(o, walls)) {
+        o.material = wallMat; o.castShadow = true; o.receiveShadow = true; wallMeshes.push(o);
+      } else if (corr && inside(o, corr)) {
+        const m = o.material; o.receiveShadow = true;
+        if (m) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; m.depthWrite = false; m.transparent = true; if (m.opacity === 1) m.opacity = 0.75; }
+        o.renderOrder = 0.5;
+      } else {
+        o.receiveShadow = true;
+        const m = o.material;
+        if (m && m.map) { m.map.anisotropy = Math.min(8, maxAniso); m.map.needsUpdate = true; }
+      }
+    });
+    levelRoot.add(root);
+    corridorsFromGlb = !!corr;
+    if (!floor) { console.warn('level1.glb has no "Floor" object; adding the underlay plane.'); addUnderlayPlane(); }
+    if (!walls) console.warn('level1.glb has no "Walls" object.');
+    glbStatus = 'loaded';
+    renderer.shadowMap.needsUpdate = true;
+    resolve(true);
+  }, onFail)).catch(onFail);
+});
+
+/* =====================================================================
+   Rooms + corridors (rooms.json)
+   ===================================================================== */
+let roomLabels = [];
+async function loadRooms() {
+  let data;
+  try { data = await fetchJSON('./rooms.json'); }
+  catch (e) { console.info('rooms.json not available; room labels skipped.', e.message); return; }
+  for (const r of data.rooms || []) {
+    if (!r || !r.label) continue;
+    const el = document.createElement('div');
+    el.className = 'room-label'; el.textContent = r.label; el.style.visibility = 'hidden';
+    labelsEl.appendChild(el);
+    roomLabels.push({ el, pos: world(+r.x, +r.y, 1.5), w: 0, h: 0, shown: false });
+  }
+  await glbReady;
+  if (!corridorsFromGlb && Array.isArray(data.corridors) && data.corridors.length) {
+    const mat = new THREE.MeshStandardMaterial({ color: 0x99d5cf, roughness: 1, transparent: true, opacity: 0.55, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+    const g = new THREE.Group(); g.name = 'CorridorsTint';
+    for (const c of data.corridors) {
+      const pts = c.points || c; if (!Array.isArray(pts) || pts.length < 3) continue;
+      const shape = new THREE.Shape(pts.map(p => new THREE.Vector2(p[0] - CX, -(p[1] - CZ))));
+      const geo = new THREE.ShapeGeometry(shape); geo.rotateX(-Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, mat); mesh.position.y = 0.05; mesh.receiveShadow = true; mesh.renderOrder = 0.5;
+      g.add(mesh);
+    }
+    levelRoot.add(g);
+  }
+}
+
+/* =====================================================================
+   Walking line (all manifest edges, faint)
+   ===================================================================== */
+let walkLine = null;
+function buildWalkLine() {
+  const pos = [];
+  for (const [a, b] of EDGES) pos.push(a[0] - CX, 0.35, a[1] - CZ, b[0] - CX, 0.35, b[1] - CZ);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  walkLine = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x0f766e, transparent: true, opacity: 0.55, depthWrite: false }));
+  walkLine.renderOrder = 1; walkLine.name = 'WalkingLine';
+  scene.add(walkLine);
+}
+
+/* =====================================================================
+   Photo pins (map mode)
+   ===================================================================== */
+const PIN_CW = 200, PIN_CH = 272, PIN_TIP = 266;
+const pins = [];
+const pinGroup = new THREE.Group(); pinGroup.name = 'PhotoPins'; scene.add(pinGroup);
+const poleMat = new THREE.LineBasicMaterial({ color: 0x334155, transparent: true, opacity: 0.7 });
+const baseMat = new THREE.MeshBasicMaterial({ color: 0x0d9488, transparent: true, opacity: 0.9, depthWrite: false });
+const baseRingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthWrite: false });
+
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function drawCover(g, img, x, y, w, h) {
+  const s = Math.max(w / img.width, h / img.height), iw = img.width * s, ih = img.height * s;
+  g.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+}
+function drawPin(pin) {
+  const g = pin.ctx, active = pin.active;
+  g.clearRect(0, 0, PIN_CW, PIN_CH);
+  g.save(); g.shadowColor = 'rgba(15,23,42,.35)'; g.shadowBlur = 12; g.shadowOffsetY = 3;
+  roundRect(g, 12, 12, 176, 230, 18); g.fillStyle = active ? '#0d9488' : '#ffffff'; g.fill();
+  g.beginPath(); g.moveTo(84, 240); g.lineTo(100, PIN_TIP); g.lineTo(116, 240); g.closePath(); g.fill();
+  g.restore();
+  g.save(); roundRect(g, 20, 20, 160, 214, 12); g.clip();
+  if (pin.img) drawCover(g, pin.img, 20, 20, 160, 214); else { g.fillStyle = '#cbd5e1'; g.fillRect(20, 20, 160, 214); }
+  g.restore();
+  const label = String(pin.stop.num);
+  g.font = '700 30px system-ui, -apple-system, Segoe UI, sans-serif';
+  const bw = Math.max(48, g.measureText(label).width + 26);
+  roundRect(g, 8, 6, bw, 44, 22); g.fillStyle = active ? '#0f172a' : '#0d9488'; g.fill();
+  g.lineWidth = 4; g.strokeStyle = '#ffffff'; g.stroke();
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 8 + bw / 2, 29);
+  pin.tex.needsUpdate = true;
+}
+function buildPins() {
+  for (const s of STOPS) {
+    const c = document.createElement('canvas'); c.width = PIN_CW; c.height = PIN_CH;
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Math.min(4, maxAniso);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+    sprite.center.set(0.5, (PIN_CH - PIN_TIP) / PIN_CH);
+    sprite.renderOrder = 10;
+    const poleGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0)]);
+    const pole = new THREE.Line(poleGeo, poleMat); pole.renderOrder = 2;
+    const ring = new THREE.Mesh(new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2), baseRingMat); ring.position.y = 0.3; ring.renderOrder = 3;
+    const dot = new THREE.Mesh(new THREE.CircleGeometry(0.62, 28).rotateX(-Math.PI / 2), baseMat); dot.position.y = 0.32; dot.renderOrder = 4;
+    const g = new THREE.Group(); g.position.copy(world(s.x, s.y)); g.add(pole, ring, dot, sprite);
+    pinGroup.add(g);
+    const pin = { stop: s, group: g, sprite, pole, ring, dot, tex, ctx: c.getContext('2d'), img: null, hover: 0, hoverT: 0, active: false };
+    sprite.userData.pin = pin;
+    drawPin(pin);
+    loadImage(thumbUrl(s, 'front'), 1)
+      .catch(() => loadImage(s.photos.front.full, 1))
+      .then(img => { pin.img = img; drawPin(pin); })
+      .catch(() => console.warn(`No photo for the ${s.label} pin`));
+    pins.push(pin);
+  }
+}
+function setActivePin(s) {
+  for (const p of pins) { const a = !!s && p.stop.id === s.id; if (a !== p.active) { p.active = a; drawPin(p); } }
+}
+
+/* =====================================================================
+   Stop view: photo panels, captions, floor arrows
+   ===================================================================== */
+const panelGroup = new THREE.Group(); panelGroup.name = 'PhotoPanels'; panelGroup.visible = false; scene.add(panelGroup);
+function captionTexture(text) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const g = c.getContext('2d');
+  roundRect(g, 4, 6, 248, 52, 26); g.fillStyle = 'rgba(15,23,42,.84)'; g.fill();
+  g.font = '700 26px system-ui, -apple-system, Segoe UI, sans-serif'; g.fillStyle = '#fff';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text.toUpperCase().split('').join(' '), 128, 33);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+// soft, centred drop shadow behind each photo print
+const SHADOW_PAD = 0.9;
+const softShadowTex = (() => {
+  const c = document.createElement('canvas'); c.width = 192; c.height = 240;
+  const g = c.getContext('2d');
+  g.shadowColor = 'rgba(15,23,42,0.85)'; g.shadowBlur = 22; g.shadowOffsetY = 6;
+  g.fillStyle = 'rgba(15,23,42,0.9)'; g.fillRect(30, 30, 132, 180);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const panels = DIRS.map(dir => {
+  const mk = (color, ro, map = null) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color, map, transparent: true, depthTest: false, depthWrite: false }));
+    m.renderOrder = ro; return m;
+  };
+  const shadow = mk(0xffffff, 28, softShadowTex); shadow.material.opacity = 0.5;
+  const frame = mk(0xffffff, 29);
+  const photo = mk(0xd9dee5, 30);
+  const cap = mk(0xffffff, 31, captionTexture(DIR_NAME[dir]));
+  const g = new THREE.Group(); g.add(shadow, frame, photo, cap); g.name = 'Panel_' + dir;
+  photo.userData.panelDir = dir; frame.userData.panelDir = dir;
+  panelGroup.add(g);
+  return { dir, group: g, photo, frame, shadow, cap, state: 'none', url: null, opacity: 0 };
+});
+let panelToken = 0;
+function layoutPanels(s, eyePos) {
+  for (const p of panels) {
+    const a = photoAngle(s, p.dir) * DEG;
+    const ph = s.photos[p.dir];
+    const h = PANEL_H, w = PANEL_H * (ph.w / ph.h || 0.75);
+    // slightly below eye level and tilted to face the eye, so the print reads square at the default pitch
+    p.group.position.set(eyePos.x + Math.cos(a) * PANEL_DIST, EYE - 0.35, eyePos.z + Math.sin(a) * PANEL_DIST);
+    p.group.lookAt(eyePos.x, EYE, eyePos.z);
+    p.photo.scale.set(w, h, 1);
+    p.frame.scale.set(w + 0.24, h + 0.24, 1);
+    // shadow canvas: 132x180 rect inside 192x240, so scale it up to keep the dark core under the frame
+    p.shadow.scale.set((w + 0.24) * 192 / 132, (h + 0.24) * 240 / 180, 1); p.shadow.position.set(0, -0.1, -0.001);
+    // caption sits above the print, leaving the floor below free for the walking arrows
+    p.cap.scale.set(1.7, 0.425, 1); p.cap.position.set(0, h / 2 + 0.42, 0);
+  }
+}
+function loadPanelPhotos(s) {
+  const token = ++panelToken;
+  for (const p of panels) {
+    const ph = s.photos[p.dir];
+    const m = p.photo.material;
+    p.url = ph.full;
+    const setMap = (t, st) => {
+      if (token !== panelToken) return;
+      const had = !!m.map; m.map = t; m.color.set(0xffffff); if (!had) m.needsUpdate = true; p.state = st;
+    };
+    const fe = texCache.get(ph.full), te = ph.thumb ? texCache.get(ph.thumb) : null;
+    if (fe && fe.tex) { setMap(fe.tex, 'full'); loadTex(ph.full, true); continue; }
+    if (te && te.tex) setMap(te.tex, 'thumb');
+    else { p.state = 'loading'; if (m.map) { m.map = null; m.needsUpdate = true; } m.color.set(0xd9dee5); }
+    if (ph.thumb) loadTex(ph.thumb).then(t => { if (p.state !== 'full') setMap(t, 'thumb'); }).catch(() => {});
+    loadTex(ph.full, true).then(t => setMap(t, 'full')).catch(err => { console.warn(err.message); if (token === panelToken && p.state !== 'thumb') p.state = 'error'; });
+  }
+}
+function preloadStop(s) {
+  for (const d of DIRS) { const ph = s.photos[d]; if (ph.thumb) loadTex(ph.thumb).catch(() => {}); loadTex(ph.full, true).catch(() => {}); }
+}
+let panelFade = { from: 0, to: 0, t0: 0, dur: 1 };
+function fadePanels(to, dur = 260) {
+  panelFade = { from: panels[0].opacity, to, t0: performance.now(), dur: reduceMotion ? 1 : dur };
+  if (to > 0) panelGroup.visible = true;
+}
+function updatePanelFade(now) {
+  const k = clamp((now - panelFade.t0) / panelFade.dur, 0, 1);
+  const o = lerp(panelFade.from, panelFade.to, k);
+  for (const p of panels) {
+    p.opacity = o;
+    p.photo.material.opacity = o; p.frame.material.opacity = o; p.cap.material.opacity = o; p.shadow.material.opacity = 0.5 * o;
+  }
+  if (k >= 1 && panelFade.to === 0) panelGroup.visible = false;
+}
+
+// floor arrows
+const arrowGroup = new THREE.Group(); arrowGroup.name = 'FloorArrows'; scene.add(arrowGroup);
+const chevronGeo = (() => {
+  const sh = new THREE.Shape();
+  sh.moveTo(0.95, 0); sh.lineTo(-0.45, 0.86); sh.lineTo(-0.15, 0); sh.lineTo(-0.45, -0.86); sh.closePath();
+  return new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2);
+})();
+const hitGeo = new THREE.CircleGeometry(1.5, 20).rotateX(-Math.PI / 2);
+let arrows = [];
+const waysEl = $('ways');
+function clearArrows() {
+  for (const a of arrows) { arrowGroup.remove(a.group); a.labelBox.remove(); a.top.material.dispose(); a.under.material.dispose(); }
+  arrows = [];
+  waysEl.innerHTML = '';
+}
+// One chevron per walking direction. Neighbours whose paths leave in the same
+// direction (shared first segment) share a chevron and get stacked labels.
+function buildArrows(s) {
+  clearArrows();
+  lastWaysYaw = null;
+  const eye = world(s.x, s.y);
+  const groups = [];
+  for (const nb of [...s.neighbors].sort((a, b) => a.length - b.length)) {
+    const gr = groups.find(g => Math.abs(angDiff(nb.bearing, g.bearing)) < 14);
+    if (gr) gr.nbs.push(nb); else groups.push({ bearing: nb.bearing, nbs: [nb] });
+  }
+  for (const gr of groups) {
+    const g = new THREE.Group();
+    const under = new THREE.Mesh(chevronGeo, new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.35, depthTest: false, depthWrite: false }));
+    under.scale.setScalar(1.18); under.renderOrder = 40; under.position.y = 0.05;
+    const top = new THREE.Mesh(chevronGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.96, depthTest: false, depthWrite: false }));
+    top.renderOrder = 41; top.position.y = 0.1;
+    const hit = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }));
+    g.add(under, top, hit);
+    g.position.set(eye.x + Math.cos(gr.bearing * DEG) * ARROW_R, 0.12, eye.z + Math.sin(gr.bearing * DEG) * ARROW_R);
+    g.rotation.y = -gr.bearing * DEG;
+    arrowGroup.add(g);
+    const labelBox = document.createElement('div');
+    labelBox.className = 'arrow-stack';
+    const a = { nb: gr.nbs[0], nbs: gr.nbs, bearing: gr.bearing, group: g, top, under, hit, labelBox, hot: false, chips: [] };
+    for (const nb of gr.nbs) {
+      const label = document.createElement('button');
+      label.className = 'arrow-label'; label.type = 'button';
+      label.textContent = `→ ${nb.label}`;
+      label.setAttribute('aria-label', `Walk to ${nb.label}`);
+      label.addEventListener('click', () => walkToNeighbor(nb));
+      label.addEventListener('pointerenter', () => setArrowHot(a, true));
+      label.addEventListener('pointerleave', () => setArrowHot(a, false));
+      labelBox.appendChild(label);
+      // matching chip in the HUD; its arrow turns with the view (up = straight ahead)
+      const chip = document.createElement('button');
+      chip.className = 'way'; chip.type = 'button';
+      chip.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span>${esc(nb.label)}</span>`;
+      chip.setAttribute('aria-label', `Walk to ${nb.label}`);
+      chip.title = `Walk to ${nb.label} (${Math.round(nb.length)} units)`;
+      chip.addEventListener('click', () => walkToNeighbor(nb));
+      chip.addEventListener('pointerenter', () => setArrowHot(a, true));
+      chip.addEventListener('pointerleave', () => setArrowHot(a, false));
+      waysEl.appendChild(chip);
+      a.chips.push(chip);
+    }
+    arrowLabelsEl.appendChild(labelBox);
+    hit.userData.arrow = a; top.userData.arrow = a;
+    arrows.push(a);
+  }
+  computeInsets();
+}
+function setArrowHot(a, on) {
+  if (!a || a.hot === on) return;
+  a.hot = on; a.top.material.color.set(on ? 0x14b8a6 : 0xffffff);
+  a.labelBox.classList.toggle('hot', on);
+  a.chips.forEach(c => c.classList.toggle('hot', on));
+  a.group.scale.setScalar(on ? 1.15 : 1);
+}
+let lastWaysYaw = null;
+function updateWayChips() {
+  if (lastWaysYaw !== null && Math.abs(angDiff(yaw, lastWaysYaw)) < 1) return;
+  lastWaysYaw = yaw;
+  for (const a of arrows) {
+    const rel = angDiff(a.bearing, yaw);
+    for (const c of a.chips) c.firstElementChild.style.transform = `rotate(${rel.toFixed(0)}deg)`;
+  }
+}
+
+/* =====================================================================
+   Camera helpers + projection (keeps the photo centred between the HUD bars)
+   ===================================================================== */
+function lookQuat(pos, yawDeg, pitchDeg) {
+  const d = new THREE.Vector3(Math.cos(yawDeg * DEG) * Math.cos(pitchDeg * DEG), Math.sin(pitchDeg * DEG), Math.sin(yawDeg * DEG) * Math.cos(pitchDeg * DEG));
+  const m = new THREE.Matrix4().lookAt(pos, pos.clone().add(d), new THREE.Vector3(0, 1, 0));
+  return new THREE.Quaternion().setFromRotationMatrix(m);
+}
+function camYawPitch() {
+  const d = new THREE.Vector3(); camera.getWorldDirection(d);
+  return { yaw: norm360(Math.atan2(d.z, d.x) / DEG), pitch: Math.asin(clamp(d.y, -1, 1)) / DEG };
+}
+function vpSize() { return { w: viewport.clientWidth || 1, h: viewport.clientHeight || 1 }; }
+function computeInsets() {
+  const vr = viewport.getBoundingClientRect();
+  let top = 0, bottom = 0;
+  if (mode === 'stop') {
+    const tb = stopHud.querySelector('.topbar').getBoundingClientRect();
+    const bb = stopBottom.getBoundingClientRect();
+    if (tb.height) top = tb.bottom - vr.top + 6;
+    if (bb.height) bottom = vr.bottom - bb.top + 6;
+  } else if (narrowMQ.matches) {
+    const sb = $('sidebar').getBoundingClientRect();
+    bottom = Math.max(0, vr.bottom - sb.top);
+    const tb = mapHud.querySelector('.toolbar').getBoundingClientRect();
+    top = tb.height ? tb.bottom - vr.top : 48;
+  }
+  const maxIns = vr.height * 0.42;
+  proj.tTop = clamp(top, 0, maxIns); proj.tBottom = clamp(bottom, 0, maxIns);
+}
+function stopFov() { return STOP_FOV * zoomK; }
+function applyProjection() {
+  const { w, h } = vpSize();
+  const safeH = Math.max(80, h - proj.top - proj.bottom);
+  const cy = proj.top + safeH / 2;
+  const f = (safeH / 2) / Math.tan(proj.fov * DEG / 2);
+  const half = Math.max(cy, h - cy);
+  const hv = 2 * half, y0 = half - cy;
+  camera.fov = 2 * Math.atan(half / f) / DEG;
+  camera.aspect = w / hv;
+  camera.setViewOffset(w, hv, 0, y0, w, h);
+  camera.updateProjectionMatrix();
+}
+function pxPerUnitAt(dist) {
+  const { h } = vpSize();
+  const hv = camera.view ? camera.view.fullHeight : h;
+  return (hv / 2) / Math.tan(camera.fov * DEG / 2) / Math.max(dist, 0.001);
+}
+
+function onResize() {
+  const { w, h } = vpSize();
+  renderer.setSize(w, h, false);
+  computeInsets();
+  proj.top = proj.tTop; proj.bottom = proj.tBottom;
+  applyProjection();
+  drawMinimap(true);
+}
+new ResizeObserver(onResize).observe(viewport);
+
+/* =====================================================================
+   Map view framing
+   ===================================================================== */
+function mapFrame(center = null, dist = null) {
+  const { w, h } = vpSize();
+  const portrait = w < h * 0.9;
+  const el = (portrait ? 58 : 50) * DEG;
+  const az = 0;                                    // landscape: camera south of the plan (+z), plan north at the top
+  const safeH = Math.max(80, h - proj.tTop - proj.tBottom);
+  const f = (safeH / 2) / Math.tan(MAP_FOV * DEG / 2);
+  // frame the area people can walk (photo stops + margin), not the whole drawing sheet
+  let x0 = 0, x1 = PLAN_W, y0 = 0, y1 = PLAN_H;
+  if (STOPS.length) {
+    const m = 70;
+    x0 = Math.max(0, Math.min(...STOPS.map(s => s.x)) - m); x1 = Math.min(PLAN_W, Math.max(...STOPS.map(s => s.x)) + m);
+    y0 = Math.max(0, Math.min(...STOPS.map(s => s.y)) - m); y1 = Math.min(PLAN_H, Math.max(...STOPS.map(s => s.y)) + m);
+  }
+  const bw = x1 - x0, bh = y1 - y0;
+  const spanX = portrait ? bh : bw;
+  const spanY = (portrait ? bw : bh) * Math.sin(el) + 30;
+  const d = dist || Math.max((spanX / 2) * f / (w / 2), (spanY / 2) * f / (safeH / 2)) * 1.04;
+  const target = center ? center.clone() : world((x0 + x1) / 2, (y0 + y1) / 2 + (portrait ? 0 : 8));
+  const off = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+  if (portrait) off.set(Math.cos(el), Math.sin(el), 0);   // portrait: camera east of the plan so its long axis runs up the screen
+  return { target, pos: target.clone().add(off.multiplyScalar(d)) };
+}
+function resetView(animate = true) {
+  const fr = mapFrame();
+  if (!animate || reduceMotion) { controls.target.copy(fr.target); camera.position.copy(fr.pos); controls.update(); return Promise.resolve(); }
+  return tweenCamera({ pos: fr.pos, target: fr.target, dur: 900 }).then(() => { controls.target.copy(fr.target); controls.update(); });
+}
+
+/* =====================================================================
+   Animation system (one camera move at a time)
+   ===================================================================== */
+let camAnim = null;
+function runAnim(step, dur) {
+  if (camAnim) camAnim.cancel();
+  return new Promise(resolve => {
+    const a = { t0: performance.now(), dur: reduceMotion ? 1 : dur, step, resolve, done: false };
+    a.cancel = () => { if (!a.done) { a.done = true; resolve(false); } if (camAnim === a) camAnim = null; };
+    camAnim = a;
+  });
+}
+function tickAnim(now) {
+  const a = camAnim; if (!a) return;
+  if (a.done) { camAnim = null; return; }
+  const k = clamp((now - a.t0) / a.dur, 0, 1);
+  a.step(k, now);
+  if (k >= 1 && !a.done) { a.done = true; camAnim = null; a.resolve(true); }
+}
+// generic move: position + look target (map) or explicit quaternion
+function tweenCamera({ pos, target = null, quat = null, dur = 800, arc = 0 }) {
+  const p0 = camera.position.clone(), q0 = camera.quaternion.clone();
+  let q1 = quat;
+  if (!q1) { const m = new THREE.Matrix4().lookAt(pos, target, new THREE.Vector3(0, 1, 0)); q1 = new THREE.Quaternion().setFromRotationMatrix(m); }
+  return runAnim(k => {
+    const e = easeInOut(k);
+    camera.position.lerpVectors(p0, pos, e);
+    if (arc) camera.position.y += Math.sin(Math.PI * e) * arc;
+    camera.quaternion.slerpQuaternions(q0, q1, e);
+  }, dur);
+}
+
+/* =====================================================================
+   Modes
+   ===================================================================== */
+function setMode(m) {
+  mode = m;
+  const inStop = m === 'stop';
+  mapHud.hidden = inStop; stopHud.hidden = !inStop;
+  controls.enabled = !inStop;
+  pinGroup.visible = !inStop;
+  labelsEl.style.display = inStop ? 'none' : '';
+  arrowLabelsEl.style.display = inStop ? '' : 'none';
+  tooltip.hidden = true;
+  if (inStop) setSheet(false);
+  computeInsets();
+  proj.tFov = inStop ? stopFov() : MAP_FOV;
+  camera.near = inStop ? 0.3 : 2; camera.updateProjectionMatrix();
+  canvas.style.cursor = inStop ? 'grab' : '';
+  if (!inStop) document.title = BASE_TITLE;
+}
+const BASE_TITLE = document.title;
+
+function resolveStop(q) {
+  if (q && typeof q === 'object' && q.id) q = q.id;
+  if (byId.has(q)) return byId.get(q);
+  const n = typeof q === 'number' ? q : parseInt(String(q || '').replace(/^.*?(\d+)\D*$/, '$1'), 10);
+  return STOPS.find(s => s.num === n) || null;
+}
+const hashFor = s => `#point-${s.num}`;
+function pushHash(s, replace = false) {
+  const url = s ? hashFor(s) : location.pathname + location.search;
+  if ((s && location.hash === hashFor(s)) || (!s && !location.hash)) return;
+  try { history[replace ? 'replaceState' : 'pushState']({ stop: s ? s.id : null }, '', url); } catch { /* sandboxed */ }
+}
+
+async function enterStop(q, opts = {}) {
+  const s = resolveStop(q);
+  if (!s) { console.warn('enterStop: unknown stop', q); return false; }
+  if (opts.push !== false) pushHash(s);
+  if (mode === 'stop' && cur && cur.id === s.id && !busy) return true;
+  const token = ++navToken;
+  const from = mode === 'stop' ? cur : null;
+  const nb = from ? from.neighbors.find(n => n.id === s.id) : null;
+  busy = true;
+  if (nb && !opts.fly) return walkToNeighbor(nb, { push: false, token });
+  const fromMap = mode === 'map';
+  fadePanels(0, 160); clearArrows();
+  setMode('stop'); cur = s; updateStopHud(s); setActivePin(s); highlightList(s);
+  const eye = world(s.x, s.y, EYE);
+  let targetYaw;
+  if (fromMap) {
+    // keep the current compass direction, then face the nearest photo
+    const cy = camYawPitch().yaw;
+    targetYaw = nearestPhotoAngle(s, cy);
+  } else targetYaw = effHeading(s);
+  const dist = camera.position.distanceTo(eye);
+  const dur = fromMap ? clamp(700 + dist * 0.35, 800, 1300) : clamp(700 + dist * 2, 800, 1500);
+  const arc = fromMap ? 0 : Math.min(70, dist * 0.35);
+  pitch = STOP_PITCH;
+  if (fromMap) setZoom(1);
+  preloadStop(s);
+  const ok = await tweenCamera({ pos: eye, quat: lookQuat(eye, targetYaw, pitch), dur, arc });
+  if (token !== navToken) return ok;
+  yaw = targetYaw;
+  arrive(s);
+  return true;
+}
+
+function arrive(s) {
+  cur = s; busy = false;
+  const eye = world(s.x, s.y, EYE);
+  camera.position.copy(eye);
+  layoutPanels(s, eye);
+  if (panels[0].url !== s.photos.front.full || panels.some(p => p.state === 'error' || p.state === 'none')) loadPanelPhotos(s);
+  fadePanels(1, 280);
+  buildArrows(s);
+  updateStopHud(s);
+  drawMinimap(true);
+}
+
+function nearestPhotoAngle(s, y) {
+  let best = effHeading(s), bd = 999;
+  for (const d of DIRS) { const a = photoAngle(s, d); const dd = Math.abs(angDiff(a, y)); if (dd < bd) { bd = dd; best = a; } }
+  return best;
+}
+
+async function walkToNeighbor(nb, opts = {}) {
+  const from = cur; const to = byId.get(nb.id);
+  if (!from || !to) return false;
+  const token = opts.token || ++navToken;
+  if (opts.push !== false) pushHash(to);
+  busy = true;
+  fadePanels(0, 160); clearArrows();
+  cur = to; updateStopHud(to); setActivePin(to); highlightList(to);
+  // world-space path at eye height
+  const pts = nb.path.map(p => world(p[0], p[1], EYE));
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+  const L = cum[cum.length - 1] || 1;
+  const at = s => {
+    s = clamp(s, 0, L); let i = 1; while (i < cum.length - 1 && cum[i] < s) i++;
+    const seg = cum[i] - cum[i - 1] || 1; return pts[i - 1].clone().lerp(pts[i], (s - cum[i - 1]) / seg);
+  };
+  const dur = clamp(450 + L * 17, 900, 3200);
+  let lastNow = performance.now(), y0 = yaw, p0 = pitch;
+  preloadStop(to);  // start loading the next photos now
+  const ok = await runAnim((k, now) => {
+    const dt = Math.min(0.05, (now - lastNow) / 1000); lastNow = now;
+    const s = easeSine(k) * L;
+    const p = at(s);
+    const ahead = at(Math.min(L, s + 9));
+    let ty = ahead.distanceTo(p) > 0.3 ? norm360(Math.atan2(ahead.z - p.z, ahead.x - p.x) / DEG) : yaw;
+    if (k > 0.97) ty = yaw;
+    yaw = norm360(yaw + angDiff(ty, yaw) * (1 - Math.exp(-dt * 7)));
+    pitch = lerp(p0, -3, Math.min(1, k * 4));
+    camera.position.copy(p);
+    camera.quaternion.copy(lookQuat(p, yaw, pitch));
+  }, dur);
+  if (token !== navToken || !ok) return ok;
+  // settle on the photo closest to the walking direction
+  const target = nearestPhotoAngle(to, yaw);
+  arrive(to);
+  await turnTo(target, 380, STOP_PITCH);
+  return true;
+}
+
+function turnTo(targetYaw, dur = 380, targetPitch = pitch) {
+  const y0 = yaw, p0 = pitch, d = angDiff(targetYaw, y0);
+  const eye = camera.position.clone();
+  return runAnim(k => {
+    const e = easeInOut(k);
+    yaw = norm360(y0 + d * e); pitch = lerp(p0, targetPitch, e);
+    camera.quaternion.copy(lookQuat(eye, yaw, pitch));
+  }, dur);
+}
+
+async function exitToMap(opts = {}) {
+  if (opts.push !== false) pushHash(null);
+  if (mode === 'map' && !busy) return true;
+  const token = ++navToken;
+  const s = cur;
+  fadePanels(0, 160); clearArrows();
+  setMode('map');
+  setActivePin(s);
+  busy = true;
+  const center = s ? world(s.x, s.y) : new THREE.Vector3();
+  const base = mapFrame();
+  const d = narrowMQ.matches ? 380 : 300;
+  const dir = base.pos.clone().sub(base.target).normalize();
+  const pos = center.clone().add(dir.multiplyScalar(d));
+  const ok = await tweenCamera({ pos, target: center, dur: 850 });
+  if (token !== navToken) return ok;
+  controls.target.copy(center); controls.update();
+  busy = false;
+  return true;
+}
+
+/* =====================================================================
+   Stop HUD: title, compass strip, minimap, heading tools
+   ===================================================================== */
+const compassEl = $('compass');
+function updateStopHud(s) {
+  $('stopTitle').textContent = s.label;
+  $('stopSub').textContent = `photo stop ${s.order + 1} of ${STOPS.length}` + (s.neighbors.length ? ` · ${s.neighbors.length} way${s.neighbors.length > 1 ? 's' : ''} on` : '');
+  document.title = `${s.label} · Sam Ibrahim Level 1`;
+  // SnapWay map builder: tell the embedding editor which graph node is open.
+  if (window.parent !== window) window.parent.postMessage({ type: 'snapway-map3d-stop', nodeId: s.id, label: s.label }, location.origin);
+  const note = $('headingNote');
+  const ov = overrides[s.id] || 0;
+  note.textContent = ov ? `Heading corrected by you (${ov > 0 ? '+' : ''}${ov * 90}°).` : 'Photo headings are estimated.';
+  note.title = s.headingSource ? `Heading source: ${s.headingSource}` : (DATA_NOTE || '');
+  if (compassEl.dataset.stop !== s.id) {
+    compassEl.dataset.stop = s.id;
+    compassEl.innerHTML = DIRS.map(d => `
+      <button class="cp" type="button" data-dir="${d}" aria-pressed="false" aria-label="Turn to the ${d} photo (double-click to enlarge)">
+        <img alt="" data-dir="${d}">
+        <span>${DIR_NAME[d]}</span>
+      </button>`).join('') + `
+      <button class="cp-zoom" type="button" id="cpZoom" aria-label="Open the photo you are facing at full size">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Full size
+      </button>`;
+    compassEl.querySelectorAll('img[data-dir]').forEach(img => setImgSrc(img, thumbUrl(s, img.dataset.dir), s.photos[img.dataset.dir].full, 3));
+  }
+  const prev = $('prevStop'), next = $('nextStop');
+  prev.disabled = s.order === 0; next.disabled = s.order === STOPS.length - 1;
+  prev.style.opacity = prev.disabled ? .4 : 1; next.style.opacity = next.disabled ? .4 : 1;
+  updateCompassActive();
+  computeInsets();
+}
+function facingDir() {
+  if (!cur) return 'front';
+  let best = 'front', bd = 999;
+  for (const d of DIRS) { const dd = Math.abs(angDiff(photoAngle(cur, d), yaw)); if (dd < bd) { bd = dd; best = d; } }
+  return best;
+}
+let lastFacing = null;
+function updateCompassActive() {
+  const f = facingDir();
+  if (f === lastFacing && compassEl.dataset.af === cur?.id) return;
+  lastFacing = f; compassEl.dataset.af = cur?.id || '';
+  compassEl.querySelectorAll('.cp').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dir === f)));
+}
+compassEl.addEventListener('click', e => {
+  if (e.target.closest('#cpZoom')) { openLightbox(cur, facingDir()); return; }
+  const b = e.target.closest('.cp'); if (!b || !cur || busy) return;
+  turnTo(photoAngle(cur, b.dataset.dir), 420, STOP_PITCH);
+});
+compassEl.addEventListener('dblclick', e => {
+  const b = e.target.closest('.cp'); if (!b || !cur) return;
+  e.preventDefault(); openLightbox(cur, b.dataset.dir);
+});
+
+$('backBtn').addEventListener('click', () => exitToMap());
+$('prevStop').addEventListener('click', () => { if (cur && cur.order > 0) enterStop(STOPS[cur.order - 1].id); });
+$('nextStop').addEventListener('click', () => { if (cur && cur.order < STOPS.length - 1) enterStop(STOPS[cur.order + 1].id); });
+
+function rotateSet(step) {
+  if (!cur || busy) return;
+  overrides[cur.id] = (((overrides[cur.id] || 0) + step) % 4 + 4) % 4;
+  if (overrides[cur.id] === 3) overrides[cur.id] = -1;
+  if (overrides[cur.id] === 0) delete overrides[cur.id];
+  saveOverrides();
+  layoutPanels(cur, camera.position);
+  updateStopHud(cur);
+  // keep facing the same photo so the 3D model visibly turns behind it
+  turnTo(norm360(yaw + step * 90), 450);
+  toast(`${cur.label}: photos rotated ${step > 0 ? '90° clockwise' : '90° counter-clockwise'}. Saved in this browser.`);
+}
+$('rotL').addEventListener('click', () => rotateSet(-1));
+$('rotR').addEventListener('click', () => rotateSet(1));
+$('exportH').addEventListener('click', () => {
+  const out = {
+    exported_at: new Date().toISOString(),
+    frame: { width: PLAN_W, height: PLAN_H, heading_convention: 'degrees in the plan frame from +x toward +y (clockwise seen from above); right = heading+90' },
+    source: dataSource, heading_note: DATA_NOTE,
+    stops: STOPS.map(s => ({
+      id: s.id, label: s.label, num: s.num, x: s.x, y: s.y,
+      heading_deg: effHeading(s), estimated_heading_deg: s.heading, rotation_steps: overrides[s.id] || 0,
+      corrected: !!overrides[s.id], heading_source: s.headingSource,
+    })),
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'level1-headings.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Headings exported.');
+});
+
+let toastTimer = 0;
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2600);
+}
+
+// minimap
+const mm = $('minimap'), mmCtx = mm.getContext('2d');
+let mmImg = null, mmReady = false;
+loadImage('../underlay.png', 4).then(img => { mmImg = img; mmReady = true; drawMinimap(true); }).catch(() => {});
+let mmKey = '';
+// The minimap shows the walkable area (photo stops + margin), not the whole sheet.
+let mmBox = [0, PLAN_W, 0, PLAN_H];
+function setupMinimapBox() {
+  if (!STOPS.length) return;
+  const m = 40;
+  mmBox = [Math.max(0, Math.min(...STOPS.map(s => s.x)) - m), Math.min(PLAN_W, Math.max(...STOPS.map(s => s.x)) + m),
+           Math.max(0, Math.min(...STOPS.map(s => s.y)) - m), Math.min(PLAN_H, Math.max(...STOPS.map(s => s.y)) + m)];
+  mm.style.aspectRatio = `${(mmBox[1] - mmBox[0]).toFixed(1)} / ${(mmBox[3] - mmBox[2]).toFixed(1)}`;
+}
+function mmGeom() {
+  const r = mm.getBoundingClientRect();
+  const w = r.width || 280, h = r.height || 160;
+  const [bx0, bx1, by0, by1] = mmBox;
+  const s = Math.min(w / (bx1 - bx0), h / (by1 - by0));
+  return { w, h, s, ox: (w - (bx1 - bx0) * s) / 2 - bx0 * s, oy: (h - (by1 - by0) * s) / 2 - by0 * s };
+}
+function drawMinimap(force = false) {
+  if (mode !== 'stop' || !cur) return;
+  const key = `${cur.id}|${Math.round(yaw)}|${Math.round(camera.position.x)}|${Math.round(camera.position.z)}|${mm.clientWidth}`;
+  if (!force && key === mmKey) return;
+  mmKey = key;
+  const { w, h, s, ox, oy } = mmGeom();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  if (mm.width !== Math.round(w * dpr) || mm.height !== Math.round(h * dpr)) { mm.width = Math.round(w * dpr); mm.height = Math.round(h * dpr); }
+  const g = mmCtx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  g.fillStyle = '#eef1f5'; g.fillRect(0, 0, w, h);
+  if (mmReady) { g.globalAlpha = 0.9; g.drawImage(mmImg, ox, oy, PLAN_W * s, PLAN_H * s); g.globalAlpha = 1; }
+  const P = (x, y) => [ox + x * s, oy + y * s];
+  // walking line
+  g.strokeStyle = 'rgba(15,118,110,.45)'; g.lineWidth = 1; g.beginPath();
+  for (const [a, b] of EDGES) { const [x1, y1] = P(a[0], a[1]); const [x2, y2] = P(b[0], b[1]); g.moveTo(x1, y1); g.lineTo(x2, y2); }
+  g.stroke();
+  const nbIds = new Set(cur.neighbors.map(n => n.id));
+  const r = Math.max(2.2, Math.min(4, s * 7));
+  for (const st of STOPS) {
+    if (st.id === cur.id) continue;
+    const [x, y] = P(st.x, st.y);
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2);
+    g.fillStyle = nbIds.has(st.id) ? '#0d9488' : '#475569'; g.fill();
+    g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke();
+  }
+  // you are here + view cone (camera position follows walks)
+  const cx = camera.position.x + CX, cyy = camera.position.z + CZ;
+  const [x, y] = P(cx, cyy);
+  const hf = Math.atan(Math.tan(camera.fov * DEG / 2) * camera.aspect) / DEG;
+  const coneR = Math.max(22, w * 0.09);
+  g.beginPath(); g.moveTo(x, y);
+  g.arc(x, y, coneR, (yaw - hf) * DEG, (yaw + hf) * DEG); g.closePath();
+  const grd = g.createRadialGradient(x, y, 2, x, y, coneR);
+  grd.addColorStop(0, 'rgba(37,99,235,.55)'); grd.addColorStop(1, 'rgba(37,99,235,.06)');
+  g.fillStyle = grd; g.fill();
+  g.beginPath(); g.arc(x, y, r + 2.2, 0, Math.PI * 2); g.fillStyle = '#2563eb'; g.fill();
+  g.lineWidth = 2; g.strokeStyle = '#fff'; g.stroke();
+}
+function minimapStopAt(ev) {
+  const r = mm.getBoundingClientRect(); const { s, ox, oy } = mmGeom();
+  const px = (ev.clientX - r.left - ox) / s, py = (ev.clientY - r.top - oy) / s;
+  let best = null, bd = Infinity;
+  for (const st of STOPS) { const d = Math.hypot(st.x - px, st.y - py) * s; if (d < bd) { bd = d; best = st; } }
+  return bd <= 14 ? best : null;
+}
+mm.addEventListener('click', ev => { const st = minimapStopAt(ev); if (st) enterStop(st.id); });
+mm.addEventListener('pointermove', ev => {
+  const st = minimapStopAt(ev);
+  mm.style.cursor = st ? 'pointer' : 'default';
+  mm.title = st ? `Go to ${st.label}` : '';
+});
+$('mmExpand').addEventListener('click', () => {
+  const wrap = $('minimapWrap'); const big = !wrap.classList.contains('big');
+  wrap.classList.toggle('big', big);
+  $('mmExpand').setAttribute('aria-pressed', String(big));
+  $('mmExpand').setAttribute('aria-label', big ? 'Shrink minimap' : 'Enlarge minimap');
+  requestAnimationFrame(() => drawMinimap(true));
+});
+
+/* =====================================================================
+   Lightbox
+   ===================================================================== */
+const lb = $('lightbox'), lbImg = $('lbImg'), lbCap = $('lbCaption');
+let lbState = null, lbReturnFocus = null;
+function openLightbox(s, dir) {
+  if (!s) return;
+  lbState = { s, dir };
+  lbReturnFocus = document.activeElement;
+  renderLightbox();
+  lb.hidden = false;
+  $('lbClose').focus();
+}
+function renderLightbox() {
+  const { s, dir } = lbState; const ph = s.photos[dir];
+  lbImg.removeAttribute('src');
+  const still = () => lbState && lbState.s === s && lbState.dir === dir;
+  loadBlobURL(thumbUrl(s, dir), 6).then(u => { if (still() && !lbImg.dataset.full) lbImg.src = u; }).catch(() => {});
+  lbImg.dataset.full = '';
+  loadBlobURL(ph.full, 6).then(u => { if (still()) { lbImg.src = u; lbImg.dataset.full = '1'; } }).catch(() => {});
+  lbImg.alt = `${s.label}, ${dir} photo`;
+  lbCap.innerHTML = `<b>${esc(s.label)}</b><span>${DIR_NAME[dir]} · ${ph.w}×${ph.h}</span><a href="${esc(ph.full)}" target="_blank" rel="noopener">Open original</a>`;
+}
+function stepLightbox(k) { if (!lbState) return; const i = DIRS.indexOf(lbState.dir); lbState.dir = DIRS[(i + k + 4) % 4]; renderLightbox(); }
+function closeLightbox() { lb.hidden = true; lbState = null; if (lbReturnFocus && lbReturnFocus.focus) lbReturnFocus.focus(); }
+$('lbClose').addEventListener('click', closeLightbox);
+$('lbPrev').addEventListener('click', () => stepLightbox(-1));
+$('lbNext').addEventListener('click', () => stepLightbox(1));
+lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+
+/* =====================================================================
+   Sidebar / bottom sheet
+   ===================================================================== */
+const listEl = $('stopList'), searchEl = $('search');
+function buildList() {
+  document.querySelectorAll('.js-count').forEach(e => { e.textContent = STOPS.length; });
+  listEl.innerHTML = STOPS.map(s => `
+    <li data-q="${esc((s.label + ' ' + s.num).toLowerCase())}">
+      <button class="stop-item" type="button" data-id="${esc(s.id)}" aria-current="false">
+        <img alt="">
+        <span class="si-text"><span class="si-title">${esc(s.label)}</span>
+          <span class="si-sub">4 photos${s.neighbors.length ? ' · to ' + s.neighbors.map(n => n.num).sort((a, b) => a - b).join(', ') : ''}</span></span>
+        <span class="si-num" aria-hidden="true">${s.num}</span>
+      </button>
+    </li>`).join('') + '<li class="empty" hidden>No stop matches.</li>';
+  listEl.querySelectorAll('.stop-item').forEach(b => { const s = byId.get(b.dataset.id); setImgSrc(b.querySelector('img'), thumbUrl(s, 'front'), s.photos.front.full, 0); });
+}
+listEl.addEventListener('click', e => {
+  const b = e.target.closest('.stop-item'); if (!b) return;
+  if (narrowMQ.matches) setSheet(false);
+  enterStop(b.dataset.id);
+});
+listEl.addEventListener('pointerover', e => {
+  const b = e.target.closest('.stop-item'); hoverPin(b ? pins.find(p => p.stop.id === b.dataset.id) : null);
+});
+listEl.addEventListener('pointerleave', () => hoverPin(null));
+searchEl.addEventListener('input', () => {
+  const q = searchEl.value.trim().toLowerCase().replace(/^point\s*/, '');
+  let n = 0;
+  listEl.querySelectorAll('li[data-q]').forEach(li => {
+    const ok = !q || li.dataset.q.split(' ').some(t => t.startsWith(q)) || li.dataset.q.includes(q);
+    li.hidden = !ok; if (ok) n++;
+  });
+  listEl.querySelector('.empty').hidden = n > 0;
+});
+searchEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const b = listEl.querySelector('li[data-q]:not([hidden]) .stop-item'); if (b) b.click(); }
+});
+function highlightList(s) {
+  listEl.querySelectorAll('.stop-item').forEach(b => {
+    const on = !!s && b.dataset.id === s.id; b.setAttribute('aria-current', String(on));
+    if (on && !narrowMQ.matches) b.scrollIntoView({ block: 'nearest' });
+  });
+}
+function setSheet(open) {
+  app.classList.toggle('sheet-open', open);
+  $('sheetHandle').setAttribute('aria-expanded', String(open));
+  setTimeout(() => computeInsets(), 260);
+}
+$('sheetHandle').addEventListener('click', () => setSheet(!app.classList.contains('sheet-open')));
+function setSidebar(open) {
+  app.classList.toggle('sb-collapsed', !open);
+  $('sbOpen').hidden = open;
+  if (open) $('sbCollapse').focus(); else $('sbOpen').focus();
+}
+$('sbCollapse').addEventListener('click', () => setSidebar(false));
+$('sbOpen').addEventListener('click', () => setSidebar(true));
+
+/* =====================================================================
+   Map toggles
+   ===================================================================== */
+function bindToggle(id, get, set) {
+  const b = $(id);
+  b.addEventListener('click', () => { set(!get()); b.setAttribute('aria-pressed', String(get())); });
+}
+bindToggle('tgWalls', () => wallsOn, v => { wallsOn = v; for (const m of wallMeshes) m.visible = v; renderer.shadowMap.needsUpdate = true; });
+bindToggle('tgWalk', () => walkOn, v => { walkOn = v; if (walkLine) walkLine.visible = v; });
+bindToggle('tgRooms', () => roomsOn, v => { roomsOn = v; });
+$('resetView').addEventListener('click', () => resetView(true));
+
+/* =====================================================================
+   Pointer input
+   ===================================================================== */
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+function setNdc(ev) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+}
+let hovered = null;
+function hoverPin(p) {
+  if (p === hovered) return;
+  if (hovered) hovered.hover = 0;
+  hovered = p;
+  if (p) p.hover = 1;
+}
+function pickPin(ev) {
+  setNdc(ev);
+  const hits = ray.intersectObjects(pins.map(p => p.sprite), false);
+  if (!hits.length) return null;
+  // prefer the pin drawn on top (closest to camera)
+  hits.sort((a, b) => a.distance - b.distance);
+  return hits[0].object.userData.pin;
+}
+function pickStopThing(ev) {
+  setNdc(ev);
+  const ah = ray.intersectObjects(arrows.flatMap(a => [a.hit, a.top]), false);
+  if (ah.length) return { arrow: ah[0].object.userData.arrow };
+  if (panelGroup.visible) {
+    const ph = ray.intersectObjects(panels.flatMap(p => [p.photo, p.frame]), false);
+    if (ph.length) return { dir: ph[0].object.userData.panelDir };
+  }
+  return null;
+}
+
+const pointers = new Map();
+let down = null, pinchStart = null;
+canvas.addEventListener('pointerdown', ev => {
+  pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  if (pointers.size === 1) down = { x: ev.clientX, y: ev.clientY, yaw, pitch, moved: false, t: performance.now() };
+  if (pointers.size === 2 && mode === 'stop') {
+    const [a, b] = [...pointers.values()]; pinchStart = { d: Math.hypot(a.x - b.x, a.y - b.y), z: zoomK };
+  }
+  if (mode === 'stop') {
+    if (camAnim && !busy) { camAnim.cancel(); if (down) { down.yaw = yaw; down.pitch = pitch; } }
+    canvas.setPointerCapture(ev.pointerId); canvas.style.cursor = 'grabbing';
+  }
+});
+canvas.addEventListener('pointermove', ev => {
+  const pt = pointers.get(ev.pointerId); if (pt) { pt.x = ev.clientX; pt.y = ev.clientY; }
+  if (down && Math.hypot(ev.clientX - down.x, ev.clientY - down.y) > 5) down.moved = true;
+  if (mode === 'stop') {
+    if (pointers.size === 2 && pinchStart) {
+      const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
+      setZoom(pinchStart.z * pinchStart.d / Math.max(20, d));
+      return;
+    }
+    if (down && pointers.size === 1 && down.moved && !busy) {
+      const { h } = vpSize();
+      const degPerPx = camera.fov / (camera.view ? camera.view.fullHeight : h);
+      yaw = norm360(down.yaw - (ev.clientX - down.x) * degPerPx * 1.1);
+      pitch = clamp(down.pitch + (ev.clientY - down.y) * degPerPx * 1.1, -40, 30);
+      camera.quaternion.copy(lookQuat(camera.position, yaw, pitch));
+      return;
+    }
+    if (ev.pointerType === 'mouse' && !down) {
+      const hit = busy ? null : pickStopThing(ev);
+      arrows.forEach(a => setArrowHot(a, hit && hit.arrow === a));
+      canvas.style.cursor = hit ? 'pointer' : 'grab';
+    }
+    return;
+  }
+  // map hover
+  if (ev.pointerType === 'mouse' && !down) {
+    const p = busy ? null : pickPin(ev);
+    hoverPin(p);
+    canvas.style.cursor = p ? 'pointer' : '';
+    if (p) {
+      const r = viewport.getBoundingClientRect();
+      tooltip.innerHTML = `<b>${esc(p.stop.label)}</b> — 4 photos`;
+      tooltip.hidden = false;
+      const tx = Math.min(ev.clientX - r.left + 14, r.width - tooltip.offsetWidth - 8);
+      tooltip.style.left = tx + 'px'; tooltip.style.top = (ev.clientY - r.top + 16) + 'px';
+    } else tooltip.hidden = true;
+  }
+});
+function endPointer(ev) {
+  pointers.delete(ev.pointerId);
+  if (pointers.size < 2) pinchStart = null;
+  if (mode === 'stop') canvas.style.cursor = 'grab';
+  if (!down || pointers.size > 0) { if (pointers.size === 0) down = null; return; }
+  const wasClick = !down.moved && ev.type === 'pointerup' && performance.now() - down.t < 700;
+  down = null;
+  if (!wasClick || busy) return;
+  if (mode === 'map') {
+    const p = pickPin(ev);
+    if (p) { tooltip.hidden = true; enterStop(p.stop.id); }
+  } else {
+    const hit = pickStopThing(ev);
+    if (!hit) return;
+    if (hit.arrow) walkToNeighbor(hit.arrow.nb);
+    else if (hit.dir) {
+      if (hit.dir === facingDir() && Math.abs(angDiff(photoAngle(cur, hit.dir), yaw)) < 20) openLightbox(cur, hit.dir);
+      else turnTo(photoAngle(cur, hit.dir), 420, STOP_PITCH);
+    }
+  }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('pointerleave', () => { if (mode === 'map') { hoverPin(null); tooltip.hidden = true; } });
+function setZoom(z) { zoomK = clamp(z, 0.45, 1.15); if (mode === 'stop') proj.tFov = stopFov(); }
+canvas.addEventListener('wheel', ev => {
+  if (mode !== 'stop') return;
+  ev.preventDefault();
+  setZoom(zoomK * Math.exp(ev.deltaY * 0.0012));
+}, { passive: false });
+
+/* =====================================================================
+   Keyboard
+   ===================================================================== */
+addEventListener('keydown', ev => {
+  const tag = (ev.target && ev.target.tagName) || '';
+  if (!lb.hidden) {
+    if (ev.key === 'Escape') { ev.preventDefault(); closeLightbox(); }
+    else if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepLightbox(-1); }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); stepLightbox(1); }
+    else if (ev.key === 'Tab') { // keep focus inside the dialog
+      const f = [...lb.querySelectorAll('button, a')]; const i = f.indexOf(document.activeElement);
+      ev.preventDefault(); f[(i + (ev.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+    return;
+  }
+  if (tag === 'INPUT' || tag === 'TEXTAREA') { if (ev.key === 'Escape') ev.target.blur(); return; }
+  if (mode !== 'stop' || !cur) return;
+  if (ev.key === 'Escape') { ev.preventDefault(); exitToMap(); return; }
+  if (busy) return;
+  if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+    ev.preventDefault();
+    const dirSign = ev.key === 'ArrowRight' ? 1 : -1;
+    // next photo direction strictly to that side
+    let best = null, bd = 999;
+    for (const d of DIRS) {
+      const delta = angDiff(photoAngle(cur, d), yaw) * dirSign;
+      if (delta > 10 && delta < bd) { bd = delta; best = d; }
+    }
+    if (best) turnTo(photoAngle(cur, best), 420, STOP_PITCH);
+  } else if (ev.key === 'ArrowUp') {
+    ev.preventDefault();
+    let best = null, bd = 999;
+    for (const nb of cur.neighbors) { const d = Math.abs(angDiff(nb.bearing, yaw)); if (d < bd) { bd = d; best = nb; } }
+    if (best && bd < 100) walkToNeighbor(best); else toast('No path in that direction. Turn toward an arrow first.');
+  } else if (ev.key === 'ArrowDown') {
+    ev.preventDefault(); turnTo(norm360(yaw + 180), 520, STOP_PITCH);
+  }
+});
+
+/* =====================================================================
+   History / deep links
+   ===================================================================== */
+function stopFromHash() {
+  const m = /^#(?:point-?)?0*(\d+)$/i.exec(decodeURIComponent(location.hash || '').replace(/\s+/g, '-'));
+  return m ? resolveStop(+m[1]) : null;
+}
+function syncFromHash() {
+  const s = stopFromHash();
+  if (s) { if (!(mode === 'stop' && cur && cur.id === s.id)) enterStop(s.id, { push: false }); }
+  else if (mode === 'stop') exitToMap({ push: false });
+}
+addEventListener('popstate', syncFromHash);
+addEventListener('hashchange', syncFromHash);
+
+/* =====================================================================
+   Per-frame updates
+   ===================================================================== */
+const tmpV = new THREE.Vector3();
+function updatePins(now) {
+  if (!pinGroup.visible) return;
+  const target = narrowMQ.matches ? 54 : 70;
+  for (const p of pins) {
+    p.hoverT += (p.hover - p.hoverT) * 0.25;
+    const d = camera.position.distanceTo(p.group.position);
+    const ppu = pxPerUnitAt(d);
+    const hpx = target * (1 + 0.6 * p.hoverT) * (p.active ? 1.08 : 1);
+    const hw = hpx / ppu;
+    p.sprite.scale.set(hw * PIN_CW / PIN_CH, hw, 1);
+    const pole = Math.max(14, 26 / ppu);
+    p.pole.scale.y = pole; p.sprite.position.y = pole;
+    const rr = Math.max(1.4, 5 / ppu);
+    p.ring.scale.setScalar(rr); p.dot.scale.setScalar(rr);
+    p.sprite.renderOrder = 10 + (p.hoverT > 0.05 ? 2 : p.active ? 1 : 0);
+  }
+}
+function project(v) {
+  const { w, h } = vpSize();
+  tmpV.copy(v).project(camera);
+  return { x: (tmpV.x + 1) / 2 * w, y: (1 - tmpV.y) / 2 * h, ok: tmpV.z < 1 && tmpV.z > -1 };
+}
+function updateRoomLabels() {
+  if (mode !== 'map') return;
+  const dist = camera.position.distanceTo(controls.target);
+  const { w, h } = vpSize();
+  const show = roomsOn && dist < (narrowMQ.matches ? 700 : 820);
+  const placed = [];
+  const order = roomLabels.map(r => ({ r, d: camera.position.distanceToSquared(r.pos) })).sort((a, b) => a.d - b.d);
+  for (const { r } of order) {
+    let vis = false;
+    if (show) {
+      const p = project(r.pos);
+      if (p.ok && p.x > -40 && p.x < w + 40 && p.y > -20 && p.y < h + 20) {
+        if (!r.w) { r.w = r.el.offsetWidth || 40; r.h = r.el.offsetHeight || 14; }
+        const box = [p.x - r.w / 2 - 3, p.y - r.h / 2 - 2, p.x + r.w / 2 + 3, p.y + r.h / 2 + 2];
+        if (!placed.some(b => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) {
+          placed.push(box); vis = true;
+          r.el.style.transform = `translate(${(p.x - r.w / 2).toFixed(1)}px, ${(p.y - r.h / 2).toFixed(1)}px)`;
+        }
+      }
+    }
+    if (vis !== r.shown) { r.el.style.visibility = vis ? 'visible' : 'hidden'; r.shown = vis; }
+  }
+  const op = clamp((dist - 120) / 300, 0, 1);
+  labelsEl.style.opacity = String(1 - op * 0.35);
+}
+function updateArrowLabels() {
+  if (mode !== 'stop') return;
+  const { w, h } = vpSize();
+  const camDir = new THREE.Vector3(); camera.getWorldDirection(camDir);
+  for (const a of arrows) {
+    const p = project(a.group.position);
+    const toA = a.group.position.clone().sub(camera.position);
+    const front = toA.dot(camDir) > 0;
+    const ok = !busy && front && p.ok && p.x > 0 && p.x < w && p.y > 0 && p.y < h;
+    a.labelBox.style.visibility = ok ? 'visible' : 'hidden';
+    a.group.visible = !busy;
+    if (ok) a.labelBox.style.transform = `translate(${(p.x).toFixed(1)}px, ${(p.y - 20).toFixed(1)}px) translate(-50%, -100%)`;
+  }
+  updateWayChips();
+}
+function updateWalls(now) {
+  if (!wallMat) return;
+  let target;
+  if (mode === 'stop' || (camAnim && camera.position.y < 60)) target = 0.3;
+  else {
+    const d = camera.position.distanceTo(controls.target);
+    const { pitch: pt } = camYawPitch();
+    const close = clamp((d - 90) / 380, 0, 1);
+    const steep = clamp((-pt - 18) / 30, 0, 1);
+    target = 0.4 + 0.52 * Math.min(close, 0.4 + 0.6 * steep);
+  }
+  wallMat.opacity += (target - wallMat.opacity) * 0.12;
+  wallMat.depthWrite = wallMat.opacity > 0.6;
+}
+function clampTarget() {
+  const t = controls.target;
+  const cx = clamp(t.x, -CX - 20, CX + 20), cz = clamp(t.z, -CZ - 20, CZ + 20);
+  if (cx !== t.x || cz !== t.z) { const dx = cx - t.x, dz = cz - t.z; t.x = cx; t.z = cz; camera.position.x += dx; camera.position.z += dz; }
+  t.y = 0;
+}
+
+let lastT = performance.now();
+renderer.setAnimationLoop(() => {
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  tickAnim(now);
+  // smooth projection changes (HUD insets / fov)
+  const k = 1 - Math.exp(-dt * 10);
+  proj.top += (proj.tTop - proj.top) * k; proj.bottom += (proj.tBottom - proj.bottom) * k; proj.fov += (proj.tFov - proj.fov) * k;
+  applyProjection();
+  if (mode === 'map' && !camAnim) { controls.update(); clampTarget(); }
+  if (mode === 'stop' && !camAnim && cur && !down) camera.quaternion.copy(lookQuat(camera.position, yaw, pitch));
+  updatePanelFade(now);
+  updatePins(now);
+  updateWalls(now);
+  updateRoomLabels();
+  updateArrowLabels();
+  if (mode === 'stop') { updateCompassActive(); drawMinimap(); }
+  renderer.render(scene, camera);
+});
+
+/* =====================================================================
+   Optional Tripo landmarks (tripo-plan.json)
+   ===================================================================== */
+async function loadLandmarks() {
+  let plan;
+  try {
+    plan = await queuedFetch('./tripo-plan.json', 'json', 2);
+  } catch (e) { console.info('No readable tripo-plan.json; landmarks skipped.', e.message); return; }
+  const list = Array.isArray(plan) ? plan : (plan.landmarks || plan.items || []);
+  // Only request models the plan marks as generated (a missing file would log a 404).
+  // Add ?landmarks=try to the URL to probe every listed GLB anyway.
+  const force = /[?&]landmarks=try\b/.test(location.search);
+  const planSaysNotGenerated = !Array.isArray(plan) && /not generated|prepared only/i.test(plan.note || '');
+  const loader = new GLTFLoader();
+  let placed = 0;
+  for (const lm of list) {
+    const file = lm.glb || lm.glb_file || lm.file || lm.model;
+    if (!file || !/\.glb$/i.test(file)) continue;
+    const generated = lm.status ? /generated|done|ready|exported|downloaded|available/i.test(lm.status) && !/not/i.test(lm.status)
+      : (lm.generated === true || lm.available === true || !planSaysNotGenerated);
+    if (!generated && !force) { console.info(`Landmark ${lm.slug || lm.name || file}: model not generated yet, skipped.`); continue; }
+    const url = /^(https?:)?\//.test(file) || file.startsWith('../') || file.startsWith('./') ? file : './' + file;
+    try {
+      const buf = await queuedFetch(url, 'buffer', 2);
+      const gltf = await new Promise((res, rej) => loader.parse(buf, './', res, rej));
+      const obj = gltf.scene;
+      const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3());
+      const hU = +(lm.height_units || lm.height || 10);
+      obj.scale.setScalar(size.y > 0 ? hU / size.y : 1);
+      const box2 = new THREE.Box3().setFromObject(obj); const c = box2.getCenter(new THREE.Vector3());
+      const holder = new THREE.Group();
+      obj.position.set(-c.x, -box2.min.y, -c.z);
+      holder.add(obj);
+      const px = +(lm.plan_x ?? lm.x ?? 0) + +(lm.offset_x || 0), py = +(lm.plan_y ?? lm.y ?? 0) + +(lm.offset_y || 0);
+      holder.position.copy(world(px, py));
+      // tripo-plan.json convention: model front faces +Z; rotation.y = (90 - yaw_deg) degrees
+      holder.rotation.y = (90 - +(lm.yaw_deg ?? lm.yaw ?? 0)) * DEG;
+      holder.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      holder.name = 'Landmark_' + (lm.name || lm.id || file);
+      scene.add(holder);
+      placed++;
+    } catch { console.info(`Landmark model ${file} not available; skipped.`); }
+  }
+  if (placed) renderer.shadowMap.needsUpdate = true;
+}
+
+/* =====================================================================
+   Boot
+   ===================================================================== */
+async function boot() {
+  computeInsets(); proj.top = proj.tTop; proj.bottom = proj.tBottom;
+  onResize();
+  resetView(false);
+  let data;
+  try { data = await loadStops(); }
+  catch (err) {
+    console.warn('Could not load stop data.', err);
+    loadingEl.textContent = 'Could not load the photo stops (stops.json / manifest.json).';
+    return;
+  }
+  STOPS = data.stops; EDGES = data.edges; DATA_NOTE = data.note;
+  byId = new Map(STOPS.map(s => [s.id, s]));
+  buildList(); buildPins(); buildWalkLine(); setupMinimapBox();
+  if (mode === 'map' && !stopFromHash()) resetView(false);
+  loadRooms();
+  // SnapWay bundle: no Tripo landmarks are shipped, so skip loadLandmarks().
+  window.__map.stops = STOPS;
+  const initial = stopFromHash();
+  if (initial) { await Promise.race([glbReady, new Promise(r => setTimeout(r, 1500))]); enterStop(initial.id, { push: false }); }
+  await glbReady;
+  loadingEl.classList.add('gone');
+  setTimeout(() => loadingEl.remove(), 400);
+  resolveReady(true);
+}
+let resolveReady;
+const ready = new Promise(r => { resolveReady = r; });
+
+window.__map = {
+  stops: STOPS,
+  enterStop: (id, opts) => enterStop(id, opts),
+  exitToMap: (opts) => exitToMap(opts),
+  state: () => ({ mode, stopId: cur && mode === 'stop' ? cur.id : null, label: cur && mode === 'stop' ? cur.label : null, yaw: Math.round(yaw * 10) / 10, pitch: Math.round(pitch * 10) / 10, busy }),
+  scene, camera, ready,
+  walkTo: (id) => { const nb = cur && cur.neighbors.find(n => n.id === id || n.label === id || n.num === id); return nb ? walkToNeighbor(nb) : Promise.resolve(false); },
+  turnTo: (dir) => cur ? turnTo(photoAngle(cur, dir), 420, STOP_PITCH) : Promise.resolve(false),
+  debug: () => ({
+    dataSource, glb: glbStatus, pins: pins.length, pinPhotos: pins.filter(p => p.img).length, rooms: roomLabels.length,
+    queue: { active: netActive, waiting: netQ.length },
+    panels: panels.map(p => ({ dir: p.dir, state: p.state, url: p.url, opacity: +p.opacity.toFixed(2) })),
+    arrows: arrows.map(a => ({ to: a.nbs.map(n => n.label), bearing: Math.round(a.bearing) })),
+    overrides: { ...overrides },
+  }),
+};
+boot();
+</script>
+</body>
+</html>

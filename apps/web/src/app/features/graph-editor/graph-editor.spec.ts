@@ -4,7 +4,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { WorkspaceApi } from '../../core/workspace-api.service';
 import { provideRouter } from '@angular/router';
 import { GraphApiService } from '../../core/graph-api.service';
-import { GraphEditorPage } from './graph-editor';
+import { GraphEditorPage, MAP3D_SCENES } from './graph-editor';
 
 describe('GraphEditorPage', () => {
   let fixture: ComponentFixture<GraphEditorPage>;
@@ -109,5 +109,43 @@ describe('GraphEditorPage', () => {
     });
     await pending;
     expect(fixture.componentInstance.version()).toBe(2);
+  });
+
+  it('offers no 3D view for targets without a prebuilt 3D map', async () => {
+    await fixture.componentInstance.ngOnInit();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.view-toggle')).toBeNull();
+    fixture.componentInstance.setView('3d');
+    expect(fixture.componentInstance.viewMode()).toBe('2d');
+  });
+
+  it('switches to the Sam Ibrahim 3D photo map and syncs the selected point', async () => {
+    const page = fixture.componentInstance;
+    await page.ngOnInit();
+    const [target, path] = Object.entries(MAP3D_SCENES)[0];
+    page.targetId.set(target);
+    page.nodes.set([{ id: 'n13', x: 1, y: 2, label: 'Point 13', kind: 'checkpoint' }]);
+    page.select(['n13']);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.view-toggle')).not.toBeNull();
+
+    page.setView('3d');
+    fixture.detectChanges();
+    const frame = fixture.nativeElement.querySelector('iframe.map3d-frame') as HTMLIFrameElement;
+    expect(page.viewMode()).toBe('3d');
+    expect(frame.getAttribute('src')).toBe(`${path}#point-13`);
+
+    page.select([]);
+    page.onMap3dMessage(
+      new MessageEvent('message', {
+        origin: window.location.origin,
+        data: { type: 'snapway-map3d-stop', nodeId: 'other-id', label: 'Point 13' },
+      }),
+    );
+    expect(page.selectedIds()).toEqual(['n13']);
+
+    page.setView('2d');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('iframe.map3d-frame')).toBeNull();
   });
 });

@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   GraphApiService,
@@ -24,6 +25,12 @@ import { AuthService } from '../../core/auth.service';
 import { WorkspaceLayout } from '../../core/workspace-layout.service';
 import { Icon } from '../../shared/icon';
 type HistoryEntry = { undo: EditorCommand; redo: EditorCommand };
+export type MapView = '2d' | '3d';
+
+/** Prebuilt 3D photo maps (public/map3d), keyed by target id. Only Sam Ibrahim Level 1 has one. */
+export const MAP3D_SCENES: Record<string, string> = {
+  'fda54111-8056-4133-8894-b4fc5cdb1028': '/map3d/sam-ibrahim-level1/3d/index.html',
+};
 
 @Component({
   selector: 'app-graph-editor',
@@ -38,7 +45,11 @@ export class GraphEditorPage implements OnInit, OnDestroy {
   private readonly workspace = inject(WorkspaceApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly canvas = viewChild(GraphCanvas);
+  readonly viewMode = signal<MapView>('2d');
+  readonly map3dPath = computed(() => MAP3D_SCENES[this.targetId() ?? ''] ?? null);
+  readonly map3dSrc = signal<SafeResourceUrl | null>(null);
   readonly tool = signal<GraphTool>('select');
   readonly status = signal('Loading draft...');
   readonly error = signal<string | null>(null);
@@ -133,6 +144,7 @@ export class GraphEditorPage implements OnInit, OnDestroy {
       this.targetId.set(draft.target_id);
       this.title.set(draft.building ? `${draft.building} - ${draft.floor}` : 'Edit your snapshot');
       await this.refresh();
+      if (this.route.snapshot.queryParamMap.get('view') === '3d') this.setView('3d');
       this.status.set('Auto-saves to server - Editing your private snapshot');
     } catch (e) {
       this.error.set(workspaceError(e));
@@ -141,6 +153,39 @@ export class GraphEditorPage implements OnInit, OnDestroy {
   }
   async back() {
     if (!this.busy()) await this.router.navigateByUrl('/my-maps');
+  }
+  /** Switch between the editable 2D canvas and the prebuilt 3D photo map. */
+  setView(mode: MapView) {
+    const path = this.map3dPath();
+    if (mode === '3d' && !path) return;
+    if (mode === '3d' && path) {
+      this.canvas()?.cancel();
+      this.connectFromId.set(null);
+      // Open the 3D map at the selected photo point, e.g. "Point 13" -> #point-13.
+      const point = /^point\s*(\d+)$/i.exec(this.selectedNode()?.label.trim() ?? '');
+      this.map3dSrc.set(
+        this.sanitizer.bypassSecurityTrustResourceUrl(point ? `${path}#point-${point[1]}` : path),
+      );
+    }
+    this.viewMode.set(mode);
+    this.router
+      .navigate([], {
+        relativeTo: this.route,
+        queryParams: { view: mode === '3d' ? '3d' : null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      })
+      .catch(() => undefined);
+  }
+  /** The 3D map reports the photo point it opened; select it so the inspector shows its photos. */
+  @HostListener('window:message', ['$event']) onMap3dMessage(event: MessageEvent) {
+    if (event.origin !== window.location.origin || this.viewMode() !== '3d') return;
+    const data = event.data as { type?: string; nodeId?: string; label?: string } | null;
+    if (data?.type !== 'snapway-map3d-stop') return;
+    const node =
+      this.nodes().find((n) => n.id === data.nodeId) ??
+      (data.label ? this.nodes().find((n) => n.label === data.label) : undefined);
+    if (node) this.select([node.id]);
   }
   setTool(tool: GraphTool) {
     this.canvas()?.cancel();
@@ -612,6 +657,8 @@ export class GraphEditorPage implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event']) onKey(event: KeyboardEvent) {
     // Detached keep-alive instances must not steal shortcuts on other routes.
     if (!this.router.url.split('?')[0].endsWith('/graph-editor')) return;
+    // The 3D map is view-only; its own keys (arrows, Esc) must not edit the graph.
+    if (this.viewMode() === '3d') return;
     const target = event.target as HTMLElement;
     if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
     if (event.key === 'Escape') {
