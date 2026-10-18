@@ -49,6 +49,23 @@ No video frames were inserted into its reference gallery.
 | Temporal outcome labels | 174 pass transferred retrieval thresholds, 110 uncertain, 82 unsupported; these are **not** correct-frame counts |
 | Local M3 inference | Cold load 8.65s; reference batches 30.40s; query batches 100.30s; twelve warm single-frame samples median 317.9ms / p95 452.0ms |
 
+CPU follow-ups on the same 16 GiB M3 host: a small matched eight-frame test gave
+275ms median at eight CPU threads versus 277–295ms on MPS, effectively tied at
+this sample size. All eight point winners agreed; this measures consistency,
+not ground-truth accuracy. No runtime defaults were changed.
+
+A separate **fresh CPU-only, eight-thread, FP32, batch-one** memory run completed
+96 video frames, eight full-resolution reference JPEGs and four warmups. Whole
+process resident RAM during sampled inference was 1.08–1.21 GB (median 1.18 GB);
+idle with model/index loaded was 1.28 GB. Startup reached 2.019 GB peak RSS and
+**2.126 GB OS peak memory footprint**, independently captured with
+`/usr/bin/time -l`. The model parameters account for 0.915 GB and all 104 cached
+reference vectors for 3.51 MB. GB here is decimal. A starting budget of roughly
+3 GB per serial worker leaves headroom; an actual 8 GB device, other OS/CPU and
+concurrent workers have not been validated. Reproduction scripts, phases and OS
+output are retained under the local run's `validation/cpu-ram-benchmark/`; the
+earlier comparison is under `validation/cpu-gpu-benchmark/`.
+
 Independent landmark comparisons are agent-inspected candidates, not surveyed
 ground truth. Startup Point 19 also has verified geometric overlap with the
 glass vestibule; the conflict with the user's Point 1 start remains unresolved
