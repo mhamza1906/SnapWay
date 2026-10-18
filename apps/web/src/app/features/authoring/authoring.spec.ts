@@ -1339,6 +1339,72 @@ describe('map authoring page', () => {
     expect(page.routeFrom()).toBe('r1');
     expect(page.routeTo()).toBe('r1');
   });
+
+  it('clears photo points, selection and exported-draft links when changing floors', async () => {
+    const s = withSpaces(
+      regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),
+    );
+    s.floors.push({ ...s.floors[0], floorId: 'floor-2', label: 'Floor 2' });
+    const { page } = await startMapped(s);
+    page.selectedRegions.set(['h1']);
+    const planning = page.showHallPoints();
+    http.expectOne(`${PIPELINE_BASE}/authoring/hall-points`).flush({
+      spaceId: 'h1',
+      label: 'Hallway 3',
+      scaleVerified: false,
+      spacingM: null,
+      spacingPx: 10,
+      lines: [
+        [
+          { x: 0, y: 0 },
+          { x: 20, y: 0 },
+        ],
+      ],
+      points: [{ x: 10, y: 0, order: 1, reason: 'spacing' }],
+    });
+    const overlay = await renderOverlay();
+    await planning;
+    expect(overlay.photoPoints).toHaveLength(1);
+    page.pickedPhotos.set([0]);
+    page.sentGraph.set({ targetId: 'old-draft', nodes: 1, edges: 0 });
+    const switching = page.selectFloor('floor-2');
+    const next = await renderOverlay();
+    await switching;
+    expect(page.hallPlan()).toBeNull();
+    expect(page.pickedPhotos()).toEqual([]);
+    expect(page.sentGraph()).toBeNull();
+    expect(next.photoPoints).toBeUndefined();
+    const show = page.togglePhotosVisible();
+    const shown = await renderOverlay();
+    await show;
+    expect(shown.photoPoints).toBeUndefined();
+  });
+
+  it('ignores a photo-planning response arriving after a floor switch', async () => {
+    const s = withSpaces(
+      regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),
+    );
+    s.floors.push({ ...s.floors[0], floorId: 'floor-2', label: 'Floor 2' });
+    const { page } = await startMapped(s);
+    page.selectedRegions.set(['h1']);
+    const planning = page.showHallPoints();
+    const request = http.expectOne(`${PIPELINE_BASE}/authoring/hall-points`);
+    const switching = page.selectFloor('floor-2');
+    await renderOverlay();
+    await switching;
+    request.flush({
+      spaceId: 'h1',
+      label: 'Old floor',
+      scaleVerified: false,
+      spacingM: null,
+      spacingPx: 10,
+      lines: [],
+      points: [],
+    });
+    await planning;
+    expect(page.hallPlan()).toBeNull();
+    http.expectNone(`${PIPELINE_BASE}/authoring/render`);
+  });
 });
 
 // Partial match without depending on the building payload.

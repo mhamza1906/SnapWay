@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { GraphApiService } from '../../core/graph-api.service';
 import { Icon } from '../../shared/icon';
 import { AuthoringSession } from './authoring-session';
+import { photoPointGraph } from './photo-graph';
 import {
   AssumedDoor,
   BuildingSummary,
@@ -494,6 +495,7 @@ export class AuthoringPage implements OnInit {
   }
 
   private load(edited: Edited): void {
+    this.resetPhotoPlan();
     const sameBuilding = this.building()?.id === edited.building.id;
     this.building.set(edited.building);
     this.summary.set(edited.summary);
@@ -536,6 +538,7 @@ export class AuthoringPage implements OnInit {
   }
 
   async selectFloor(id: string): Promise<void> {
+    if (id !== this.floorId()) this.resetPhotoPlan();
     this.floorId.set(id);
     this.selectedRegions.set([]);
     this.focused.set(null);
@@ -1105,10 +1108,13 @@ export class AuthoringPage implements OnInit {
   /** Plans photo points over the whole selected hall and draws them. */
   async showHallPoints(): Promise<void> {
     const building = this.building(),
-      hall = this.selectedHall();
+      hall = this.selectedHall(),
+      floorId = this.floorId();
     if (!building || !hall) return;
     await this.run(async () => {
-      const plan = await this.pipeline.hallPoints(building, this.floorId(), hall.id);
+      const plan = await this.pipeline.hallPoints(building, floorId, hall.id);
+      if (this.floorId() !== floorId || this.building() !== building) return;
+      this.sentGraph.set(null);
       this.hallPlan.set({ ...plan, points: plan.points.map((p, i) => ({ ...p, key: i })) });
       this.pickedPhotos.set([]);
       this.photosVisible.set(true);
@@ -1135,9 +1141,8 @@ export class AuthoringPage implements OnInit {
   readonly sentGraph = signal<{ targetId: string; nodes: number; edges: number } | null>(null);
   /**
    * Sends the photo points to the graph editor (Django): a fresh draft with the
-   * floor plan as its underlay, one checkpoint node per point (junctions as
-   * junction nodes), labelled "Point N", and edges between neighbouring points
-   * in walking order. Photos for each node are then added in the graph editor
+   * floor plan as its underlay, one labelled checkpoint per photo point, and
+   * supporting junction/bend nodes preserving the corridor paths. Photos are added in the graph editor
    * (stored in R2). Needs a signed-in session.
    */
   async sendPhotosToGraphEditor(): Promise<void> {
@@ -1146,6 +1151,7 @@ export class AuthoringPage implements OnInit {
       floorId = this.floorId();
     if (!building || !plan?.points.length) return;
     await this.run(async () => {
+      const graph = photoPointGraph(plan);
       const { svg } = await this.pipeline.render(building, floorId, {});
       const { png, frame } = await rasterizePlan(svg),
         draft = await this.graphApi.ensureDraft(undefined, true);
@@ -1154,36 +1160,37 @@ export class AuthoringPage implements OnInit {
         new File([png], `${floorId}-plan.png`, { type: 'image/png' }),
       );
       const ids: string[] = [];
-      for (const p of plan.points) {
+      for (const p of graph.nodes) {
         const node = await this.graphApi.addNode(draft.revision_id, {
           x: Math.round((p.x - frame.x) * frame.scale * 100) / 100,
           y: Math.round((p.y - frame.y) * frame.scale * 100) / 100,
-          label: `Point ${p.order}`,
-          kind: p.reason === 'junction' ? 'junction' : 'checkpoint',
+          label: p.label,
+          kind: p.kind,
         });
         ids.push(node.id);
       }
-      // Neighbours in walking order, unless the walk jumps back to another branch.
       let edges = 0;
-      for (let i = 1; i < plan.points.length; i++) {
-        const a = plan.points[i - 1],
-          b = plan.points[i];
-        if (Math.hypot(b.x - a.x, b.y - a.y) > 1.6 * plan.spacingPx) continue;
-        await this.graphApi.addEdge(draft.revision_id, ids[i - 1], ids[i]);
+      for (const edge of graph.edges) {
+        await this.graphApi.addEdge(draft.revision_id, ids[edge.from], ids[edge.to]);
         edges++;
       }
-      this.sentGraph.set({ targetId: draft.target_id, nodes: ids.length, edges });
+      if (this.floorId() !== floorId || this.hallPlan() !== plan) return;
+      this.sentGraph.set({ targetId: draft.target_id, nodes: plan.points.length, edges });
       this.say(
-        `Sent ${ids.length} photo points and ${edges} links to the graph editor. Open it to add photos to each point.`,
+        `Sent ${plan.points.length} photo points, ${ids.length - plan.points.length} path junctions/bends and ${edges} links to the graph editor. Open it to add photos to each point.`,
       );
     }, 'send-graph');
   }
   async clearHallPoints(): Promise<void> {
+    this.resetPhotoPlan();
+    this.drawPhotos();
+    await this.repaint();
+  }
+  private resetPhotoPlan(): void {
     this.hallPlan.set(null);
     this.pickedPhotos.set([]);
     this.photosVisible.set(true);
-    this.drawPhotos();
-    await this.repaint();
+    this.sentGraph.set(null);
   }
   /** Photo point keys picked in the Photo points menu or on the map. */
   readonly pickedPhotos = signal<number[]>([]);
@@ -1229,6 +1236,7 @@ export class AuthoringPage implements OnInit {
     const plan = this.hallPlan(),
       gone = new Set(keys);
     if (!plan || !gone.size) return;
+    this.sentGraph.set(null);
     this.hallPlan.set({ ...plan, points: plan.points.filter((p) => !gone.has(p.key!)) });
     this.pickedPhotos.update((k) => k.filter((x) => !gone.has(x)));
     this.say(
@@ -1241,6 +1249,7 @@ export class AuthoringPage implements OnInit {
   relabelPhotos(): void {
     const plan = this.hallPlan();
     if (!plan) return;
+    this.sentGraph.set(null);
     this.hallPlan.set({ ...plan, points: plan.points.map((p, i) => ({ ...p, order: i + 1 })) });
     this.say(`Photo points relabelled 1 to ${plan.points.length}.`);
     this.drawPhotos();

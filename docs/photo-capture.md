@@ -463,3 +463,14 @@ Browser device emulation and desktop webcams check layout and the code path
 only; they are not physical-device camera verification. Camera behaviour,
 rear-camera selection, EXIF orientation and upload retries must be checked on
 a real phone.
+
+
+## Authoring photo points and graph transfer
+
+In `/authoring`, open a building and floor, select one corridor/lobby under **Regions**, then choose **Photo points for …**. The **Photo points** tab lists the numbered positions and supports selecting on the map, hiding/showing markers, removing points and relabelling. These plans are temporary UI state. Changing floors or reloading edited building data clears them, selected points and stale exported-draft links; a late planning response from the old floor is discarded.
+
+**Send to graph editor** creates a fresh, single-floor draft with the rendered floor underlay and photo checkpoints. [photo-graph.ts](../apps/web/src/app/features/authoring/photo-graph.ts) preserves the planner's actual corridor polylines: it inserts checkpoints along segments and retains path bends and shared junctions. Nearby numbered points are not connected by an inferred straight chord. This fixes three wall-crossing links found in the old distance-only transfer on Sam Ibrahim Levels 1 and 3. It does not export cross-floor connectors, automatically join other floor drafts or grant capture membership. Additional path nodes are labelled separately from `Point N` photo checkpoints.
+
+Implementation and tests: [authoring component](../apps/web/src/app/features/authoring/authoring.ts), [component regressions](../apps/web/src/app/features/authoring/authoring.spec.ts), [graph conversion](../apps/web/src/app/features/authoring/photo-graph.ts), [conversion tests](../apps/web/src/app/features/authoring/photo-graph.spec.ts). The component validates/converts the plan before starting an upload, and rejects off-path or duplicate photo locations. Paths remain in source coordinates until the existing underlay transformation is applied. No backend or dependency changes are required.
+
+Verification on 2026-10-18: 37 authoring/conversion tests and the production web build passed. Read-only checks of all Sam Ibrahim hall plans found 505 generated point placements on corridor paths; all 814 converted links passed the existing wall/opening validator. Live Chrome checks confirmed 38 markers for Level 5 circulation 1, map/list selection, hide/show and clearing the plan on a floor change. The signed-in capture screen reported no active admin/volunteer mapping target. No camera capture, R2 upload, real draft creation or membership change was performed in this check.

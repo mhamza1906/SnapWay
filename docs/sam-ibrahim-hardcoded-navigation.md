@@ -28,6 +28,8 @@ After updating this branch, restart the Node pipeline service (`npm run prod` fr
 
 Verified in the user's live Chrome app at `http://127.0.0.1:4200/authoring`: select **Level B · The Collaboratorium** → **Level 5 · L5-R22 west perimeter enclosure**, choose **Prefer stairs**, then **Preview route**. The result traverses Stair C through all six floors. Switching to **Elevator · exclude stairs** and previewing again traverses Elevator C in the tested browser state. Select **Level 5** in the route-floor tabs to see the destination overlay on the original plan. Both modes and overlay retention were checked in the running UI. The source underlay shows untraced rooms too; only the traced destinations in the selectors are routable. **Build with AI** is unnecessary for testing the hardcoded project and replaces its authored geometry.
 
+Photo-point planning was also checked in the live app. See [the photo-point verification and graph-transfer fixes](photo-capture.md#authoring-photo-points-and-graph-transfer) for results and the remaining capture-access blocker.
+
 ## Implemented coverage
 
 | Item | Integrated project |
