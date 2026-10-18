@@ -76,8 +76,9 @@ still works. Geolocation uses browser permission; GPS is not a cookie permission
    likewise be used as the author's next snapshot. Unpublished content is copied
    without a parent foreign key, so a later approved copy cannot prevent destruction
    of its still-pending predecessor; published ancestry remains linked.
-2. Only its author can mutate an active draft. Other target members cannot read
-   another author's private draft or edit it. Administrators can inspect submitted
+2. Only its author can mutate an active draft. Other developers can see the map
+   card and clone the shared SoT into their own draft, but cannot read or edit
+   another author's active revision. Administrators can inspect submitted
    content; Developer/Public mode remains a separate session permission boundary.
 3. Finishing requires an underlay and at least one waypoint, freezes a SHA-256
    digest of the revision content and creates a matching required SVG artifact.
@@ -107,11 +108,16 @@ guards remain active. A narrow transaction-local purge scope permits DELETE only
 on the specifically archived target; it never permits editing frozen content or
 deleting another target's immutable history.
 
-Staff/superusers administer all targets. Database-provisioned target administrators
-administer their assigned targets and can initialize new targets as administrators;
-ordinary Developers join published targets as volunteers when starting an edit.
-Revoked membership cannot be reactivated through the editor. No client-supplied
-role/status/approval flag grants authority.
+**Shared developer catalog.** Any signed-in Developer-mode user sees every map
+target in My maps / Explore (including unpublished Image 2.5 / vectorize drafts).
+Starting an edit auto-grants volunteer membership and clones the shared SoT
+(current publication, else the latest peer head revision) into **that user's own**
+draft. Peer developers still cannot mutate or read another author's active draft
+revision; only the author may edit their snapshot. Staff/superusers administer
+all targets. Database-provisioned target administrators administer their assigned
+targets and can initialize new targets as administrators. Revoked membership
+cannot be reactivated through the editor. No client-supplied role/status/approval
+flag grants authority.
 
 ## AI and exports
 

@@ -87,6 +87,17 @@ class WorkspaceMapsView(WorkspaceView):
                     to_attr="user_contributions",
                 ),
                 Prefetch(
+                    "contributions",
+                    queryset=Contribution.objects.filter(head_revision__isnull=False)
+                    .select_related(
+                        "head_revision__source_asset",
+                        "head_revision__standardized_asset",
+                        "author",
+                    )
+                    .order_by("-updated_at"),
+                    to_attr="shared_contributions",
+                ),
+                Prefetch(
                     "publications",
                     queryset=Publication.objects.filter(
                         is_current=True, invalidated_at__isnull=True
@@ -111,11 +122,25 @@ class WorkspaceMapsView(WorkspaceView):
         for target in targets:
             contribution = (getattr(target, "user_contributions", None) or [None])[0]
             publication = (getattr(target, "current_pubs", None) or [None])[0]
-            if not contribution and not publication:
+            shared = (getattr(target, "shared_contributions", None) or [None])[0]
+            shared_revision = (
+                None
+                if contribution or publication or not shared
+                else shared.head_revision
+            )
+            if not contribution and not publication and not shared_revision:
                 continue
             # Preview URLs stay off the list payload (bandwidth); preview_kind still
             # drives sort: vectorized first, then Image 2.5, then everything else.
-            row = svc.card(target, contribution, include_preview=False)
+            row = svc.card(
+                target,
+                contribution,
+                include_preview=False,
+                shared_revision=shared_revision,
+            )
+            if shared_revision and not contribution:
+                row["author"] = shared.author.get_username() if shared else row["author"]
+                row["status"] = shared.status if shared else row["status"]
             row["can_admin"] = staff or target.id in admin_ids
             cards.append(row)
 

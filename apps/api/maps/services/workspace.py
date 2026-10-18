@@ -54,15 +54,33 @@ def require_admin(user, target=None):
 
 
 def visible_targets(user, admin=False):
+    """Maps visible in the developer workspace.
+
+    Peer developers share the full target catalog (no per-user membership filter).
+    Administrator-scoped queues still require an admin membership (or staff).
+    Draft mutation remains author-locked in graph services.
+    """
     rows = MapTarget.objects.select_related("floor__building")
+    if not admin:
+        return rows
     if user.is_staff or user.is_superuser:
         return rows
-    role = {"memberships__role": Membership.Role.ADMIN} if admin else {}
     return rows.filter(
         memberships__user=user,
         memberships__revoked_at__isnull=True,
-        **role,
+        memberships__role=Membership.Role.ADMIN,
     ).distinct()
+
+
+def shared_source_revision(target, *, exclude_author=None):
+    """Best revision to clone when a developer joins a map without a published base."""
+    rows = target.contributions.filter(head_revision__isnull=False).select_related(
+        "head_revision"
+    )
+    if exclude_author is not None:
+        rows = rows.exclude(author=exclude_author)
+    shared = rows.order_by("-updated_at").first()
+    return shared.head_revision if shared else None
 
 
 def workspace_buildings(user):
@@ -192,11 +210,13 @@ def plan_display_asset(revision):
     return None, None
 
 
-def card(target, contribution=None, *, include_preview=True):
+def card(target, contribution=None, *, include_preview=True, shared_revision=None):
     """Serialize a map card.
 
     Preview preference: vectorized SVG, then Image 2.5 optimized raster. List
     endpoints may still omit preview URLs for bandwidth; sorting uses preview_kind.
+    ``shared_revision`` surfaces another developer's SoT when the caller has no
+    draft and the floor is not yet published.
     """
     publication = current_publication(target)
     if not publication and target.status == "archived":
@@ -204,7 +224,7 @@ def card(target, contribution=None, *, include_preview=True):
     revision = (
         contribution.head_revision
         if contribution
-        else (publication.revision if publication else None)
+        else (publication.revision if publication else shared_revision)
     )
     floor = target.floor
     display, preview_kind = plan_display_asset(revision)
@@ -312,8 +332,7 @@ def start_edit(user, target_id):
     if member and member.revoked_at:
         raise PermissionDenied("Your access to this map has been revoked.")
     if not member:
-        if not published and not is_admin(user, target):
-            raise PermissionDenied("This map is not available for editing.")
+        # Developers share the catalog; joining an open floor auto-grants volunteer.
         Membership.objects.create(target=target, user=user, role="volunteer", granted_by=user)
     contribution = target.contributions.filter(author=user, status="draft").first()
     if contribution is None:
@@ -337,6 +356,9 @@ def start_edit(user, target_id):
             )
             if previous:
                 source = previous.head_revision
+            else:
+                # Unpublished shared SoT (e.g. Image 2.5 / vectorize) from a peer.
+                source = shared_source_revision(target, exclude_author=user)
         contribution = Contribution.objects.create(
             target=target,
             author=user,
