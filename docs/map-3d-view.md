@@ -53,3 +53,21 @@ building/floor metadata before applying a `view=3d` deep link. Tests cover a
 production-style target with another ID, selection sync by point label, supported
 Level 1 names, and rejection of other buildings, floors and circulation areas.
 No database, environment, media or dependency changes are required.
+
+## Pipeline builder access
+
+The `/authoring` Build a map screen also provides **2D / 3D photo map** controls
+above the mapped Sam Ibrahim Level 1 plan. It embeds the same saved scene and
+provides an **Open 3D map in a new tab** link. Room/door selection and 2D route
+controls are hidden while viewing 3D; returning to 2D retains the source and route
+state. Selecting another floor returns to 2D. Other floors and buildings do not
+receive a scene toggle. No pipeline job or data mutation runs when changing views.
+
+The scene identity helper is shared in `apps/web/src/app/core/map3d-scene.ts`.
+Pipeline UI changes live in `features/authoring/authoring.ts`, `.html`, `.scss`
+and `.spec.ts` under `apps/web/src/app/`.
+
+Standalone access (no builder session required because these existing assets are
+static): `/map3d/sam-ibrahim-level1/3d/index.html`, or append `#point-13`.
+The snapshot remains limited to Level 1 circulation 2; it is not a live conversion
+of arbitrary floors or current pipeline edits.

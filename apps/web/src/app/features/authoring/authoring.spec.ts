@@ -1208,6 +1208,48 @@ describe('map authoring page', () => {
     expect(within(el, 'error').textContent).toContain('Unknown kind.');
   });
 
+  it('opens the saved 3D photo scene inside the Sam Ibrahim pipeline builder', async () => {
+    const upper = { ...summary.floors[0], floorId: 'floor-2', label: 'Level 2', level: 2 };
+    const sam = { ...summary, name: 'Sam Ibrahim Building', floors: [summary.floors[0], upper] };
+    const { page, fixture, el } = await startMapped(sam, {
+      ...building,
+      name: 'Sam Ibrahim Building',
+    });
+    expect(within(el, 'authoring-view-toggle')).not.toBeNull();
+    page.routeFrom.set('r1');
+    const source = page.building();
+    page.setMapMode('3d');
+    fixture.detectChanges();
+    expect(within<HTMLIFrameElement>(el, 'authoring-3d-frame').getAttribute('src')).toBe(
+      '/map3d/sam-ibrahim-level1/3d/index.html',
+    );
+    expect(within(el, 'scene-snapshot-note').textContent).toContain(
+      'does not reflect current 2D edits',
+    );
+    expect(el.querySelector<HTMLElement>('.authoring-2d')?.hidden).toBe(true);
+    page.setMapMode('2d');
+    fixture.detectChanges();
+    expect(within(el, 'authoring-3d-frame')).toBeNull();
+    expect(page.routeFrom()).toBe('r1');
+    expect(page.building()).toBe(source);
+    page.setMapMode('3d');
+    const switching = page.selectFloor('floor-2');
+    await renderOverlay();
+    await switching;
+    fixture.detectChanges();
+    expect(page.mapMode()).toBe('2d');
+    expect(within(el, 'authoring-view-toggle')).toBeNull();
+    expect(within(el, 'authoring-3d-frame')).toBeNull();
+    http.expectNone(`${PIPELINE_BASE}/map-jobs`);
+  });
+
+  it('keeps unrelated pipeline buildings in 2D', async () => {
+    const { page, el } = await startMapped();
+    page.setMapMode('3d');
+    expect(page.mapMode()).toBe('2d');
+    expect(within(el, 'authoring-view-toggle')).toBeNull();
+  });
+
   it('opens the saved Sam Ibrahim project without starting a model job', async () => {
     const fixture = await start();
     const el = fixture.nativeElement as HTMLElement;

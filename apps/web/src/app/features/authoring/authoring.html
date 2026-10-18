@@ -226,149 +226,197 @@
               >
             </div>
             <div class="panel-body">
-              <div class="panel-switch" role="group" aria-label="What a click on the map selects">
-                <span class="hint">Select on map:</span>
-                <button
-                  class="btn small"
-                  [class.primary]="selectMode() === 'rooms'"
-                  [attr.aria-pressed]="selectMode() === 'rooms'"
-                  (click)="setSelectMode('rooms')"
-                  data-testid="select-rooms"
+              @if (scene3dPath()) {
+                <div
+                  class="panel-switch"
+                  role="group"
+                  aria-label="Map view"
+                  data-testid="authoring-view-toggle"
                 >
-                  Rooms
-                </button>
-                <button
-                  class="btn small"
-                  [class.primary]="selectMode() === 'doorways'"
-                  [attr.aria-pressed]="selectMode() === 'doorways'"
-                  (click)="setSelectMode('doorways')"
-                  data-testid="select-doorways"
-                >
-                  Doorways
-                </button>
-              </div>
-              <div class="focus-slot" aria-live="polite">
-                @if (focused(); as fx) {
-                  <div class="focus-bar" data-testid="focus-bar">
-                    <span class="focus-text"
-                      >Showing <strong>{{ focusLabel() }}</strong
-                      >{{ fx.door ? ' and its doorway (magenta)' : '' }}</span
+                  <button
+                    type="button"
+                    class="btn small"
+                    [class.primary]="mapMode() === '2d'"
+                    [attr.aria-pressed]="mapMode() === '2d'"
+                    (click)="setMapMode('2d')"
+                  >
+                    2D
+                  </button>
+                  <button
+                    type="button"
+                    class="btn small"
+                    [class.primary]="mapMode() === '3d'"
+                    [attr.aria-pressed]="mapMode() === '3d'"
+                    (click)="setMapMode('3d')"
+                  >
+                    3D photo map
+                  </button>
+                </div>
+              }
+              @if (mapMode() === '3d' && scene3dSrc(); as scene) {
+                <p class="hint" data-testid="scene-snapshot-note">
+                  Saved Level 1 circulation 2 photo walk: 26 stops with four views each. This
+                  view-only snapshot does not reflect current 2D edits or route previews.
+                </p>
+                <iframe
+                  class="authoring-3d-frame"
+                  [src]="scene"
+                  title="Sam Ibrahim Level 1 3D photo map"
+                  allow="fullscreen"
+                  allowfullscreen
+                  data-testid="authoring-3d-frame"
+                ></iframe>
+                <p class="hint">
+                  <a [href]="scene3dPath()" target="_blank" rel="noopener"
+                    >Open 3D map in a new tab</a
+                  >
+                </p>
+              }
+              <div class="authoring-2d" [hidden]="mapMode() === '3d' && !!scene3dPath()">
+                <div class="panel-switch" role="group" aria-label="What a click on the map selects">
+                  <span class="hint">Select on map:</span>
+                  <button
+                    class="btn small"
+                    [class.primary]="selectMode() === 'rooms'"
+                    [attr.aria-pressed]="selectMode() === 'rooms'"
+                    (click)="setSelectMode('rooms')"
+                    data-testid="select-rooms"
+                  >
+                    Rooms
+                  </button>
+                  <button
+                    class="btn small"
+                    [class.primary]="selectMode() === 'doorways'"
+                    [attr.aria-pressed]="selectMode() === 'doorways'"
+                    (click)="setSelectMode('doorways')"
+                    data-testid="select-doorways"
+                  >
+                    Doorways
+                  </button>
+                </div>
+                <div class="focus-slot" aria-live="polite">
+                  @if (focused(); as fx) {
+                    <div class="focus-bar" data-testid="focus-bar">
+                      <span class="focus-text"
+                        >Showing <strong>{{ focusLabel() }}</strong
+                        >{{ fx.door ? ' and its doorway (magenta)' : '' }}</span
+                      >
+                      <button
+                        class="btn small secondary"
+                        (click)="showWholeFloor()"
+                        data-testid="whole-floor"
+                      >
+                        <app-icon name="zoom-out" /> Show whole floor
+                      </button>
+                    </div>
+                  }
+                </div>
+                <!-- Mouse shortcut only; the Regions list has the keyboard-accessible checkboxes. -->
+                <div
+                  #mapView
+                  class="map-svg"
+                  [innerHTML]="svg()"
+                  (click)="mapClick($event)"
+                  data-testid="map"
+                ></div>
+                <div class="route-row">
+                  <label class="field">
+                    Start room · any floor
+                    <select
+                      aria-label="Route start"
+                      [value]="routeFrom()"
+                      [disabled]="busy()"
+                      (change)="setRouteEndpoint('from', value($event))"
                     >
-                    <button
-                      class="btn small secondary"
-                      (click)="showWholeFloor()"
-                      data-testid="whole-floor"
+                      <option value="">Choose start</option>
+                      @for (r of routeRooms(); track r.id) {
+                        <option [value]="r.id" [disabled]="!r.ready">
+                          {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
+                        </option>
+                      }
+                    </select>
+                  </label>
+                  <label class="field">
+                    Destination · any floor
+                    <select
+                      aria-label="Route destination"
+                      [value]="routeTo()"
+                      [disabled]="busy()"
+                      (change)="setRouteEndpoint('to', value($event))"
                     >
-                      <app-icon name="zoom-out" /> Show whole floor
-                    </button>
+                      <option value="">Choose destination</option>
+                      @for (r of routeRooms(); track r.id) {
+                        <option [value]="r.id" [disabled]="!r.ready">
+                          {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
+                        </option>
+                      }
+                    </select>
+                  </label>
+                  <label class="field">
+                    Floor connection
+                    <select
+                      aria-label="Floor connection preference"
+                      [value]="routePreference()"
+                      [disabled]="busy()"
+                      (change)="setRoutePreference(value($event))"
+                    >
+                      <option value="any">Stairs or elevator</option>
+                      <option value="stairs">Prefer stairs</option>
+                      <option value="elevator">Elevator · exclude stairs</option>
+                    </select>
+                  </label>
+                  <button
+                    class="btn secondary small"
+                    [disabled]="busy() || !routeFrom() || !routeTo()"
+                    (click)="previewRoute()"
+                  >
+                    Preview route
+                  </button>
+                </div>
+                @if (routeNote()) {
+                  <p class="hint" data-testid="route-note">{{ routeNote() }}</p>
+                }
+                @if (routePreference() === 'elevator') {
+                  <p class="hint">Excluding stairs does not establish an accessible route.</p>
+                }
+                @if (routePreview(); as route) {
+                  <div class="route-details" data-testid="route-details">
+                    <nav class="floor-tabs" aria-label="Route floors">
+                      @for (part of routeFloors(); track part.floorId) {
+                        <button
+                          class="btn small"
+                          [class.primary]="part.floorId === floorId()"
+                          [class.secondary]="part.floorId !== floorId()"
+                          (click)="selectFloor(part.floorId)"
+                        >
+                          {{ part.label }}
+                        </button>
+                      }
+                    </nav>
+                    @if (route.transitions?.length) {
+                      <ol class="route-transitions" aria-label="Floor transitions">
+                        @for (transition of route.transitions; track $index) {
+                          <li>
+                            {{ transition.label }} · {{ floorLabel(transition.fromFloorId) }} →
+                            {{ floorLabel(transition.toFloorId) }}
+                            ({{ transition.type === 'stairs' ? 'stairs' : 'elevator' }})
+                          </li>
+                        }
+                      </ol>
+                    }
+                    @if (route.instructions?.length) {
+                      <details>
+                        <summary>Route instructions</summary>
+                        <ol>
+                          @for (instruction of route.instructions; track $index) {
+                            <li>{{ instruction.text }}</li>
+                          }
+                        </ol>
+                      </details>
+                    }
                   </div>
                 }
               </div>
-              <!-- Mouse shortcut only; the Regions list has the keyboard-accessible checkboxes. -->
-              <div
-                #mapView
-                class="map-svg"
-                [innerHTML]="svg()"
-                (click)="mapClick($event)"
-                data-testid="map"
-              ></div>
-              <div class="route-row">
-                <label class="field">
-                  Start room · any floor
-                  <select
-                    aria-label="Route start"
-                    [value]="routeFrom()"
-                    [disabled]="busy()"
-                    (change)="setRouteEndpoint('from', value($event))"
-                  >
-                    <option value="">Choose start</option>
-                    @for (r of routeRooms(); track r.id) {
-                      <option [value]="r.id" [disabled]="!r.ready">
-                        {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
-                      </option>
-                    }
-                  </select>
-                </label>
-                <label class="field">
-                  Destination · any floor
-                  <select
-                    aria-label="Route destination"
-                    [value]="routeTo()"
-                    [disabled]="busy()"
-                    (change)="setRouteEndpoint('to', value($event))"
-                  >
-                    <option value="">Choose destination</option>
-                    @for (r of routeRooms(); track r.id) {
-                      <option [value]="r.id" [disabled]="!r.ready">
-                        {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
-                      </option>
-                    }
-                  </select>
-                </label>
-                <label class="field">
-                  Floor connection
-                  <select
-                    aria-label="Floor connection preference"
-                    [value]="routePreference()"
-                    [disabled]="busy()"
-                    (change)="setRoutePreference(value($event))"
-                  >
-                    <option value="any">Stairs or elevator</option>
-                    <option value="stairs">Prefer stairs</option>
-                    <option value="elevator">Elevator · exclude stairs</option>
-                  </select>
-                </label>
-                <button
-                  class="btn secondary small"
-                  [disabled]="busy() || !routeFrom() || !routeTo()"
-                  (click)="previewRoute()"
-                >
-                  Preview route
-                </button>
-              </div>
-              @if (routeNote()) {
-                <p class="hint" data-testid="route-note">{{ routeNote() }}</p>
-              }
-              @if (routePreference() === 'elevator') {
-                <p class="hint">Excluding stairs does not establish an accessible route.</p>
-              }
-              @if (routePreview(); as route) {
-                <div class="route-details" data-testid="route-details">
-                  <nav class="floor-tabs" aria-label="Route floors">
-                    @for (part of routeFloors(); track part.floorId) {
-                      <button
-                        class="btn small"
-                        [class.primary]="part.floorId === floorId()"
-                        [class.secondary]="part.floorId !== floorId()"
-                        (click)="selectFloor(part.floorId)"
-                      >
-                        {{ part.label }}
-                      </button>
-                    }
-                  </nav>
-                  @if (route.transitions?.length) {
-                    <ol class="route-transitions" aria-label="Floor transitions">
-                      @for (transition of route.transitions; track $index) {
-                        <li>
-                          {{ transition.label }} · {{ floorLabel(transition.fromFloorId) }} →
-                          {{ floorLabel(transition.toFloorId) }}
-                          ({{ transition.type === 'stairs' ? 'stairs' : 'elevator' }})
-                        </li>
-                      }
-                    </ol>
-                  }
-                  @if (route.instructions?.length) {
-                    <details>
-                      <summary>Route instructions</summary>
-                      <ol>
-                        @for (instruction of route.instructions; track $index) {
-                          <li>{{ instruction.text }}</li>
-                        }
-                      </ol>
-                    </details>
-                  }
-                </div>
-              }
             </div>
           </section>
 

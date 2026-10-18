@@ -14,6 +14,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { GraphApiService } from '../../core/graph-api.service';
 import { Icon } from '../../shared/icon';
+import { map3dScene } from '../../core/map3d-scene';
 import { AuthoringSession } from './authoring-session';
 import { photoPointGraph } from './photo-graph';
 import {
@@ -355,6 +356,22 @@ export class AuthoringPage implements OnInit {
   readonly floor = computed<FloorSummary | null>(
     () => this.summary()?.floors.find((f) => f.floorId === this.floorId()) ?? null,
   );
+  readonly mapMode = signal<'2d' | '3d'>('2d');
+  readonly scene3dPath = computed(() =>
+    map3dScene({
+      building: this.building()?.name ?? '',
+      floor: this.floor()?.label ?? '',
+      title: '',
+    }),
+  );
+  readonly scene3dSrc = computed(() => {
+    const path = this.scene3dPath();
+    return path ? this.sanitizer.bypassSecurityTrustResourceUrl(path) : null;
+  });
+  setMapMode(mode: '2d' | '3d'): void {
+    if (mode === '3d' && !this.scene3dPath()) return;
+    this.mapMode.set(mode);
+  }
   readonly mapped = computed(() => (this.floor()?.regions ?? 0) > 0);
   readonly regions = computed<SpaceSummary[]>(() => {
     const q = this.regionFilter().trim().toLowerCase(),
@@ -545,6 +562,7 @@ export class AuthoringPage implements OnInit {
   }
 
   async selectFloor(id: string): Promise<void> {
+    this.mapMode.set('2d');
     if (id !== this.floorId()) this.resetPhotoPlan();
     this.floorId.set(id);
     this.selectedRegions.set([]);

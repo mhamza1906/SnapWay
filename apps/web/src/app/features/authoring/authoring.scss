@@ -317,3 +317,22 @@ select {
     }
   }
 }
+
+.authoring-2d[hidden] {
+  display: none;
+}
+.authoring-3d-frame {
+  display: block;
+  width: 100%;
+  height: min(74vh, 760px);
+  min-height: 420px;
+  border: 1px solid var(--border, #d6dfd5);
+  border-radius: 12px;
+  background: #f5f5ef;
+}
+@media (max-width: 600px) {
+  .authoring-3d-frame {
+    height: 70svh;
+    min-height: 420px;
+  }
+}
