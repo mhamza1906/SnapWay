@@ -1,8 +1,8 @@
 # Mobile visitor navigation UI
 
 Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
-implementation commits include `a0564a9` and `ca59f45`. Heading spacing and
-local Android packaging notes are pending in the working tree.
+commits include `a0564a9` and `ca59f45`; heading spacing and local Android packaging
+notes are recorded in `1407e12`. The publication-fixture correction below is pending commit.
 Personal execution details remain in ignored `local/ACTIONS.md`.
 
 ## Entry points and interaction
@@ -253,6 +253,19 @@ presentation-only changes.
 Earlier backend validation passed **7 focused tests**;
 backend code is unchanged here. Earlier iOS sync, Ruff and plist checks are recorded
 for the original implementation, not rerun for this Android-facing refinement.
+
+PostgreSQL CI regression: the [public discovery test](../apps/api/tests/test_google_integration.py)
+previously inserted room content into an already frozen, published revision,
+triggering `Frozen revision content is immutable`. The fixture now populates the
+draft before freezing, approval and publication. The existing assertions still
+verify published destinations and exclude private room fields and draft nodes.
+The original failure was reproduced on isolated local PostgreSQL; production
+guards and CI's aggregate `required` gate remain unchanged.
+After correction, the full backend suite passes on PostgreSQL (**119 passed**)
+and SQLite (**103 passed, 16 PostgreSQL-only tests skipped**). Changed-file Ruff
+lint/format, environment-contract and Git whitespace checks pass. GitHub CI
+must rerun after this correction is committed and pushed; no deployment was performed.
+
 Android packaging now passes: Gradle 8.14.3 assembled the debug APK using
 Temurin 21.0.12.1+1; Android SDK apksigner verifies its v2 signature, and APK
 metadata identifies `org.snapway.app`, version 1.0, target SDK 36. The 4,591,471-byte
