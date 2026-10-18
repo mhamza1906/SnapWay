@@ -1,159 +1,151 @@
-# Outdoor GPS and indoor movement experiment
+# GPS, original-node video replay and live camera experiment
 
-Updated October 18, 2026. Local branch `experiment/gps-entrance-node19`, based on
-`feature/map-authoring-pipeline` commit `bc69e4986bb0620a0eb3918aca0783a4b3c83906`.
-No push or deployment is part of this experiment. The active feature checkout,
-saved walks, photo IDs, uploads, pipeline and backend are unchanged.
+Updated October 18, 2026. Isolated local branch `experiment/gps-entrance-node19`,
+based on feature `bc69e49`; first motion-only implementation `dcc634a`. No push,
+production change, original photo edit, DB write or active feature-preview change.
 
-## Test entry and isolation
+[Open the browser test](https://f63b-138-51-70-213.ngrok-free.app/movement-lab).
+The computer and tunnel must stay online. Local fallback is
+<http://localhost:4300/movement-lab>. The new camera test is browser-only; the
+active native apps/camera flow are unchanged. Older experimental native builds
+have motion sensors but do not include the new browser endpoint wiring.
 
-Open `/movement-lab` on the separate static test server. The temporary HTTPS URL
-for this local run is <https://f63b-138-51-70-213.ngrok-free.app/movement-lab>.
-It works while the computer, local server and tunnel remain running. The existing
-phone preview continues on its own port and tunnel. This server proxies no API,
-serves no private environment files, and performs no database or media writes.
+## Original reference nodes
 
-The user explicitly confirmed **Sam Ibrahim · Level 1 circulation 2 · Point 19**
-as the entry anchor. A read-only snapshot contains 102 vertices and 110 edges,
-including the 40 saved photo stops. All snapshot vertices are connected to Point
-19. The original Level 1 vector SVG is copied byte-for-byte, with its source hash
-recorded in the JSON; graph markers are not baked into the SVG. Only the estimated
-current position and optional recent trail are overlaid.
+The experiment restores the original exported Level 1 circulation 2 graph:
+**26 photographed points, 104 directional photos, 88 vertices and 96 open edges**.
+Original node UUIDs and coordinates are preserved, including user-confirmed entry
+Point 19 at (713,142). Previously removed empty stops 5,6,23,30 remain absent;
+the 14 later stops 31–44 have no reference images and are excluded. Support
+vertices describe corridors only. No new camera coordinates are invented.
 
-UTSC lists Health & Wellness at **IA5061, floor 5, Sam Ibrahim Building, 1050
-Military Trail**. Point 19 is the designated building entry, not a surveyed clinic
-door. This prototype tracks only the saved Level 1 circulation; it does not infer
-floor changes or guide to the clinic on floor 5.
+The original SVG remains byte-identical. An optional reference layer uses tiny
+true-position dots and only one selected label; zoom to 4× and scroll/pan. The
+normal map hides graph points. Nearby places and measured motion calibration
+remain available. Reference density alone cannot improve visual evidence.
 
-## Outdoor handoff
+## What the video supports
 
-Tap **Start outdoor GPS** and allow foreground location. iOS uses Core Location,
-Android uses LocationManager GPS/network providers, and the browser uses
-`navigator.geolocation.watchPosition` with high accuracy and no cached fix.
-Two increasing, fresh timestamps at least two seconds apart must have accuracy
-20 m or better, and the entire accuracy circle must fit the arrival radius.
-A long gap or a fix outside the accuracy/radius bounds resets arrival dwell.
+All 366 cached query vectors from the 182.883-second original `IMG_1275.MOV` were
+replayed against 104 cached reference vectors. Four directions stay separate;
+maximum directional cosine gives each old node's score. Different-node margin,
+frame quality and graph consistency determine whether to abstain. Reference
+vectors are not recomputed and video frames never enter the reference gallery.
 
-The editable initial coordinate **43.78838, -79.19103** is an approximate building
-centre from OpenStreetMap way 1265894595, verified against its original node
-coordinates. It is **not a surveyed entrance coordinate**. The default radius is
-70 m. GPS proximity opens the indoor map at Point 19; it cannot establish that a
-person actually passed through the door. Confirm the reference point on site.
-Google Maps outdoor directions open via its standard external URL; this experiment
-does not add an SDK dependency or expose a new API key.
+| Time | Old point candidate | Independently inspected scene |
+|---|---|---|
+| 0:54 | 25 | Elevator bank/control pillar |
+| 1:18 | 27 | Recessed doors/cabinet below purple wall |
+| 2:06 | 19 | Glass vestibule, mat and blue opener |
+| 2:36 | 15 | Black/green/blue bins |
 
-## Indoor estimation and calibration
+Earlier geometric overlap checks support 54/78/156 seconds; 126 seconds is
+inconclusive. These are scene candidates, not surveyed poses. The opening also
+resembles Point 19, conflicting with the recalled Point 1 start. The blurred
+endpoint alternates around 11/12 rather than proving 10/22. Hints never force
+predictions or relabel photos.
 
-1. Confirm your known point, initially Point 19.
-2. Tap **Allow motion & heading**. Keep the phone facing along the direction you walk.
-3. Select a connected reference point. The nearest reachable photo stop is the
-   default. Enter the **measured corridor walking distance**, not straight-line
-   distance, to that point.
-4. While standing at the starting reference point, face the first corridor segment
-   toward the destination and calibrate. This sets metres per SVG unit and a heading
-   offset; neither map north nor scale is assumed from the original file.
-5. Walk with a suitable estimated stride (default 0.72 m). Re-anchor regularly.
+The defensible scene sequence is lobby/reception → elevator/service alcove →
+purple-door corridor → event-table/green seating → entrance → reverse past
+seating → bins → atrium railing. Exact nearby nodes often remain ambiguous.
+Point 24→29 has a 460.7-plan-unit graph detour despite only 35 units straight-line
+separation: passage geometry or photo labels need checking. No shortcut is added.
 
-The estimate consumes step distance only along existing connected graph edges,
-selecting a compatible corridor heading. At an unmatched turn it holds position.
-It never creates a shortcut edge or changes pathfinding. Nearby places are the
-four closest saved landmarks by straight-line map distance, not doorway routes.
-Before scale calibration, numerical nearby distances are hidden. Displayed drift
-allowance is a heuristic, not a measured confidence interval.
+The new tracker is forward-only, with decaying graph history and a conservative
+relative-spacing jump guard. It never reads future frames or upgrades weak visual
+evidence. Stale reacquisition breaks the trail. It infers no metric speed.
+Observed raw candidates changed nodes 141 times, causal candidates 65 times.
+Of 366 samples, 155 meet transferred thresholds and the graph guard, 129 are
+uncertain and 82 unsupported. **These are not accuracy counts.** Consecutive
+supported pairs have a maximum 28-plan-unit graph jump versus 520.8 for raw
+candidates; uncertain diagnostic candidates may still jump.
 
-Native iOS uses `CMPedometer` and relative Core Motion rotation. Native Android
-prefers `TYPE_STEP_DETECTOR`, falls back to `TYPE_STEP_COUNTER` with a fresh
-session baseline, and uses the rotation vector for magnetic heading. Browser
-steps use a conservative acceleration peak detector and orientation events;
-they are estimates, not a hardware pedometer API. Explicit motion permission is
-requested where supported. No audio, video or camera matching is used here.
+Tap **Load video route evidence**, play and inspect the candidate. Only past
+observations are eligible. The local 10-fps compressed preview contains original
+video content without overlays/audio; embeddings/timestamps come from the original
+MOV. Replay never automatically changes the live position.
 
-Stale/malformed headings and step events are ignored. Real position cannot advance
-before confirmation, calibration and a fresh heading. Screen hiding, stopping,
-route destruction or screen orientation changes stop sensors and require new
-confirmation/calibration. Native lifecycle hooks also stop background sensors.
-No sensor readings are persisted or uploaded. There is no background geofence.
-Compass interference, phone pose changes and stride errors can cause drift;
-physical-device and on-site accuracy have **not** been validated.
+## Live browser matching
 
-The separately labelled simulation uses synthetic GPS, heading and map scale;
-it does not request real sensors. Try arrival, DEMO calibration, steps and turns.
-Stop simulation before starting real GPS. Simulation success is not evidence of
-physical localization accuracy.
+Tap **Allow rear camera & start matching** in Safari/Chrome on the HTTPS page.
+It sends one JPEG at a time, waiting 1.25 seconds after each response. There is no
+frame queue, full-video/audio recording, incoming-frame cache, reference mutation
+or DB write. Temporary JPEG files are deleted after inference. Model and original
+reference vectors stay in RAM; CPU uses eight threads and existing pinned weights.
+No downloads, provider calls, private service tokens or env files are exposed.
+Sessions are isolated/expiring; only one inference slot runs at a time.
 
-## Run and native builds
+Candidates remain separate from the green step estimate. Only explicit user
+confirmation of a current supported candidate re-anchors it, followed by fresh
+calibration. Ambiguous, unknown or stale observations cannot move the cursor.
+Stop, hiding and destruction release the camera and abort requests. Native
+Capacitor builds direct this new camera experiment to the HTTPS browser.
 
-From `apps/web`, with the repository's Node 24 toolchain and pinned dependencies:
+## GPS, motion and accuracy recommendation
+
+GPS still opens Level 1 at Point 19 after two fresh accurate readings at least two
+seconds apart. The entire accuracy circle must fit the radius. Default
+43.78838,-79.19103 is the provisional OSM building centre, radius70m, not a
+surveyed entrance. UTSC lists Health & Wellness at IA5061 on floor5 of Sam
+Ibrahim Building; this test neither locates the clinic door nor detects floors.
+Native CMPedometer/Core Motion, Android step/rotation sensors and browser motion
+estimates remain opt-in. Confirm an anchor, enter measured corridor distance and
+calibrate facing. Steps follow existing edges only. Re-anchor after interruptions
+or pose changes. Nearby distances and drift allowance are heuristic estimates.
+
+Best immediate method: original photographed nodes, periodic verified visual
+corrections, calibrated steps/yaw between them, graph constraints and an unknown
+state. Capture distinctive extra views at ambiguous existing nodes. Check passage
+geometry/labels and validate on separate, independently labelled recordings.
+
+For more accurate continuous 2D movement, register native visual-inertial camera
+pose to the SVG with measured anchors, then correct drift with verified visual
+references or surveyed markers. ARKit/ARCore combine camera and IMU information.
+This is a recommendation, not implemented native VIO. The MOV has no synchronized
+sensor log, surveyed poses or metric ground truth. Physical accuracy is untested.
+
+## Reproduce and inspect
+
+Use the existing pinned Python runtime; no new dependency/env contract changes.
+From repository root:
 
 ```sh
-npm run build:visitor
+python3 scripts/export_movement_reference_plan.py --manifest ../Hack_The_valley/MegaLoc-Video-Test/reference-manifest.json
+PYTHONPATH=apps/place-match ../SnapWay/apps/place-match/.venv/bin/python -m placematch.ops.causal_point_tracking --run ../Hack_The_valley/MegaLoc-Video-Test --output local/old-node-replay
+# From apps/web: npm run build:visitor
+PYTHONPATH=apps/place-match ../SnapWay/apps/place-match/.venv/bin/python scripts/serve_movement_lab.py --run ../Hack_The_valley/MegaLoc-Video-Test --model-cache ../SnapWay/apps/place-match/data/models/megaloc --video local/old-node-replay/source-preview.mp4
 ```
 
-From the repository root:
+The replay CLI writes ignored artifacts. The reviewed browser JSON is copied to
+`apps/web/public/experiments/old-node-replay.json`, with video src
+`/experiments/source-video.mov`. Video/model/index bytes stay local; only the
+explicit preview video has ranged read-only playback. No application API,
+pipeline or account endpoints are proxied.
 
-```sh
-python3 scripts/serve_movement_lab.py
-```
-
-Open <http://localhost:4300/movement-lab>. A remote phone requires HTTPS; a
-separate tunnel may point to `127.0.0.1:4300`. Do not replace the existing test
-tunnel. The server exposes static built assets only and blocks API/pipeline paths.
-
-Native test identity is **org.snapway.motionlab**, displayed as **SnapWay Motion
-Lab**, so installing it later can coexist with the regular app. Its root route
-opens the experiment; the earlier chooser is preserved under `/app-home`.
-After the visitor build, run `npx cap sync android` / `npx cap sync ios` from
-`apps/web`. Use Android Studio or Xcode for physical-device installation. Nothing
-was installed on a connected device by this task; unsigned simulator builds do
-not provide iPhone installation/signing.
-
-## Files and checks
-
-- [Model and GPS gate](../apps/web/src/app/features/movement-lab/movement-model.ts),
-  [model tests](../apps/web/src/app/features/movement-lab/movement-model.spec.ts).
-- [UI](../apps/web/src/app/features/movement-lab/movement-lab.ts),
+- [Causal tracker](../apps/place-match/placematch/causal_tracking.py),
+  [replay CLI](../apps/place-match/placematch/ops/causal_point_tracking.py),
+  [five tracker tests](../apps/place-match/tests/test_causal_tracking.py).
+- [Reference exporter](../scripts/export_movement_reference_plan.py),
+  [CPU matcher](../scripts/movement_lab_matcher.py),
+  [isolated server](../scripts/serve_movement_lab.py).
+- [Lab UI](../apps/web/src/app/features/movement-lab/movement-lab.ts),
   [template](../apps/web/src/app/features/movement-lab/movement-lab.html),
   [styles](../apps/web/src/app/features/movement-lab/movement-lab.scss),
-  [UI tests](../apps/web/src/app/features/movement-lab/movement-lab.spec.ts).
-- [Sensor adapter](../apps/web/src/app/features/movement-lab/navigation-sensors.ts),
-  [adapter tests](../apps/web/src/app/features/movement-lab/navigation-sensors.spec.ts).
-- [iOS plugin](../apps/web/ios/App/App/NavigationSensorsPlugin.swift), registered in
-  [controller](../apps/web/ios/App/App/SnapWayViewController.swift) and
-  [project](../apps/web/ios/App/App.xcodeproj/project.pbxproj); motion description in
-  [Info.plist](../apps/web/ios/App/App/Info.plist).
-- [Android plugin](../apps/web/android/app/src/main/java/org/snapway/app/NavigationSensorsPlugin.java),
-  [registration](../apps/web/android/app/src/main/java/org/snapway/app/MainActivity.java),
-  [permissions](../apps/web/android/app/src/main/AndroidManifest.xml).
-- Isolated identity: [Capacitor config](../apps/web/capacitor.config.ts),
-  [Android build](../apps/web/android/app/build.gradle),
-  [Android labels](../apps/web/android/app/src/main/res/values/strings.xml).
-- [Web routes](../apps/web/src/app/app.routes.ts),
-  [native routes](../apps/web/src/app/mobile.routes.ts),
-  [web fullscreen shell](../apps/web/src/app/app.ts).
-- [Snapshot](../apps/web/public/experiments/entrance-node19.json),
-  [clean SVG](../apps/web/public/experiments/sam-level1-clean.svg),
-  [static server](../scripts/serve_movement_lab.py).
+  [camera](../apps/web/src/app/features/movement-lab/camera-lab.ts),
+  [UI tests](../apps/web/src/app/features/movement-lab/movement-lab.spec.ts),
+  [camera lifecycle tests](../apps/web/src/app/features/movement-lab/camera-lab.spec.ts).
+- [Old plan](../apps/web/public/experiments/entrance-node19.json),
+  [replay evidence](../apps/web/public/experiments/old-node-replay.json),
+  [unchanged SVG](../apps/web/public/experiments/sam-level1-clean.svg).
+- [Earlier video study/source evidence](sam-ibrahim-video-localization.md),
+  [canonical MegaLoc architecture](localization-megaloc.md).
 
-Focused checks: 19 tests across model, sensor adapter, UI and existing app chooser;
-production web and visitor bundles; Swift typecheck and Android Java compilation;
-plist/project validation; HTTP 200 for page/JSON/SVG and API 404 on the static lab.
-Android debug APK and unsigned iOS simulator app builds both passed. The APK
-is available for this run at [Download the separate Android test app](https://f63b-138-51-70-213.ngrok-free.app/experiments/snapway-motion-lab.apk).
-It is also at `apps/web/android/app/build/outputs/apk/debug/app-debug.apk`.
-The iOS simulator bundle is `/tmp/snapway-motion-lab-build/Build/Products/Debug-iphonesimulator/App.app`; a real iPhone still requires Xcode signing/install.
-No native app was installed. The initial Android build encountered pre-existing
-iCloud duplicate resource files in shared dependencies. The successful build
-used a filtered dependency copy and Gradle init override under ignored `local/`,
-without deleting or editing the original dependencies. A fresh pinned install
-on another machine should use the normal build path. Detailed commands and
-results are recorded in ignored `local/ACTIONS.md`. No package
-or environment contract changes were required. Local action history also records
-the read-only snapshot export and isolation verification.
+Minimal checks: five tracker, four UI and two camera lifecycle tests; visitor
+build; cached-vector replay; actual held-out JPEG inference, ranged playback and
+endpoint smoke checks. No full-suite or physical accuracy claim. Detailed evidence
+and action history remain under ignored `local/`.
 
-## Primary references
-
-- [UTSC Health & Wellness location](https://utsc.utoronto.ca/grad-edu/health-counselling-services)
-- [UTSC student resource listing](https://www.utsc.utoronto.ca/acm/student-resources)
-- [OSM building outline](https://www.openstreetmap.org/way/1265894595)
-- [Apple CMPedometer](https://developer.apple.com/documentation/coremotion/cmpedometer)
-- [Android motion sensors](https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion)
+Sources: [Apple world tracking](https://developer.apple.com/documentation/arkit/understanding-world-tracking),
+[ARCore concepts](https://developers.google.com/ar/develop/fundamentals),
+[UTSC location](https://utsc.utoronto.ca/grad-edu/health-counselling-services),
+[OSM outline](https://www.openstreetmap.org/way/1265894595).

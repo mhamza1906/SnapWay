@@ -125,4 +125,57 @@ describe('Isolated movement experiment', () => {
     expect(component.count()).toBe(1);
     expect(component.position()!.y).toBeGreaterThan(10);
   });
+
+  it('keeps close reference labels separate and never applies future or uncertain video candidates automatically', async () => {
+    const replay = {
+      video: { name: 'Stored walk', durationSeconds: 20 },
+      method: 'Causal reference matches',
+      frames: [
+        { timeSeconds: 2, nodeId: 'entry', status: 'candidate', similarity: 0.7 },
+        { timeSeconds: 12, nodeId: 'end', status: 'uncertain', similarity: 0.65 },
+      ],
+    };
+    vi.mocked(fetch).mockImplementation(
+      async (input) =>
+        ({
+          ok: true,
+          json: async () =>
+            structuredClone(String(input).includes('old-node-replay') ? replay : plan),
+        }) as Response,
+    );
+    const fixture = TestBed.createComponent(MovementLab);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.simulateArrival();
+    component.selectReference('end');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.overlay text')).toHaveLength(1);
+    expect(component.position()).toEqual({ x: 10, y: 10 });
+    component.changeZoom(9);
+    expect(component.zoom).toBe(4);
+    await component.loadReplay();
+    component.seekReplay(1);
+    expect(component.replayFrame()).toBeNull();
+    component.seekReplay(11);
+    expect(component.replayPoint()?.id).toBe('entry');
+    component.seekReplay(12);
+    expect(component.replayPoint()?.id).toBe('end');
+    component.confirmVideoCandidate();
+    expect(component.position()).toEqual({ x: 10, y: 10 });
+    component.receiveVisualCandidate({
+      timeSeconds: 1,
+      nodeId: null,
+      candidateNodeId: 'end',
+      status: 'uncertain',
+      similarity: 0.4,
+    });
+    expect(component.livePoint()?.id).toBe('end');
+    component.confirmLiveCandidate();
+    expect(component.position()).toEqual({ x: 10, y: 10 });
+    component.seekReplay(2);
+    component.confirmVideoCandidate();
+    expect(component.mode()).toBe('idle');
+    expect(component.confirmed()).toBe(true);
+    expect(component.calibrated()).toBe(false);
+  });
 });

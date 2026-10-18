@@ -15,716 +15,618 @@
     {
       "id": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
       "label": "Point 14",
+      "kind": "junction",
       "x": 525.5,
-      "y": 116.5,
-      "kind": "junction"
+      "y": 116.5
     },
     {
       "id": "a58cc2e3-9aff-4504-9d2d-ae1f27da9840",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 538.5,
-      "y": 108.5,
-      "kind": "junction"
+      "y": 108.5
     },
     {
       "id": "19332e6b-1e28-4110-8d3e-aa0d09ae5931",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 627.5,
-      "y": 114.5,
-      "kind": "junction"
+      "y": 114.5
     },
     {
       "id": "25da18a5-672a-4b92-b0fc-5a9339a122a6",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 636.5,
-      "y": 120.5,
-      "kind": "junction"
+      "y": 120.5
     },
     {
       "id": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 668.5,
-      "y": 133.5,
-      "kind": "junction"
+      "y": 133.5
     },
     {
       "id": "b0c29783-69c9-4f90-bdc8-772edcd62c9f",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 677.5,
-      "y": 135.5,
-      "kind": "junction"
+      "y": 135.5
     },
     {
       "id": "6ff27e85-4ad0-4417-9ca2-2514f7c3dcd7",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 692.5,
-      "y": 135.5,
-      "kind": "junction"
+      "y": 135.5
     },
     {
       "id": "ffc573f2-9c25-4571-b961-ba0fc5f285ba",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 692.5,
-      "y": 131.5,
-      "kind": "junction"
+      "y": 131.5
     },
     {
       "id": "d60232a2-072c-4b37-8b5d-179b92b4d312",
       "label": "Point 18",
+      "kind": "junction",
       "x": 687.5,
-      "y": 123.5,
-      "kind": "junction"
+      "y": 123.5
     },
     {
       "id": "667863e2-6cf9-4497-867b-3b935abc5dfe",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 517.57,
-      "y": 168.25,
-      "kind": "junction"
+      "y": 168.25
     },
     {
       "id": "f11470f3-ec82-431c-8c48-9fadaf3dc99f",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 517.5,
-      "y": 168.5,
-      "kind": "junction"
+      "y": 168.5
     },
     {
       "id": "b899555f-1d61-48e4-bcca-85c86a1d2263",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 516.5,
-      "y": 227.5,
-      "kind": "junction"
+      "y": 227.5
     },
     {
       "id": "940e2671-3402-41f9-9545-e2adbb9216ad",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 509.5,
-      "y": 245.5,
-      "kind": "junction"
+      "y": 245.5
     },
     {
       "id": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
       "label": "Point 28",
+      "kind": "checkpoint",
       "x": 505.5,
-      "y": 249.5,
-      "kind": "checkpoint"
+      "y": 249.5
     },
     {
       "id": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
       "label": "Point 29",
+      "kind": "junction",
       "x": 453.5,
-      "y": 250.5,
-      "kind": "junction"
+      "y": 250.5
     },
     {
       "id": "48932819-e04a-4bc1-9e44-8a5e93123a78",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 693.5,
-      "y": 134.5,
-      "kind": "junction"
+      "y": 134.5
     },
     {
       "id": "baa9a867-a028-4083-af0f-8ea7fcc93be2",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 713.55,
-      "y": 139.97,
-      "kind": "junction"
+      "y": 139.97
     },
     {
       "id": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
       "label": "Point 2",
+      "kind": "junction",
       "x": 301.5,
-      "y": 125.5,
-      "kind": "junction"
+      "y": 125.5
     },
     {
       "id": "7dbc904d-9d99-436d-9c72-f37df8bc1472",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 305.5,
-      "y": 157.5,
-      "kind": "junction"
+      "y": 157.5
     },
     {
       "id": "4edb7d03-ee33-4667-991a-63956e725731",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 325.5,
-      "y": 204.5,
-      "kind": "junction"
+      "y": 204.5
     },
     {
       "id": "1d6baaa2-123b-45fd-9133-6dd0cfee8d9d",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 344.5,
-      "y": 223.5,
-      "kind": "junction"
+      "y": 223.5
     },
     {
       "id": "022cfdd1-be70-4821-a20a-19cb89c45db2",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 363.5,
-      "y": 228.5,
-      "kind": "junction"
+      "y": 228.5
     },
     {
       "id": "f56d2b51-96aa-47d7-9c6a-551a71fe4b61",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 362.5,
-      "y": 275.5,
-      "kind": "junction"
+      "y": 275.5
     },
     {
       "id": "a3430a5c-be98-4199-ae4a-d68e090b1b34",
       "label": "Point 7",
+      "kind": "checkpoint",
       "x": 360.5,
-      "y": 290.5,
-      "kind": "checkpoint"
+      "y": 290.5
     },
     {
       "id": "596fbd78-4fd2-4188-97e7-316d54685e2b",
       "label": "Point 9",
+      "kind": "checkpoint",
       "x": 290.5,
-      "y": 290.5,
-      "kind": "checkpoint"
+      "y": 290.5
     },
     {
       "id": "a1ed4a45-937a-493b-ae58-80ccc1404478",
       "label": "Point 20",
+      "kind": "junction",
       "x": 441.5,
-      "y": 96.5,
-      "kind": "junction"
+      "y": 96.5
     },
     {
       "id": "496cc0f5-fcb3-4276-a38b-a1e912c4256f",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 446.5,
-      "y": 116.5,
-      "kind": "junction"
+      "y": 116.5
     },
     {
       "id": "921c2776-1609-4c90-818b-08a8daebb671",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 456.5,
-      "y": 115.5,
-      "kind": "junction"
+      "y": 115.5
     },
     {
       "id": "6b957f14-93bd-42da-ba08-cedd51117732",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 467.5,
-      "y": 110.5,
-      "kind": "junction"
+      "y": 110.5
     },
     {
       "id": "9d823570-c89d-46eb-bb82-83066e2cb96c",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 499.5,
-      "y": 112.5,
-      "kind": "junction"
+      "y": 112.5
     },
     {
       "id": "ca01b901-9057-403a-b46b-9de9370f69fd",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 301.25,
-      "y": 122.37,
-      "kind": "junction"
+      "y": 122.37
     },
     {
       "id": "dced20e4-b110-44da-a456-e3c2eee2730d",
       "label": "Point 1",
+      "kind": "junction",
       "x": 298.5,
-      "y": 87.5,
-      "kind": "junction"
+      "y": 87.5
     },
     {
       "id": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
       "label": "Point 22",
+      "kind": "junction",
       "x": 384.0,
-      "y": 232.0,
-      "kind": "junction"
+      "y": 232.0
     },
     {
       "id": "7330f668-e764-4464-ab99-fb16f5ab084c",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 385.5,
-      "y": 233.5,
-      "kind": "junction"
+      "y": 233.5
     },
     {
       "id": "93fa315a-da79-430a-b14f-e167d208b9a7",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 389.5,
-      "y": 244.5,
-      "kind": "junction"
+      "y": 244.5
     },
     {
       "id": "af277297-f310-436d-875a-06d6db3d517d",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 394.5,
-      "y": 249.5,
-      "kind": "junction"
+      "y": 249.5
     },
     {
       "id": "478eb2af-8116-4337-afc1-1ed9e1778623",
       "label": "Point 24",
+      "kind": "junction",
       "x": 418.5,
-      "y": 249.5,
-      "kind": "junction"
+      "y": 249.5
     },
     {
       "id": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
       "label": "Point 25",
+      "kind": "checkpoint",
       "x": 423.5,
-      "y": 269.5,
-      "kind": "checkpoint"
+      "y": 269.5
     },
     {
       "id": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
       "label": "Point 21",
+      "kind": "junction",
       "x": 444.0,
-      "y": 120.0,
-      "kind": "junction"
+      "y": 120.0
     },
     {
       "id": "a1e04c5a-fc85-4fd6-94f9-ad8f052d87c5",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 438.5,
-      "y": 125.5,
-      "kind": "junction"
+      "y": 125.5
     },
     {
       "id": "9f8739ba-433c-427f-9d5e-fd7f1ac1359e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 410.5,
-      "y": 164.5,
-      "kind": "junction"
+      "y": 164.5
     },
     {
       "id": "b300aaea-8614-46f5-aee2-a431ac5f8b06",
       "label": "Point 10",
+      "kind": "checkpoint",
       "x": 389.5,
-      "y": 212.5,
-      "kind": "checkpoint"
+      "y": 212.5
     },
     {
       "id": "043801ca-551c-466e-85d4-8ab7483de4a5",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 378.5,
-      "y": 219.5,
-      "kind": "junction"
+      "y": 219.5
     },
     {
       "id": "7205c2ee-18b1-4f69-97af-2dcee2ff8d3e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 375.5,
-      "y": 223.5,
-      "kind": "junction"
+      "y": 223.5
     },
     {
       "id": "43e5b9e3-2729-4e6d-b9f6-0272e1a08930",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 479.5,
-      "y": 110.5,
-      "kind": "junction"
+      "y": 110.5
     },
     {
       "id": "05abebe0-f829-4ef2-b7b7-a66a245bf1c3",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 447.5,
-      "y": 116.5,
-      "kind": "junction"
+      "y": 116.5
     },
     {
       "id": "5183787a-e733-4eac-ab6e-acd008c371e0",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 374.5,
-      "y": 223.5,
-      "kind": "junction"
+      "y": 223.5
     },
     {
       "id": "c8ca4477-1e56-44f4-a792-dbb94a865993",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 362.5,
-      "y": 226.5,
-      "kind": "junction"
+      "y": 226.5
     },
     {
       "id": "4bc64f34-8fe8-4e9b-9071-939f019fe12e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 627.61,
-      "y": 114.55,
-      "kind": "junction"
+      "y": 114.55
     },
     {
       "id": "cffc9c48-c654-4768-90bd-3200a4a76336",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 693.5,
-      "y": 135.5,
-      "kind": "junction"
+      "y": 135.5
     },
     {
       "id": "91949835-12f4-49ad-8eea-5db551190bef",
       "label": "Point 26",
+      "kind": "junction",
       "x": 517.72,
-      "y": 167.66,
-      "kind": "junction"
+      "y": 167.66
     },
     {
       "id": "113b53b9-7e5c-4482-9548-1910d04765ea",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 531.5,
-      "y": 125.5,
-      "kind": "junction"
+      "y": 125.5
     },
     {
       "id": "3fc3f864-327c-485f-9769-b92e7a4c077f",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 532.5,
-      "y": 133.5,
-      "kind": "junction"
+      "y": 133.5
     },
     {
       "id": "45ca9ebe-d5cc-4ed0-b2b2-4eb0d3674430",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 531.5,
-      "y": 138.5,
-      "kind": "junction"
+      "y": 138.5
     },
     {
       "id": "f522038a-d38f-49bc-a220-200601e03c26",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 521.5,
-      "y": 153.5,
-      "kind": "junction"
+      "y": 153.5
     },
     {
       "id": "65cbb7fb-8b8f-4b02-909d-3020c045639e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 424.0,
-      "y": 271.0,
-      "kind": "junction"
+      "y": 271.0
     },
     {
       "id": "0b7fbed4-7225-4ac0-b040-4f70049e75e6",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 424.0,
-      "y": 263.0,
-      "kind": "junction"
+      "y": 263.0
     },
     {
       "id": "1770fa64-953a-49f0-a4f1-087aa460375e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 421.0,
-      "y": 249.0,
-      "kind": "junction"
+      "y": 249.0
     },
     {
       "id": "0fb93080-32b9-4188-b76d-82d972d305d5",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 396.0,
-      "y": 249.0,
-      "kind": "junction"
+      "y": 249.0
     },
     {
       "id": "0f973859-0446-42df-8d36-0b4b3a7ebf64",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 390.0,
-      "y": 242.0,
-      "kind": "junction"
+      "y": 242.0
     },
     {
       "id": "e7063a65-4c8c-4ff0-bcbb-b209d3dc8958",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 386.0,
-      "y": 230.0,
-      "kind": "junction"
+      "y": 230.0
     },
     {
       "id": "b73180a9-395a-4699-bd89-b1ca21cd1add",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 439.0,
-      "y": 95.0,
-      "kind": "junction"
+      "y": 95.0
     },
     {
       "id": "2154696c-d927-4f80-a8dd-eb01603d0fde",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 446.0,
-      "y": 110.0,
-      "kind": "junction"
+      "y": 110.0
     },
     {
       "id": "ef95f7b5-9248-431c-aae9-9a2e9cd17633",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 441.0,
-      "y": 117.0,
-      "kind": "junction"
+      "y": 117.0
     },
     {
       "id": "b6c76c60-dc39-4a0e-a70f-e9a205bbf4a7",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 452.0,
-      "y": 254.0,
-      "kind": "junction"
+      "y": 254.0
     },
     {
       "id": "0ba8e5c1-fc92-4f23-9e25-735f2b0d6e5a",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 452.0,
-      "y": 249.0,
-      "kind": "junction"
+      "y": 249.0
     },
     {
       "id": "c084cfee-ef46-4ccd-aa4e-381cb416d0f7",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 506.0,
-      "y": 249.0,
-      "kind": "junction"
+      "y": 249.0
     },
     {
       "id": "68b8b3f9-d64b-4eae-a9a2-cf0ff9fe5211",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 512.0,
-      "y": 241.0,
-      "kind": "junction"
+      "y": 241.0
     },
     {
       "id": "c21998f2-21ab-43a1-9fc8-030b3b17fb18",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 516.0,
-      "y": 226.0,
-      "kind": "junction"
+      "y": 226.0
     },
     {
       "id": "e46c98f1-3416-4e9d-b205-0e1b5edae39d",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 518.0,
-      "y": 204.0,
-      "kind": "junction"
+      "y": 204.0
     },
     {
       "id": "dc15b684-b647-4a35-9a2e-47811161bdfe",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 519.0,
-      "y": 168.0,
-      "kind": "junction"
+      "y": 168.0
     },
     {
       "id": "b0c6dae7-f723-4bac-823f-c6de1f8478be",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 329.0,
-      "y": 116.0,
-      "kind": "junction"
+      "y": 116.0
     },
     {
       "id": "f005eec3-8e0e-4857-a863-7c3759cde95e",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 320.0,
-      "y": 117.0,
-      "kind": "junction"
+      "y": 117.0
     },
     {
       "id": "7c6aac02-a780-45b4-9ece-5c3c469ea8eb",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 306.0,
-      "y": 122.0,
-      "kind": "junction"
+      "y": 122.0
     },
     {
       "id": "0ed0ac0d-a395-48a2-a3e4-f583fe18db7c",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 686.0,
-      "y": 122.0,
-      "kind": "junction"
+      "y": 122.0
     },
     {
       "id": "5f2672ed-3068-490b-a813-a040a435a8ea",
       "label": "Path junction / bend",
+      "kind": "junction",
       "x": 704.0,
-      "y": 133.0,
-      "kind": "junction"
+      "y": 133.0
     },
     {
       "id": "9e1cea8a-7388-4772-bf65-659586ceb34d",
       "label": "Point 19",
+      "kind": "checkpoint",
       "x": 713.0,
-      "y": 142.0,
-      "kind": "checkpoint"
+      "y": 142.0
     },
     {
       "id": "4b36761d-bc67-42cd-b7b8-90741dc04465",
       "label": "Point 4",
+      "kind": "checkpoint",
       "x": 320.282522,
-      "y": 192.238927,
-      "kind": "checkpoint"
+      "y": 192.238927
     },
     {
       "id": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
       "label": "Point 15",
+      "kind": "checkpoint",
       "x": 579.140015,
-      "y": 111.239776,
-      "kind": "checkpoint"
+      "y": 111.239776
     },
     {
       "id": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
       "label": "Point 11",
+      "kind": "checkpoint",
       "x": 409.773148,
-      "y": 166.161377,
-      "kind": "checkpoint"
+      "y": 166.161377
     },
     {
       "id": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
       "label": "Point 13",
+      "kind": "checkpoint",
       "x": 482.180056,
-      "y": 110.849572,
-      "kind": "checkpoint"
+      "y": 110.849572
     },
     {
       "id": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
       "label": "Point 17",
+      "kind": "checkpoint",
       "x": 646.428583,
-      "y": 124.533487,
-      "kind": "checkpoint"
+      "y": 124.533487
     },
     {
       "id": "808d0bc5-edfc-44d6-b843-103ad23b3093",
       "label": "Point 27",
+      "kind": "checkpoint",
       "x": 516.792542,
-      "y": 210.240043,
-      "kind": "checkpoint"
+      "y": 210.240043
     },
     {
       "id": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
       "label": "Point 3",
+      "kind": "checkpoint",
       "x": 309.317478,
-      "y": 166.471073,
-      "kind": "checkpoint"
+      "y": 166.471073
     },
     {
       "id": "69c82a13-7e4e-4888-be76-9c55f11bb746",
       "label": "Path junction / bend",
+      "kind": "checkpoint",
       "x": 362.986172,
-      "y": 252.649919,
-      "kind": "checkpoint"
+      "y": 252.649919
     },
     {
       "id": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
       "label": "Point 8",
+      "kind": "checkpoint",
       "x": 328.49,
-      "y": 290.5,
-      "kind": "checkpoint"
+      "y": 290.5
     },
     {
       "id": "773cbb11-1193-41d4-a77e-feeed44f4c87",
       "label": "Point 12",
+      "kind": "checkpoint",
       "x": 426.48817,
-      "y": 143.75859,
-      "kind": "checkpoint"
+      "y": 143.75859
     },
     {
       "id": "cfb229df-235c-4ee5-80ab-f499e25511d5",
       "label": "Point 16",
+      "kind": "checkpoint",
       "x": 607.079774,
-      "y": 113.123356,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "91f1b24e-a24f-47db-b350-7c2b34256e18",
-      "label": "Point 31",
-      "x": 452.0,
-      "y": 253.0,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "5c3c98ae-db24-4c05-9be1-32c5186b3ff8",
-      "label": "Point 32",
-      "x": 512.895786,
-      "y": 237.640802,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "0e702b33-cb9e-4ce7-95c9-eb1725b9428d",
-      "label": "Point 33",
-      "x": 423.790471,
-      "y": 262.022198,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "335c9c89-ac7d-4edf-8bcd-839590dc318a",
-      "label": "Point 34",
-      "x": 585.595229,
-      "y": 111.674959,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "99e44651-ec6a-404e-8779-79a23e042be8",
-      "label": "Point 35",
-      "x": 363.475522,
-      "y": 229.650454,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "3cb61646-8688-4221-8839-dbdab8b4f973",
-      "label": "Point 36",
-      "x": 649.52293,
-      "y": 124.705295,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "04db68c8-e65d-4b64-a988-2964428caed4",
-      "label": "Point 37",
-      "x": 648.20385,
-      "y": 124.094467,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "9eebe796-9a12-43c3-81af-a4f06115e011",
-      "label": "Point 38",
-      "x": 316.2,
-      "y": 182.645,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "1db532f2-f1a5-4ac1-af81-132b3d839c5e",
-      "label": "Point 39",
-      "x": 489.290269,
-      "y": 111.861892,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "e243c5d9-52f3-4cfe-a73a-be37e428aca7",
-      "label": "Point 40",
-      "x": 483.738293,
-      "y": 249.0,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "959b2084-191b-46d8-aa39-39801827ad1c",
-      "label": "Point 41",
-      "x": 518.044427,
-      "y": 202.400636,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "c739b297-3a77-4f3d-85a7-d1a7a07969c0",
-      "label": "Point 42",
-      "x": 358.517192,
-      "y": 225.836199,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "35a7d9c5-93cc-40f9-8389-6e0015ece982",
-      "label": "Point 43",
-      "x": 681.984227,
-      "y": 134.039369,
-      "kind": "checkpoint"
-    },
-    {
-      "id": "d5ad56c9-22d8-476b-b40e-6b1a97611c93",
-      "label": "Point 44",
-      "x": 686.853282,
-      "y": 122.52145,
-      "kind": "checkpoint"
+      "y": 113.123356
     }
   ],
   "edges": [
@@ -773,6 +675,18 @@
       "to": "fa69b209-e7f9-4a02-8399-15cb061c6c09"
     },
     {
+      "from": "a58cc2e3-9aff-4504-9d2d-ae1f27da9840",
+      "to": "19332e6b-1e28-4110-8d3e-aa0d09ae5931"
+    },
+    {
+      "from": "19332e6b-1e28-4110-8d3e-aa0d09ae5931",
+      "to": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9"
+    },
+    {
+      "from": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9",
+      "to": "48932819-e04a-4bc1-9e44-8a5e93123a78"
+    },
+    {
       "from": "48932819-e04a-4bc1-9e44-8a5e93123a78",
       "to": "baa9a867-a028-4083-af0f-8ea7fcc93be2"
     },
@@ -807,6 +721,10 @@
     {
       "from": "921c2776-1609-4c90-818b-08a8daebb671",
       "to": "6b957f14-93bd-42da-ba08-cedd51117732"
+    },
+    {
+      "from": "6b957f14-93bd-42da-ba08-cedd51117732",
+      "to": "9d823570-c89d-46eb-bb82-83066e2cb96c"
     },
     {
       "from": "9d823570-c89d-46eb-bb82-83066e2cb96c",
@@ -893,8 +811,20 @@
       "to": "c8ca4477-1e56-44f4-a792-dbb94a865993"
     },
     {
+      "from": "c8ca4477-1e56-44f4-a792-dbb94a865993",
+      "to": "1d6baaa2-123b-45fd-9133-6dd0cfee8d9d"
+    },
+    {
+      "from": "4edb7d03-ee33-4667-991a-63956e725731",
+      "to": "7dbc904d-9d99-436d-9c72-f37df8bc1472"
+    },
+    {
       "from": "19332e6b-1e28-4110-8d3e-aa0d09ae5931",
       "to": "4bc64f34-8fe8-4e9b-9071-939f019fe12e"
+    },
+    {
+      "from": "4bc64f34-8fe8-4e9b-9071-939f019fe12e",
+      "to": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9"
     },
     {
       "from": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9",
@@ -929,6 +859,10 @@
       "to": "0b7fbed4-7225-4ac0-b040-4f70049e75e6"
     },
     {
+      "from": "0b7fbed4-7225-4ac0-b040-4f70049e75e6",
+      "to": "1770fa64-953a-49f0-a4f1-087aa460375e"
+    },
+    {
       "from": "1770fa64-953a-49f0-a4f1-087aa460375e",
       "to": "0fb93080-32b9-4188-b76d-82d972d305d5"
     },
@@ -957,12 +891,28 @@
       "to": "1cff6ebe-87bb-4451-9357-3069ad73e4e5"
     },
     {
+      "from": "b6c76c60-dc39-4a0e-a70f-e9a205bbf4a7",
+      "to": "0ba8e5c1-fc92-4f23-9e25-735f2b0d6e5a"
+    },
+    {
+      "from": "0ba8e5c1-fc92-4f23-9e25-735f2b0d6e5a",
+      "to": "c084cfee-ef46-4ccd-aa4e-381cb416d0f7"
+    },
+    {
       "from": "c084cfee-ef46-4ccd-aa4e-381cb416d0f7",
       "to": "68b8b3f9-d64b-4eae-a9a2-cf0ff9fe5211"
     },
     {
+      "from": "68b8b3f9-d64b-4eae-a9a2-cf0ff9fe5211",
+      "to": "c21998f2-21ab-43a1-9fc8-030b3b17fb18"
+    },
+    {
       "from": "c21998f2-21ab-43a1-9fc8-030b3b17fb18",
       "to": "e46c98f1-3416-4e9d-b205-0e1b5edae39d"
+    },
+    {
+      "from": "e46c98f1-3416-4e9d-b205-0e1b5edae39d",
+      "to": "dc15b684-b647-4a35-9a2e-47811161bdfe"
     },
     {
       "from": "dc15b684-b647-4a35-9a2e-47811161bdfe",
@@ -979,6 +929,10 @@
     {
       "from": "7c6aac02-a780-45b4-9ece-5c3c469ea8eb",
       "to": "ca01b901-9057-403a-b46b-9de9370f69fd"
+    },
+    {
+      "from": "0ed0ac0d-a395-48a2-a3e4-f583fe18db7c",
+      "to": "5f2672ed-3068-490b-a813-a040a435a8ea"
     },
     {
       "from": "5f2672ed-3068-490b-a813-a040a435a8ea",
@@ -1049,124 +1003,16 @@
       "to": "773cbb11-1193-41d4-a77e-feeed44f4c87"
     },
     {
+      "from": "022cfdd1-be70-4821-a20a-19cb89c45db2",
+      "to": "69c82a13-7e4e-4888-be76-9c55f11bb746"
+    },
+    {
       "from": "cfb229df-235c-4ee5-80ab-f499e25511d5",
       "to": "19332e6b-1e28-4110-8d3e-aa0d09ae5931"
     },
     {
       "from": "69c82a13-7e4e-4888-be76-9c55f11bb746",
       "to": "f56d2b51-96aa-47d7-9c6a-551a71fe4b61"
-    },
-    {
-      "from": "9eebe796-9a12-43c3-81af-a4f06115e011",
-      "to": "7dbc904d-9d99-436d-9c72-f37df8bc1472"
-    },
-    {
-      "from": "c739b297-3a77-4f3d-85a7-d1a7a07969c0",
-      "to": "1d6baaa2-123b-45fd-9133-6dd0cfee8d9d"
-    },
-    {
-      "from": "0ba8e5c1-fc92-4f23-9e25-735f2b0d6e5a",
-      "to": "e243c5d9-52f3-4cfe-a73a-be37e428aca7"
-    },
-    {
-      "from": "e243c5d9-52f3-4cfe-a73a-be37e428aca7",
-      "to": "c084cfee-ef46-4ccd-aa4e-381cb416d0f7"
-    },
-    {
-      "from": "e46c98f1-3416-4e9d-b205-0e1b5edae39d",
-      "to": "959b2084-191b-46d8-aa39-39801827ad1c"
-    },
-    {
-      "from": "91f1b24e-a24f-47db-b350-7c2b34256e18",
-      "to": "0ba8e5c1-fc92-4f23-9e25-735f2b0d6e5a"
-    },
-    {
-      "from": "335c9c89-ac7d-4edf-8bcd-839590dc318a",
-      "to": "19332e6b-1e28-4110-8d3e-aa0d09ae5931"
-    },
-    {
-      "from": "0e702b33-cb9e-4ce7-95c9-eb1725b9428d",
-      "to": "1770fa64-953a-49f0-a4f1-087aa460375e"
-    },
-    {
-      "from": "99e44651-ec6a-404e-8779-79a23e042be8",
-      "to": "69c82a13-7e4e-4888-be76-9c55f11bb746"
-    },
-    {
-      "from": "a58cc2e3-9aff-4504-9d2d-ae1f27da9840",
-      "to": "335c9c89-ac7d-4edf-8bcd-839590dc318a"
-    },
-    {
-      "from": "c8ca4477-1e56-44f4-a792-dbb94a865993",
-      "to": "c739b297-3a77-4f3d-85a7-d1a7a07969c0"
-    },
-    {
-      "from": "4bc64f34-8fe8-4e9b-9071-939f019fe12e",
-      "to": "3cb61646-8688-4221-8839-dbdab8b4f973"
-    },
-    {
-      "from": "0b7fbed4-7225-4ac0-b040-4f70049e75e6",
-      "to": "0e702b33-cb9e-4ce7-95c9-eb1725b9428d"
-    },
-    {
-      "from": "d5ad56c9-22d8-476b-b40e-6b1a97611c93",
-      "to": "5f2672ed-3068-490b-a813-a040a435a8ea"
-    },
-    {
-      "from": "b6c76c60-dc39-4a0e-a70f-e9a205bbf4a7",
-      "to": "91f1b24e-a24f-47db-b350-7c2b34256e18"
-    },
-    {
-      "from": "68b8b3f9-d64b-4eae-a9a2-cf0ff9fe5211",
-      "to": "5c3c98ae-db24-4c05-9be1-32c5186b3ff8"
-    },
-    {
-      "from": "0ed0ac0d-a395-48a2-a3e4-f583fe18db7c",
-      "to": "d5ad56c9-22d8-476b-b40e-6b1a97611c93"
-    },
-    {
-      "from": "35a7d9c5-93cc-40f9-8389-6e0015ece982",
-      "to": "48932819-e04a-4bc1-9e44-8a5e93123a78"
-    },
-    {
-      "from": "19332e6b-1e28-4110-8d3e-aa0d09ae5931",
-      "to": "04db68c8-e65d-4b64-a988-2964428caed4"
-    },
-    {
-      "from": "3cb61646-8688-4221-8839-dbdab8b4f973",
-      "to": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9"
-    },
-    {
-      "from": "5c3c98ae-db24-4c05-9be1-32c5186b3ff8",
-      "to": "c21998f2-21ab-43a1-9fc8-030b3b17fb18"
-    },
-    {
-      "from": "022cfdd1-be70-4821-a20a-19cb89c45db2",
-      "to": "99e44651-ec6a-404e-8779-79a23e042be8"
-    },
-    {
-      "from": "6b957f14-93bd-42da-ba08-cedd51117732",
-      "to": "1db532f2-f1a5-4ac1-af81-132b3d839c5e"
-    },
-    {
-      "from": "959b2084-191b-46d8-aa39-39801827ad1c",
-      "to": "dc15b684-b647-4a35-9a2e-47811161bdfe"
-    },
-    {
-      "from": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9",
-      "to": "35a7d9c5-93cc-40f9-8389-6e0015ece982"
-    },
-    {
-      "from": "1db532f2-f1a5-4ac1-af81-132b3d839c5e",
-      "to": "9d823570-c89d-46eb-bb82-83066e2cb96c"
-    },
-    {
-      "from": "04db68c8-e65d-4b64-a988-2964428caed4",
-      "to": "00fdc29a-4a59-4f5f-8f61-89e929afe1a9"
-    },
-    {
-      "from": "4edb7d03-ee33-4667-991a-63956e725731",
-      "to": "9eebe796-9a12-43c3-81af-a4f06115e011"
     }
   ],
   "nearby": [
@@ -1236,5 +1082,41 @@
     "coordinateEvidence": "Approximate building-centre coordinate from OpenStreetMap; not a surveyed entrance",
     "coordinateSource": "https://www.openstreetmap.org/way/1265894595",
     "addressSource": "https://utsc.utoronto.ca/grad-edu/health-counselling-services"
+  },
+  "referenceEvidence": {
+    "source": "sam-ibrahim-hardcoded:L1:L1-project-circulation-2:adaptive-30-v1-pruned",
+    "photographedNodes": 26,
+    "photoCount": 104,
+    "newPhotoStopsCreated": 0,
+    "originalReferencePositionsPreserved": true,
+    "visualNodeIds": [
+      "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+      "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "596fbd78-4fd2-4188-97e7-316d54685e2b",
+      "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "91949835-12f4-49ad-8eea-5db551190bef",
+      "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "a1ed4a45-937a-493b-ae58-80ccc1404478",
+      "a3430a5c-be98-4199-ae4a-d68e090b1b34",
+      "b300aaea-8614-46f5-aee2-a431ac5f8b06",
+      "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+      "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "fa69b209-e7f9-4a02-8399-15cb061c6c09"
+    ],
+    "manifestSha256": "d3eff001de041c42457ba7d25b6408ecd2df77ecf0f51f9fc3b9626fdb94e3b0"
   }
 }

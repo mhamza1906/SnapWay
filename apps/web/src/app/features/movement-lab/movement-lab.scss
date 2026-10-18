@@ -159,6 +159,20 @@ footer {
 .map-title h2 {
   margin: 0;
 }
+.map-scroll {
+  overflow: auto;
+  max-height: 65dvh;
+  border: 1px solid #dce5db;
+  border-radius: 12px;
+  overscroll-behavior: contain;
+}
+.map-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .map-wrap {
   position: relative;
   width: 100%;
@@ -247,4 +261,21 @@ footer {
   .fields {
     grid-template-columns: 1fr;
   }
+}
+
+.video-evidence video {
+  width: 100%;
+  max-height: 420px;
+  background: #17241f;
+  border-radius: 12px;
+  margin: 16px 0;
+}
+.candidate {
+  border-left: 3px solid #d18121;
+  padding: 14px;
+  background: #fff8e8;
+  border-radius: 8px;
+}
+.candidate button {
+  margin: 5px 8px 5px 0;
 }

@@ -1,0 +1,4632 @@
+{
+  "video": {
+    "name": "IMG_1275.MOV",
+    "durationSeconds": 182.883333,
+    "src": "/experiments/source-video.mov"
+  },
+  "method": "causal-decaying-max-product-graph-filter",
+  "frames": [
+    {
+      "timeSeconds": 0.0,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.40258827805519104,
+      "margin": 0.12858253717422485,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 0.5,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.42504626512527466,
+      "margin": 0.1846679151058197,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 1.0,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.38345202803611755,
+      "margin": 0.1571420580148697,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 1.5,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.3999689519405365,
+      "margin": 0.1765192151069641,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 2.0,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.4190290570259094,
+      "margin": 0.174281507730484,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 2.501667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.4319068193435669,
+      "margin": 0.16030529141426086,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 3.001667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.40291881561279297,
+      "margin": 0.16730856895446777,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 3.501667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.33906033635139465,
+      "margin": 0.09559047222137451,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 4.001667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.23707754909992218,
+      "margin": 0.005659922957420349,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 7,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 4.501667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.2468595802783966,
+      "margin": 0.12885776162147522,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 5.001667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.34579214453697205,
+      "margin": 0.12235365808010101,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 5.501667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.4442727267742157,
+      "margin": 0.23787207901477814,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 6.001667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.2067854255437851,
+      "margin": 0.008252382278442383,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 6.503333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.30678242444992065,
+      "margin": 0.053884536027908325,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 7.003333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.24271075427532196,
+      "margin": 0.004493802785873413,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 7.503333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.39267122745513916,
+      "margin": 0.20004993677139282,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 8.003333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.3067155182361603,
+      "margin": 0.1224742978811264,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 8.503333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.4091568887233734,
+      "margin": 0.21658490598201752,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 9.003333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.3061208426952362,
+      "margin": 0.029863983392715454,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 9.503333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.4364636540412903,
+      "margin": 0.15258541703224182,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 10.005,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.3214588761329651,
+      "margin": 0.034218013286590576,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 10.505,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.1515536606311798,
+      "margin": 0.04481944441795349,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 11.005,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.13644124567508698,
+      "margin": 0.08813507854938507,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 11.505,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.4514744281768799,
+      "margin": 0.21287354826927185,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 12.005,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.4951308071613312,
+      "margin": 0.26874320209026337,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 12.505,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.43453043699264526,
+      "margin": 0.21756847202777863,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 13.005,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.11036906391382217,
+      "margin": 0.1267162412405014,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 13.506667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.1670917272567749,
+      "margin": 0.0871269702911377,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 14.006667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.37450939416885376,
+      "margin": 0.03939974308013916,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 14.506667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.5854799151420593,
+      "margin": 0.22416672110557556,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 15.006667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.32746392488479614,
+      "margin": 0.010537296533584595,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 15.506667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.28312578797340393,
+      "margin": 0.032056987285614014,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 4,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 16.006667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.42273595929145813,
+      "margin": 0.05150175094604492,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 16.506667,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.266548752784729,
+      "margin": 0.03400278091430664,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 4,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 17.008333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.30370032787323,
+      "margin": 0.025762498378753662,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 17.508333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.475856751203537,
+      "margin": 0.09583425521850586,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 18.008333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.30908629298210144,
+      "margin": 0.013034462928771973,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 18.508333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.29162007570266724,
+      "margin": 0.024006903171539307,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 19.008333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.20499584078788757,
+      "margin": 0.05043409764766693,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 19.508333,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.35253074765205383,
+      "margin": 0.08018264174461365,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 20.008333,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.3054926097393036,
+      "margin": 4.774332046508789e-05,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 20.51,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.16504473984241486,
+      "margin": 0.004664108157157898,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 10,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 21.01,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.23039311170578003,
+      "margin": 0.02200782299041748,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 21.51,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.5770268440246582,
+      "margin": 0.023479044437408447,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 22.01,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.5595935583114624,
+      "margin": 0.09108033776283264,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 22.51,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "candidate",
+      "similarity": 0.5361891984939575,
+      "margin": 0.10156047344207764,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 23.01,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.5050051212310791,
+      "margin": 0.08695447444915771,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 23.51,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.17883649468421936,
+      "margin": 0.005027845501899719,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 3,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 24.011667,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.43084970116615295,
+      "margin": 0.16522806882858276,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 2,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 24.511667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "uncertain",
+      "similarity": 0.3226861357688904,
+      "margin": 0.05215272307395935,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 25.011667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.43561097979545593,
+      "margin": 0.14381438493728638,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 25.511667,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.3150476813316345,
+      "margin": 0.0009210109710693359,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 26.011667,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.3783949613571167,
+      "margin": 0.00714913010597229,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 26.511667,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.2204277664422989,
+      "margin": 0.006101369857788086,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 27.011667,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.4104251265525818,
+      "margin": 0.09926062822341919,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 27.513333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.39215511083602905,
+      "margin": 0.042040079832077026,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 28.013333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.28809013962745667,
+      "margin": 0.053620994091033936,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 28.513333,
+      "nodeId": "dced20e4-b110-44da-a456-e3c2eee2730d",
+      "label": "Point 1",
+      "status": "uncertain",
+      "similarity": 0.34444931149482727,
+      "margin": 0.021418064832687378,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 1,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 29.013333,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.4734056293964386,
+      "margin": 0.06919753551483154,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 29.513333,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.493897408246994,
+      "margin": 0.0990026593208313,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 30.013333,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "uncertain",
+      "similarity": 0.3061973750591278,
+      "margin": 0.01794639229774475,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 30.513333,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "uncertain",
+      "similarity": 0.29976746439933777,
+      "margin": 0.013335734605789185,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 31.015,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.35387179255485535,
+      "margin": 0.02538400888442993,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 31.515,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.4301266670227051,
+      "margin": 0.04778149724006653,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 32.015,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.22246737778186798,
+      "margin": 0.0021720528602600098,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 32.515,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.3757598400115967,
+      "margin": 0.14060406386852264,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 33.015,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.40980538725852966,
+      "margin": 0.1374514102935791,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 33.515,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.3350081443786621,
+      "margin": 0.049135178327560425,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 34.015,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.17999614775180817,
+      "margin": 0.0037787258625030518,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 34.516667,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.2670455873012543,
+      "margin": 0.020545080304145813,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 35.016667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.4052501320838928,
+      "margin": 0.031500816345214844,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 35.516667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.387599378824234,
+      "margin": 0.03771933913230896,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 36.016667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "uncertain",
+      "similarity": 0.340030312538147,
+      "margin": 0.02428334951400757,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 36.516667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "uncertain",
+      "similarity": 0.2791387140750885,
+      "margin": 0.04022189974784851,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 22,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 37.016667,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "uncertain",
+      "similarity": 0.42424753308296204,
+      "margin": 0.05932989716529846,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 37.516667,
+      "nodeId": "4f4e329d-55ae-457d-ae44-ec9bf171ba18",
+      "label": "Point 3",
+      "status": "candidate",
+      "similarity": 0.35111647844314575,
+      "margin": 0.02754625678062439,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 3,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 38.018333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.3803332448005676,
+      "margin": 0.10915657877922058,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 38.518333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.46090614795684814,
+      "margin": 0.13588765263557434,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 39.018333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.5507514476776123,
+      "margin": 0.16558986902236938,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 39.518333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.4995543360710144,
+      "margin": 0.1774883270263672,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 40.018333,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "candidate",
+      "similarity": 0.39589744806289673,
+      "margin": 0.019413620233535767,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 40.518333,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "uncertain",
+      "similarity": 0.44351381063461304,
+      "margin": 0.020570367574691772,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 41.018333,
+      "nodeId": "22895e61-52f2-478e-b0b8-6b3ea5ed2b64",
+      "label": "Point 2",
+      "status": "candidate",
+      "similarity": 0.44693171977996826,
+      "margin": 0.014449477195739746,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 2,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 41.52,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.44189491868019104,
+      "margin": 0.136252760887146,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 42.02,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.28495752811431885,
+      "margin": 0.06820155680179596,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 42.52,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.2725850045681,
+      "margin": 0.013618022203445435,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 8,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 43.02,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "uncertain",
+      "similarity": 0.4824438989162445,
+      "margin": 0.06845366954803467,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 43.52,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "candidate",
+      "similarity": 0.4638126790523529,
+      "margin": 0.021666288375854492,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 44.02,
+      "nodeId": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+      "label": "Point 8",
+      "status": "uncertain",
+      "similarity": 0.3860560655593872,
+      "margin": 0.015123903751373291,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 8,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 44.52,
+      "nodeId": "310d543d-2a1e-4c37-b1fa-f19f1904ad93",
+      "label": "Point 8",
+      "status": "uncertain",
+      "similarity": 0.2619735300540924,
+      "margin": 0.03215247392654419,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 45.021667,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.4363210201263428,
+      "margin": 0.10952997207641602,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 45.521667,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.2749210596084595,
+      "margin": 0.017682909965515137,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 1,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 46.021667,
+      "nodeId": "4b36761d-bc67-42cd-b7b8-90741dc04465",
+      "label": "Point 4",
+      "status": "uncertain",
+      "similarity": 0.14262323081493378,
+      "margin": 0.021847963333129883,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 7,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 46.521667,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.32446086406707764,
+      "margin": 0.07459171116352081,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 24,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 47.021667,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.30626192688941956,
+      "margin": 0.08550426363945007,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 47.521667,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "candidate",
+      "similarity": 0.34332552552223206,
+      "margin": 0.08672922849655151,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 48.021667,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "candidate",
+      "similarity": 0.3938915431499481,
+      "margin": 0.11879587173461914,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 48.523333,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.41783544421195984,
+      "margin": 0.15953442454338074,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 24,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 49.023333,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.30034124851226807,
+      "margin": 0.043260395526885986,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 24,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 49.523333,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "candidate",
+      "similarity": 0.5200695991516113,
+      "margin": 0.0981687605381012,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 50.023333,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "candidate",
+      "similarity": 0.5795610547065735,
+      "margin": 0.19402307271957397,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 50.523333,
+      "nodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d",
+      "label": "Point 22",
+      "status": "uncertain",
+      "similarity": 0.46337890625,
+      "margin": 0.11422920227050781,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 22,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 51.023333,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.2958710193634033,
+      "margin": 0.02492624521255493,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 51.523333,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.2798938751220703,
+      "margin": 0.021175384521484375,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 24,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 52.025,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "candidate",
+      "similarity": 0.44007715582847595,
+      "margin": 0.18368908762931824,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 52.525,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "candidate",
+      "similarity": 0.44112318754196167,
+      "margin": 0.03539964556694031,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 24,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 53.025,
+      "nodeId": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+      "label": "Point 25",
+      "status": "candidate",
+      "similarity": 0.47800785303115845,
+      "margin": 0.06739455461502075,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 25,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 53.525,
+      "nodeId": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+      "label": "Point 25",
+      "status": "candidate",
+      "similarity": 0.5152826309204102,
+      "margin": 0.19849994778633118,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 25,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 54.025,
+      "nodeId": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+      "label": "Point 25",
+      "status": "uncertain",
+      "similarity": 0.40529507398605347,
+      "margin": 0.002289026975631714,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 25,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 54.525,
+      "nodeId": "d41a39f4-5feb-4d3c-b3b5-7d95d3f457fa",
+      "label": "Point 25",
+      "status": "uncertain",
+      "similarity": 0.25273874402046204,
+      "margin": 0.15396666526794434,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 24,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 55.025,
+      "nodeId": "478eb2af-8116-4337-afc1-1ed9e1778623",
+      "label": "Point 24",
+      "status": "uncertain",
+      "similarity": 0.3369527757167816,
+      "margin": 0.11817681789398193,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 55.526667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.4654642641544342,
+      "margin": 0.1368364691734314,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 56.026667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.46748843789100647,
+      "margin": 0.14615139365196228,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 56.526667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.3928333818912506,
+      "margin": 0.11611050367355347,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 57.026667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.4931458532810211,
+      "margin": 0.15957364439964294,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 57.526667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.5540308356285095,
+      "margin": 0.2395590841770172,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 58.026667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.5061683654785156,
+      "margin": 0.23588359355926514,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 58.526667,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.3838047683238983,
+      "margin": 0.12999245524406433,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 59.028333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.4003075957298279,
+      "margin": 0.16456101834774017,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 59.528333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.5371248126029968,
+      "margin": 0.2801532447338104,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 60.028333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.6210052371025085,
+      "margin": 0.3025256395339966,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 60.528333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.6005572080612183,
+      "margin": 0.29718056321144104,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 61.028333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.5246875286102295,
+      "margin": 0.21063825488090515,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 61.528333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "candidate",
+      "similarity": 0.46023988723754883,
+      "margin": 0.1820683777332306,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 62.028333,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.2423451691865921,
+      "margin": 0.04351888597011566,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 29,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 62.53,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.2465175837278366,
+      "margin": 0.018825486302375793,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 29,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 63.03,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.30304157733917236,
+      "margin": 0.06169009208679199,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 63.53,
+      "nodeId": "fa69b209-e7f9-4a02-8399-15cb061c6c09",
+      "label": "Point 29",
+      "status": "uncertain",
+      "similarity": 0.30447959899902344,
+      "margin": 0.02478921413421631,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 29,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 64.03,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.43749457597732544,
+      "margin": 0.07244610786437988,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 64.53,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.4962582290172577,
+      "margin": 0.1289394497871399,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 65.03,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.6516358852386475,
+      "margin": 0.3134844899177551,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 65.53,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.6153734922409058,
+      "margin": 0.2906375229358673,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 66.031667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2208472490310669,
+      "margin": 0.024972811341285706,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 66.531667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.0609840489923954,
+      "margin": 0.007125232368707657,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 67.031667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2883758246898651,
+      "margin": 0.06754927337169647,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 67.531667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.604674220085144,
+      "margin": 0.3208319842815399,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 68.031667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.16257379949092865,
+      "margin": 0.0080186128616333,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 68.531667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.14948852360248566,
+      "margin": 0.004150494933128357,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 22,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 69.031667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2773910164833069,
+      "margin": 0.06379625201225281,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 69.5,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.4042563736438751,
+      "margin": 0.14960041642189026,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 70.0,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.5687639713287354,
+      "margin": 0.2343788743019104,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 70.5,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.41565564274787903,
+      "margin": 0.16077199578285217,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 71.0,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2564021944999695,
+      "margin": 0.04988442361354828,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 71.5,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2703075110912323,
+      "margin": 0.07998903095722198,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 72.0,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2215176522731781,
+      "margin": 0.014776229858398438,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 72.5,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.32981881499290466,
+      "margin": 0.11815623939037323,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 73.001667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2439197450876236,
+      "margin": 0.09608255326747894,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 73.501667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "candidate",
+      "similarity": 0.520319938659668,
+      "margin": 0.3170982599258423,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 74.001667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.24016714096069336,
+      "margin": 0.012755781412124634,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 74.501667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.409148633480072,
+      "margin": 0.12703049182891846,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 75.001667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.188969686627388,
+      "margin": 0.06042645871639252,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 75.501667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.46944543719291687,
+      "margin": 0.08541592955589294,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 76.001667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.22981667518615723,
+      "margin": 0.06194278597831726,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 76.503333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.42753180861473083,
+      "margin": 0.2623368501663208,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 77.003333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.3870996832847595,
+      "margin": 0.11352074146270752,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 77.503333,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.3536730408668518,
+      "margin": 0.13412268459796906,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 78.003333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.4204713702201843,
+      "margin": 0.1901002675294876,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 78.503333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.41152501106262207,
+      "margin": 0.2321864664554596,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 79.003333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "candidate",
+      "similarity": 0.3408796787261963,
+      "margin": 0.14582207798957825,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 27,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 79.503333,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.38465332984924316,
+      "margin": 0.20324714481830597,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 80.005,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.37961113452911377,
+      "margin": 0.13076569139957428,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 80.505,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.3935551941394806,
+      "margin": 0.0022853612899780273,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 81.005,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.4689706861972809,
+      "margin": 0.08587002754211426,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 81.505,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "candidate",
+      "similarity": 0.4483959674835205,
+      "margin": 0.1364145278930664,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 27,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 82.005,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.40839868783950806,
+      "margin": 0.126173734664917,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 82.505,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.44505175948143005,
+      "margin": 0.01758691668510437,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 83.005,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.3388349711894989,
+      "margin": 0.023072242736816406,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 27,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 83.506667,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.16661977767944336,
+      "margin": 0.011522442102432251,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 84.006667,
+      "nodeId": "808d0bc5-edfc-44d6-b843-103ad23b3093",
+      "label": "Point 27",
+      "status": "uncertain",
+      "similarity": 0.13126066327095032,
+      "margin": 0.08187617361545563,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 84.506667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.20007117092609406,
+      "margin": 0.0954551249742508,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 85.006667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.2405955195426941,
+      "margin": 0.07734760642051697,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 85.506667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.29640623927116394,
+      "margin": 0.00629425048828125,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 86.006667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.32899096608161926,
+      "margin": 0.05432292819023132,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 86.506667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.34691911935806274,
+      "margin": 0.025530129671096802,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 28,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 87.006667,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.26870179176330566,
+      "margin": 0.01735788583755493,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 28,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 87.508333,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.19271035492420197,
+      "margin": 0.02172897756099701,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 88.008333,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.171086847782135,
+      "margin": 0.08254261314868927,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 88.508333,
+      "nodeId": "d094a3d7-dbac-4025-8a36-b06ad9a6e29b",
+      "label": "Point 28",
+      "status": "uncertain",
+      "similarity": 0.2711620330810547,
+      "margin": 0.0008424520492553711,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 27,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 89.008333,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.3955741822719574,
+      "margin": 0.10848301649093628,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 89.508333,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.3039604723453522,
+      "margin": 0.05201193690299988,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 90.008333,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.36275148391723633,
+      "margin": 0.07354438304901123,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 90.508333,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.3457309305667877,
+      "margin": 0.06143033504486084,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 91.01,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.37589356303215027,
+      "margin": 0.12818768620491028,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 91.51,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.38217923045158386,
+      "margin": 0.12239861488342285,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 92.01,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.22814641892910004,
+      "margin": 0.01660984754562378,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 92.51,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.2294345498085022,
+      "margin": 0.0519905686378479,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 93.01,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "candidate",
+      "similarity": 0.35523897409439087,
+      "margin": 0.07268756628036499,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 93.51,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.3004537522792816,
+      "margin": 0.10525090992450714,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 94.01,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.19875973463058472,
+      "margin": 0.03486332297325134,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 94.511667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.20086365938186646,
+      "margin": 0.04281896352767944,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 95.011667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.1894707828760147,
+      "margin": 0.0666113942861557,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 95.511667,
+      "nodeId": "91949835-12f4-49ad-8eea-5db551190bef",
+      "label": "Point 26",
+      "status": "uncertain",
+      "similarity": 0.2618664503097534,
+      "margin": 0.0626629889011383,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 96.011667,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.2597019076347351,
+      "margin": 0.00511971116065979,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 96.511667,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.30874618887901306,
+      "margin": 0.009669005870819092,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 13,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 97.011667,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.28200772404670715,
+      "margin": 0.01182180643081665,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 97.511667,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "candidate",
+      "similarity": 0.4305970370769501,
+      "margin": 0.013906747102737427,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 13,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 98.013333,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.44317206740379333,
+      "margin": 0.010083198547363281,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 98.513333,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.21998491883277893,
+      "margin": 0.011108309030532837,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 99.013333,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.12800978124141693,
+      "margin": 0.04934754967689514,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 99.513333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5279253721237183,
+      "margin": 0.09199044108390808,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 100.013333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.4895630180835724,
+      "margin": 0.13327541947364807,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 100.513333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.3838901221752167,
+      "margin": 0.08314210176467896,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 101.013333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.15849152207374573,
+      "margin": 0.02116560935974121,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 4,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 101.515,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.27737945318222046,
+      "margin": 0.014703541994094849,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 102.015,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.40280866622924805,
+      "margin": 0.015748202800750732,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 13,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 102.515,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.37134596705436707,
+      "margin": 0.004267841577529907,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 103.015,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.48157307505607605,
+      "margin": 0.04735440015792847,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 103.515,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5157216787338257,
+      "margin": 0.1062459647655487,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 104.015,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5916405320167542,
+      "margin": 0.1340658962726593,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 104.515,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.46726328134536743,
+      "margin": 0.08057355880737305,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 105.016667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.46009624004364014,
+      "margin": 0.08554279804229736,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 105.516667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.4195878803730011,
+      "margin": 0.056648433208465576,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 106.016667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5759039521217346,
+      "margin": 0.2090792953968048,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 106.516667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5606575012207031,
+      "margin": 0.08738815784454346,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 107.016667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.41780203580856323,
+      "margin": 0.10144630074501038,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 107.516667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.4273218512535095,
+      "margin": 0.08040693402290344,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 108.016667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5030359625816345,
+      "margin": 0.05861040949821472,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 108.518333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.49827083945274353,
+      "margin": 0.027115732431411743,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 109.018333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.478887677192688,
+      "margin": 0.00854402780532837,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 109.518333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.4083004891872406,
+      "margin": 0.01602107286453247,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 110.018333,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "candidate",
+      "similarity": 0.484947144985199,
+      "margin": 0.033707618713378906,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 110.518333,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "candidate",
+      "similarity": 0.37400054931640625,
+      "margin": 0.02607262134552002,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 111.018333,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.11953433603048325,
+      "margin": 0.07535874843597412,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 111.518333,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.19692039489746094,
+      "margin": 0.004677519202232361,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 16,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 112.018333,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.21131913363933563,
+      "margin": 0.0633205771446228,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 112.52,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.15851137042045593,
+      "margin": 0.028322041034698486,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 113.02,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.0970626249909401,
+      "margin": 0.00892476737499237,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 26,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 113.52,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.2579098343849182,
+      "margin": 0.0027109086513519287,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 114.02,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.4665238857269287,
+      "margin": 0.018747389316558838,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 114.52,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.3842372000217438,
+      "margin": 0.05422091484069824,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 115.02,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.33728936314582825,
+      "margin": 0.028795570135116577,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 115.52,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.4691576063632965,
+      "margin": 0.10362696647644043,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 116.02,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.5986097455024719,
+      "margin": 0.14503389596939087,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 116.521667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.5616716146469116,
+      "margin": 0.18222036957740784,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 117.021667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.6642760634422302,
+      "margin": 0.2684193253517151,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 117.521667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.6575820446014404,
+      "margin": 0.1874440312385559,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 118.021667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.5129743218421936,
+      "margin": 0.18278637528419495,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 118.521667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3298722505569458,
+      "margin": 0.036774784326553345,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 119.021667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.26610198616981506,
+      "margin": 0.0035736560821533203,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 119.521667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.44274988770484924,
+      "margin": 0.0657568871974945,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 120.021667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.5457953810691833,
+      "margin": 0.05226552486419678,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 120.521667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.35549822449684143,
+      "margin": 0.05500215291976929,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 121.023333,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.36495646834373474,
+      "margin": 0.10012069344520569,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 121.523333,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.36796867847442627,
+      "margin": 0.041068971157073975,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 122.023333,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "uncertain",
+      "similarity": 0.46216192841529846,
+      "margin": 0.2221173346042633,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 122.523333,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "uncertain",
+      "similarity": 0.3245992958545685,
+      "margin": 0.050462692975997925,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 123.023333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.319717139005661,
+      "margin": 0.04682809114456177,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 123.523333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.17427518963813782,
+      "margin": 0.07309380173683167,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 124.023333,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "candidate",
+      "similarity": 0.38632482290267944,
+      "margin": 0.05375540256500244,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 124.525,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "candidate",
+      "similarity": 0.33105748891830444,
+      "margin": 0.015019327402114868,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 125.025,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.367571622133255,
+      "margin": 0.08786070346832275,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 125.525,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.3790099322795868,
+      "margin": 0.13355869054794312,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 19,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 126.025,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.3160835802555084,
+      "margin": 0.09035071730613708,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 126.525,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.291938453912735,
+      "margin": 0.01064184308052063,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 127.025,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.4223218560218811,
+      "margin": 0.11411961913108826,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 127.525,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.5393574833869934,
+      "margin": 0.25447630882263184,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 128.025,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.609895646572113,
+      "margin": 0.2881237268447876,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 128.526667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.46055537462234497,
+      "margin": 0.2536608576774597,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 129.026667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.35065221786499023,
+      "margin": 0.1636703759431839,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 129.526667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.28566521406173706,
+      "margin": 0.07383628189563751,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 130.026667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.3310573995113373,
+      "margin": 0.06802380084991455,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 130.526667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.2975735664367676,
+      "margin": 0.11608369648456573,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 131.026667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.43189144134521484,
+      "margin": 0.2090534269809723,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 131.526667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.3777022063732147,
+      "margin": 0.16152052581310272,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 132.026667,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.20954692363739014,
+      "margin": 0.028296425938606262,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 132.528333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.24613617360591888,
+      "margin": 0.042557790875434875,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 133.028333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.6032071709632874,
+      "margin": 0.386869341135025,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 133.528333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.5324752926826477,
+      "margin": 0.3298569917678833,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 134.028333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.23809875547885895,
+      "margin": 0.006899535655975342,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 134.528333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.4055899977684021,
+      "margin": 0.15748658776283264,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 135.028333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.4009178578853607,
+      "margin": 0.11724454164505005,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 135.528333,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.47890883684158325,
+      "margin": 0.13042882084846497,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 136.03,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "candidate",
+      "similarity": 0.3614736795425415,
+      "margin": 0.08843383193016052,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 136.53,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.17787376046180725,
+      "margin": 0.10100984573364258,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 18,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 137.03,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.16302244365215302,
+      "margin": 0.2411312311887741,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 18,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 137.53,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.1858205497264862,
+      "margin": 0.13121140003204346,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 18,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 138.03,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.25181853771209717,
+      "margin": 0.029450640082359314,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 138.53,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.31582486629486084,
+      "margin": 0.029881417751312256,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 139.03,
+      "nodeId": "9e1cea8a-7388-4772-bf65-659586ceb34d",
+      "label": "Point 19",
+      "status": "uncertain",
+      "similarity": 0.23391813039779663,
+      "margin": 0.019574180245399475,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 19,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 139.531667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.22839464247226715,
+      "margin": 0.028396621346473694,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 140.031667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3488669693470001,
+      "margin": 0.15636803209781647,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 140.531667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.33636823296546936,
+      "margin": 0.1425916999578476,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 141.031667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.25377291440963745,
+      "margin": 0.023935362696647644,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 141.531667,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "candidate",
+      "similarity": 0.3507400155067444,
+      "margin": 0.022108107805252075,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 142.031667,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "candidate",
+      "similarity": 0.4627149701118469,
+      "margin": 0.033364683389663696,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 142.531667,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "candidate",
+      "similarity": 0.40975746512413025,
+      "margin": 0.05045199394226074,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 18,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 143.031667,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "uncertain",
+      "similarity": 0.09244848042726517,
+      "margin": 0.12376683950424194,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 143.531667,
+      "nodeId": "d60232a2-072c-4b37-8b5d-179b92b4d312",
+      "label": "Point 18",
+      "status": "uncertain",
+      "similarity": 0.2315114140510559,
+      "margin": 0.038170844316482544,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 18,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 144.0,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.5389640927314758,
+      "margin": 0.16317006945610046,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 144.5,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.3887104392051697,
+      "margin": 0.04438960552215576,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 145.0,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3195183575153351,
+      "margin": 0.05487051606178284,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 145.5,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.35480019450187683,
+      "margin": 0.11673532426357269,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 146.0,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3085017800331116,
+      "margin": 0.032491534948349,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 146.5,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "candidate",
+      "similarity": 0.435537725687027,
+      "margin": 0.1200239360332489,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 147.0,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.20067906379699707,
+      "margin": 0.03164932131767273,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 147.5,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.1279819756746292,
+      "margin": 0.022221103310585022,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 148.0,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.11956708878278732,
+      "margin": 0.0017706304788589478,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 148.501667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.1339850127696991,
+      "margin": 0.050966694951057434,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 149.001667,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3244892358779907,
+      "margin": 0.0982428789138794,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 149.501667,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "candidate",
+      "similarity": 0.37629234790802,
+      "margin": 0.013981550931930542,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 150.001667,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.21381591260433197,
+      "margin": 0.004215344786643982,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 150.501667,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "uncertain",
+      "similarity": 0.14355693757534027,
+      "margin": 0.07522247731685638,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 151.001667,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "candidate",
+      "similarity": 0.3899376094341278,
+      "margin": 0.094178706407547,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 151.501667,
+      "nodeId": "cfb229df-235c-4ee5-80ab-f499e25511d5",
+      "label": "Point 16",
+      "status": "candidate",
+      "similarity": 0.44084593653678894,
+      "margin": 0.07752975821495056,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 16,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 152.003333,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.32254356145858765,
+      "margin": 0.028607726097106934,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 152.503333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.36136293411254883,
+      "margin": 0.08374723792076111,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 153.003333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.3027903735637665,
+      "margin": 0.019929826259613037,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 153.503333,
+      "nodeId": "8780ba45-ea7c-47bf-ab6d-d559cd437967",
+      "label": "Point 17",
+      "status": "uncertain",
+      "similarity": 0.3231043219566345,
+      "margin": 0.02728450298309326,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 17,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 154.003333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.48404550552368164,
+      "margin": 0.027546435594558716,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 154.503333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.5789695978164673,
+      "margin": 0.13284346461296082,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 155.003333,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.2300826758146286,
+      "margin": 0.02227124571800232,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 155.505,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.3450135886669159,
+      "margin": 0.1321050077676773,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 156.005,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.41010865569114685,
+      "margin": 0.22125244140625,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 156.505,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.4697909355163574,
+      "margin": 0.2911699265241623,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 157.005,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.36310064792633057,
+      "margin": 0.02355155348777771,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 157.505,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.42582815885543823,
+      "margin": 0.01603516936302185,
+      "note": "Visual winner disagrees with causal graph history.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 158.005,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "candidate",
+      "similarity": 0.3852475583553314,
+      "margin": 0.08159959316253662,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 158.505,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.17846707999706268,
+      "margin": 0.00019966065883636475,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 159.006667,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.35118311643600464,
+      "margin": 0.1233348548412323,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 14,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 159.506667,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.2973231375217438,
+      "margin": 0.08410453796386719,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 160.006667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.451006144285202,
+      "margin": 0.03588947653770447,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 160.506667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.41049277782440186,
+      "margin": 0.050544559955596924,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 161.006667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "candidate",
+      "similarity": 0.4012306034564972,
+      "margin": 0.0284804105758667,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 161.506667,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.6440825462341309,
+      "margin": 0.1091543436050415,
+      "note": "Large graph jump; reconfirm reference.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 162.006667,
+      "nodeId": "e02c4ab8-926b-4c4e-a186-17230f4780d5",
+      "label": "Point 15",
+      "status": "uncertain",
+      "similarity": 0.326323926448822,
+      "margin": 0.07676093280315399,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 15,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 162.508333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.32978159189224243,
+      "margin": 0.044954895973205566,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 163.008333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.3467005491256714,
+      "margin": 0.002545088529586792,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 20,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 163.508333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.324320912361145,
+      "margin": 0.03838515281677246,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 164.008333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "candidate",
+      "similarity": 0.454262375831604,
+      "margin": 0.07276400923728943,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 164.508333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.27587518095970154,
+      "margin": 0.008511871099472046,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 165.008333,
+      "nodeId": "03a484c6-ef5a-4b69-b2e5-ee00e5fcfcd5",
+      "label": "Point 14",
+      "status": "uncertain",
+      "similarity": 0.2701123356819153,
+      "margin": 0.013291865587234497,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 165.508333,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "uncertain",
+      "similarity": 0.31890878081321716,
+      "margin": 0.03966525197029114,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 166.008333,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "candidate",
+      "similarity": 0.4012313485145569,
+      "margin": 0.053913116455078125,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 166.51,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "uncertain",
+      "similarity": 0.28516972064971924,
+      "margin": 0.02821943163871765,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 20,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 167.01,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "uncertain",
+      "similarity": 0.1709231585264206,
+      "margin": 0.013688221573829651,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 167.51,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "candidate",
+      "similarity": 0.3572685718536377,
+      "margin": 0.010439872741699219,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 168.01,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "uncertain",
+      "similarity": 0.2409750521183014,
+      "margin": 0.014998048543930054,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 15,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 168.51,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "uncertain",
+      "similarity": 0.18413282930850983,
+      "margin": 0.01541215181350708,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 169.01,
+      "nodeId": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+      "label": "Point 20",
+      "status": "candidate",
+      "similarity": 0.5366291403770447,
+      "margin": 0.09858796000480652,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 20,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 169.51,
+      "nodeId": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+      "label": "Point 20",
+      "status": "uncertain",
+      "similarity": 0.538864016532898,
+      "margin": 0.1488909125328064,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 20,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 170.011667,
+      "nodeId": "a1ed4a45-937a-493b-ae58-80ccc1404478",
+      "label": "Point 20",
+      "status": "uncertain",
+      "similarity": 0.43411779403686523,
+      "margin": 0.011328577995300293,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 13,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 170.511667,
+      "nodeId": "d5ea6bea-537a-4915-8597-8b2bcdc4f321",
+      "label": "Point 13",
+      "status": "uncertain",
+      "similarity": 0.3184093236923218,
+      "margin": 0.00673791766166687,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 14,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 171.011667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.29053306579589844,
+      "margin": 0.00836983323097229,
+      "note": "Distinct old points have similar appearance.",
+      "rawPoint": 22,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 171.511667,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "candidate",
+      "similarity": 0.41489899158477783,
+      "margin": 0.0830950140953064,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 172.011667,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "candidate",
+      "similarity": 0.6808710098266602,
+      "margin": 0.2333005964756012,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 172.511667,
+      "nodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5",
+      "label": "Point 21",
+      "status": "candidate",
+      "similarity": 0.4885489344596863,
+      "margin": 0.10956859588623047,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 21,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 173.011667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.3162726163864136,
+      "margin": 0.02970018982887268,
+      "note": "Cosine below transferred acceptance threshold.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 173.513333,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.37381643056869507,
+      "margin": 0.06267052888870239,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 11,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 174.013333,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.4144004285335541,
+      "margin": 0.04499387741088867,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 11,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 174.513333,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.4441138803958893,
+      "margin": 0.059129923582077026,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 175.013333,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.5212415456771851,
+      "margin": 0.0780896544456482,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 175.513333,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.5017923712730408,
+      "margin": 0.0100938081741333,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 176.013333,
+      "nodeId": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "label": "Point 12",
+      "status": "candidate",
+      "similarity": 0.5999141931533813,
+      "margin": 0.03080439567565918,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 12,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 176.513333,
+      "nodeId": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "label": "Point 12",
+      "status": "candidate",
+      "similarity": 0.6442770957946777,
+      "margin": 0.07922226190567017,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 12,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 177.015,
+      "nodeId": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "label": "Point 12",
+      "status": "uncertain",
+      "similarity": 0.09955878555774689,
+      "margin": 0.006966233253479004,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 21,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 177.515,
+      "nodeId": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "label": "Point 12",
+      "status": "uncertain",
+      "similarity": 0.6033886075019836,
+      "margin": 0.19431158900260925,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 12,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 178.015,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.42619889974594116,
+      "margin": 0.045183539390563965,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 178.515,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.4761374592781067,
+      "margin": 0.10926604270935059,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 179.015,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.30426469445228577,
+      "margin": 0.09279721975326538,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 12,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 179.515,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.2145325094461441,
+      "margin": 0.035839423537254333,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 12,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 180.015,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.3603111207485199,
+      "margin": 0.0911611020565033,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 180.516667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.33589646220207214,
+      "margin": 0.048353999853134155,
+      "note": "Frame quality flags; no temporal update.",
+      "rawPoint": 12,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 181.016667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.602182924747467,
+      "margin": 0.25260061025619507,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 181.516667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "candidate",
+      "similarity": 0.5781232714653015,
+      "margin": 0.24169209599494934,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 11,
+      "qualityFlags": [],
+      "trailBreak": false
+    },
+    {
+      "timeSeconds": 182.016667,
+      "nodeId": "f5315a38-ce14-4ac0-9f52-9de639bfa69d",
+      "label": "Point 11",
+      "status": "uncertain",
+      "similarity": 0.22316154837608337,
+      "margin": 0.017045795917510986,
+      "note": "Cosine below transferred rejection threshold.",
+      "rawPoint": 12,
+      "qualityFlags": [
+        "blurry"
+      ],
+      "trailBreak": true
+    },
+    {
+      "timeSeconds": 182.516667,
+      "nodeId": "773cbb11-1193-41d4-a77e-feeed44f4c87",
+      "label": "Point 12",
+      "status": "candidate",
+      "similarity": 0.3821856379508972,
+      "margin": 0.07860392332077026,
+      "note": "Visual threshold and graph history agree; unsurveyed candidate.",
+      "rawPoint": 12,
+      "qualityFlags": [],
+      "trailBreak": false
+    }
+  ],
+  "notes": [
+    "Continuity and threshold counts are not measured accuracy. No metre scale, pose, floor transition, manual start/end hints or future frames used. Startup Point 19 vs user-recalled Point 1 remains unresolved.",
+    "No confirmed or exact mapped camera positions. Uncertain candidates must not be connected into a verified movement trail."
+  ]
+}

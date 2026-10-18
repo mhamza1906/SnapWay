@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CameraLab, type CameraCandidate } from './camera-lab';
 import {
   ArrivalGate,
   CorridorEstimate,
@@ -15,15 +16,55 @@ import {
   type StepsReading,
 } from './navigation-sensors';
 
-/** Isolated, ephemeral experiment. No photo, graph mutation, or localization API calls. */
+interface VideoReplayFrame {
+  timeSeconds: number;
+  nodeId: string | null;
+  label?: string;
+  confidence?: number;
+  status: 'candidate' | 'uncertain';
+  similarity?: number;
+  margin?: number;
+  note?: string;
+}
+interface VideoReplay {
+  video: { name: string; durationSeconds: number; src?: string };
+  method: string;
+  frames: VideoReplayFrame[];
+  notes?: string[];
+}
+
+/** Isolated experiment. Reference matching is shown separately from sensor estimates. */
 @Component({
   selector: 'app-movement-lab',
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, CameraLab],
   templateUrl: './movement-lab.html',
   styleUrl: './movement-lab.scss',
 })
 export class MovementLab implements OnInit, OnDestroy {
   readonly plan = signal<LabPlan | null>(null);
+  readonly liveCandidate = signal<CameraCandidate | null>(null);
+  readonly livePoint = computed(() => {
+    const frame = this.liveCandidate();
+    const id = frame?.nodeId ?? frame?.candidateNodeId;
+    return id ? (this.plan()?.nodes.find((node) => node.id === id) ?? null) : null;
+  });
+  readonly replay = signal<VideoReplay | null>(null);
+  readonly replayFrame = signal<VideoReplayFrame | null>(null);
+  readonly replayMessage = signal('');
+  readonly replayBusy = signal(false);
+  readonly replayPoint = computed(() => {
+    const frame = this.replayFrame();
+    return frame?.nodeId
+      ? (this.plan()?.nodes.find((node) => node.id === frame.nodeId) ?? null)
+      : null;
+  });
+  readonly selectedPoint = computed(
+    () => this.plan()?.nodes.find((node) => node.id === this.selectedNode()) ?? null,
+  );
+  readonly selectedNode = signal('');
+  zoom = 1;
+  showReferenceNodes = false;
+  replayTime = 0;
   readonly phase = signal<'outdoor' | 'indoor'>('outdoor');
   readonly mode = signal<'idle' | 'gps' | 'motion' | 'simulation'>('idle');
   readonly message = signal('Start GPS outdoors, or try the clearly labelled simulation.');
@@ -57,6 +98,7 @@ export class MovementLab implements OnInit, OnDestroy {
   stride = 0.72;
   showTrail = true;
   private estimate: CorridorEstimate | null = null;
+  private visualReceivedAt = 0;
   private gate = new ArrivalGate();
   private sensors: NavigationSensors | null = null;
   private epoch = 0;
@@ -87,6 +129,7 @@ export class MovementLab implements OnInit, OnDestroy {
       this.estimate = new CorridorEstimate(plan);
       this.plan.set(plan);
       this.anchorId = plan.entryId;
+      this.selectedNode.set(plan.entryId);
       this.latitude = plan.outdoor.lat;
       this.longitude = plan.outdoor.lng;
       this.radius = plan.outdoor.radiusM;
@@ -96,6 +139,127 @@ export class MovementLab implements OnInit, OnDestroy {
       if (!this.destroyed)
         this.message.set(error instanceof Error ? error.message : 'Map unavailable.');
     }
+  }
+
+  receiveVisualCandidate(frame: CameraCandidate): void {
+    if (
+      !Number.isFinite(frame.timeSeconds) ||
+      frame.timeSeconds < 0 ||
+      (frame.similarity !== undefined &&
+        (!Number.isFinite(frame.similarity) || Math.abs(frame.similarity) > 1)) ||
+      (frame.margin !== undefined &&
+        (!Number.isFinite(frame.margin) || frame.margin < 0 || frame.margin > 2))
+    )
+      return;
+    this.visualReceivedAt = Date.now();
+    if (frame.nodeId !== null && !this.plan()?.nodes.some((node) => node.id === frame.nodeId)) {
+      this.liveCandidate.set({
+        ...frame,
+        nodeId: null,
+        status: 'uncertain',
+        note: 'Matching response used a reference outside this stored map.',
+      });
+      return;
+    }
+    this.liveCandidate.set(frame);
+  }
+
+  confirmLiveCandidate(): void {
+    const point = this.livePoint();
+    if (!point || this.liveCandidate()?.status !== 'candidate') return;
+    if (Date.now() - this.visualReceivedAt > 10000) {
+      this.message.set(
+        'The live visual candidate is older than 10 seconds. Wait for a fresh match or select and confirm a known reference manually.',
+      );
+      return;
+    }
+    this.pause('Motion sensors stopped while confirming the live visual reference.');
+    this.phase.set('indoor');
+    this.anchorId = point.id;
+    this.selectedNode.set(point.id);
+    this.confirmAnchor();
+    this.message.set(
+      'Live visual reference manually confirmed by you. Calibrate facing and measured distance to resume step estimates.',
+    );
+  }
+
+  changeZoom(delta: number): void {
+    this.zoom = Math.max(1, Math.min(4, Math.round((this.zoom + delta) * 2) / 2));
+  }
+
+  selectReference(id: string): void {
+    if (this.phase() === 'outdoor') {
+      this.pause('Reviewing stored map evidence. Start GPS again for a real arrival test.');
+      this.phase.set('indoor');
+    }
+    this.selectedNode.set(id);
+    this.showReferenceNodes = true;
+  }
+
+  async loadReplay(): Promise<void> {
+    if (this.replayBusy()) return;
+    this.replayBusy.set(true);
+    this.replayMessage.set('Loading stored video matching evidence…');
+    try {
+      const response = await fetch('/experiments/old-node-replay.json', {
+        signal: this.abort.signal,
+      });
+      if (!response.ok) throw new Error('Video evidence is not available in this local build yet.');
+      const replay = (await response.json()) as VideoReplay;
+      if (
+        !replay.video ||
+        !Number.isFinite(replay.video.durationSeconds) ||
+        replay.video.durationSeconds < 0 ||
+        !Array.isArray(replay.frames) ||
+        !replay.frames.every(
+          (frame) =>
+            Number.isFinite(frame.timeSeconds) &&
+            frame.timeSeconds >= 0 &&
+            ['candidate', 'uncertain'].includes(frame.status) &&
+            (frame.nodeId === null || this.plan()?.nodes.some((node) => node.id === frame.nodeId)),
+        )
+      )
+        throw new Error('Video evidence does not match the stored node map.');
+      if (this.destroyed) return;
+      replay.frames.sort((a, b) => a.timeSeconds - b.timeSeconds);
+      this.replay.set(replay);
+      this.replayTime = 0;
+      this.seekReplay(0);
+      this.replayMessage.set(
+        'Offline evidence only. Candidates do not move the live sensor estimate.',
+      );
+    } catch (error) {
+      if (!this.destroyed) this.replayMessage.set(this.error(error));
+    } finally {
+      this.replayBusy.set(false);
+    }
+  }
+
+  seekReplay(time: number): void {
+    this.replayTime = Number(time);
+    // Only the latest observed frame is eligible: never display a future visual fix.
+    const frame =
+      this.replay()
+        ?.frames.filter((frame) => frame.timeSeconds <= this.replayTime)
+        .at(-1) ?? null;
+    this.replayFrame.set(frame);
+  }
+
+  videoTime(event: Event): void {
+    this.seekReplay((event.target as HTMLVideoElement).currentTime);
+  }
+
+  confirmVideoCandidate(): void {
+    const point = this.replayPoint();
+    if (!point || this.replayFrame()?.status === 'uncertain') return;
+    this.pause('Sensors stopped while confirming a video reference.');
+    this.phase.set('indoor');
+    this.anchorId = point.id;
+    this.selectedNode.set(point.id);
+    this.confirmAnchor();
+    this.message.set(
+      'Video candidate manually confirmed by you as the current reference. Recalibrate before live motion; offline replay is not a live location.',
+    );
   }
 
   private session(mode: 'gps' | 'motion'): NavigationSensors {

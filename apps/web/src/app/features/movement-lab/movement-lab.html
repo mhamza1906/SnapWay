@@ -79,40 +79,132 @@
           <h2>{{ map.floor }} · entrance estimate</h2>
           <button (click)="resetOutdoor()">Back to GPS</button>
         </div>
-        <div class="map-wrap">
-          <img [src]="map.underlay" alt="Original Level 1 SVG floor plan, without graph markers" />
-          <svg
-            class="overlay"
-            [attr.viewBox]="'0 0 ' + map.width + ' ' + map.height"
-            role="img"
-            aria-label="Approximate indoor position"
+        <div class="map-tools">
+          <label class="check"
+            ><input type="checkbox" [(ngModel)]="showReferenceNodes" /> Show original saved
+            reference nodes</label
           >
-            @if (showTrail && trail().length > 1) {
-              <polyline
-                [attr.points]="trailPoints()"
-                fill="none"
-                stroke="#24726a"
-                stroke-width="2"
-                stroke-dasharray="4 3"
-              />
-            }
-            @if (position(); as p) {
-              <circle [attr.cx]="p.x" [attr.cy]="p.y" r="9" fill="#168378" opacity="0.18" />
-              <circle
-                [attr.cx]="p.x"
-                [attr.cy]="p.y"
-                r="4"
-                fill="#12635b"
-                stroke="white"
-                stroke-width="1.5"
-              />
-            }
-          </svg>
+          <div class="actions">
+            <button (click)="changeZoom(-0.5)" [disabled]="zoom <= 1" aria-label="Zoom out">
+              −</button
+            ><span>{{ zoom }}×</span
+            ><button (click)="changeZoom(0.5)" [disabled]="zoom >= 4" aria-label="Zoom in">
+              +
+            </button>
+          </div>
+        </div>
+        <div
+          class="map-scroll"
+          tabindex="0"
+          aria-label="Floor plan. Zoom and scroll to inspect saved nodes."
+        >
+          <div class="map-wrap" [style.width.%]="zoom * 100">
+            <img
+              [src]="map.underlay"
+              alt="Original Level 1 SVG floor plan, without graph markers"
+            />
+            <svg
+              class="overlay"
+              [attr.viewBox]="'0 0 ' + map.width + ' ' + map.height"
+              role="img"
+              aria-label="Approximate indoor position"
+            >
+              @if (showReferenceNodes) {
+                @for (point of photoStops(); track point.id) {
+                  <circle
+                    [attr.cx]="point.x"
+                    [attr.cy]="point.y"
+                    r="1.5"
+                    fill="#6d397f"
+                    stroke="white"
+                    stroke-width="0.5"
+                  />
+                }
+                @if (selectedPoint(); as point) {
+                  <circle
+                    [attr.cx]="point.x"
+                    [attr.cy]="point.y"
+                    r="4.5"
+                    fill="none"
+                    stroke="#6d397f"
+                    stroke-width="1.5"
+                  />
+                  <text
+                    [attr.x]="point.x"
+                    [attr.y]="point.y - 7"
+                    text-anchor="middle"
+                    font-size="8"
+                    fill="#562769"
+                    stroke="white"
+                    stroke-width="2"
+                    paint-order="stroke"
+                  >
+                    {{ point.label }}
+                  </text>
+                }
+              }
+              @if (livePoint(); as point) {
+                <circle
+                  [attr.cx]="point.x"
+                  [attr.cy]="point.y"
+                  r="6"
+                  fill="none"
+                  stroke="#d18121"
+                  stroke-width="2"
+                />
+              }
+              @if (replayPoint(); as point) {
+                <circle
+                  [attr.cx]="point.x"
+                  [attr.cy]="point.y"
+                  r="6"
+                  fill="none"
+                  stroke="#d18121"
+                  stroke-width="2"
+                  stroke-dasharray="2 2"
+                />
+              }
+              @if (showTrail && trail().length > 1) {
+                <polyline
+                  [attr.points]="trailPoints()"
+                  fill="none"
+                  stroke="#24726a"
+                  stroke-width="2"
+                  stroke-dasharray="4 3"
+                />
+              }
+              @if (position(); as p) {
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="9" fill="#168378" opacity="0.18" />
+                <circle
+                  [attr.cx]="p.x"
+                  [attr.cy]="p.y"
+                  r="4"
+                  fill="#12635b"
+                  stroke="white"
+                  stroke-width="1.5"
+                />
+              }
+            </svg>
+          </div>
         </div>
         <p class="small">
-          Only your estimated position is drawn. No graph nodes or numbered photo points appear on
-          the map. The original SVG may contain architectural labels.
+          Green: approximate live position. Amber solid ring: live visual candidate; dashed ring:
+          recorded video candidate. Purple: original saved photo positions, shown only when enabled.
+          Zoom and drag/scroll the map to inspect close locations; only the selected reference has a
+          label.
         </p>
+        @if (showReferenceNodes) {
+          <label
+            >Inspect a stored reference<select
+              [ngModel]="selectedNode()"
+              (ngModelChange)="selectReference($event)"
+            >
+              @for (point of photoStops(); track point.id) {
+                <option [value]="point.id">{{ point.label }}</option>
+              }
+            </select></label
+          >
+        }
         <div class="metrics">
           <span>{{ count() }} estimated steps</span
           ><span>Drift allowance ±{{ uncertainty() | number: '1.1-1' }} m*</span
@@ -218,6 +310,83 @@
         </ul>
       </section>
     }
+    <app-camera-lab (candidate)="receiveVisualCandidate($event)" />
+    @if (liveCandidate(); as frame) {
+      <section class="card candidate">
+        <h2>LIVE visual {{ frame.status }}</h2>
+        <p>{{ frame.label || 'No supported node' }} · {{ frame.note }}</p>
+        @if (frame.similarity !== undefined) {
+          <p class="small">
+            Similarity {{ frame.similarity | number: '1.3-3' }} is not an accuracy probability.
+          </p>
+        }
+        @if (livePoint(); as point) {
+          <button (click)="selectReference(point.id)">Show {{ point.label }}</button>
+          <button (click)="confirmLiveCandidate()" [disabled]="frame.status !== 'candidate'">
+            I confirm this is my current point
+          </button>
+        }
+      </section>
+    }
+    <section class="card video-evidence">
+      <h2>Stored video · original node evidence</h2>
+      <p>
+        Review frame matches against the original saved references. Repeated-looking corridors can
+        produce ambiguous matches. A candidate is not a verified live location.
+      </p>
+      <button (click)="loadReplay()" [disabled]="replayBusy()">
+        {{ replayBusy() ? 'Loading…' : 'Load video route evidence' }}
+      </button>
+      <p class="small" role="status">{{ replayMessage() }}</p>
+      @if (replay(); as evidence) {
+        <h3>{{ evidence.video.name }}</h3>
+        <p class="small">{{ evidence.method }}</p>
+        @if (evidence.video.src) {
+          <video
+            controls
+            playsinline
+            preload="metadata"
+            [src]="evidence.video.src"
+            (timeupdate)="videoTime($event)"
+          ></video>
+        }
+        <label
+          >Video time · {{ replayTime | number: '1.1-1' }} seconds<input
+            type="range"
+            min="0"
+            [max]="evidence.video.durationSeconds"
+            step="0.5"
+            [ngModel]="replayTime"
+            (ngModelChange)="seekReplay($event)"
+        /></label>
+        @if (replayFrame(); as frame) {
+          <div class="candidate">
+            <strong
+              >{{ frame.status === 'uncertain' ? 'Uncertain observation' : 'Visual candidate' }} ·
+              {{ frame.label || replayPoint()?.label || 'No supported node' }}</strong
+            >
+            <p>Observed at {{ frame.timeSeconds | number: '1.1-1' }} s. {{ frame.note }}</p>
+            @if (frame.similarity !== undefined) {
+              <p class="small">
+                Embedding similarity {{ frame.similarity | number: '1.3-3' }}. This score is not a
+                probability of a correct location.
+              </p>
+            }
+            @if (replayPoint(); as point) {
+              <button (click)="selectReference(point.id)">Show {{ point.label }} on the map</button>
+              <button (click)="confirmVideoCandidate()" [disabled]="frame.status === 'uncertain'">
+                I confirm I am at this reference now
+              </button>
+            }
+          </div>
+        } @else {
+          <p>No observation at or before this time.</p>
+        }
+        @for (note of evidence.notes || []; track note) {
+          <p class="small">{{ note }}</p>
+        }
+      }
+    </section>
     <details class="card demo">
       <summary>Simulation controls · no real sensor readings</summary>
       <p>
@@ -237,7 +406,8 @@
       </div>
     </details>
     <footer>
-      No sensor readings are stored or uploaded.
+      GPS and motion readings stay in memory. Live camera JPEGs are sent to this computer and
+      discarded after matching.
       <a [href]="map.outdoor.addressSource" target="_blank" rel="noopener noreferrer"
         >UTSC location information ↗</a
       >
