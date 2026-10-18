@@ -1,3 +1,38 @@
+.account-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 24px 0;
+}
+.account-bar p {
+  margin: 0;
+  font-size: 13px;
+  color: #5a6b58;
+}
+.account-bar strong {
+  color: #233d30;
+  font-weight: 600;
+}
+.account-mode {
+  margin-left: 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #677c5a;
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.account-error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: #9b2c2c;
+}
 .destination-selects {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
@@ -34,4 +69,10 @@
   font-weight: 550;
   letter-spacing: -0.4px;
   text-align: left;
+}
+.catalog-status {
+  margin: 12px 0 0;
+  color: #52634b;
+  font-size: 12px;
+  line-height: 1.5;
 }

@@ -7,9 +7,15 @@ export interface Coordinates {
   lng: number;
 }
 export interface MapHandle {
+  addListener(event: string, callback: (event: MapClick) => void): { remove(): void };
   panTo(position: Coordinates): void;
   setZoom(zoom: number): void;
   fitBounds(bounds: BoundsHandle, padding?: number): void;
+}
+export interface MapClick {
+  placeId?: string;
+  latLng?: { lat(): number; lng(): number };
+  stop?(): void;
 }
 export interface BoundsHandle {
   extend(position: Coordinates): void;
@@ -17,11 +23,14 @@ export interface BoundsHandle {
 export interface MarkerHandle {
   map: MapHandle | null;
   position: Coordinates;
+  setMap?(map: MapHandle | null): void;
   addListener(event: string, callback: () => void): { remove(): void };
 }
 export interface MapsRuntime {
   Map: new (element: HTMLElement, options: Record<string, unknown>) => MapHandle;
   LatLngBounds: new () => BoundsHandle;
+  Size: new (width: number, height: number) => unknown;
+  Marker: new (options: Record<string, unknown>) => MarkerHandle;
   marker: { AdvancedMarkerElement: new (options: Record<string, unknown>) => MarkerHandle };
   event: { clearInstanceListeners(instance: unknown): void };
   importLibrary(name: string): Promise<unknown>;
@@ -31,6 +40,25 @@ interface GoogleWindow extends Window {
   google?: { maps: MapsRuntime };
   snapwayMapsReady?: () => void;
   gm_authFailure?: () => void;
+}
+
+/** Reliable pin icons — classic Marker does not require a Cloud mapId. */
+export function mapPinIcon(maps: MapsRuntime, fill: string) {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="35" height="45" viewBox="0 0 35 45">` +
+    `<path d="M17.5 43C14 37 2 25 2 17a15.5 15.5 0 0 1 31 0c0 8-12 20-15.5 26Z" fill="${fill}" stroke="#fff" stroke-width="2.5"/>` +
+    `<circle cx="17.5" cy="17" r="5" fill="#fff"/></svg>`;
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new maps.Size(35, 45),
+    anchor: { x: 17, y: 43 },
+  };
+}
+
+export function detachMarker(maps: MapsRuntime | undefined, marker: MarkerHandle) {
+  maps?.event.clearInstanceListeners(marker);
+  if (typeof marker.setMap === 'function') marker.setMap(null);
+  marker.map = null;
 }
 
 @Injectable({ providedIn: 'root' })

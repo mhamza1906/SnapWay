@@ -9,6 +9,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Capacitor } from '@capacitor/core';
+import { NATIVE_API_ORIGIN } from '../../core/native-api.interceptor';
 import {
   GoogleMapsService,
   MapHandle,
@@ -19,11 +22,22 @@ import {
 
 @Component({
   selector: 'app-walking-map',
-  template: `<div #canvas class="canvas" aria-label="Google map for walking"></div>
-    @if (error() || sdk.error()) {
+  template: `@if (native) {
+      <iframe
+        #hostedMap
+        class="canvas"
+        [src]="hostedUrl()"
+        title="Google map for walking"
+        referrerpolicy="strict-origin-when-cross-origin"
+        (load)="updateHosted()"
+      ></iframe>
+    } @else {
+      <div #canvas class="canvas" aria-label="Google map for walking"></div>
+    }
+    @if (error() || (!native && sdk.error())) {
       <div class="fallback" role="status">
         <strong>Map unavailable</strong>
-        <p>{{ sdk.error() || error() }}</p>
+        <p>{{ error() || sdk.error() }}</p>
         <button (click)="load()">Try again</button>
       </div>
     } @else if (loading()) {
@@ -42,6 +56,7 @@ import {
       .canvas {
         height: 100%;
         width: 100%;
+        border: 0;
       }
       .fallback {
         position: absolute;
@@ -78,10 +93,16 @@ import {
   ],
 })
 export class WalkingMap implements AfterViewInit {
+  readonly native = Capacitor.isNativePlatform();
+  private readonly channel = crypto.randomUUID();
+  private readonly sanitizer = inject(DomSanitizer);
+  private hostedAttempts = 0;
+  readonly hostedUrl = signal(this.hostedMapUrl(0));
+  readonly hostedMap = viewChild<ElementRef<HTMLIFrameElement>>('hostedMap');
   readonly sdk = inject(GoogleMapsService);
   readonly location = input<Coordinates | null>(null);
   readonly destination = input<Coordinates | null>(null);
-  readonly canvas = viewChild.required<ElementRef<HTMLElement>>('canvas');
+  readonly canvas = viewChild<ElementRef<HTMLElement>>('canvas');
   readonly error = signal('');
   readonly loading = signal(true);
   private map?: MapHandle;
@@ -89,6 +110,24 @@ export class WalkingMap implements AfterViewInit {
   private user?: MarkerHandle;
   private target?: MarkerHandle;
   private destroyed = false;
+  private hostedTimeout?: ReturnType<typeof setTimeout>;
+  private readonly onHostedMessage = (event: MessageEvent) => {
+    if (
+      event.origin !== NATIVE_API_ORIGIN ||
+      event.source !== this.hostedMap()?.nativeElement.contentWindow ||
+      event.data?.channel !== this.channel
+    )
+      return;
+    if (event.data.type === 'snapway.map.ready') {
+      clearTimeout(this.hostedTimeout);
+      this.loading.set(false);
+      this.error.set('');
+    } else if (event.data.type === 'snapway.map.error') {
+      clearTimeout(this.hostedTimeout);
+      this.loading.set(false);
+      this.error.set('Google Maps is unavailable. You can still choose an indoor destination.');
+    }
+  };
 
   constructor() {
     effect(() => {
@@ -98,6 +137,8 @@ export class WalkingMap implements AfterViewInit {
     });
     inject(DestroyRef).onDestroy(() => {
       this.destroyed = true;
+      window.removeEventListener('message', this.onHostedMessage);
+      clearTimeout(this.hostedTimeout);
       if (this.user) this.user.map = null;
       if (this.target) this.target.map = null;
       if (this.map) this.maps?.event.clearInstanceListeners(this.map);
@@ -107,6 +148,20 @@ export class WalkingMap implements AfterViewInit {
     void this.load();
   }
   async load() {
+    if (this.native) {
+      if (this.hostedAttempts++ > 0) this.hostedUrl.set(this.hostedMapUrl(this.hostedAttempts));
+      window.removeEventListener('message', this.onHostedMessage);
+      window.addEventListener('message', this.onHostedMessage);
+      this.loading.set(true);
+      this.error.set('');
+      clearTimeout(this.hostedTimeout);
+      this.hostedTimeout = setTimeout(() => {
+        this.loading.set(false);
+        this.error.set('Unable to open the cloud map. Check your connection and retry.');
+      }, 25000);
+      this.updateHosted();
+      return;
+    }
     if (this.sdk.error()) {
       window.location.reload();
       return;
@@ -117,7 +172,7 @@ export class WalkingMap implements AfterViewInit {
       const { maps, mapId } = await this.sdk.load();
       if (this.destroyed) return;
       this.maps = maps;
-      this.map ??= new maps.Map(this.canvas().nativeElement, {
+      this.map ??= new maps.Map(this.canvas()!.nativeElement, {
         center: this.location() ?? this.destination() ?? { lat: 43.6532, lng: -79.3832 },
         zoom: 17,
         mapId,
@@ -138,6 +193,10 @@ export class WalkingMap implements AfterViewInit {
     }
   }
   private update() {
+    if (this.native) {
+      this.updateHosted();
+      return;
+    }
     if (!this.maps || !this.map) return;
     const location = this.location();
     const destination = this.destination();
@@ -184,5 +243,23 @@ export class WalkingMap implements AfterViewInit {
     center.setAttribute('fill', '#ffffff');
     svg.append(pin, center);
     return svg;
+  }
+
+  updateHosted() {
+    this.hostedMap()?.nativeElement.contentWindow?.postMessage(
+      {
+        type: 'snapway.map.update',
+        channel: this.channel,
+        location: this.location(),
+        destination: this.destination(),
+      },
+      NATIVE_API_ORIGIN,
+    );
+  }
+
+  private hostedMapUrl(attempt: number) {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `${NATIVE_API_ORIGIN}/api/maps/public/mobile-map/${attempt ? `?retry=${attempt}` : ''}#${this.channel}`,
+    );
   }
 }

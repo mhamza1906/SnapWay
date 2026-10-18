@@ -1,0 +1,38 @@
+# REVIEW TEMPLATE ONLY. Substitute @RELEASE_ID@ and @PLACEMATCH_VENV@ before use.
+# Provision pinned weights/calibration/indexes in shared data before a memory probe.
+[Unit]
+Description=SnapWay optional MegaLoc mobile matching engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=snapway
+Group=snapway
+WorkingDirectory=/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match
+EnvironmentFile=/etc/indoor-nav/api.env
+UnsetEnvironment=DATABASE_MIGRATOR
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONPATH=/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match
+Environment=OMP_NUM_THREADS=2
+Environment=MKL_NUM_THREADS=2
+Environment=OPENBLAS_NUM_THREADS=2
+Environment=NUMEXPR_NUM_THREADS=2
+Environment=MOBILE_STORE_FRAMES=0
+Environment=MOBILE_ENABLE_VERTEX=0
+Environment=CUDA_VISIBLE_DEVICES=
+BindPaths=/srv/indoor-nav/shared/placematch-data:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/data
+BindPaths=/srv/indoor-nav/shared/placematch-runs:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/runs
+ExecStart=@PLACEMATCH_VENV@/bin/python -m placematch.cli serve-mobile --host 127.0.0.1 --port 8790
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/indoor-nav/shared/placematch-data /srv/indoor-nav/shared/placematch-runs
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

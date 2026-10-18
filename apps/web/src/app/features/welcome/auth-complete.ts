@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, safeReturnPath } from '../../core/auth.service';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-auth-complete',
@@ -9,14 +9,13 @@ import { AuthService, safeReturnPath } from '../../core/auth.service';
     <h1>{{ error() ? 'Sign-in did not finish' : 'Finishing sign-in…' }}</h1>
     <p role="status">{{ error() || 'Checking your secure session.' }}</p>
     @if (error()) {
-      <a class="btn primary" routerLink="/welcome">Try signing in again</a>
+      <a class="btn primary" routerLink="/sign-in">Try signing in again</a>
     }
     <a class="btn secondary" routerLink="/map">Explore buildings</a>
   </main>`,
 })
 export class AuthCompletePage {
   private readonly auth = inject(AuthService);
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly error = signal('');
   constructor() {
@@ -28,10 +27,7 @@ export class AuthCompletePage {
         this.error.set('No signed-in session was found. Please try again.');
         return;
       }
-      await this.router.navigateByUrl(
-        safeReturnPath(this.route.snapshot.queryParamMap.get('returnUrl')),
-        { replaceUrl: true },
-      );
+      await this.router.navigateByUrl(this.auth.consumeReturnPath(), { replaceUrl: true });
     } catch {
       this.error.set(this.auth.error());
     }

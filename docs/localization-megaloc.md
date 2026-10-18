@@ -81,20 +81,24 @@ See [localization-visitor-match.md](localization-visitor-match.md): catalog elig
 
 ## Still later (product, not architecture change)
 
-- Frontend UI for localize
 - `LocalizationResult` / Capture persistence (needs retention approval)
 - Auto-rebuild index on photo change; publish gates; Celery
 - Optional Vertex/verify on global path
+- Visitor text route guidance (`feature/visitor-text-route-guidance` — optional later merge)
 
 ## Env
 
 No new keys. `S3_*` / `MEDIA_ROOT` for photo + index bytes.  
 `PLACEMATCH_ENGINE_URL` / `TOKEN` / `TIMEOUT_S` for visitor localize.  
+Optional DEBUG `PLACEMATCH_DEV_TOKEN` for token auth without a session.
 Live MegaLoc uses the place-match venv (`uv` under `apps/place-match`).  
 Calibrated thresholds: ignored `apps/place-match/data/calibration/current.json` (without it, outcomes stay `uncertain`).
+
+Graph editor: **Rebuild MegaLoc index** → `POST /api/maps/revisions/<id>/index/` (Developer mode).
+CLI: `manage.py build_reference_index <revision_id> --email …`.
 
 ## Commits / evidence
 
 - Engine + benches: [visual-place-matching.md](visual-place-matching.md), `apps/place-match/REPORT-v2.md`
 - Embed+store: `feature/reference-embedding-index`
-- Global visitor match + live E2E: `feature/visitor-localization-match`
+- Global visitor match + live E2E: on `main` / `feature/frontend-iteration` (via `feature/visitor-localization-match`)

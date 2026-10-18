@@ -14,8 +14,11 @@ rules, migration instructions and service boundaries.
 
 Map membership helpers and DRF permission classes are documented in
 [backend-permissions.md](../../docs/backend-permissions.md). Broader map/contribution
-product APIs remain to be implemented; REST, jobs and MCP should call the same
-authorized services. Google OAuth and session identity:
+workspace APIs now use the shared lifecycle/retention services under `maps/services/`;
+REST, jobs and MCP should call the same authorized services. See
+[Developer workspace](../../docs/developer-workspace.md) for pinned drafts,
+last-approved-wins publishing, archive deletion, endpoints and migrations `0004`–`0006`.
+Google OAuth and session identity:
 [backend-oauth.md](../../docs/backend-oauth.md) (credentials in `local/.env`).
 
 `navigation/` also exposes the photo-localization gateway under

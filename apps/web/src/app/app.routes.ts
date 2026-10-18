@@ -1,13 +1,66 @@
 import { Routes } from '@angular/router';
-import { sessionGuard } from './core/auth.service';
+import {
+  adminGuard,
+  developerGuard,
+  publicGuard,
+  publicDiscoveryGuard,
+  sessionGuard,
+} from './core/auth.service';
 
 export const routes: Routes = [
   {
     path: 'app-preview',
     loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
   },
-  { path: '', pathMatch: 'full', redirectTo: 'map' },
-  { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
+  { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
+  { path: 'app-review', pathMatch: 'full', redirectTo: 'app-preview' },
+  {
+    path: 'sign-in',
+    loadComponent: () => import('./features/sign-in/sign-in').then((m) => m.SignInPage),
+  },
+  {
+    path: 'public',
+    canActivate: [publicGuard],
+    loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
+  },
+  {
+    path: 'explore',
+    canActivate: [developerGuard],
+    loadComponent: () => import('./features/developer/explore').then((m) => m.ExplorePage),
+  },
+  {
+    path: 'my-maps',
+    canActivate: [developerGuard],
+    loadComponent: () => import('./features/developer/my-maps').then((m) => m.MyMapsPage),
+  },
+  {
+    path: 'developer-contribution',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./features/developer/contributions').then((m) => m.DeveloperContributionsPage),
+  },
+  {
+    path: 'developer-contribution/activity',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./features/developer/activity').then((m) => m.DeveloperActivityPage),
+  },
+  {
+    path: 'developer-contribution/:id',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./features/developer/comparison').then((m) => m.MapComparisonPage),
+  },
+  {
+    path: 'map-optimize',
+    canActivate: [developerGuard],
+    loadComponent: () =>
+      import('./features/map-optimize/map-optimize').then((m) => m.MapOptimizePage),
+  },
+  {
+    path: 'map',
+    canActivate: [publicDiscoveryGuard],
+    loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage),
+  },
   {
     path: 'auth/complete',
     loadComponent: () => import('./features/welcome/auth-complete').then((m) => m.AuthCompletePage),
@@ -32,7 +85,7 @@ export const routes: Routes = [
   {
     path: 'graph-editor',
     loadComponent: () =>
-      import('./features/graph-editor/graph-editor').then((m) => m.GraphEditorPage),
+      import('./features/graph-editor/graph-editor-entry').then((m) => m.GraphEditorEntry),
   },
   {
     path: 'editor/:id',
@@ -70,6 +123,7 @@ export const routes: Routes = [
   { path: 'help', loadComponent: () => import('./features/help/help').then((m) => m.HelpPage) },
   {
     path: 'welcome',
+    canActivate: [sessionGuard],
     loadComponent: () => import('./features/welcome/welcome').then((m) => m.WelcomePage),
   },
   {
@@ -89,12 +143,13 @@ export const routes: Routes = [
     'graph-editor',
     'editor/:id',
     'authoring',
+    'capture',
     'review',
     'review/:id',
     'activity',
     'settings',
     'connection-check',
   ].includes(route.path ?? '')
-    ? { ...route, canActivate: [sessionGuard] }
+    ? { ...route, canActivate: [developerGuard] }
     : route,
 ) as Routes;

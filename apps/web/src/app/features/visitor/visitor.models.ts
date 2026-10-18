@@ -5,7 +5,6 @@ export interface VisitorRoom {
 }
 
 export interface VisitorBuilding {
-  demo?: boolean;
   id: string;
   name: string;
   slug?: string;
@@ -16,8 +15,8 @@ export interface VisitorBuilding {
     target_id: string;
     name: string;
     code: string;
-    publication_id: string;
-    sequence: number;
+    publication_id: string | null;
+    sequence: number | null;
     checkpoints?: { id: string; label: string }[];
     destinations?: VisitorRoom[];
   }[];

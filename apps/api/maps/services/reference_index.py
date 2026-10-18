@@ -68,7 +68,7 @@ def _artifact_payload(artifact: RevisionArtifact, *, skipped: bool = False) -> d
 
 
 def get_index_status(revision: Revision, *, actor) -> dict[str, Any]:
-    graph_svc._require_writable(actor, revision)
+    graph_svc.require_draft_read_access(actor, revision)
     try:
         artifact = RevisionArtifact.objects.select_related("asset").get(
             revision=revision, kind="index"

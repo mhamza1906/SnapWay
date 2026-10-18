@@ -1,4 +1,4 @@
-"""Persistence foundations for later N0 navigation; no localization/routing API yet."""
+"""Navigation persistence; transient photo-route previews do not retain camera frames."""
 
 from django.db import models
 from django.db.models import Q

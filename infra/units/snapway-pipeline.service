@@ -1,0 +1,34 @@
+# REVIEW TEMPLATE ONLY. Substitute @RELEASE_ID@ and @NODE_BINARY@ before use.
+# Optional packaging creates bind destinations; provision shared directories first.
+[Unit]
+Description=SnapWay optional map authoring pipeline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=snapway
+Group=snapway
+WorkingDirectory=/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline
+EnvironmentFile=/etc/indoor-nav/api.env
+UnsetEnvironment=DATABASE_MIGRATOR
+Environment=APP_ENV=prod
+Environment=PORT=5175
+Environment=UV_THREADPOOL_SIZE=2
+Environment=OMP_NUM_THREADS=2
+BindReadOnlyPaths=/srv/indoor-nav/shared/pipeline-node_modules:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/node_modules
+BindPaths=/srv/indoor-nav/shared/pipeline-local:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/.local
+BindPaths=/srv/indoor-nav/shared/pipeline-output:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/output
+ExecStart=@NODE_BINARY@ /srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/server/start.js prod
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/indoor-nav/shared/pipeline-local /srv/indoor-nav/shared/pipeline-output
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

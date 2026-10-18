@@ -11,6 +11,13 @@ from rest_framework.test import APIClient
 User = get_user_model()
 
 
+def developer_login(client, user):
+    client.force_login(user)
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
+
+
 @pytest.fixture
 def actors(db):
     member = User.objects.create_user(username="member", email="member@example.com", password="x")
@@ -68,7 +75,10 @@ def test_patch_node_label(actors, draft):
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=10, y=20, label="Old", actor=actors["member"])
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -90,7 +100,10 @@ def test_stranger_cannot_patch_label(actors, draft):
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=1, y=2, actor=actors["member"])
     client = APIClient()
-    client.force_login(actors["stranger"])
+    developer_login(client, actors["stranger"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -110,7 +123,10 @@ def test_frozen_rejects_label_update(actors, draft):
     node = add_node(revision, x=1, y=2, actor=actors["member"])
     freeze_revision(revision)
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -130,7 +146,10 @@ def test_attach_list_delete_node_photo(actors, draft, settings, tmp_path):
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=5, y=5, label="Door", actor=actors["member"])
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     photos_url = reverse(
         "map-revision-node-photos",
         kwargs={"revision_id": draft["revision_id"], "node_id": node.id},
@@ -169,7 +188,10 @@ def test_attach_list_delete_node_photo(actors, draft, settings, tmp_path):
 def test_underlay_uses_media_store(actors, draft, settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.post(
         reverse("map-revision-underlay", kwargs={"revision_id": draft["revision_id"]}),
         {"file": SimpleUploadedFile("plan.png", _tiny_png(), content_type="image/png")},
@@ -192,7 +214,7 @@ def test_directional_photos_one_per_direction_in_r2(actors, draft, settings, tmp
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=5, y=5, label="Point 1", actor=actors["member"])
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
     url = reverse(
         "map-revision-node-photos",
         kwargs={"revision_id": draft["revision_id"], "node_id": node.id},
@@ -266,7 +288,7 @@ def test_directional_photos_refused_without_r2(actors, draft, settings, tmp_path
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=5, y=5, actor=actors["member"])
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
     response = client.post(
         reverse(
             "map-revision-node-photos",
@@ -306,14 +328,14 @@ def test_phone_draft_list_is_scoped_and_graph_reports_saved_views(
             revision=revision, node=node, asset=asset, capture_context={"direction": direction}
         )
     client = APIClient()
-    client.force_login(actors["member"])
+    developer_login(client, actors["member"])
     listed = client.get(reverse("map-draft-ensure"))
     assert listed.status_code == 200
     assert [d["target_id"] for d in listed.json()["drafts"]] == [str(revision.target_id)]
     graph = client.get(reverse("map-revision-graph", kwargs={"revision_id": revision.id})).json()
     assert graph["nodes"][0]["photo_directions"] == ["front", "right"]
     assert graph["photo_uploads_available"] is False
-    client.force_login(actors["stranger"])
+    developer_login(client, actors["stranger"])
     assert client.get(reverse("map-draft-ensure")).json()["drafts"] == []
 
 
@@ -356,6 +378,11 @@ def test_import_phone_walks_preserves_existing_draft_on_repeat(actors, settings,
     revision = contributions.get().head_revision
     assert revision.nodes.count() == 1
     assert revision.geometry["photo_walk_source"] == "test-svg:floor:circulation:12"
+    assert revision.coordinate_frame["width"] == 100
+    assert revision.coordinate_frame["height"] == 100
+    # Raster display resolution must not move source-authored SVG coordinates.
+    assert float(revision.nodes.get().x) == 5
+    assert float(revision.nodes.get().y) == 10
     actors["member"].refresh_from_db()
     assert not actors["member"].is_staff
 

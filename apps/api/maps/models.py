@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
+from django.db.models.functions import Now
 
 
 class Record(models.Model):
@@ -30,6 +31,7 @@ def scope_key(scope, name):
 
 
 class Building(Record):
+    google_place_id = models.CharField(max_length=300, null=True, blank=True, unique=True)
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     address = models.TextField(blank=True)
@@ -63,6 +65,8 @@ class Floor(Record):
 
 
 class MapTarget(Record):
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
+
     class Status(models.TextChoices):
         OPEN = "open", "Open"
         ARCHIVED = "archived", "Archived"
@@ -106,6 +110,8 @@ class Membership(Record):
 
 
 class Contribution(Record):
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         SUBMITTED = "submitted", "Submitted"
@@ -348,6 +354,38 @@ class Edge(Record):
         ]
 
 
+class FloorConnection(Record):
+    """Explicit directed transfer between two exact, revision-pinned floor nodes."""
+
+    from_node = models.ForeignKey(Node, on_delete=models.PROTECT, related_name="floor_departures")
+    to_node = models.ForeignKey(Node, on_delete=models.PROTECT, related_name="floor_arrivals")
+    cost = models.DecimalField(max_digits=16, decimal_places=6)
+    is_open = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["from_node", "to_node"], name="floor_connection_uq"),
+            models.CheckConstraint(condition=Q(cost__gte=0), name="floor_connection_cost_ck"),
+            models.CheckConstraint(
+                condition=~Q(from_node=F("to_node")), name="floor_connection_no_self_ck"
+            ),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if not self.from_node_id or not self.to_node_id:
+            return
+        source, target = self.from_node, self.to_node
+        a, b = source.revision.target.floor, target.revision.target.floor
+        if a.id == b.id or a.building_id != b.building_id:
+            raise ValidationError("Connections must join different floors of the same building.")
+        if source.kind not in {Node.Kind.STAIRS, Node.Kind.LIFT} or source.kind != target.kind:
+            raise ValidationError("Connect stairs to stairs or elevators to elevators.")
+
+
 class ReferencePhoto(Record):
     class Status(models.TextChoices):
         PROPOSED = "proposed", "Proposed"
@@ -520,6 +558,33 @@ class ChangeSet(Record):
                 condition=~Q(base_revision=F("result_revision")),
                 name="change_distinct_revisions_ck",
             ),
+        ]
+
+
+class FloorConnector(Record):
+    """Cross-floor stair/lift correspondence for multi-floor routing.
+
+    Endpoints list matching vertical nodes on each floor of one building.
+    Edges remain per-revision; routing joins floors through these rows.
+    """
+
+    class Kind(models.TextChoices):
+        STAIRS = "stairs", "Stairs"
+        LIFT = "lift", "Lift"
+
+    building = models.ForeignKey(
+        Building, on_delete=models.PROTECT, related_name="floor_connectors"
+    )
+    code = models.CharField(max_length=40)
+    kind = models.CharField(max_length=16, choices=Kind)
+    label = models.CharField(max_length=200, blank=True)
+    # [{floor_code, target_id, node_id, node_stable_id, label}]
+    endpoints = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["building", "code"], name="floor_connector_code_uq"),
+            enum_check("kind", ["stairs", "lift"], "floor_connector_kind_ck"),
         ]
 
 

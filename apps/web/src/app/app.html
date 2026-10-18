@@ -1,4 +1,4 @@
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" [href]="skipLink()">Skip to content</a>
 @if (!fullScreen()) {
   @if (mobileOpen()) {
     <button
@@ -33,11 +33,17 @@
       <span class="visitor-icon"><app-icon name="compass" /></span
       ><strong>A fresh perspective</strong>
       <p>Walk through your published maps as a visitor.</p>
-      <a routerLink="/navigate" class="btn secondary small" (click)="mobileOpen.set(false)"
+      <a routerLink="/app-preview" class="btn secondary small" (click)="mobileOpen.set(false)"
         >Open visitor preview<app-icon name="arrow"
       /></a>
     </div>
     <nav class="bottom-nav" aria-label="Workspace tools">
+      <button class="btn ghost small" (click)="switchToPublic()" [disabled]="auth.busy()">
+        <app-icon name="compass" />Switch to visitor
+      </button>
+      <a routerLink="/sign-in" (click)="mobileOpen.set(false)">
+        <app-icon name="grid" />Choose experience
+      </a>
       <a routerLink="/help" routerLinkActive="active" (click)="mobileOpen.set(false)"
         ><app-icon name="help" />Getting started</a
       ><a
@@ -107,7 +113,7 @@
     <main id="main-content"><router-outlet /></main>
   </div>
 } @else {
-  @if (url().startsWith('/navigate')) {
+  @if (url().startsWith('/navigate') || url().startsWith('/app-preview')) {
     <div class="visitor-return">
       <a routerLink="/overview"><app-icon name="arrow-left" />Back to workspace</a
       ><span>snapway.</span>
@@ -151,3 +157,12 @@
     }
   </div>
 </dialog>
+
+@if (ui.busy()) {
+  <div class="global-busy" role="status" aria-live="polite" aria-busy="true">
+    <div class="global-busy-card">
+      <span class="global-spinner" aria-hidden="true"></span>
+      <p>{{ ui.busyMessage() }}</p>
+    </div>
+  </div>
+}

@@ -7,7 +7,15 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { AuthService, safeReturnPath, sessionGuard } from './auth.service';
+import {
+  AuthService,
+  safeReturnPath,
+  sessionGuard,
+  developerGuard,
+  adminGuard,
+  publicGuard,
+  publicDiscoveryGuard,
+} from './auth.service';
 
 describe('Django session authentication', () => {
   let http: HttpTestingController;
@@ -19,7 +27,10 @@ describe('Django session authentication', () => {
     http = TestBed.inject(HttpTestingController);
     auth = TestBed.inject(AuthService);
   });
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    sessionStorage.removeItem('snapway.auth.return');
+  });
 
   it('never derives account permissions from the local prototype role', async () => {
     const pending = auth.refresh();
@@ -28,7 +39,7 @@ describe('Django session authentication', () => {
       .flush({ authenticated: true, username: 'Mapper', memberships: [], is_staff: false });
     await pending;
     expect(auth.signedIn()).toBe(true);
-    expect(auth.role()).toBe('No map membership');
+    expect(auth.role()).toBe('Public User');
   });
 
   it('protects contributor URLs and preserves only a safe return path', async () => {
@@ -42,7 +53,7 @@ describe('Django session authentication', () => {
     const redirect = await guard;
     expect(
       TestBed.inject(Router).serializeUrl(redirect as ReturnType<Router['createUrlTree']>),
-    ).toContain('/welcome?returnUrl=');
+    ).toContain('/sign-in?returnUrl=');
     for (const unsafe of [
       'https://evil.invalid',
       '//evil.invalid',
@@ -75,5 +86,148 @@ describe('Django session authentication', () => {
     logout.flush({ authenticated: false });
     expect(await pending).toBe(true);
     expect(auth.signedIn()).toBe(false);
+  });
+
+  it('blocks public sessions from developer routes and normal developers from admin routes', async () => {
+    const developer = TestBed.runInInjectionContext(() =>
+      developerGuard({} as ActivatedRouteSnapshot, { url: '/graph-editor' } as RouterStateSnapshot),
+    );
+    http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public', can_admin: true });
+    expect(
+      TestBed.inject(Router).serializeUrl((await developer) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/welcome?returnUrl=%2Fgraph-editor');
+    expect(auth.canAdmin()).toBe(false);
+    const admin = TestBed.runInInjectionContext(() =>
+      adminGuard({} as ActivatedRouteSnapshot, { url: '/review' } as RouterStateSnapshot),
+    );
+    http
+      .expectOne('/api/auth/me/')
+      .flush({ authenticated: true, mode: 'developer', can_admin: false });
+    expect(
+      TestBed.inject(Router).serializeUrl((await admin) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/overview');
+  });
+
+  it('switches mode using a server POST without replacing the account', async () => {
+    const pending = auth.switchMode('developer');
+    http
+      .expectOne('/api/auth/me/')
+      .flush({ authenticated: true, username: 'Same account', mode: 'public' });
+    const modeRequest = await vi.waitFor(() => http.expectOne('/api/auth/mode/'));
+    expect(modeRequest.request.method).toBe('POST');
+    expect(modeRequest.request.body).toEqual({ mode: 'developer' });
+    modeRequest.flush({
+      authenticated: true,
+      username: 'Same account',
+      mode: 'developer',
+      can_admin: false,
+    });
+    expect(await pending).toBe(true);
+    expect(auth.name()).toBe('Same account');
+    expect(auth.isDeveloper()).toBe(true);
+    expect(auth.canAdmin()).toBe(false);
+  });
+
+  it('separates experiences while retaining server privileges behind the Developer identity', async () => {
+    const publicPage = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public' });
+    expect(await publicPage).toBe(true);
+    expect(auth.landingPath()).toBe('/public');
+
+    const developerPage = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http
+      .expectOne('/api/auth/me/')
+      .flush({ authenticated: true, mode: 'developer', can_admin: true });
+    expect(
+      TestBed.inject(Router).serializeUrl(
+        (await developerPage) as ReturnType<Router['createUrlTree']>,
+      ),
+    ).toBe('/overview');
+    expect(auth.role()).toBe('Developer');
+    expect(auth.canAdmin()).toBe(true);
+  });
+
+  it('requires a server session for the public visitor journey', async () => {
+    const pending = TestBed.runInInjectionContext(() =>
+      publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
+    );
+    http.expectOne('/api/auth/me/').flush({ authenticated: false });
+    expect(
+      TestBed.inject(Router).serializeUrl((await pending) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/sign-in?returnUrl=%2Fpublic');
+  });
+
+  it('sends signed-in Public Users from discovery map to the visitor journey', async () => {
+    const pending = TestBed.runInInjectionContext(() => publicDiscoveryGuard());
+    http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public' });
+    expect(
+      TestBed.inject(Router).serializeUrl((await pending) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/public');
+  });
+
+  it('keeps the anonymous discovery map available', async () => {
+    const pending = TestBed.runInInjectionContext(() => publicDiscoveryGuard());
+    http.expectOne('/api/auth/me/').flush({ authenticated: false });
+    expect(await pending).toBe(true);
+  });
+
+  it('submits the selected mode with a CSRF token in the native Google start form', async () => {
+    document.cookie = 'XSRF-TOKEN=synthetic-csrf';
+    let submitted: HTMLFormElement | undefined;
+    const submit = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(function (
+      this: HTMLFormElement,
+    ) {
+      submitted = this;
+    });
+    try {
+      const pending = auth.signIn('public');
+      http.expectOne('/api/auth/me/').flush({ authenticated: false });
+      await pending;
+      expect(submitted?.getAttribute('action')).toBe('/api/auth/google/start/');
+      expect(submitted?.method).toBe('post');
+      expect(new FormData(submitted).get('mode')).toBe('public');
+      expect(new FormData(submitted).get('csrfmiddlewaretoken')).toBe('synthetic-csrf');
+      expect(new FormData(submitted).has('next')).toBe(false);
+    } finally {
+      submit.mockRestore();
+      document.cookie = 'XSRF-TOKEN=; Max-Age=0';
+    }
+  });
+  it('returns to the exact photo walk after developer OAuth without reusing the path', async () => {
+    document.cookie = 'XSRF-TOKEN=synthetic-csrf';
+    const submit = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => {});
+    try {
+      const pending = auth.signIn('/capture?target=walk&point=31');
+      http.expectOne('/api/auth/me/').flush({ authenticated: false });
+      await pending;
+      auth.session.set({ authenticated: true, mode: 'developer' });
+      expect(auth.consumeReturnPath()).toBe('/capture?target=walk&point=31');
+      expect(auth.consumeReturnPath()).toBe('/overview');
+      expect(safeReturnPath('/graph-editor?target=walk&mode=photos')).toBe(
+        '/graph-editor?target=walk&mode=photos',
+      );
+    } finally {
+      submit.mockRestore();
+      document.cookie = 'XSRF-TOKEN=; Max-Age=0';
+    }
+  });
+
+  it('keeps public sign-in on the visitor experience instead of a developer return URL', async () => {
+    document.cookie = 'XSRF-TOKEN=synthetic-csrf';
+    const submit = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => {});
+    try {
+      const pending = auth.signIn('public', '/capture?target=walk');
+      http.expectOne('/api/auth/me/').flush({ authenticated: false });
+      await pending;
+      auth.session.set({ authenticated: true, mode: 'public' });
+      expect(auth.consumeReturnPath()).toBe('/public');
+    } finally {
+      submit.mockRestore();
+      document.cookie = 'XSRF-TOKEN=; Max-Age=0';
+    }
   });
 });

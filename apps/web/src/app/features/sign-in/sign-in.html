@@ -1,0 +1,144 @@
+<div class="entry">
+  <header class="entry-header">
+    <div class="header-ink">
+      <a class="entry-brand" routerLink="/map" aria-label="Snapway · Explore the map">
+        <svg #brandMotion class="brand-motion" viewBox="0 0 190 44" aria-hidden="true">
+          @for (glyph of brandGlyphs; track $index) {
+            <g
+              [attr.data-glyph]="$index"
+              [class.lead-y]="glyph.letter === 'y'"
+              [class.letter-unroll]="glyph.letter !== 'y'"
+              [class.road-glyph]="glyph.letter === 'w'"
+              [style.--unroll-delay]="glyph.begin"
+            >
+              <path [attr.d]="glyph.path">
+                <animate
+                  attributeName="d"
+                  begin="indefinite"
+                  [attr.values]="glyph.frames"
+                  [attr.dur]="glyph.duration"
+                  keyTimes="0;.5;1"
+                  calcMode="spline"
+                  keySplines=".4 0 .2 1;.4 0 .2 1"
+                  fill="freeze"
+                />
+              </path>
+              @if (glyph.letter === 'w') {
+                <path class="road-center" [attr.d]="glyph.path" />
+              }
+              @if (glyph.letter === 'y') {
+                <path class="initial-arrow" d="M173 10L181 9L180 17" />
+              }
+            </g>
+          }
+          <g class="camera-aperture">
+            <circle cx="66.5" cy="23.5" r="6.4" fill="#079bfa" />
+            <path
+              d="M66.5 17.1L69 22M72 20.3L68.9 25M72 26.7L66.5 26.3M66.5 29.9L64 25M61 26.7L64.1 22M61 20.3L66.5 20.7"
+            />
+            <path
+              d="M66.5 20.7L68.9 22.1L68.9 24.9L66.5 26.3L64.1 24.9L64.1 22.1Z"
+              fill="#fff"
+              stroke="none"
+            />
+          </g>
+        </svg>
+        <svg class="brand-rest" viewBox="0 0 190 44" aria-hidden="true">
+          @for (glyph of brandGlyphs; track $index) {
+            <path
+              [class.road-glyph]="glyph.letter === 'w' || glyph.letter === 'y'"
+              [attr.d]="glyph.path"
+            />
+            @if (glyph.letter === 'w') {
+              <path class="road-center" [attr.d]="glyph.path" />
+            }
+            @if (glyph.letter === 'y') {
+              <path class="initial-arrow" d="M173 10L181 9L180 17" />
+            }
+          }
+          <g class="camera-aperture">
+            <circle cx="66.5" cy="23.5" r="6.4" fill="#079bfa" />
+            <path
+              d="M66.5 17.1L69 22M72 20.3L68.9 25M72 26.7L66.5 26.3M66.5 29.9L64 25M61 26.7L64.1 22M61 20.3L66.5 20.7"
+            />
+            <path
+              d="M66.5 20.7L68.9 22.1L68.9 24.9L66.5 26.3L64.1 24.9L64.1 22.1Z"
+              fill="#fff"
+              stroke="none"
+            />
+          </g>
+        </svg>
+      </a>
+      <div class="header-flight" aria-hidden="true">
+        <svg viewBox="0 0 1000 8" preserveAspectRatio="none">
+          <path d="M0 4H1000" />
+        </svg>
+      </div>
+    </div>
+    <h1 class="header-title"><span>One account. Two ways to find your place.</span></h1>
+  </header>
+  <main class="entry-main">
+    <div class="experience-cards" [attr.aria-busy]="auth.busy()">
+      <button
+        class="experience developer"
+        (click)="choose('developer')"
+        [disabled]="loading() || !enabled() || auth.busy()"
+        aria-label="Sign in as Developer with Google"
+      >
+        <div class="card-copy">
+          <span class="card-category">FOR THE PLACE MAKERS <span>01 /</span></span>
+          <h2>Make places<br />make sense.</h2>
+          <p>Map the details. Connect the dots.<br />Help everyone find a better way.</p>
+          <span class="card-action"
+            >{{ selected() === 'developer' ? 'Connecting to Google…' : 'Sign in as Developer'
+            }}<span class="action-arrow"><app-icon name="arrow-right" /></span
+          ></span>
+        </div>
+        <div class="illustration" aria-hidden="true">
+          <img
+            class="floor-scene"
+            src="assets/developer-floor-plan.svg"
+            alt=""
+            width="640"
+            height="340"
+          />
+        </div>
+      </button>
+      <button
+        class="experience public"
+        (click)="choose('public')"
+        [disabled]="loading() || !enabled() || auth.busy()"
+        aria-label="Sign in as Public User with Google"
+      >
+        <div class="card-copy">
+          <span class="card-category">FOR THE EVERYDAY EXPLORERS <span>02 /</span></span>
+          <h2>A little less lost.<br />A lot more here.</h2>
+          <p>See familiar landmarks. Follow your path.<br />Feel at home somewhere new.</p>
+          <span class="card-action"
+            >{{ selected() === 'public' ? 'Connecting to Google…' : 'Sign in as Public User'
+            }}<span class="action-arrow"><app-icon name="arrow-right" /></span
+          ></span>
+        </div>
+        <div class="illustration" aria-hidden="true">
+          <img
+            class="camera-scene"
+            src="assets/navigation-camera.svg"
+            alt=""
+            width="640"
+            height="340"
+          />
+        </div>
+      </button>
+    </div>
+    <div class="connection-status" aria-live="polite">
+      @if (error() || auth.error()) {
+        <p role="alert">
+          {{ auth.error() || error() }} <button class="retry" (click)="load()">Try again</button>
+        </p>
+      }
+      @if (!loading() && !enabled() && !error()) {
+        <p>Google sign-in is currently unavailable. Please try again later.</p>
+      }
+    </div>
+  </main>
+</div>

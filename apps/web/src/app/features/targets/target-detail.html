@@ -162,7 +162,10 @@
                   place.published.publishedAt | date: 'MMM d, y · h:mm a'
                 }}
               </p>
-              <a class="btn secondary" routerLink="/navigate" [queryParams]="{ target: place.id }"
+              <a
+                class="btn secondary"
+                routerLink="/app-preview"
+                [queryParams]="{ target: place.id }"
                 ><app-icon name="compass" />Preview navigation</a
               >
             }

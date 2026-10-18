@@ -88,6 +88,16 @@ class Command(BaseCommand):
                     "floor-plan.png", base64.b64decode(walk["underlay"], validate=True), "image/png"
                 ),
             )
+            # The exported graph uses the source SVG frame, independently of the
+            # raster's display resolution. Underlay uploads normally adopt pixel
+            # dimensions; restore the authoritative source frame for this import.
+            revision.coordinate_frame = {
+                "origin": "top_left",
+                "width": walk["width"],
+                "height": walk["height"],
+                "units": "plan",
+            }
+            revision.save(update_fields=["coordinate_frame"])
             nodes = [
                 add_node(
                     revision,

@@ -1,5 +1,13 @@
 # Backend map membership and permissions
 
+Current workspace authorization is documented in
+[Developer workspace](developer-workspace.md): manually provisioned staff and
+superusers are global operators; target administrators administer their assigned
+maps and may initialize new targets. Ordinary Google registration grants neither.
+Editing additionally requires ownership of the active draft and Developer session
+mode. The original Membership-only slice below remains background for its helper
+and permission classes; it no longer describes the whole workspace lifecycle.
+
 Shared feature record for application-owned map roles on `feature/backend-permissions`.
 Personal history: ignored `local/ACTIONS.md`. Session login remains in
 [backend-oauth.md](backend-oauth.md); this layer decides **map** authority.

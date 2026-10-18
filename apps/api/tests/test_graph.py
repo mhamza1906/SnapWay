@@ -31,6 +31,9 @@ def draft(actors):
 def test_ensure_creates_target_for_authenticated_user(actors):
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.post(reverse("map-draft-ensure"), {}, format="json")
     assert response.status_code == 200
     body = response.json()
@@ -50,6 +53,9 @@ def test_ensure_resumes_same_draft_without_target_id(actors):
     assert str(second["revision_id"]) == str(first["revision_id"])
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     graph = client.get(reverse("map-revision-graph", kwargs={"revision_id": second["revision_id"]}))
     assert graph.status_code == 200
     assert len(graph.json()["nodes"]) == 1
@@ -67,6 +73,9 @@ def test_ensure_force_new_creates_separate_target(actors):
 def test_stranger_cannot_read_graph(actors, draft):
     client = APIClient()
     client.force_login(actors["stranger"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     url = reverse("map-revision-graph", kwargs={"revision_id": draft["revision_id"]})
     assert client.get(url).status_code == 403
 
@@ -101,6 +110,9 @@ def test_frozen_revision_rejects_writes(actors, draft):
 def test_api_node_edge_roundtrip(actors, draft):
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     rev = draft["revision_id"]
     n1 = client.post(
         reverse("map-revision-nodes", kwargs={"revision_id": rev}),
@@ -143,6 +155,9 @@ def test_api_node_edge_roundtrip(actors, draft):
 def test_underlay_upload(actors, draft):
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     png = SimpleUploadedFile(
         "plan.png",
         _tiny_png(),

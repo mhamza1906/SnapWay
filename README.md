@@ -108,6 +108,9 @@ Visitor photo localization (canonical MegaLoc path):
 iOS camera app notes: [docs/mobile-ios.md](docs/mobile-ios.md)
 (API reference: [docs/mobile-ios-api.md](docs/mobile-ios-api.md)).
 
+Shared Android/iOS live matching, the two-mode landing and preserved developer
+workflow: [mobile main integration](docs/mobile-main-integration.md).
+
 ## Dependencies and collaboration
 
 Share `pyproject.toml`, `uv.lock` and `apps/web/package-lock.json`. Each teammate

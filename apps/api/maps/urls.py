@@ -1,6 +1,6 @@
 from django.urls import path
 
-from maps.views import PublicBuildingListView, TargetAccessView
+from maps.views import PublicBuildingDirectoryView, PublicBuildingListView, TargetAccessView
 from maps.views_documents import SharedDocumentDownloadView, SharedDocumentListView
 from maps.views_graph import (
     EdgeCollectionView,
@@ -14,15 +14,65 @@ from maps.views_graph import (
     RevisionIndexView,
     UnderlayUploadView,
 )
+from maps.views_mobile_map import mobile_map
+from maps.views_optimize import (
+    OptimizeRegenerateView,
+    OptimizeStatusView,
+    OptimizeUploadView,
+    VectorizeDemoView,
+)
+from maps.views_workspace import (
+    BuildingConnectorsView,
+    ContributionDetailView,
+    ContributionListView,
+    EditMapView,
+    MapExportView,
+    PipelineImportView,
+    SubmissionView,
+    TargetLifecycleView,
+    WorkspaceActivityView,
+    WorkspaceBuildingsView,
+    WorkspaceMapsView,
+)
 
 urlpatterns = [
+    path("public/mobile-map/", mobile_map, name="mobile-walking-map"),
     path("public/documents/", SharedDocumentListView.as_view(), name="shared-documents"),
     path(
         "public/documents/<slug:slug>/",
         SharedDocumentDownloadView.as_view(),
         name="shared-document-download",
     ),
+    path("workspace/", WorkspaceMapsView.as_view()),
+    path("workspace/buildings/", WorkspaceBuildingsView.as_view()),
+    path(
+        "workspace/buildings/<uuid:building_id>/connectors/",
+        BuildingConnectorsView.as_view(),
+    ),
+    path("workspace/activity/", WorkspaceActivityView.as_view()),
+    path("workspace/contributions/", ContributionListView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/", ContributionDetailView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/submit/", SubmissionView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/pipeline/", PipelineImportView.as_view()),
+    path("workspace/targets/<uuid:target_id>/edit/", EditMapView.as_view()),
+    path("workspace/targets/<uuid:target_id>/optimize/", OptimizeStatusView.as_view()),
+    path("workspace/targets/<uuid:target_id>/optimize/upload/", OptimizeUploadView.as_view()),
+    path(
+        "workspace/targets/<uuid:target_id>/optimize/regenerate/",
+        OptimizeRegenerateView.as_view(),
+    ),
+    path(
+        "workspace/targets/<uuid:target_id>/vectorize-demo/",
+        VectorizeDemoView.as_view(),
+    ),
+    path("workspace/targets/<uuid:target_id>/archive/", TargetLifecycleView.as_view()),
+    path("workspace/targets/<uuid:target_id>/export/", MapExportView.as_view()),
     path("public/buildings/", PublicBuildingListView.as_view(), name="public-buildings"),
+    path(
+        "public/building-directory/",
+        PublicBuildingDirectoryView.as_view(),
+        name="building-directory",
+    ),
     path(
         "targets/<uuid:target_id>/access/",
         TargetAccessView.as_view(),

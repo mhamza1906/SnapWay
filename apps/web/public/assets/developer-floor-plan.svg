@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" fill="none">
+  <defs>
+    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" stroke="#a4a092" stroke-width=".25" opacity=".13"/></pattern>
+    <pattern id="tiles" width="11" height="11" patternUnits="userSpaceOnUse"><rect width="11" height="11" fill="#e4e8df"/><path d="M11 0H0V11" stroke="#bbc4b6" stroke-width=".35"/></pattern>
+    <pattern id="stair" width="29" height="6" patternUnits="userSpaceOnUse"><rect width="29" height="6" fill="#e6dfcc"/><path d="M0 5.5H29" stroke="#827b6b" stroke-width=".7"/></pattern>
+    <marker id="arrow" viewBox="0 0 8 8" refX="5" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L5 4L1 7" stroke="#a44250" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <filter id="paper-shadow" x="-5%" y="-5%" width="110%" height="112%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#7b6255" flood-opacity=".1"/></filter>
+  </defs>
+  <style>
+    text { font-family: Arial,sans-serif; fill:#67665c; }
+    .label { font-size:10px; letter-spacing:.2px; text-anchor:middle; }
+    .number { font-size:7px; fill:#999180; text-anchor:middle; }
+    .nodes circle { transform-box:fill-box; transform-origin:center; animation:node 6s infinite both; }
+    .nodes circle:nth-child(2n) { animation-delay:.13s; }.nodes circle:nth-child(3n) { animation-delay:.26s; }
+    .edges path { stroke-dasharray:1; stroke-dashoffset:1; animation:edge 6s infinite both; }
+    .edges path:nth-child(2) { animation-delay:.15s; }.edges path:nth-child(3) { animation-delay:.3s; }
+    .status { animation:status 6s infinite both; }
+    @keyframes node { 0%,5%{opacity:0;transform:scale(.3)} 22%,85%{opacity:1;transform:scale(1)} 97%,100%{opacity:0;transform:scale(.6)} }
+    @keyframes edge { 0%,32%{stroke-dashoffset:1;opacity:0} 35%{opacity:1} 68%,85%{stroke-dashoffset:0;opacity:1} 97%,100%{stroke-dashoffset:0;opacity:0} }
+    @keyframes status { 0%,40%{opacity:.3} 70%,85%{opacity:1} 100%{opacity:.3} }
+    @media(prefers-reduced-motion:reduce){.nodes circle,.edges path,.status{animation:none}.edges path{stroke-dashoffset:0}}
+  </style>
+  <rect x="18" y="10" width="604" height="320" rx="9" fill="#fcfaf4" stroke="#cfc4b6" filter="url(#paper-shadow)"/>
+  <rect x="19" y="11" width="602" height="318" rx="9" fill="url(#grid)"/>
+  <text x="39" y="33" font-size="9" font-weight="700" letter-spacing="1.6">NORTH CAMPUS / LEVEL 01</text>
+  <text x="600" y="33" text-anchor="end" font-size="7" fill="#9c978b" letter-spacing="1">ILLUSTRATIVE PLAN</text>
+  <!-- Muted material hatches distinguish rooms from the clear circulation spine. -->
+  <path d="M62 58H190V118H62Z" fill="#f1ece1"/>
+  <path d="M190 58H333V118H190Z" fill="#e6ece4"/>
+  <path d="M333 58H463V118H333Z" fill="#f1ece1"/>
+  <path d="M463 58H580V118H463Z" fill="#f3eddb"/>
+  <path d="M62 118H580V161H62Z" fill="#f7f3e9"/>
+  <path d="M62 161H245V265H62Z" fill="#f0ece3"/>
+  <path d="M245 161H390V265H245Z" fill="#eee8df"/>
+  <path d="M390 161H463V265H390Z" fill="url(#tiles)"/>
+  <path d="M463 161H519V218H463Z" fill="#e1e8e8"/>
+  <path d="M463 218H519V265H463Z" fill="#ebe8de"/>
+  <path d="M519 161H580V265H519Z" fill="#eeeadf"/>
+  <!-- Window frames are drawn in the exterior wall, including mullions. -->
+  <g stroke="#a8b5af" stroke-width="1.2"><path d="M80 54H172M210 54H313M353 54H443M80 269H225M263 269H370"/><path d="M80 51V57M126 51V57M172 51V57M210 51V57M262 51V57M313 51V57M353 51V57M398 51V57M443 51V57M80 266V272M128 266V272M176 266V272M225 266V272M263 266V272M316 266V272M370 266V272"/></g>
+  <!-- Walls have real door openings: routes below pass through those gaps. -->
+  <g stroke="#6b685e" stroke-width="3.4" stroke-linejoin="miter">
+    <path d="M62 128V58H580V128M580 150V265H62V150"/>
+    <path d="M190 58V118M333 58V118M463 58V118M62 118H118M136 118H248M266 118H385M403 118H495M513 118H580"/>
+    <path d="M62 161H160M178 161H300M318 161H430M445 161H475M496 161H540M558 161H580M245 161V265M390 161V265M463 161V265M519 161V265M463 218H519"/>
+  </g>
+  <!-- Hinged door leaves and swing arcs, shown open into the rooms. -->
+  <g stroke="#9c9381" stroke-width=".85"><path d="M118 118V100A18 18 0 0 1 136 118M248 118V100A18 18 0 0 1 266 118M385 118V100A18 18 0 0 1 403 118M495 118V100A18 18 0 0 1 513 118M160 161V179A18 18 0 0 0 178 161M300 161V179A18 18 0 0 0 318 161M430 161V176A15 15 0 0 0 445 161M540 161V179A18 18 0 0 0 558 161"/><path d="M62 128H40A22 22 0 0 0 62 150M580 128H602A22 22 0 0 1 580 150"/></g>
+  <!-- Built-in laboratory benches, desks and seminar furniture. -->
+  <g fill="#ded8ca" stroke="#b3aa98" stroke-width=".6">
+    <rect x="75" y="68" width="29" height="14" rx="1"/><rect x="148" y="68" width="29" height="14" rx="1"/>
+    <rect x="215" y="65" width="96" height="7"/><rect x="215" y="82" width="34" height="9"/><rect x="278" y="82" width="34" height="9"/>
+    <rect x="365" y="72" width="63" height="19" rx="5"/>
+    <rect x="77" y="183" width="60" height="5"/><rect x="200" y="183" width="31" height="60" rx="2"/>
+    <rect x="265" y="201" width="40" height="21" rx="7"/><rect x="331" y="229" width="40" height="21" rx="7"/>
+    <rect x="532" y="200" width="8" height="52"/><rect x="558" y="200" width="8" height="52"/>
+  </g>
+  <g stroke="#b1a894" stroke-width=".7" fill="#f8f5ec">
+    <path d="M368 68H377M387 68H396M406 68H415M368 95H377M387 95H396M406 95H415M360 77V85M433 77V85"/>
+    <rect x="80" y="202" width="14" height="9" rx="2"/><rect x="105" y="202" width="14" height="9" rx="2"/><rect x="130" y="202" width="14" height="9" rx="2"/>
+    <rect x="80" y="221" width="14" height="9" rx="2"/><rect x="105" y="221" width="14" height="9" rx="2"/><rect x="130" y="221" width="14" height="9" rx="2"/>
+    <rect x="80" y="240" width="14" height="9" rx="2"/><rect x="105" y="240" width="14" height="9" rx="2"/><rect x="130" y="240" width="14" height="9" rx="2"/>
+    <path d="M272 197V193M294 197V193M261 206H257M261 217H257M272 226V230M294 226V230M338 225V221M360 225V221M375 235H379M375 246H379M338 254V258M360 254V258"/>
+  </g>
+  <!-- Stair treads, handrails, elevator car and accessible sanitary fixtures. -->
+  <rect x="528" y="67" width="29" height="42" fill="url(#stair)" stroke="#9b927b" stroke-width=".7"/>
+  <path d="M541 103V74M538 78L541 74L544 78M524 67V110M561 67V110" stroke="#8a806c" stroke-width=".8"/>
+  <rect x="473" y="176" width="35" height="31" fill="#eff2ec" stroke="#929f99" stroke-width=".8"/>
+  <path d="M476 161V167H494V161M485 166V173M488 166V173M473 202H508" stroke="#929f99" stroke-width=".8"/>
+  <g stroke="#9aa492" stroke-width=".65" fill="#f8faf3"><path d="M399 202H426V232H399M399 232H426V257H399"/><rect x="402" y="207" width="9" height="13" rx="4"/><rect x="402" y="237" width="9" height="13" rx="4"/><rect x="443" y="221" width="12" height="30" rx="2"/><ellipse cx="449" cy="229" rx="4" ry="5"/><ellipse cx="449" cy="243" rx="4" ry="5"/></g>
+  <g class="label">
+    <text x="126" y="98">Studio A</text><text x="292" y="108">Lab 102</text><text x="429" y="109">Seminar</text><text x="491" y="86">Stairs</text>
+    <text x="166" y="215">Lecture 101</text><text x="287" y="246">Commons</text><text x="426" y="185">Accessible</text><text x="426" y="197">WC</text>
+    <text x="491" y="191">Lift</text><text x="491" y="246" font-size="8">Services</text><text x="550" y="190" font-size="8">Storage</text>
+  </g>
+  <g class="number"><text x="126" y="108">ROOM 104</text><text x="292" y="98">SCIENCE</text><text x="399" y="100">ROOM 103</text><text x="166" y="226">24 SEATS</text><text x="287" y="256">OPEN STUDY</text></g>
+  <text x="369" y="151" font-size="7" fill="#b6a99b" letter-spacing="2">MAIN CORRIDOR</text>
+  <!-- A traversable sample graph, introduced after the waypoint markers. -->
+  <g class="edges" stroke="#a44250" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+    <path pathLength="1" d="M75 139H169H257H309H504H566"/>
+    <path pathLength="1" d="M169 139V185M257 139V106"/>
+    <path pathLength="1" d="M309 139V185M504 139V106"/>
+  </g>
+  <g class="nodes" fill="#a44250" stroke="#fff9ef" stroke-width="2.2">
+    <circle cx="75" cy="139" r="4"/><circle cx="169" cy="139" r="4"/><circle cx="257" cy="139" r="4"/><circle cx="309" cy="139" r="4"/><circle cx="504" cy="139" r="4"/><circle cx="566" cy="139" r="4"/>
+    <circle cx="169" cy="185" r="4"/><circle cx="257" cy="106" r="4"/><circle cx="309" cy="185" r="4"/><circle cx="504" cy="106" r="4"/>
+  </g>
+  <!-- Drawing conventions: dimension strings, scale bar and north orientation. -->
+  <g stroke="#aaa18e" stroke-width=".6"><path d="M62 281H580M62 276V286M190 278V284M333 278V284M463 278V284M580 276V286M48 58V265M44 58H52M44 118H52M44 161H52M44 265H52"/></g>
+  <g font-size="6.5" fill="#9b9383" text-anchor="middle"><text x="126" y="290">8.4 m</text><text x="263" y="290">9.2 m</text><text x="398" y="290">8.6 m</text><text x="521" y="290">7.8 m</text></g>
+  <path d="M41 304H95M41 301V307M68 301V307M95 301V307" stroke="#85806f" stroke-width="1"/><text x="41" y="317" font-size="6.5">0</text><text x="87" y="317" font-size="6.5">5 m</text>
+  <g class="status"><circle cx="457" cy="310" r="2.5" fill="#a44250"/><text x="465" y="313" font-size="7" letter-spacing="1">WAYPOINTS → CONNECTIONS</text></g>
+  <path d="M598 283V272M595 277L598 272L601 277" stroke="#87816f" stroke-width="1"/><text x="598" y="295" text-anchor="middle" font-size="7">N</text>
+</svg>

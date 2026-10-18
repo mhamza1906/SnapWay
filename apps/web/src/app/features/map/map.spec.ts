@@ -29,18 +29,30 @@ describe('Public building discovery', () => {
         LatLngBounds: class {
           extend() {}
         },
-        marker: {
-          AdvancedMarkerElement: class {
-            map: unknown;
-            constructor(public options: { title?: string }) {
-              markers.push(options);
-            }
-            addListener(_event: string, callback: () => void) {
-              Object.assign(this.options, { click: callback });
-              return { remove() {} };
-            }
-          },
+        Size: class {
+          constructor(
+            public width: number,
+            public height: number,
+          ) {}
         },
+        Marker: class {
+          map: unknown;
+          title?: string;
+          click?: () => void;
+          constructor(options: { title?: string; map: unknown }) {
+            this.map = options.map;
+            this.title = options.title;
+            markers.push(this);
+          }
+          setMap(value: unknown) {
+            this.map = value;
+          }
+          addListener(_event: string, callback: () => void) {
+            this.click = callback;
+            return { remove() {} };
+          }
+        },
+        marker: { AdvancedMarkerElement: class {} },
         event: { clearInstanceListeners() {} },
       },
     }),
@@ -60,7 +72,11 @@ describe('Public building discovery', () => {
   });
 
   it('uses published server coordinates for markers and walking directions', async () => {
-    TestBed.inject(AuthService).session.set({ authenticated: true, username: 'Mapper' });
+    TestBed.inject(AuthService).session.set({
+      authenticated: true,
+      username: 'Mapper',
+      mode: 'developer',
+    });
     const fixture = TestBed.createComponent(PublicMapPage);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('a[href="/overview"]').textContent).toContain(

@@ -1,5 +1,11 @@
 # iOS visitor app (Capacitor) and photo localization
 
+**October 18 update:** [shared Android/iOS integration](mobile-main-integration.md)
+adds the two-choice native landing, visitor-capability HTTP uploads in release
+builds, live matching, ephemeral frame cleanup and hosted Google Maps. That record
+supersedes the debug-token-only visitor setup and single-shot limitations below;
+the older native debug tools remain available for diagnostics.
+
 Shared feature record for the iPhone visitor app and its camera-based place matching.
 Work lives on branch `feature/mobile-ios` (cut from `main` at `71f24ab`, `main` merged at
 `2dfd1ef`). Personal execution history is in ignored `local/ACTIONS.md`. The brief is

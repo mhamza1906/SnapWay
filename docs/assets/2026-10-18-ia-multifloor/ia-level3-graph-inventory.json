@@ -1,0 +1,431 @@
+{
+  "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+  "revision_id": "ea3ba255-1c04-49fe-b0b9-4b1e0ff1ac9d",
+  "floor_code": "3",
+  "frame": {
+    "units": "plan",
+    "width": 1578,
+    "height": 657,
+    "origin": "top_left"
+  },
+  "nodes": [
+    {
+      "id": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "label": "Central hall",
+      "kind": "junction",
+      "stable_id": "ec3f5c9f-05ae-4419-8c17-d45b6a2766b0",
+      "x": 842.422,
+      "y": 320.801
+    },
+    {
+      "id": "0713b726-0032-456e-9fc7-a276b5382c69",
+      "label": "Central void north",
+      "kind": "junction",
+      "stable_id": "caeb4419-d7fa-464a-b168-2fb7f5fa7985",
+      "x": 924.609,
+      "y": 269.473
+    },
+    {
+      "id": "5e042b0e-8674-42c5-be03-b56d697ce084",
+      "label": "Central void south",
+      "kind": "junction",
+      "stable_id": "0e2cb10e-52cd-45b6-99fb-e1366aa1d5d0",
+      "x": 924.609,
+      "y": 359.297
+    },
+    {
+      "id": "cd7b7e85-1b03-45a8-b70c-df65500ff645",
+      "label": "East hall",
+      "kind": "junction",
+      "stable_id": "bdebbd83-2500-41aa-b2d9-3a6408740085",
+      "x": 1212.266,
+      "y": 320.801
+    },
+    {
+      "id": "e943758b-f685-47a2-b232-4fbd92b0b5da",
+      "label": "Muffler",
+      "kind": "checkpoint",
+      "stable_id": "5d5633d2-512a-4e01-8cd7-38ce73dff531",
+      "x": 719.141,
+      "y": 147.568
+    },
+    {
+      "id": "a36fb49f-10c8-443f-8862-924d43f73754",
+      "label": "NE hall",
+      "kind": "junction",
+      "stable_id": "d2f4514b-4544-4598-8db5-b83dc46b560c",
+      "x": 1212.266,
+      "y": 205.312
+    },
+    {
+      "id": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542",
+      "label": "NW hall",
+      "kind": "junction",
+      "stable_id": "0cf8801c-e60a-45bf-8512-39754c10d60b",
+      "x": 534.219,
+      "y": 179.648
+    },
+    {
+      "id": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "label": "North hall",
+      "kind": "junction",
+      "stable_id": "bd17e8e3-489f-4cc3-9c5f-277ec428cba5",
+      "x": 873.242,
+      "y": 186.064
+    },
+    {
+      "id": "abc1b532-72bb-4044-a946-48e8a693cd68",
+      "label": "North lift",
+      "kind": "lift",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3",
+      "x": 780.781,
+      "y": 192.48
+    },
+    {
+      "id": "613f1674-b5a9-4ce1-8967-e42128f58bd9",
+      "label": "SE hall",
+      "kind": "junction",
+      "stable_id": "0da53763-107c-4593-bef2-b71b8c0fe950",
+      "x": 1181.445,
+      "y": 384.961
+    },
+    {
+      "id": "5ba22671-8d08-4ef9-b80c-880513d79cb6",
+      "label": "SW hall",
+      "kind": "junction",
+      "stable_id": "403b0c65-9b06-4d2f-aab2-2aeb87ff30c1",
+      "x": 513.672,
+      "y": 417.041
+    },
+    {
+      "id": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "label": "South hall",
+      "kind": "junction",
+      "stable_id": "d50cb560-b5dd-43c5-9fbe-1a7a55d2a1a9",
+      "x": 801.328,
+      "y": 417.041
+    },
+    {
+      "id": "3ee8ff20-d61f-4991-81d5-059244c77580",
+      "label": "South lift",
+      "kind": "lift",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2",
+      "x": 801.328,
+      "y": 417.041
+    },
+    {
+      "id": "38854d9e-fd0e-4300-ae3d-e11e4fe3bc8e",
+      "label": "Stair A",
+      "kind": "stairs",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1",
+      "x": 369.844,
+      "y": 442.705
+    },
+    {
+      "id": "7fe8779a-a0b1-4e3b-9efd-2d89011cbdf7",
+      "label": "Stair B",
+      "kind": "stairs",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1",
+      "x": 785.918,
+      "y": 442.705
+    },
+    {
+      "id": "b6f067ff-30b2-4879-8c6f-382d68b15e33",
+      "label": "Stair C",
+      "kind": "stairs",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1",
+      "x": 811.602,
+      "y": 192.48
+    },
+    {
+      "id": "fe5421cb-0d18-433f-9f7a-72f9e20e3fcf",
+      "label": "Stair D",
+      "kind": "stairs",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1",
+      "x": 1286.234,
+      "y": 216.22
+    },
+    {
+      "id": "44c9bd18-f911-48cc-ba15-5132817f4304",
+      "label": "Stair J",
+      "kind": "stairs",
+      "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5",
+      "x": 819.82,
+      "y": 178.365
+    },
+    {
+      "id": "b9f7909f-88e7-4b47-b961-edb2588b6895",
+      "label": "The Conveyor",
+      "kind": "checkpoint",
+      "stable_id": "dd429724-0c42-4fed-bceb-5c2ceabc332d",
+      "x": 1335.547,
+      "y": 333.633
+    },
+    {
+      "id": "0325217f-c482-46bf-af26-c343c615617e",
+      "label": "The Hive",
+      "kind": "checkpoint",
+      "stable_id": "e08d400d-90df-4468-b222-bd4b9639eaeb",
+      "x": 462.305,
+      "y": 147.568
+    },
+    {
+      "id": "803b6b96-b769-4fb6-963b-50116a719064",
+      "label": "The Nook Shop",
+      "kind": "checkpoint",
+      "stable_id": "8dd8e1b5-5e72-42e3-ac18-85fc98ff3ce7",
+      "x": 1232.812,
+      "y": 160.4
+    },
+    {
+      "id": "4cd3001c-f59e-4806-87ec-97121b431b84",
+      "label": "West hall",
+      "kind": "junction",
+      "stable_id": "9c33f7b3-4d39-4c38-a85e-52601c9bf4e3",
+      "x": 513.672,
+      "y": 307.969
+    }
+  ],
+  "edges": [
+    {
+      "from": "38854d9e-fd0e-4300-ae3d-e11e4fe3bc8e",
+      "to": "5ba22671-8d08-4ef9-b80c-880513d79cb6"
+    },
+    {
+      "from": "5ba22671-8d08-4ef9-b80c-880513d79cb6",
+      "to": "38854d9e-fd0e-4300-ae3d-e11e4fe3bc8e"
+    },
+    {
+      "from": "7fe8779a-a0b1-4e3b-9efd-2d89011cbdf7",
+      "to": "a1dd6450-ac8f-4e9a-b437-899fea96cd52"
+    },
+    {
+      "from": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "to": "7fe8779a-a0b1-4e3b-9efd-2d89011cbdf7"
+    },
+    {
+      "from": "7fe8779a-a0b1-4e3b-9efd-2d89011cbdf7",
+      "to": "3ee8ff20-d61f-4991-81d5-059244c77580"
+    },
+    {
+      "from": "3ee8ff20-d61f-4991-81d5-059244c77580",
+      "to": "7fe8779a-a0b1-4e3b-9efd-2d89011cbdf7"
+    },
+    {
+      "from": "3ee8ff20-d61f-4991-81d5-059244c77580",
+      "to": "a1dd6450-ac8f-4e9a-b437-899fea96cd52"
+    },
+    {
+      "from": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "to": "3ee8ff20-d61f-4991-81d5-059244c77580"
+    },
+    {
+      "from": "b6f067ff-30b2-4879-8c6f-382d68b15e33",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "b6f067ff-30b2-4879-8c6f-382d68b15e33"
+    },
+    {
+      "from": "b6f067ff-30b2-4879-8c6f-382d68b15e33",
+      "to": "abc1b532-72bb-4044-a946-48e8a693cd68"
+    },
+    {
+      "from": "abc1b532-72bb-4044-a946-48e8a693cd68",
+      "to": "b6f067ff-30b2-4879-8c6f-382d68b15e33"
+    },
+    {
+      "from": "b6f067ff-30b2-4879-8c6f-382d68b15e33",
+      "to": "44c9bd18-f911-48cc-ba15-5132817f4304"
+    },
+    {
+      "from": "44c9bd18-f911-48cc-ba15-5132817f4304",
+      "to": "b6f067ff-30b2-4879-8c6f-382d68b15e33"
+    },
+    {
+      "from": "abc1b532-72bb-4044-a946-48e8a693cd68",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "abc1b532-72bb-4044-a946-48e8a693cd68"
+    },
+    {
+      "from": "44c9bd18-f911-48cc-ba15-5132817f4304",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "44c9bd18-f911-48cc-ba15-5132817f4304"
+    },
+    {
+      "from": "fe5421cb-0d18-433f-9f7a-72f9e20e3fcf",
+      "to": "a36fb49f-10c8-443f-8862-924d43f73754"
+    },
+    {
+      "from": "a36fb49f-10c8-443f-8862-924d43f73754",
+      "to": "fe5421cb-0d18-433f-9f7a-72f9e20e3fcf"
+    },
+    {
+      "from": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "a36fb49f-10c8-443f-8862-924d43f73754"
+    },
+    {
+      "from": "a36fb49f-10c8-443f-8862-924d43f73754",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542",
+      "to": "4cd3001c-f59e-4806-87ec-97121b431b84"
+    },
+    {
+      "from": "4cd3001c-f59e-4806-87ec-97121b431b84",
+      "to": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "a36fb49f-10c8-443f-8862-924d43f73754",
+      "to": "cd7b7e85-1b03-45a8-b70c-df65500ff645"
+    },
+    {
+      "from": "cd7b7e85-1b03-45a8-b70c-df65500ff645",
+      "to": "a36fb49f-10c8-443f-8862-924d43f73754"
+    },
+    {
+      "from": "4cd3001c-f59e-4806-87ec-97121b431b84",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "4cd3001c-f59e-4806-87ec-97121b431b84"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "cd7b7e85-1b03-45a8-b70c-df65500ff645"
+    },
+    {
+      "from": "cd7b7e85-1b03-45a8-b70c-df65500ff645",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "4cd3001c-f59e-4806-87ec-97121b431b84",
+      "to": "5ba22671-8d08-4ef9-b80c-880513d79cb6"
+    },
+    {
+      "from": "5ba22671-8d08-4ef9-b80c-880513d79cb6",
+      "to": "4cd3001c-f59e-4806-87ec-97121b431b84"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "a1dd6450-ac8f-4e9a-b437-899fea96cd52"
+    },
+    {
+      "from": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "cd7b7e85-1b03-45a8-b70c-df65500ff645",
+      "to": "613f1674-b5a9-4ce1-8967-e42128f58bd9"
+    },
+    {
+      "from": "613f1674-b5a9-4ce1-8967-e42128f58bd9",
+      "to": "cd7b7e85-1b03-45a8-b70c-df65500ff645"
+    },
+    {
+      "from": "5ba22671-8d08-4ef9-b80c-880513d79cb6",
+      "to": "a1dd6450-ac8f-4e9a-b437-899fea96cd52"
+    },
+    {
+      "from": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "to": "5ba22671-8d08-4ef9-b80c-880513d79cb6"
+    },
+    {
+      "from": "a1dd6450-ac8f-4e9a-b437-899fea96cd52",
+      "to": "613f1674-b5a9-4ce1-8967-e42128f58bd9"
+    },
+    {
+      "from": "613f1674-b5a9-4ce1-8967-e42128f58bd9",
+      "to": "a1dd6450-ac8f-4e9a-b437-899fea96cd52"
+    },
+    {
+      "from": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542",
+      "to": "0325217f-c482-46bf-af26-c343c615617e"
+    },
+    {
+      "from": "0325217f-c482-46bf-af26-c343c615617e",
+      "to": "6a1d56a3-1e8b-4460-bc13-ad44c15f4542"
+    },
+    {
+      "from": "26f06c2a-ed98-44e0-8d09-f3460005e4d8",
+      "to": "e943758b-f685-47a2-b232-4fbd92b0b5da"
+    },
+    {
+      "from": "e943758b-f685-47a2-b232-4fbd92b0b5da",
+      "to": "26f06c2a-ed98-44e0-8d09-f3460005e4d8"
+    },
+    {
+      "from": "a36fb49f-10c8-443f-8862-924d43f73754",
+      "to": "803b6b96-b769-4fb6-963b-50116a719064"
+    },
+    {
+      "from": "803b6b96-b769-4fb6-963b-50116a719064",
+      "to": "a36fb49f-10c8-443f-8862-924d43f73754"
+    },
+    {
+      "from": "cd7b7e85-1b03-45a8-b70c-df65500ff645",
+      "to": "b9f7909f-88e7-4b47-b961-edb2588b6895"
+    },
+    {
+      "from": "b9f7909f-88e7-4b47-b961-edb2588b6895",
+      "to": "cd7b7e85-1b03-45a8-b70c-df65500ff645"
+    },
+    {
+      "from": "613f1674-b5a9-4ce1-8967-e42128f58bd9",
+      "to": "b9f7909f-88e7-4b47-b961-edb2588b6895"
+    },
+    {
+      "from": "b9f7909f-88e7-4b47-b961-edb2588b6895",
+      "to": "613f1674-b5a9-4ce1-8967-e42128f58bd9"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "0713b726-0032-456e-9fc7-a276b5382c69"
+    },
+    {
+      "from": "0713b726-0032-456e-9fc7-a276b5382c69",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736",
+      "to": "5e042b0e-8674-42c5-be03-b56d697ce084"
+    },
+    {
+      "from": "5e042b0e-8674-42c5-be03-b56d697ce084",
+      "to": "e7dce64c-9fe7-4d45-98d8-8ee1c56d4736"
+    },
+    {
+      "from": "0713b726-0032-456e-9fc7-a276b5382c69",
+      "to": "5e042b0e-8674-42c5-be03-b56d697ce084"
+    },
+    {
+      "from": "5e042b0e-8674-42c5-be03-b56d697ce084",
+      "to": "0713b726-0032-456e-9fc7-a276b5382c69"
+    }
+  ]
+}

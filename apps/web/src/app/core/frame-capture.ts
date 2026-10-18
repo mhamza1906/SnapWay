@@ -1,7 +1,7 @@
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import type { MatchBackend } from './place-match';
 
-/** Native iOS frame capture (`ios/App/App/FrameCapturePlugin.swift`). */
+/** App-local native frame capture shared by iOS and Android. */
 export type CameraStatus = 'notDetermined' | 'authorized' | 'denied' | 'restricted';
 
 export interface DeviceQuality {
@@ -55,6 +55,9 @@ export interface FrameCapturePlugin {
   stop(): Promise<{ capturing: boolean }>;
   listFrames(): Promise<{ frames: CapturedFrame[] }>;
   deleteFrames(): Promise<{ deleted: number }>;
+  /** Read one bounded JPEG for authenticated visitor-session uploads. No credentials returned. */
+  readFrame(options: { clientFrameId: number }): Promise<{ dataUrl: string }>;
+  discardFrame(options: { clientFrameId: number }): Promise<{ deleted: boolean }>;
   importVideo(options: {
     fps: number;
   }): Promise<{ frames: number; duration_s?: number; truncated?: boolean; cancelled?: boolean }>;
@@ -85,7 +88,7 @@ export interface FrameCapturePlugin {
 
 export const FrameCapture = registerPlugin<FrameCapturePlugin>('FrameCapture');
 
-/** Real capture exists only inside the iOS app; the browser keeps the simulated flow. */
+/** Both packaged apps register FrameCapture; browser capture uses getUserMedia. */
 export function nativeCaptureAvailable(): boolean {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+  return Capacitor.isNativePlatform() && ['ios', 'android'].includes(Capacitor.getPlatform());
 }

@@ -16,6 +16,9 @@ describe('Workspace shell routing', () => {
         provideRouter([
           { path: 'welcome', component: RouteContent },
           { path: 'navigate', component: RouteContent },
+          { path: 'sign-in', component: RouteContent },
+          { path: 'public', component: RouteContent },
+          { path: 'app-preview', component: RouteContent },
           { path: 'targets', component: RouteContent },
         ]),
         { provide: PROTOTYPE_STORAGE, useValue: null },
@@ -25,7 +28,8 @@ describe('Workspace shell routing', () => {
             refresh: async () => ({ authenticated: true }),
             initials: () => 'TS',
             name: () => 'Test',
-            role: () => 'No map membership',
+            role: () => 'Developer',
+            signedIn: () => true,
             busy: () => false,
             error: () => '',
           },
@@ -43,9 +47,24 @@ describe('Workspace shell routing', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Back to workspace');
+    for (const url of ['/sign-in', '/public', '/app-preview?target=innovation#capture']) {
+      await router.navigateByUrl(url);
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Route content');
+    }
     await router.navigateByUrl('/targets?status=open#capture');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.skip-link').getAttribute('href')).toBe(
+      '/targets?status=open#main-content',
+    );
+    expect(fixture.nativeElement.querySelector('a[href="/capture"]')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        'a[href="/api/maps/public/documents/sam-ibrahim-points/"]',
+      ),
+    ).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.breadcrumb strong').textContent).toBe(
       'Mapping targets',
     );

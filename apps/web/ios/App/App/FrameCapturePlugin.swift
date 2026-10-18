@@ -23,6 +23,8 @@ public class FrameCapturePlugin: CAPPlugin, CAPBridgedPlugin, AVCaptureVideoData
         CAPPluginMethod(name: "start", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "listFrames", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "readFrame", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "discardFrame", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "deleteFrames", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "importVideo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "uploadFrame", returnType: CAPPluginReturnPromise),
@@ -58,7 +60,7 @@ public class FrameCapturePlugin: CAPPlugin, CAPBridgedPlugin, AVCaptureVideoData
     override public func load() {
         nextFrameId = (listStoredMetadata().compactMap { $0["client_frame_id"] as? Int }.max() ?? -1) + 1
         let center = NotificationCenter.default
-        observers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+        observers.append(center.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             self?.stopCapture(reason: "background")
         })
         observers.append(center.addObserver(forName: .AVCaptureSessionWasInterrupted, object: session, queue: .main) { [weak self] _ in
@@ -162,14 +164,14 @@ public class FrameCapturePlugin: CAPPlugin, CAPBridgedPlugin, AVCaptureVideoData
     }
 
     @objc func stop(_ call: CAPPluginCall) {
-        stopCapture(reason: "user")
-        call.resolve(["capturing": false])
+        stopCapture(reason: "user") { call.resolve(["capturing": false]) }
     }
 
-    private func stopCapture(reason: String) {
+    private func stopCapture(reason: String, completion: (() -> Void)? = nil) {
         sessionQueue.async { [weak self] in
             guard let self else { return }
             let wasCapturing = self.capturing
+            self.capturing = false
             if self.session.isRunning {
                 self.session.stopRunning()
             }
@@ -177,6 +179,8 @@ public class FrameCapturePlugin: CAPPlugin, CAPBridgedPlugin, AVCaptureVideoData
             if wasCapturing {
                 self.notifyListeners("state", data: ["capturing": false, "reason": reason])
             }
+            // Drain a frame already being encoded before a caller clears the temporary cache.
+            self.videoQueue.async { completion?() }
         }
     }
 
@@ -375,11 +379,45 @@ public class FrameCapturePlugin: CAPPlugin, CAPBridgedPlugin, AVCaptureVideoData
         call.resolve(["frames": listStoredMetadata()])
     }
 
+    /// Bounded app-local JPEG for the visitor NavigationSession transport, including release builds.
+    /// The caller still obtains a server-issued capability; no developer credential crosses the bridge.
+    @objc func readFrame(_ call: CAPPluginCall) {
+        guard let id = call.getInt("clientFrameId"), id >= 0 else {
+            call.reject("A valid clientFrameId is required", "MISSING")
+            return
+        }
+        videoQueue.async { [weak self] in
+            guard let self,
+                  let data = try? Data(contentsOf: self.framesDirectory().appendingPathComponent("\(id).jpg")) else {
+                call.reject("Frame is no longer stored", "MISSING")
+                return
+            }
+            call.resolve(["dataUrl": "data:image/jpeg;base64," + data.base64EncodedString()])
+        }
+    }
+
+    @objc func discardFrame(_ call: CAPPluginCall) {
+        guard let id = call.getInt("clientFrameId"), id >= 0 else {
+            call.reject("A valid clientFrameId is required", "MISSING")
+            return
+        }
+        videoQueue.async { [weak self] in
+            guard let self else { call.reject("Capture unavailable"); return }
+            let dir = self.framesDirectory()
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent("\(id).jpg"))
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent("\(id).json"))
+            call.resolve(["deleted": true])
+        }
+    }
+
     @objc func deleteFrames(_ call: CAPPluginCall) {
-        let dir = framesDirectory()
-        let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
-        files.forEach { try? FileManager.default.removeItem(at: $0) }
-        call.resolve(["deleted": files.filter { $0.pathExtension == "jpg" }.count])
+        videoQueue.async { [weak self] in
+            guard let self else { call.reject("Capture unavailable"); return }
+            let dir = self.framesDirectory()
+            let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
+            files.forEach { try? FileManager.default.removeItem(at: $0) }
+            call.resolve(["deleted": files.filter { $0.pathExtension == "jpg" }.count])
+        }
     }
 
     // MARK: - Recorded video (PHPicker: no photo-library permission)
