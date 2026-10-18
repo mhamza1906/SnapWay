@@ -182,16 +182,19 @@ values only through the external private channel, run
 The deployment owner must align `/etc/indoor-nav/api.env` to the same schema
 before relying on the production gate. No live server file was changed here.
 
-The connected frontend uses contract **2026-10-17.6** (still **65 keys**).
-`S3_ENDPOINT_URL` and `S3_BUCKET_NAME` now carry `@secret` classification for
-private resource identifiers, matching the equivalent R2 alias policy. They were
-incorrectly classified as empty shared defaults in `.4`/`.5`; their actual values
-are preserved and must be reconciled through the private team channel rather than
-placed in the public template. This is a classification repair, not a rotation.
-This machine's check passes after updating only the schema version. Other members
-must obtain the matching template/code, update their existing file's version,
-validate and restart Django. Production owners must do the same through the
-release process; no production update has been performed here.
+The connected frontend used contract **2026-10-17.6** (**65 keys**).
+`S3_ENDPOINT_URL` and `S3_BUCKET_NAME` carry `@secret` classification for
+private resource identifiers, matching the equivalent R2 alias policy.
+
+Contract **2026-10-18.1** (**67 keys**) adds `NAVIGATION_SESSION_RATE` (default
+`30/min`) and `ROUTE_GEMINI_REWRITE` (default `false`) for visitor session create
+throttling and optional Vertex rewrite of Dijkstra template directions. Rewrite
+reuses existing `VERTEX_API_KEY` / `VERTEX_PROJECT` / `VERTEX_MODEL` (not
+`GEMINI_API_KEY`). Members must pull the matching commit, add the two keys to
+`local/.env`, set `ENV_SCHEMA_VERSION=2026-10-18.1`, run
+`python scripts/env_contract.py check`, and restart Django. Production owners
+align `/etc/indoor-nav/api.env` through the release process; no production update
+has been performed here.
 
 The live application reads `GET /api/client-config/` at runtime. Its explicit
 allowlist exports only the restricted Maps browser key, map ID and a Boolean

@@ -1,13 +1,17 @@
 from django.urls import path
 
 from navigation.views import (
+    CurrentRouteView,
     LocalizationHealthView,
     LocalizeView,
     MegaLocIndexView,
+    NavigationSessionCreateView,
     ReferenceThumbnailView,
 )
 
 urlpatterns = [
+    path("sessions/", NavigationSessionCreateView.as_view(), name="navigation-session-create"),
+    path("sessions/current/route/", CurrentRouteView.as_view(), name="navigation-current-route"),
     path("localize/health/", LocalizationHealthView.as_view(), name="localize-health"),
     path("localize/", LocalizeView.as_view(), name="localize"),
     path(

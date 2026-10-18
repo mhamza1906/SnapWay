@@ -37,7 +37,7 @@ def token_digest(secret: str) -> str:
 def active_session(secret: str) -> NavigationSession | None:
     now = timezone.now()
     return (
-        NavigationSession.objects.select_related("publication")
+        NavigationSession.objects.select_related("publication", "destination", "revision")
         .filter(token_hash=token_digest(secret), expires_at__gt=now, invalidated_at__isnull=True)
         .filter(Q(publication__invalidated_at__isnull=True))
         .first()

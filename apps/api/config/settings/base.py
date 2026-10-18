@@ -111,6 +111,7 @@ REST_FRAMEWORK = {
         "anon": "60/min",
         "user": "300/min",
         "localization": env("LOCALIZATION_RATE", default="60/min"),
+        "navigation_session": env("NAVIGATION_SESSION_RATE", default="30/min"),
     },
 }
 SPECTACULAR_SETTINGS = {"TITLE": "SnapWay API", "VERSION": "0.1.0"}
@@ -148,3 +149,11 @@ PLACEMATCH_ENGINE_TOKEN = env("PLACEMATCH_ENGINE_TOKEN", default="")
 PLACEMATCH_ENGINE_TIMEOUT_S = env.float("PLACEMATCH_ENGINE_TIMEOUT_S", default=30.0)
 # Development-only bearer token for the iOS debug build; ignored unless DEBUG is true.
 PLACEMATCH_DEV_TOKEN = env("PLACEMATCH_DEV_TOKEN", default="")
+
+# Optional Vertex Gemini rewrite of Dijkstra template directions (topology stays deterministic).
+# Uses VERTEX_* (same as map-authoring), not GEMINI_API_KEY / Developer API.
+ROUTE_GEMINI_REWRITE = env.bool("ROUTE_GEMINI_REWRITE", default=False)
+VERTEX_API_KEY = env("VERTEX_API_KEY", default="")
+VERTEX_PROJECT = env("VERTEX_PROJECT", default="")
+VERTEX_LOCATION = env("VERTEX_LOCATION", default="global")
+VERTEX_MODEL = env("VERTEX_MODEL", default="gemini-4-argon")

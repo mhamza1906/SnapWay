@@ -27,6 +27,7 @@ Frontend is owned by teammates; this document is the **API handoff**.
 - **Cross-floor guard:** if top-1/top-2 are different `target_id` and cosine margin is thin → `uncertain`.
 - **Thresholds:** without `apps/place-match/data/calibration/current.json`, MegaLoc never returns `likely_match` (stays `uncertain`). Local E2E can use REPORT-v2 MegaLoc accept ≥ 0.331 (gitignored under `data/`).
 - **Not in this PR:** Angular UI, Capture/`LocalizationResult` persistence, Vertex/verify on global path.
+- **Route after first match:** see [visitor-text-route-guidance.md](visitor-text-route-guidance.md) (`POST /api/navigation/sessions/`, Dijkstra `route` on localize).
 
 ## Frontend handoff — `POST /api/navigation/localize/`
 

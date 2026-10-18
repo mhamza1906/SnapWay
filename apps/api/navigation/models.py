@@ -1,4 +1,4 @@
-"""Persistence foundations for later N0 navigation; no localization/routing API yet."""
+"""Visitor navigation sessions, optional capture results, and lightweight route plans."""
 
 from django.db import models
 from django.db.models import Q
@@ -104,6 +104,8 @@ class LocalizationResult(Record):
 
 
 class Route(Record):
+    """Capture-backed route history (requires stored LocalizationResult / frame retention)."""
+
     session = models.ForeignKey(NavigationSession, on_delete=models.PROTECT, related_name="routes")
     revision = models.ForeignKey("maps.Revision", on_delete=models.PROTECT)
     localization = models.ForeignKey(LocalizationResult, on_delete=models.PROTECT)
@@ -117,3 +119,56 @@ class Route(Record):
 
     class Meta:
         indexes = [models.Index(fields=["session", "created_at"], name="route_history_idx")]
+
+
+class RoutePlan(Record):
+    """Lightweight first-match route without storing a visitor Capture frame.
+
+    Node FKs are primary keys. Public destination ids are Node.stable_id and must be
+    resolved before create; MegaLoc location_id strings are also Node PKs.
+    """
+
+    class InstructionsSource(models.TextChoices):
+        TEMPLATE = "template", "Template"
+        GEMINI = "gemini", "Gemini rewrite"
+
+    session = models.ForeignKey(
+        NavigationSession, on_delete=models.PROTECT, related_name="route_plans"
+    )
+    revision = models.ForeignKey("maps.Revision", on_delete=models.PROTECT)
+    start_node = models.ForeignKey(
+        "maps.Node",
+        on_delete=models.PROTECT,
+        related_name="route_plan_starts",
+    )
+    destination = models.ForeignKey(
+        "maps.Node",
+        on_delete=models.PROTECT,
+        related_name="route_plan_destinations",
+    )
+    context_version = models.PositiveIntegerField()
+    steps = models.JSONField(default=list)
+    instructions_text = models.TextField(blank=True)
+    instructions_source = models.CharField(
+        max_length=16,
+        choices=InstructionsSource,
+        default=InstructionsSource.TEMPLATE,
+    )
+    edge_ids = models.JSONField(default=list, blank=True)
+    error = models.CharField(max_length=80, blank=True)
+    invalidated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            scope_key("session", "route_plan_session_key"),
+            scope_key("revision", "route_plan_revision_key"),
+            enum_check("instructions_source", ["template", "gemini"], "route_plan_source_ck"),
+            models.UniqueConstraint(
+                fields=["session", "context_version"],
+                condition=Q(invalidated_at__isnull=True),
+                name="route_plan_active_uq",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["session", "created_at"], name="route_plan_history_idx"),
+        ]

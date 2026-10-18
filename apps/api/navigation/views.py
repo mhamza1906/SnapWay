@@ -1,9 +1,8 @@
-"""Photo localization API: validates and forwards frames to the place-match engine.
+"""Photo localization and visitor session / route-plan APIs.
 
-MegaLoc-first decisions, Vertex AI fallback and every score come from the engine unchanged.
-Frames are not stored and their bytes are never logged. Persisting results in
-``LocalizationResult`` needs a stored ``Capture`` asset, which is out of scope until frame
-retention is approved (see docs/place-match-production.md).
+MegaLoc-first decisions come from the place-match engine unchanged. Frames are not stored.
+First successful session localize may attach a Dijkstra RoutePlan (see
+docs/visitor-text-route-guidance.md). Capture-backed LocalizationResult remains retention-gated.
 """
 
 from __future__ import annotations
@@ -13,19 +12,27 @@ import json
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
+from maps.models import Node
 from maps.services.index_catalog import eligible_index_entries, enrich_target_context
 from PIL import Image, UnidentifiedImageError
 from rest_framework import serializers, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from navigation.authentication import DevTokenAuthentication, NavigationCapabilityAuthentication
+from navigation.authentication import (
+    DevTokenAuthentication,
+    NavigationCapabilityAuthentication,
+)
+from navigation.models import NavigationSession
 from navigation.permissions import CanLocalize, caller_kind
 from navigation.services import placematch
 from navigation.services.placematch import MAX_UPLOAD_BYTES, EngineError
+from navigation.services.route_plan import active_plan, ensure_route_for_localize, plan_to_dict
+from navigation.services.session import SessionError, create_session, session_public_payload
 
 MAX_SIDE = 4096
 
@@ -47,6 +54,13 @@ class FrameMetaSerializer(serializers.Serializer):
         if unknown:
             raise serializers.ValidationError(f"Unknown fields: {sorted(unknown)}")
         return attrs
+
+
+class CreateSessionSerializer(serializers.Serializer):
+    publication_id = serializers.UUIDField()
+    destination_stable_id = serializers.UUIDField(
+        help_text="Public buildings destinations[].id (Node.stable_id), not Node.id."
+    )
 
 
 class LocalizationView(APIView):
@@ -91,6 +105,41 @@ class _TooLarge(Exception):
     status = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
 
+def _stable_id_for_pk(node_pk) -> str | None:
+    from navigation.services.routing import _as_uuid
+
+    pk = _as_uuid(node_pk)
+    if pk is None:
+        return None
+    found = Node.objects.filter(pk=pk).values_list("stable_id", flat=True).first()
+    return str(found) if found else None
+
+
+def _attach_route(request, body: dict) -> dict:
+    """On first likely_match for a NavigationSession, build/return RoutePlan."""
+    decision = body.get("decision") or {}
+    node_pk = body.get("node_id") or decision.get("node_id") or decision.get("location_id")
+    body["node_stable_id"] = _stable_id_for_pk(node_pk)
+
+    session = request.auth if isinstance(request.auth, NavigationSession) else None
+    if session is None:
+        body["route"] = None
+        return body
+
+    dest = session.destination
+    body["destination_node_id"] = str(dest.id) if dest else None
+    body["destination_stable_id"] = str(dest.stable_id) if dest else None
+
+    outcome = (decision.get("outcome") or "").lower()
+    if outcome != "likely_match" or not node_pk or dest is None:
+        existing = active_plan(session)
+        body["route"] = plan_to_dict(existing) if existing else None
+        return body
+
+    body["route"] = ensure_route_for_localize(session, start_node_id=node_pk)
+    return body
+
+
 class LocalizationHealthView(LocalizationView):
     @extend_schema(
         summary="Localization service health",
@@ -113,9 +162,9 @@ class LocalizeView(LocalizationView):
         description=(
             "Multipart `image` (JPEG, at most 3 MB and 4096 px) and `meta` JSON. Searches the "
             "union of published (and DEBUG draft) revision index zips — no floor prompt. "
-            "Optional debug query `revision_id` or `target_id` narrows the catalog. "
-            "Legacy single-set engine match is available with `mode=legacy` plus "
-            "`backend` / `verify` / `second_opinion`. Frames are not stored."
+            "With Authorization: Navigation <secret> and a session destination, the first "
+            "likely_match also returns a Dijkstra route plan (stable_id vs node PK documented "
+            "in docs/visitor-text-route-guidance.md)."
         ),
         request={
             "multipart/form-data": inline_serializer(
@@ -153,7 +202,7 @@ class LocalizeView(LocalizationView):
                 body = placematch.match(image, frame_meta, backend=backend, **flags)
             except EngineError as exc:
                 return _engine_error(exc)
-            return Response({**body, "caller": caller_kind(request)})
+            return Response({**body, "caller": caller_kind(request), "route": None})
 
         revision_id = request.query_params.get("revision_id") or None
         target_id = request.query_params.get("target_id") or None
@@ -179,12 +228,75 @@ class LocalizeView(LocalizationView):
 
         decision = body.get("decision") or {}
         ctx = enrich_target_context(decision.get("target_id"))
+        payload = {
+            **body,
+            **ctx,
+            "node_id": decision.get("node_id") or decision.get("location_id"),
+            "revision_id": decision.get("revision_id") or ctx.get("revision_id"),
+            "caller": caller_kind(request),
+        }
+        return Response(_attach_route(request, payload))
+
+
+class NavigationSessionCreateView(APIView):
+    """Anonymous visitor session: pin publication + destination_stable_id before first photo."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "navigation_session"
+
+    @extend_schema(
+        summary="Create visitor navigation session",
+        request=CreateSessionSerializer,
+        responses={201: OpenApiTypes.OBJECT},
+    )
+    def post(self, request):
+        ser = CreateSessionSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        try:
+            session, secret = create_session(
+                publication_id=ser.validated_data["publication_id"],
+                destination_stable_id=ser.validated_data["destination_stable_id"],
+            )
+        except SessionError as exc:
+            return Response(
+                {"error": exc.code, "detail": exc.detail},
+                status=exc.status,
+            )
+        return Response(
+            session_public_payload(session, secret=secret), status=status.HTTP_201_CREATED
+        )
+
+
+class CurrentRouteView(LocalizationView):
+    """Return the active RoutePlan for the Navigation session capability."""
+
+    @extend_schema(
+        summary="Current route plan for this navigation session",
+        responses={200: OpenApiTypes.OBJECT},
+    )
+    def get(self, request):
+        if not isinstance(request.auth, NavigationSession):
+            return Response(
+                {
+                    "error": "navigation_session_required",
+                    "detail": "Use Authorization: Navigation <secret>.",
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        plan = active_plan(request.auth)
         return Response(
             {
-                **body,
-                **ctx,
-                "node_id": decision.get("node_id") or decision.get("location_id"),
-                "revision_id": decision.get("revision_id") or ctx.get("revision_id"),
+                "route": plan_to_dict(plan) if plan else None,
+                "destination_node_id": (
+                    str(request.auth.destination_id) if request.auth.destination_id else None
+                ),
+                "destination_stable_id": (
+                    str(request.auth.destination.stable_id) if request.auth.destination else None
+                ),
+                "context_version": request.auth.context_version,
                 "caller": caller_kind(request),
             }
         )

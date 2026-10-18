@@ -178,16 +178,19 @@ are released and results from a closed capture screen are ignored.
 Release integration is still pending:
 
 - Supply reviewed guidance images and a route/publication-aware frame adapter to
-  the typed renderer. No uploaded images, route-generation endpoint, turn sequence
-  or automatic step advancement is implemented by this UI task.
+  the typed renderer. Backend route text/steps are available on localize; the UI
+  does not yet consume them or advance steps automatically.
 - Apply the exact Android CORS allowance described below and verify restricted
   Google Maps credentials on the physical phone. API address routing is implemented;
   production CORS is verified. Google Maps referrer authorization and final map
   acceptance remain pending with the credential owner.
-- Provide the existing authorized localization session/capability. There is no
-  public visitor-session issuance endpoint yet, and the iOS bridge's configured
-  token transport remains debug-only. Anonymous browser captures may be denied;
-  this change does not bypass that authorization boundary or embed a shared token.
+- Provide the existing authorized localization session/capability. Backend now
+  exposes `POST /api/navigation/sessions/` (destination `stable_id` + publication)
+  and attaches a Dijkstra `route` on the first session localize — see
+  [visitor-text-route-guidance.md](visitor-text-route-guidance.md). The visitor UI
+  still needs to call session create and send `Authorization: Navigation <secret>`.
+  The iOS bridge's configured token transport remains debug-only for bare localize
+  without a session.
 - Verify Android camera/GPS, iOS capture/GPS, external Maps handoff, background/return,
   safe areas and permission recovery on actual phones. Android SDK Platform 36 is
   now installed locally; a successful asset sync alone still does not verify an APK
