@@ -119,8 +119,10 @@ export interface HallPoint {
   selected?: boolean;
 }
 export interface HallPlan {
-  selectionMode?: 'sparse';
+  selectionMode?: 'sparse' | 'adaptive';
   maxPoints?: number;
+  recommendedPoints?: number;
+  lengthPx?: number;
   candidateCount?: number;
   spaceId: string;
   label: string;
@@ -516,7 +518,7 @@ export class PipelineService {
     building: PipelineBuilding,
     floorId: string,
     spaceId: string,
-    maxPoints = 12,
+    maxPoints = 20,
   ): Promise<HallPlan> {
     return this.postLight('/authoring/hall-points', building, { floorId, spaceId, maxPoints });
   }

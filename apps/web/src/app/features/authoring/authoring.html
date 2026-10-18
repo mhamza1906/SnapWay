@@ -404,7 +404,7 @@
               <div class="panel-body">
                 <div class="button-row">
                   <label class="field">
-                    Maximum photo stops per circulation
+                    Photo-stop ceiling per circulation
                     <input
                       type="number"
                       min="2"
@@ -432,8 +432,8 @@
                 }
                 @if (hallPlan(); as plan) {
                   <p class="hint">
-                    {{ plan.points.length }} photo stops, spread through this circulation area.
-                    Junctions and turns are prioritized; fewer stops mean fewer reference views.
+                    {{ plan.points.length }} photo stops, spread through this circulation area. The
+                    count adapts to walking length, turns and junctions, up to your ceiling.
                     Updating replaces this point list and keeps the walking paths. Tick points here
                     or click them on the map, then remove them. Relabel numbers the rest 1 to
                     {{ plan.points.length }} with no gaps.

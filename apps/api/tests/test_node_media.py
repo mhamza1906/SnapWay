@@ -358,3 +358,147 @@ def test_import_phone_walks_preserves_existing_draft_on_repeat(actors, settings,
     assert revision.geometry["photo_walk_source"] == "test-svg:floor:circulation:12"
     actors["member"].refresh_from_db()
     assert not actors["member"].is_staff
+
+
+@pytest.fixture
+def walk_expansion(actors, draft, tmp_path):
+    import json
+
+    from maps.models import Asset, ReferencePhoto, Revision
+    from maps.services.graph import add_edge
+
+    revision = Revision.objects.get(pk=draft["revision_id"])
+    revision.geometry = {"photo_walk_source": "test:floor:hall:12", "review": "agent-inspected"}
+    revision.coordinate_frame = {"width": 100, "height": 100, "origin": "top_left", "units": "plan"}
+    revision.save()
+    first = add_node(revision, x=0, y=10, label="Point 1", actor=actors["member"])
+    last = add_node(revision, x=19, y=10, label="Point 2", actor=actors["member"])
+    add_edge(revision, actor=actors["member"], from_id=first.id, to_id=last.id)
+    asset = Asset.objects.create(
+        target=revision.target,
+        uploaded_by=actors["member"],
+        kind="photo",
+        storage_key="existing-photo.png",
+        content_type="image/png",
+        sha256="b" * 64,
+        byte_size=1,
+    )
+    photo = ReferencePhoto.objects.create(
+        revision=revision, node=last, asset=asset, capture_context={"direction": "front"}
+    )
+    source = tmp_path / "expanded.json"
+    source.write_text(
+        json.dumps(
+            {
+                "walks": [
+                    {
+                        "source": "test:floor:hall:20",
+                        "previousSource": "test:floor:hall:12",
+                        "width": 100,
+                        "height": 100,
+                        "points": 20,
+                        "nodes": [
+                            {"x": i, "y": 10, "label": f"Point {i + 1}", "kind": "checkpoint"}
+                            for i in range(20)
+                        ],
+                        "edges": [{"from": i, "to": i + 1} for i in range(19)],
+                    }
+                ]
+            }
+        )
+    )
+    return revision, first, last, photo, source
+
+
+@pytest.mark.django_db
+def test_expand_saved_walk_to_twenty_preserves_node_ids_and_photos(walk_expansion):
+    import io
+
+    from django.core.management import call_command
+    from maps.models import Contribution
+
+    revision, first, last, photo, source = walk_expansion
+    for _ in range(2):
+        call_command(
+            "import_photo_walks",
+            username="member",
+            file=str(source),
+            upgrade_existing=True,
+            stdout=io.StringIO(),
+        )
+    revision.refresh_from_db()
+    last.refresh_from_db()
+    photo.refresh_from_db()
+    assert Contribution.objects.count() == 1
+    assert revision.nodes.count() == 20
+    assert revision.edges.count() == 19
+    assert revision.nodes.filter(pk=first.id).exists()
+    assert last.label == "Point 20"
+    assert (last.x, last.y) == (19, 10)
+    assert photo.node_id == last.id
+    assert photo.capture_context == {"direction": "front"}
+    assert revision.geometry["photo_walk_source"] == "test:floor:hall:20"
+    assert revision.geometry["review"] == "agent-inspected"
+
+
+@pytest.mark.django_db
+def test_expand_saved_walk_refuses_to_move_existing_photo_locations(walk_expansion):
+    import io
+    import json
+
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    revision, _, last, photo, source = walk_expansion
+    data = json.loads(source.read_text())
+    data["walks"][0]["nodes"][-1]["x"] = 18.5
+    source.write_text(json.dumps(data))
+    with pytest.raises(CommandError, match="retain every existing node"):
+        call_command(
+            "import_photo_walks",
+            username="member",
+            file=str(source),
+            upgrade_existing=True,
+            stdout=io.StringIO(),
+        )
+    revision.refresh_from_db()
+    last.refresh_from_db()
+    photo.refresh_from_db()
+    assert revision.nodes.count() == 2
+    assert revision.edges.count() == 1
+    assert last.label == "Point 2"
+    assert photo.node_id == last.id
+    assert revision.geometry["photo_walk_source"] == "test:floor:hall:12"
+
+
+@pytest.mark.django_db
+def test_adaptive_replan_keeps_unused_photo_nodes_and_their_photos(walk_expansion):
+    import io
+    import json
+
+    from django.core.management import call_command
+    from maps.services.graph import list_graph
+
+    revision, _, last, photo, source = walk_expansion
+    data = json.loads(source.read_text())
+    walk = data["walks"][0]
+    walk["points"] = 2
+    walk["previousSources"] = [walk.pop("previousSource")]
+    for i, node in enumerate(walk["nodes"]):
+        node["label"] = "Point 1" if i == 0 else "Point 2" if i == 15 else "Path junction / bend"
+    source.write_text(json.dumps(data))
+    call_command(
+        "import_photo_walks",
+        username="member",
+        file=str(source),
+        upgrade_existing=True,
+        stdout=io.StringIO(),
+    )
+    revision.refresh_from_db()
+    photo.refresh_from_db()
+    assert revision.nodes.count() == 20
+    assert revision.nodes.filter(label__startswith="Point ").count() == 2
+    assert photo.node_id == last.id
+    graph_node = next(node for node in list_graph(revision)["nodes"] if node["id"] == str(last.id))
+    assert graph_node["photo_directions"] == ["front"]
+    assert graph_node["label"] == "Path junction / bend"

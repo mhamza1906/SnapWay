@@ -12,11 +12,12 @@ const walks = [];
 for (const floor of building.floors) {
   const underlay = (await sharp(Buffer.from(renderSamIbrahimFloor(building, floor.id))).png().toBuffer()).toString('base64');
   for (const hall of floor.geometry.spaces.filter(space => ['corridor','lobby'].includes(space.kind))) {
-    const plan = planHallPoints(building, floor.id, hall.id, {maxPoints:12});
+    const plan = planHallPoints(building, floor.id, hall.id, {maxPoints:20});
+    const retained = planHallPoints(building, floor.id, hall.id, {maxPoints:20,adaptive:false});
     if (!plan.points.length) continue;
-    walks.push({source:`${building.id}:${floor.id}:${hall.id}:12`,title:`Sam Ibrahim · ${hall.label}`,
+    walks.push({source:`${building.id}:${floor.id}:${hall.id}:adaptive-20-v1`,previousSources:[20,12].map(cap=>`${building.id}:${floor.id}:${hall.id}:${cap}`),title:`Sam Ibrahim · ${hall.label}`,
       floor:floor.label,width:floor.width,height:floor.height,points:plan.points.length,
-      underlay, ...photoPointGraph(plan)});
+      underlay, ...photoPointGraph(plan,retained.points)});
   }
 }
 if (!process.argv[2]) throw new Error('Pass an output JSON path.');

@@ -18,6 +18,29 @@ const plan = (lines: HallPlan['lines'], points: HallPlan['points']): HallPlan =>
 });
 
 describe('photo-point graph export', () => {
+  it('retains earlier locations as path vertices without requiring extra photos', () => {
+    const graph = photoPointGraph(
+      plan(
+        [
+          [
+            { x: 0, y: 0 },
+            { x: 20, y: 0 },
+          ],
+        ],
+        [point(10, 0, 1)],
+      ),
+      [
+        { x: 5, y: 0 },
+        { x: 10, y: 0 },
+        { x: 15, y: 0 },
+      ],
+    );
+    expect(graph.nodes.filter((node) => node.photoOrder)).toHaveLength(1);
+    expect(graph.nodes.find((node) => node.x === 5)?.label).toBe('Path junction / bend');
+    expect(graph.nodes.find((node) => node.x === 15)?.photoOrder).toBeUndefined();
+    expect(graph.edges).toHaveLength(4);
+    expect(graph.nodes).toHaveLength(5);
+  });
   it('keeps the bend between nearby photo points instead of cutting the corner', () => {
     const g = photoPointGraph(
       plan(

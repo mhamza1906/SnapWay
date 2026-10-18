@@ -195,4 +195,37 @@ describe('GraphEditorPage', () => {
     expect(page.pendingPhotos()).toHaveLength(0);
     expect(page.uploadedViews()).toBe(1);
   });
+
+  it('keeps uploaded and queued photo locations visible after an adaptive replan', () => {
+    const page = fixture.componentInstance;
+    page.revisionId.set('r1');
+    page.nodes.set([
+      { id: 'active', x: 0, y: 0, label: 'Point 1', kind: 'checkpoint' },
+      { id: 'path', x: 1, y: 0, label: 'Path junction / bend', kind: 'junction' },
+      {
+        id: 'uploaded',
+        x: 2,
+        y: 0,
+        label: 'Path junction / bend',
+        kind: 'junction',
+        photo_directions: ['front'],
+      },
+      { id: 'queued', x: 3, y: 0, label: 'Path junction / bend', kind: 'junction' },
+    ]);
+    page.phoneQueue.items.set([
+      {
+        id: 'pending',
+        owner: 'a@b.c',
+        revisionId: 'r1',
+        nodeId: 'queued',
+        direction: 'right',
+        blob: new Blob(['image']),
+        filename: 'queued.jpg',
+      },
+    ]);
+    expect(new Set(page.capturePoints().map((node) => node.id))).toEqual(
+      new Set(['active', 'uploaded', 'queued']),
+    );
+    expect(page.uploadedViews()).toBe(1);
+  });
 });

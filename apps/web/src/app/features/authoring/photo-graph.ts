@@ -10,7 +10,10 @@ export interface PhotoGraphNode extends Point {
  * Numbering is a capture itinerary; consecutive numbers are not graph edges.
  * Only exact shared vertices join lines. Nearby or crossing lines stay separate.
  */
-export function photoPointGraph(plan: HallPlan): {
+export function photoPointGraph(
+  plan: HallPlan,
+  retainedLocations: Point[] = [],
+): {
   nodes: PhotoGraphNode[];
   edges: { from: number; to: number }[];
 } {
@@ -46,7 +49,14 @@ export function photoPointGraph(plan: HallPlan): {
       ];
     }),
   );
-  for (const point of plan.points) {
+  const locations = [
+    ...plan.points.map((point) => ({ point, capture: true })),
+    ...retainedLocations.map((point) => ({
+      point: { ...point, order: 0, reason: 'spacing' },
+      capture: false,
+    })),
+  ];
+  for (const { point, capture } of locations) {
     let best:
       { segment: (typeof segments)[number]; t: number; at: Point; distance: number } | undefined;
     for (const segment of segments) {
@@ -66,13 +76,14 @@ export function photoPointGraph(plan: HallPlan): {
         `Photo point ${point.order} is off its planned corridor. Regenerate the photo points.`,
       );
     const id = vertex(best.at);
-    if (nodes[id].photoOrder !== undefined)
+    if (capture && nodes[id].photoOrder !== undefined)
       throw new Error('Duplicate photo locations. Regenerate the photo points.');
-    Object.assign(nodes[id], {
-      label: `Point ${point.order}`,
-      kind: point.reason === 'junction' ? 'junction' : 'checkpoint',
-      photoOrder: point.order,
-    });
+    if (capture)
+      Object.assign(nodes[id], {
+        label: `Point ${point.order}`,
+        kind: point.reason === 'junction' ? 'junction' : 'checkpoint',
+        photoOrder: point.order,
+      });
     best.segment.cuts.push({ t: best.t, id });
   }
   const edges: { from: number; to: number }[] = [],

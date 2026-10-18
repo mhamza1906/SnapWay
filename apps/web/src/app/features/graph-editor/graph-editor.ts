@@ -25,7 +25,11 @@ export class GraphEditorPage implements OnInit {
   readonly cloudReady = signal(true);
   readonly savedWalks = signal<{ target_id: string; title: string; floor: string }[]>([]);
   readonly capturePoints = computed(() => {
-    const numbered = this.nodes().filter((node) => /^Point\s+\d+$/i.test(node.label));
+    const pending = new Set(this.pendingPhotos().map((item) => item.nodeId));
+    const numbered = this.nodes().filter(
+      (node) =>
+        /^Point\s+\d+$/i.test(node.label) || node.photo_directions?.length || pending.has(node.id),
+    );
     return (numbered.length ? numbered : this.nodes().filter((node) => node.kind === 'checkpoint'))
       .slice()
       .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));

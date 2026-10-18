@@ -410,7 +410,7 @@ export class AuthoringPage implements OnInit {
   readonly merges = computed(() => this.floor()?.merges ?? []);
   /** The photo point plan drawn on the map, if any. */
   readonly hallPlan = signal<HallPlan | null>(null);
-  readonly photoStopLimit = signal(12);
+  readonly photoStopLimit = signal(20);
   readonly validPhotoStopLimit = computed(
     () =>
       Number.isInteger(this.photoStopLimit()) &&

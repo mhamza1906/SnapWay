@@ -396,7 +396,7 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
 // pixels (default 2.2% of the floor's larger side) and metres are null.
 // This spacing generates candidates, not a required photo at every interval.
 // A sparse, distributed subset is selected; graph lines are never thinned.
-export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 12 } = {}) {
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 20, adaptive = true } = {}) {
   const floor = floorOf(building, floorId),
     pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
     hall = pieces.find((s) => s.id === spaceId);
@@ -464,13 +464,21 @@ export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spaci
     for (let k = 1; k * step < total - min / 2; k++) place(k * step, "spacing");
   });
   points.sort((a, z) => a._visit - z._visit);
+  // Use route length, not room area: long/branched corridors need more views.
+  // Six candidate intervals give a useful starting density; decision points
+  // add up to four stops. With no verified scale this remains a plan-relative
+  // heuristic, not a measured localization-accuracy guarantee.
+  const lengthPx = edges.reduce((sum, edge) => sum + polyLength(edge.path), 0),
+    complexity = Math.min(4, points.filter(p => p.reason === "turn").length + 2 * points.filter(p => p.reason === "junction").length),
+    recommendedPoints = Math.min(points.length, maxPoints, Math.max(2, Math.ceil(lengthPx / (6 * step)) + 1 + complexity)),
+    budget = adaptive ? recommendedPoints : maxPoints;
   // Farthest-point sampling spreads the limited stops through the whole hall.
   // Weight junctions/turns above ordinary straight-hall candidates, without
   // letting a cluster of junctions consume the entire capture budget.
   const weight = { junction: 1.6, turn: 1.4, end: 1.2, spacing: 1 };
   const selected = [];
   const remaining = [...points];
-  while (selected.length < maxPoints && remaining.length) {
+  while (selected.length < budget && remaining.length) {
     let best = 0, bestScore = -Infinity;
     remaining.forEach((point, index) => {
       const separation = selected.length ? Math.min(...selected.map(other => distance(point, other))) : 1;
@@ -482,7 +490,7 @@ export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spaci
   selected.sort((a, z) => a._visit - z._visit);
   return {
     spaceId, label: hall.label, scaleVerified: !!ppm, spacingM: ppm ? spacingM : null, spacingPx: r2(step),
-    selectionMode: "sparse", maxPoints, candidateCount: points.length,
+    selectionMode: adaptive ? "adaptive" : "sparse", maxPoints, recommendedPoints, lengthPx: r2(lengthPx), candidateCount: points.length,
     lines: edges.map((e) => e.path.map((p) => ({ x: r2(p.x), y: r2(p.y) }))),
     points: selected.map(({ _visit, ...q }, i) => ({ order: i + 1, ...q, nodeId: q.nodeId ?? null, edgeId: q.edgeId ?? null })),
   };
