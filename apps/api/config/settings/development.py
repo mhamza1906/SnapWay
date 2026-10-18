@@ -1,3 +1,4 @@
+import os
 import socket
 from urllib.parse import urlsplit
 
@@ -6,9 +7,14 @@ from config.environment import ROOT, env
 # Sole private env source for development; process environment takes precedence.
 env.read_env(ROOT / "local" / ".env", overwrite=False)
 # Until scripts/env_contract.py migrate consolidates it, the older
-# local/env/api.env still fills in values local/.env does not set.
-if (ROOT / "local" / "env" / "api.env").exists():
-    env.read_env(ROOT / "local" / "env" / "api.env", overwrite=False)
+# local/env/api.env still fills in values local/.env does not set. Template
+# placeholders ("your_…") are skipped, so an unfilled bucket stays unset.
+_legacy = ROOT / "local" / "env" / "api.env"
+if _legacy.exists():
+    for _line in _legacy.read_text(encoding="utf-8").splitlines():
+        _key, _sep, _value = _line.strip().partition("=")
+        if _sep and not _key.startswith("#") and _value and not _value.startswith("your_"):
+            os.environ.setdefault(_key, _value)
 
 from .base import *  # noqa: E402, F403
 
