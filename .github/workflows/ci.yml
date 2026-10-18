@@ -10,6 +10,11 @@ on:
         description: Deploy main after all checks (server setup must be complete)
         type: boolean
         default: false
+      mobile_runtime:
+        description: Prepare existing Vultr Node/MegaLoc runtime (does not deploy API/web)
+        type: choice
+        options: [none, probe, prepare]
+        default: none
       cloud_audit:
         description: Read-only cloud readiness with the existing CI SSH identity (no deployment)
         type: boolean
@@ -25,6 +30,23 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  mobile-runtime:
+    if: github.event_name == 'workflow_dispatch' && inputs.mobile_runtime != 'none' && inputs.mobile_runtime != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Prepare optional runtime through existing deployment identity
+        env:
+          VULTR_HOST: ${{ secrets.VULTR_HOST }}
+          VULTR_USER: ${{ secrets.VULTR_USER }}
+          VULTR_SSH_PORT: ${{ secrets.VULTR_SSH_PORT }}
+          VULTR_SSH_KEY: ${{ secrets.VULTR_SSH_KEY }}
+          VULTR_KNOWN_HOSTS: ${{ secrets.VULTR_KNOWN_HOSTS }}
+          MOBILE_RUNTIME_ACTION: ${{ inputs.mobile_runtime }}
+        shell: bash
+        run: bash infra/mobile-runtime-ci.sh
+
   cloud-readiness:
     if: github.event_name == 'workflow_dispatch' && inputs.cloud_audit == true
     runs-on: ubuntu-24.04
