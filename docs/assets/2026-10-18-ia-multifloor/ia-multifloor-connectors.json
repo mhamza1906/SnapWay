@@ -1,0 +1,424 @@
+{
+  "floors": {
+    "1": {
+      "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+      "building_id": "14b949ec-227e-4b30-8d59-960705b7cc11",
+      "building_name": "IA Building",
+      "floor_code": "1",
+      "revision_id": "28b57628-ae05-428a-b6e3-e5fcdde7af4f",
+      "nodes": 48,
+      "edges": 96,
+      "frame": {
+        "units": "plan",
+        "width": 1536,
+        "height": 1024,
+        "origin": "top_left"
+      },
+      "underlay_asset_id": "27809d5a-406e-48ed-a91b-3e77ebc257e8",
+      "vertical": [
+        {
+          "id": "e0818702-a0a3-42c8-9b62-22b0f5db36fb",
+          "label": "North lift",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3",
+          "x": 760.0,
+          "y": 300.0
+        },
+        {
+          "id": "8d14de4d-8e10-4dcc-b3cd-fc33e11c5c13",
+          "label": "South lift door (verify)",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2",
+          "x": 780.0,
+          "y": 650.0
+        },
+        {
+          "id": "39302063-6ad7-4190-be33-ebc34cf7c8b9",
+          "label": "Stair A access (verify)",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1",
+          "x": 360.0,
+          "y": 690.0
+        },
+        {
+          "id": "4f4e331a-6229-43db-b409-d701fe7e1de1",
+          "label": "Stair B",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1",
+          "x": 765.0,
+          "y": 690.0
+        },
+        {
+          "id": "9090caa6-a4ad-4333-9d42-fb38c34605bc",
+          "label": "Stair C / lift access (verify)",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1",
+          "x": 790.0,
+          "y": 315.0
+        },
+        {
+          "id": "94ac0877-483d-4823-a397-ae548267905b",
+          "label": "Stair D access (verify)",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1",
+          "x": 1252.0,
+          "y": 337.0
+        },
+        {
+          "id": "2a29b864-b8f9-4ec9-9c80-b113d112f345",
+          "label": "Stair J access (verify)",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5",
+          "x": 798.0,
+          "y": 278.0
+        }
+      ]
+    },
+    "2": {
+      "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+      "building_id": "14b949ec-227e-4b30-8d59-960705b7cc11",
+      "building_name": "IA Building",
+      "floor_code": "2",
+      "revision_id": "b954ea3a-1643-4492-973b-4860b7bbe9d2",
+      "nodes": 27,
+      "edges": 74,
+      "frame": {
+        "units": "plan",
+        "width": 1536,
+        "height": 1024,
+        "origin": "top_left"
+      },
+      "underlay_asset_id": "cab9546c-a53d-41ea-aca9-e1d8a3d193a7",
+      "vertical": [
+        {
+          "id": "c7a0f1ec-691c-48d2-9070-bf55c92902c4",
+          "label": "North lift",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3",
+          "x": 760.0,
+          "y": 300.0
+        },
+        {
+          "id": "89edddcf-ce59-46ab-a23f-e76f188cfa09",
+          "label": "South lift",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2",
+          "x": 780.0,
+          "y": 650.0
+        },
+        {
+          "id": "68172ad7-8b93-4388-92a8-c51e5670372d",
+          "label": "Stair A",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1",
+          "x": 360.0,
+          "y": 690.0
+        },
+        {
+          "id": "0b95bce8-a608-40a8-9b1d-e063cec1df5e",
+          "label": "Stair B",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1",
+          "x": 765.0,
+          "y": 690.0
+        },
+        {
+          "id": "68292fb1-fb1c-470d-ac31-d9df91f63ef2",
+          "label": "Stair C",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1",
+          "x": 790.0,
+          "y": 300.0
+        },
+        {
+          "id": "abc81408-8d0a-4cda-ab17-23674fec2bcd",
+          "label": "Stair D",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1",
+          "x": 1252.0,
+          "y": 337.0
+        },
+        {
+          "id": "952fe81f-f458-4c4a-8276-b8ac2c854a6d",
+          "label": "Stair J",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5",
+          "x": 798.0,
+          "y": 278.0
+        }
+      ]
+    },
+    "3": {
+      "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+      "building_id": "14b949ec-227e-4b30-8d59-960705b7cc11",
+      "building_name": "IA Building",
+      "floor_code": "3",
+      "revision_id": "ea3ba255-1c04-49fe-b0b9-4b1e0ff1ac9d",
+      "nodes": 22,
+      "edges": 60,
+      "frame": {
+        "units": "plan",
+        "width": 1578,
+        "height": 657,
+        "origin": "top_left"
+      },
+      "underlay_asset_id": "b66d2641-24cb-4678-bb8f-efff66e8e0e8",
+      "vertical": [
+        {
+          "id": "0016936c-cdae-467b-9b5e-63ec1fd2d844",
+          "label": "North lift",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3",
+          "x": 780.781,
+          "y": 192.48
+        },
+        {
+          "id": "50adfc05-f362-4667-9573-8a4ffa433093",
+          "label": "South lift",
+          "kind": "lift",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2",
+          "x": 801.328,
+          "y": 417.041
+        },
+        {
+          "id": "26311a2c-3ba4-4c79-b73b-7ea3893d9620",
+          "label": "Stair A",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1",
+          "x": 369.844,
+          "y": 442.705
+        },
+        {
+          "id": "3849740d-cbee-4b33-b904-617acbc06604",
+          "label": "Stair B",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1",
+          "x": 785.918,
+          "y": 442.705
+        },
+        {
+          "id": "9c6e4628-2391-4469-99a2-c6573dfdda96",
+          "label": "Stair C",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1",
+          "x": 811.602,
+          "y": 192.48
+        },
+        {
+          "id": "02da6e98-179c-4f95-9a87-46742a101738",
+          "label": "Stair D",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1",
+          "x": 1286.234,
+          "y": 216.22
+        },
+        {
+          "id": "ebb66e2c-099f-47fc-ace8-03b5e46a7e6a",
+          "label": "Stair J",
+          "kind": "stairs",
+          "stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5",
+          "x": 819.82,
+          "y": 178.365
+        }
+      ]
+    }
+  },
+  "connectors": [
+    {
+      "code": "lift-north",
+      "kind": "lift",
+      "label": "North lift",
+      "endpoints": [
+        {
+          "label": "North lift",
+          "node_id": "e0818702-a0a3-42c8-9b62-22b0f5db36fb",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3"
+        },
+        {
+          "label": "North lift",
+          "node_id": "c7a0f1ec-691c-48d2-9070-bf55c92902c4",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3"
+        },
+        {
+          "label": "North lift",
+          "node_id": "0016936c-cdae-467b-9b5e-63ec1fd2d844",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e3"
+        }
+      ]
+    },
+    {
+      "code": "lift-south",
+      "kind": "lift",
+      "label": "South lift",
+      "endpoints": [
+        {
+          "label": "South lift door (verify)",
+          "node_id": "8d14de4d-8e10-4dcc-b3cd-fc33e11c5c13",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2"
+        },
+        {
+          "label": "South lift",
+          "node_id": "89edddcf-ce59-46ab-a23f-e76f188cfa09",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2"
+        },
+        {
+          "label": "South lift",
+          "node_id": "50adfc05-f362-4667-9573-8a4ffa433093",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000e2"
+        }
+      ]
+    },
+    {
+      "code": "stair-a",
+      "kind": "stairs",
+      "label": "Stair A",
+      "endpoints": [
+        {
+          "label": "Stair A access (verify)",
+          "node_id": "39302063-6ad7-4190-be33-ebc34cf7c8b9",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1"
+        },
+        {
+          "label": "Stair A",
+          "node_id": "68172ad7-8b93-4388-92a8-c51e5670372d",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1"
+        },
+        {
+          "label": "Stair A",
+          "node_id": "26311a2c-3ba4-4c79-b73b-7ea3893d9620",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a1"
+        }
+      ]
+    },
+    {
+      "code": "stair-b",
+      "kind": "stairs",
+      "label": "Stair B",
+      "endpoints": [
+        {
+          "label": "Stair B",
+          "node_id": "4f4e331a-6229-43db-b409-d701fe7e1de1",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1"
+        },
+        {
+          "label": "Stair B",
+          "node_id": "0b95bce8-a608-40a8-9b1d-e063cec1df5e",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1"
+        },
+        {
+          "label": "Stair B",
+          "node_id": "3849740d-cbee-4b33-b904-617acbc06604",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000b1"
+        }
+      ]
+    },
+    {
+      "code": "stair-c",
+      "kind": "stairs",
+      "label": "Stair C",
+      "endpoints": [
+        {
+          "label": "Stair C / lift access (verify)",
+          "node_id": "9090caa6-a4ad-4333-9d42-fb38c34605bc",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1"
+        },
+        {
+          "label": "Stair C",
+          "node_id": "68292fb1-fb1c-470d-ac31-d9df91f63ef2",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1"
+        },
+        {
+          "label": "Stair C",
+          "node_id": "9c6e4628-2391-4469-99a2-c6573dfdda96",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000c1"
+        }
+      ]
+    },
+    {
+      "code": "stair-d",
+      "kind": "stairs",
+      "label": "Stair D",
+      "endpoints": [
+        {
+          "label": "Stair D access (verify)",
+          "node_id": "94ac0877-483d-4823-a397-ae548267905b",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1"
+        },
+        {
+          "label": "Stair D",
+          "node_id": "abc81408-8d0a-4cda-ab17-23674fec2bcd",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1"
+        },
+        {
+          "label": "Stair D",
+          "node_id": "02da6e98-179c-4f95-9a87-46742a101738",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000d1"
+        }
+      ]
+    },
+    {
+      "code": "stair-j",
+      "kind": "stairs",
+      "label": "Stair J",
+      "endpoints": [
+        {
+          "label": "Stair J access (verify)",
+          "node_id": "2a29b864-b8f9-4ec9-9c80-b113d112f345",
+          "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+          "floor_code": "1",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5"
+        },
+        {
+          "label": "Stair J",
+          "node_id": "952fe81f-f458-4c4a-8276-b8ac2c854a6d",
+          "target_id": "55614282-3f94-40fe-b6c0-1845bc1d5cbb",
+          "floor_code": "2",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5"
+        },
+        {
+          "label": "Stair J",
+          "node_id": "ebb66e2c-099f-47fc-ace8-03b5e46a7e6a",
+          "target_id": "a6ac25b3-80b2-453d-aaec-74a2ec15dde1",
+          "floor_code": "3",
+          "node_stable_id": "aaaaaaaa-0001-4000-8000-0000000000a5"
+        }
+      ]
+    }
+  ]
+}

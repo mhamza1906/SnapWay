@@ -103,6 +103,18 @@ After human correction, this draft is intended as the Level 1 source of truth fo
 AI authoring accuracy tests. Do not invent missing rooms (e.g. Muffler/Hive) on
 this floor without underlay evidence.
 
+## IA Levels 2–3 + cross-floor connectors
+
+Seeded from `local/test-source` vector SVGs onto the same IA Building as Level 1.
+Stairs A–D / J and north/south lifts are linked across floors 1–3 via
+`FloorConnector`. Full contract, target IDs, and inventories:
+[ia-multifloor.md](ia-multifloor.md).
+
+| Floor | Target | Nodes / edges |
+| --- | --- | --- |
+| 2 | `55614282-3f94-40fe-b6c0-1845bc1d5cbb` | 27 / 74 |
+| 3 | `a6ac25b3-80b2-453d-aaec-74a2ec15dde1` | 22 / 60 |
+
 ## MegaLoc index rebuild
 
 Toolbar **Rebuild MegaLoc index** calls `POST /api/maps/revisions/<id>/index/`

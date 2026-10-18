@@ -68,6 +68,19 @@ class WorkspaceBuildingsView(WorkspaceView):
 
 
 @extend_schema(exclude=True)
+class BuildingConnectorsView(WorkspaceView):
+    """Cross-floor stair/lift endpoints for multi-floor routing."""
+
+    def get(self, request, building_id):
+        return Response(
+            {
+                "building_id": str(building_id),
+                "connectors": svc.building_connectors(request.user, building_id),
+            }
+        )
+
+
+@extend_schema(exclude=True)
 class WorkspaceMapsView(WorkspaceView):
     def get(self, request):
         # List must stay metadata-only: do not sign underlay URLs here. Each
@@ -124,9 +137,7 @@ class WorkspaceMapsView(WorkspaceView):
             publication = (getattr(target, "current_pubs", None) or [None])[0]
             shared = (getattr(target, "shared_contributions", None) or [None])[0]
             shared_revision = (
-                None
-                if contribution or publication or not shared
-                else shared.head_revision
+                None if contribution or publication or not shared else shared.head_revision
             )
             if not contribution and not publication and not shared_revision:
                 continue
