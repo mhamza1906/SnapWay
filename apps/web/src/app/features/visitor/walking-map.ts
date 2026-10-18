@@ -30,7 +30,7 @@ import {
       <div class="fallback" role="status">Opening your map…</div>
     }
     @if (!location() && !destination() && !loading() && !error()) {
-      <span class="area">Toronto area · location not yet available</span>
+      <span class="area">Tap the re-center button to find your location.</span>
     }`,
   styles: [
     `
