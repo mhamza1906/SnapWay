@@ -13,8 +13,46 @@ from maps.views_graph import (
     RevisionIndexView,
     UnderlayUploadView,
 )
+from maps.views_optimize import (
+    OptimizeRegenerateView,
+    OptimizeStatusView,
+    OptimizeUploadView,
+    VectorizeDemoView,
+)
+from maps.views_workspace import (
+    ContributionDetailView,
+    ContributionListView,
+    EditMapView,
+    MapExportView,
+    PipelineImportView,
+    SubmissionView,
+    TargetLifecycleView,
+    WorkspaceActivityView,
+    WorkspaceBuildingsView,
+    WorkspaceMapsView,
+)
 
 urlpatterns = [
+    path("workspace/", WorkspaceMapsView.as_view()),
+    path("workspace/buildings/", WorkspaceBuildingsView.as_view()),
+    path("workspace/activity/", WorkspaceActivityView.as_view()),
+    path("workspace/contributions/", ContributionListView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/", ContributionDetailView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/submit/", SubmissionView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/pipeline/", PipelineImportView.as_view()),
+    path("workspace/targets/<uuid:target_id>/edit/", EditMapView.as_view()),
+    path("workspace/targets/<uuid:target_id>/optimize/", OptimizeStatusView.as_view()),
+    path("workspace/targets/<uuid:target_id>/optimize/upload/", OptimizeUploadView.as_view()),
+    path(
+        "workspace/targets/<uuid:target_id>/optimize/regenerate/",
+        OptimizeRegenerateView.as_view(),
+    ),
+    path(
+        "workspace/targets/<uuid:target_id>/vectorize-demo/",
+        VectorizeDemoView.as_view(),
+    ),
+    path("workspace/targets/<uuid:target_id>/archive/", TargetLifecycleView.as_view()),
+    path("workspace/targets/<uuid:target_id>/export/", MapExportView.as_view()),
     path("public/buildings/", PublicBuildingListView.as_view(), name="public-buildings"),
     path(
         "targets/<uuid:target_id>/access/",

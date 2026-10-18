@@ -14,6 +14,15 @@ approved architecture extension and its rollout are tracked in the single
 The October 17 cloud catalogue, diagrams, counts and DDL export below remain
 historical evidence; they do not include this undeployed migration.
 
+**Workspace update:** maps migrations `0004`–`0006` have been applied to the
+configured development database. They add `Building.google_place_id`,
+`MapTarget.updated_at` and `Contribution.updated_at`, permit last-approved-wins
+publication and introduce narrowly scoped archived-target deletion. Database
+timestamp defaults preserve inserts from an older service during rollout. The saved
+catalog, diagrams and SQL export below remain the original pre-`0004` evidence;
+migrations and [Developer workspace](developer-workspace.md) describe the current
+delta. No original catalog evidence was overwritten.
+
 **Initial deployment record:** migrated to the Tiger Cloud DEV database `db-snap-way`
 on October 17, 2026: **26 migrations applied, zero pending**, with **24 domain
 tables** in the `snapway` schema. See the [cloud migration record](#tiger-cloud-migration--completed-october-17-2026)
@@ -142,11 +151,11 @@ for example, `maps_building` is deployed as `snapway.maps_building`.
 
 | Relation (all attributes) | Purpose |
 | --- | --- |
-| maps_building(<u>id</u>, created_at, name, slug, address, latitude, longitude, created_by_id) | Name, unique slug, address, optional paired WGS84 latitude/longitude, creator |
+| maps_building(<u>id</u>, created_at, name, slug, address, latitude, longitude, google_place_id, created_by_id) | Name, unique slug, address, optional paired WGS84 latitude/longitude, creator |
 | maps_floor(<u>id</u>, created_at, code, name, sort_order, building_id) | Building, floor code unique within building, display name/order; basement codes need not be integers |
-| maps_maptarget(<u>id</u>, created_at, title, instructions, status, archived_at, created_by_id, floor_id) | One collaborative mapping target per floor, instructions, creator, open/archive state and timestamp |
+| maps_maptarget(<u>id</u>, created_at, updated_at, title, instructions, status, archived_at, created_by_id, floor_id) | One collaborative mapping target per floor, instructions, creator, open/archive state and timestamp |
 | maps_membership(<u>id</u>, created_at, role, revoked_at, granted_by_id, target_id, user_id) | One application-owned admin/volunteer role per target/user, granting actor and optional revocation |
-| maps_contribution(<u>id</u>, created_at, title, status, lock_version, submitted_at, author_id, target_id, base_revision_id, head_revision_id) | Author, target, title, base publication revision, head snapshot, status, optimistic lock version, submission time |
+| maps_contribution(<u>id</u>, created_at, updated_at, title, status, lock_version, submitted_at, author_id, target_id, base_revision_id, head_revision_id) | Author, target, title, base publication revision, head snapshot, status, optimistic lock version, submission time |
 | maps_revision(<u>id</u>, created_at, schema_version, geometry, coordinate_frame, north_degrees, metres_per_unit, content_hash, frozen_at, contribution_id, created_by_id, parent_id, source_asset_id, standardized_asset_id, target_id) | Contribution/target/parent, actor, schema version, authoritative geometry JSONB, explicit coordinate frame, optional north/scale, source/standardized assets, content digest and freeze time |
 | maps_mapobject(<u>id</u>, created_at, stable_id, kind, revision_id) | Revision-local relational handle for a stable geometry object UUID; no duplicate wall geometry |
 | maps_room(<u>id</u>, created_at, number, name, purpose, attributes, provenance, map_object_id, revision_id) | Room's object handle, number/name/purpose, attributes and factual provenance |
@@ -197,25 +206,31 @@ Snapshot lifecycle:
 4. Prepare required artifacts outside the publication transaction. Each ready
    artifact has a private asset and the frozen input digest. SVG is always
    required. Semantic/index requirements depend on the enabled feature profile.
-5. Publish in one short transaction, locking target, revision, then contribution.
-   Recheck the actor, contribution head, base and latest approval. Demote the old
+5. Publish in one transaction, locking target, contribution, then revision.
+   Recheck the actor, contribution head and latest approval. Demote the old
    current row and insert the next publication. PostgreSQL checks open target,
    submitted/merged contribution, exact head/approval, latest review, sequential
-   history, nonstale base and complete matching required artifacts. Failure rolls
+   history and complete matching required artifacts. A stale base is accepted:
+   the last administrator-approved submission replaces the current publication.
+   Failure rolls
    back the demotion along with the insertion.
 
 The publication trigger serializes candidates on the target row. Artifact writes
 lock the revision, so promotion waits for them; after publication they are immutable.
 Assets, reviews, change sets, audit entries, captures and localization results are
 append-only. Publication identity cannot change; current status and permanent
-invalidation are explicit metadata transitions. Retention must be a deliberate
-later maintenance operation, not cascaded removal of shared history.
+invalidation are explicit metadata transitions. The workspace retention service
+now permits an explicit DELETE exception for the exact archived target selected
+by an authorized administrator. It destroys pending work and supports permanent
+map deletion; normal immutable-content updates remain forbidden. See the
+[workspace retention contract](developer-workspace.md#editing-review-and-archive-rules).
 
 ## Service boundaries and remaining work
 
-The schema supplies persistence and structural invariants. It does not implement
-the editor, REST/MCP commands, OAuth, publication service, workers, routing or
-localization. No map or live provider operation is created by these migrations.
+The schema supplies persistence and structural invariants. The current
+[workspace services](developer-workspace.md) implement authorized snapshot,
+submission, publication and retention operations; OAuth and graph/media APIs
+also exist. No map or live provider operation is created by these migrations.
 
 Backend services must still enforce current membership/role and CSRF/session
 authority, archive restrictions on **every** authoring command and late result,

@@ -1,0 +1,47 @@
+<section class="page optimize-page">
+  <header class="page-heading page-heading-compact optimize-heading">
+    <p>
+      Refine with a prompt, or run the demo vectorize stub (IA floor 4 prebuilt SVG; no
+      Vectorizer.AI).
+    </p>
+    <div class="heading-actions">
+      <a class="btn ghost" routerLink="/my-maps"><app-icon name="arrow" /> My maps</a>
+      <button class="btn primary" type="button" [disabled]="busy()" (click)="vectorize()">
+        <app-icon name="layers" /> Vectorize
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+
+  <section class="panel preview-panel">
+    <div class="preview-frame">
+      @if (previewUrl(); as url) {
+        <img [src]="url" alt="Optimized floor plan candidate" />
+      } @else {
+        <p>No optimized image yet. Upload from Initialize new map.</p>
+      }
+    </div>
+    @if (review()?.disclosure) {
+      <p class="disclosure" role="note">{{ review()?.disclosure }}</p>
+    }
+    <label class="prompt-field">
+      <span>Regenerate prompt</span>
+      <textarea
+        rows="3"
+        maxlength="4000"
+        [disabled]="busy()"
+        [value]="prompt()"
+        (input)="prompt.set(value($event))"
+        placeholder="Optional. Leave blank to reuse the default floor-plan cleanup prompt. Regeneration always uses the current optimized image as the template."
+      ></textarea>
+    </label>
+    <div class="actions">
+      <button class="btn secondary" type="button" [disabled]="busy()" (click)="regenerate()">
+        <app-icon name="sparkles" /> Regenerate
+      </button>
+    </div>
+  </section>
+</section>

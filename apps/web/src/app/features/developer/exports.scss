@@ -1,0 +1,68 @@
+.activity-list {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.activity-list li {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.activity-list small {
+  display: block;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.export-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 760px;
+}
+.export-panel label {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+.export-panel select {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  max-width: 100%;
+}
+.export-options {
+  display: grid;
+  gap: 12px;
+}
+.export-options a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.export-options a:hover {
+  background: #f3f7f1;
+}
+.export-options small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.export-options app-icon:last-child {
+  margin-left: auto;
+}
+
+@media (max-width: 760px) {
+  .activity-list li {
+    flex-direction: column;
+  }
+}

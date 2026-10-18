@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { searchDestinations, type VisitorBuilding } from './visitor.models';
 import { VisitorJourney } from './visitor';
 import type { MatchResult } from '../../core/place-match';
 import { GuidancePhotoView } from './guidance-photo';
 import { WalkingMap } from './walking-map';
 import { GoogleMapsService } from '../../core/google-maps.service';
+import { AuthService } from '../../core/auth.service';
 import { signal } from '@angular/core';
 
 const building: VisitorBuilding = {
@@ -50,6 +52,20 @@ describe('Installed visitor journey', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: {
+            signedIn: signal(false),
+            name: signal('Guest'),
+            busy: signal(false),
+            error: signal(''),
+            landingPath: signal('/public'),
+            refresh: async () => ({ authenticated: false }),
+            switchMode: async () => false,
+            signOut: async () => false,
+          },
+        },
         {
           provide: GoogleMapsService,
           useValue: {
@@ -248,11 +264,26 @@ describe('Installed visitor journey', () => {
       revision_id: 'floor1-rev',
       floor_name: 'Floor 1',
       localization_token: 'signed-location',
+      matched_node: {
+        node_id: 'node-on-another-floor',
+        stable_id: 'floor1-checkpoint',
+        revision_id: 'floor1-rev',
+        target_id: 'floor1',
+        label: 'West stair landing',
+        kind: 'stairs',
+        floor_id: 'floor1-id',
+        floor_name: 'Floor 1',
+        building_id: 'ia',
+        building_name: building.name,
+      },
       decision: { outcome: 'likely_match', location_id: 'node-on-another-floor' },
     } as MatchResult);
-    expect(page.suggestedLocation()).toBe('Floor 1');
+    expect(page.suggestedLocation()).toBe('West stair landing');
+    expect(page.suggestedNode()?.node_id).toBe('node-on-another-floor');
+    expect(page.confirmedNode()).toBeNull();
     http.expectNone('/api/navigation/photo-route/');
     page.confirmMatch();
+    expect(page.confirmedNode()?.revision_id).toBe('floor1-rev');
     const request = http.expectOne('/api/navigation/photo-route/');
     expect(request.request.body).toEqual({
       publication_id: 'published-v1',
@@ -289,7 +320,8 @@ describe('Installed visitor journey', () => {
     fixture.nativeElement.querySelector('.arrow.next').click();
     fixture.detectChanges();
     expect(page.frameIndex()).toBe(1);
-    expect(page.confirmedLocation()).toBe('Floor 1');
+    expect(page.confirmedLocation()).toBe('West stair landing');
+    expect(page.confirmedNode()?.node_id).toBe('node-on-another-floor');
     expect(fixture.nativeElement.querySelector('.arrow.previous').style.transform).toBe(
       'rotate(-135deg)',
     );
@@ -298,6 +330,8 @@ describe('Installed visitor journey', () => {
     expect(page.frameIndex()).toBe(0);
     page.recenter();
     expect(page.route()).toBeNull();
+    expect(page.confirmedNode()).toBeNull();
+    expect(page.suggestedNode()).toBeNull();
   });
   it('ignores a route response after cancellation', async () => {
     const page = (await setup()).componentInstance;

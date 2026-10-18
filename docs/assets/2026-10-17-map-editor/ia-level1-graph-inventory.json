@@ -1,0 +1,379 @@
+{
+  "target_id": "a86cda61-7b52-43dc-85e1-54a412aba7ef",
+  "revision_id": "28b57628-ae05-428a-b6e3-e5fcdde7af4f",
+  "title": "IA Building \u00b7 IA - Level 1 (manual review)",
+  "building": "IA Building",
+  "floor": "IA - Level 1 (manual review)",
+  "underlay_asset_id": "27809d5a-406e-48ed-a91b-3e77ebc257e8",
+  "coordinate_frame": {
+    "units": "plan",
+    "width": 1536,
+    "height": 1024,
+    "origin": "top_left"
+  },
+  "node_count": 46,
+  "edge_count": 94,
+  "photo_count": 4,
+  "verify_labels": [
+    "North-west entrance (verify)",
+    "Brainstorm door (verify)",
+    "Stair D access (verify)",
+    "Stair J access (verify)",
+    "Stair C / lift access (verify)",
+    "East entrance (verify)",
+    "Dark Matter south door (verify)",
+    "The Cave north door (verify)",
+    "The Cave south door (verify)",
+    "South lift door (verify)",
+    "South entrance (verify)",
+    "Stair A access (verify)",
+    "West exit (verify)",
+    "North central opening (verify)"
+  ],
+  "nodes": [
+    {
+      "id": "1a115d41-7e26-4935-8058-120f66d54088",
+      "label": "Brainstorm approach",
+      "kind": "junction",
+      "x": 1130.0,
+      "y": 355.0
+    },
+    {
+      "id": "f90823d9-d5ac-4e77-b07e-65fc67794b91",
+      "label": "Brainstorm door (verify)",
+      "kind": "door",
+      "x": 1195.0,
+      "y": 330.0
+    },
+    {
+      "id": "7f913878-9be9-4d99-9fb5-104d2c89ab6c",
+      "label": "Cave approach north",
+      "kind": "junction",
+      "x": 970.0,
+      "y": 450.0
+    },
+    {
+      "id": "bbc4f508-ed5b-47ce-9f1d-2a4d994df617",
+      "label": "Cave approach south",
+      "kind": "junction",
+      "x": 955.0,
+      "y": 600.0
+    },
+    {
+      "id": "7c7153b7-d6b9-4476-b540-a053c2133276",
+      "label": "Cave approach west",
+      "kind": "junction",
+      "x": 970.0,
+      "y": 550.0
+    },
+    {
+      "id": "9cad0d8c-df75-48ff-a226-c9af9f9f9593",
+      "label": "Central hall south",
+      "kind": "junction",
+      "x": 740.0,
+      "y": 550.0
+    },
+    {
+      "id": "ac42d1ef-8729-44f8-92f0-5851d3422c80",
+      "label": "Central north opening",
+      "kind": "junction",
+      "x": 995.0,
+      "y": 420.0
+    },
+    {
+      "id": "0d88aba3-76c4-4408-802a-1360783a32fb",
+      "label": "Dark Matter south approach",
+      "kind": "junction",
+      "x": 830.0,
+      "y": 600.0
+    },
+    {
+      "id": "8b0741f2-ed34-4069-8722-998497749aec",
+      "label": "Dark Matter south door (verify)",
+      "kind": "door",
+      "x": 830.0,
+      "y": 575.0
+    },
+    {
+      "id": "29e5becb-bed3-4003-885d-288535725520",
+      "label": "East entrance (verify)",
+      "kind": "entrance",
+      "x": 1380.0,
+      "y": 430.0
+    },
+    {
+      "id": "6e3c5126-2162-4485-8c62-8d2c8fd7adea",
+      "label": "East entrance approach",
+      "kind": "checkpoint",
+      "x": 1345.0,
+      "y": 400.0
+    },
+    {
+      "id": "3d926ff7-bee4-47fc-b929-326ee2f97ceb",
+      "label": "East hall",
+      "kind": "junction",
+      "x": 1320.0,
+      "y": 370.0
+    },
+    {
+      "id": "349403c3-2212-4b98-b66c-4121cd641010",
+      "label": "East north hall",
+      "kind": "junction",
+      "x": 1220.0,
+      "y": 365.0
+    },
+    {
+      "id": "2eb6ecd8-061a-48c5-8bba-c8e2421e55c5",
+      "label": "North central opening (verify)",
+      "kind": "junction",
+      "x": 1000.0,
+      "y": 395.0
+    },
+    {
+      "id": "546d419c-a9e5-4ff3-87bc-d4b697505fa1",
+      "label": "North core east",
+      "kind": "junction",
+      "x": 850.0,
+      "y": 330.0
+    },
+    {
+      "id": "0557139e-085a-49d9-9e53-80b092ba578d",
+      "label": "North core west",
+      "kind": "junction",
+      "x": 580.0,
+      "y": 310.0
+    },
+    {
+      "id": "90e77e93-43fb-4624-8575-42807e400a98",
+      "label": "North hall centre",
+      "kind": "junction",
+      "x": 935.0,
+      "y": 330.0
+    },
+    {
+      "id": "e3c934ba-c02a-4cdb-9935-92b93c0d0dd4",
+      "label": "North hall east",
+      "kind": "checkpoint",
+      "x": 1040.0,
+      "y": 330.0
+    },
+    {
+      "id": "3360eac2-ff82-4833-b00b-987bff4052ef",
+      "label": "North opening approach",
+      "kind": "junction",
+      "x": 1000.0,
+      "y": 360.0
+    },
+    {
+      "id": "8c6d805c-4167-4e76-8999-5750557db15d",
+      "label": "North-west entrance (verify)",
+      "kind": "entrance",
+      "x": 510.0,
+      "y": 260.0
+    },
+    {
+      "id": "3c030bd0-cfbd-4e13-b008-f253da79d0f0",
+      "label": "North-west entrance approach",
+      "kind": "checkpoint",
+      "x": 570.0,
+      "y": 270.0
+    },
+    {
+      "id": "ee72190f-80e6-44c5-8aea-ab3cbc787f27",
+      "label": "North-west junction",
+      "kind": "junction",
+      "x": 550.0,
+      "y": 350.0
+    },
+    {
+      "id": "a2e632a2-38ce-4d85-81fc-3d09b9bac559",
+      "label": "South central junction",
+      "kind": "junction",
+      "x": 720.0,
+      "y": 600.0
+    },
+    {
+      "id": "569fc699-1a3e-4700-aeb1-264940f3a325",
+      "label": "South core approach",
+      "kind": "junction",
+      "x": 760.0,
+      "y": 610.0
+    },
+    {
+      "id": "b88f2a6a-efcc-488b-925b-cbf495a52d0a",
+      "label": "South entrance (verify)",
+      "kind": "entrance",
+      "x": 720.0,
+      "y": 735.0
+    },
+    {
+      "id": "8c32baf3-1deb-4fef-8c95-b40194866ff4",
+      "label": "South hall east",
+      "kind": "checkpoint",
+      "x": 865.0,
+      "y": 600.0
+    },
+    {
+      "id": "862ddd05-b9c4-4c14-8127-fea9fedaf395",
+      "label": "South hall junction",
+      "kind": "junction",
+      "x": 720.0,
+      "y": 640.0
+    },
+    {
+      "id": "a716cd85-ca76-49db-8a38-2552a362a693",
+      "label": "South hall west",
+      "kind": "checkpoint",
+      "x": 650.0,
+      "y": 650.0
+    },
+    {
+      "id": "8d14de4d-8e10-4dcc-b3cd-fc33e11c5c13",
+      "label": "South lift door (verify)",
+      "kind": "lift",
+      "x": 780.0,
+      "y": 650.0
+    },
+    {
+      "id": "3764d4c0-61fa-4253-b0dc-cf4834d871ec",
+      "label": "South-west junction",
+      "kind": "junction",
+      "x": 550.0,
+      "y": 640.0
+    },
+    {
+      "id": "6321ee92-2f00-4129-b3b3-d3bfa03aa1f6",
+      "label": "South-west lower passage",
+      "kind": "checkpoint",
+      "x": 455.0,
+      "y": 695.0
+    },
+    {
+      "id": "39302063-6ad7-4190-be33-ebc34cf7c8b9",
+      "label": "Stair A access (verify)",
+      "kind": "stairs",
+      "x": 360.0,
+      "y": 690.0
+    },
+    {
+      "id": "6636a12a-b0c8-40ec-ba28-8b8a28c52f6e",
+      "label": "Stair B access (verify)",
+      "kind": "stairs",
+      "x": 765.0,
+      "y": 690.0
+    },
+    {
+      "id": "9090caa6-a4ad-4333-9d42-fb38c34605bc",
+      "label": "Stair C / lift access (verify)",
+      "kind": "door",
+      "x": 790.0,
+      "y": 315.0
+    },
+    {
+      "id": "94ac0877-483d-4823-a397-ae548267905b",
+      "label": "Stair D access (verify)",
+      "kind": "stairs",
+      "x": 1252.0,
+      "y": 337.0
+    },
+    {
+      "id": "2a29b864-b8f9-4ec9-9c80-b113d112f345",
+      "label": "Stair J access (verify)",
+      "kind": "stairs",
+      "x": 798.0,
+      "y": 278.0
+    },
+    {
+      "id": "3dc3dd2a-3611-4d88-a864-ab2d72d1bb68",
+      "label": "The Cave north door (verify)",
+      "kind": "door",
+      "x": 1020.0,
+      "y": 440.0
+    },
+    {
+      "id": "42977d7d-3d0d-465f-866c-0806e78b6ebb",
+      "label": "The Cave south door (verify)",
+      "kind": "door",
+      "x": 1014.0,
+      "y": 552.0
+    },
+    {
+      "id": "e443bb4b-9985-46cd-9196-9ed1e2801d7a",
+      "label": "West exit (verify)",
+      "kind": "entrance",
+      "x": 195.0,
+      "y": 565.0
+    },
+    {
+      "id": "5e97efd2-8743-4115-8fe6-8683929dc3ae",
+      "label": "West exit approach",
+      "kind": "checkpoint",
+      "x": 230.0,
+      "y": 520.0
+    },
+    {
+      "id": "27c3fdcc-cb0b-4c8b-9a56-1f47ab2acf86",
+      "label": "West hall",
+      "kind": "junction",
+      "x": 270.0,
+      "y": 350.0
+    },
+    {
+      "id": "14d72782-b3ec-45cb-85b8-0f31016fb39e",
+      "label": "West hall east",
+      "kind": "junction",
+      "x": 365.0,
+      "y": 350.0
+    },
+    {
+      "id": "859d755e-f80c-484e-87e1-ea7cb8f6b90c",
+      "label": "West hall south",
+      "kind": "checkpoint",
+      "x": 245.0,
+      "y": 450.0
+    },
+    {
+      "id": "4e042883-e6d7-4df2-8bbb-97803b62e20a",
+      "label": "West passage",
+      "kind": "junction",
+      "x": 490.0,
+      "y": 350.0
+    },
+    {
+      "id": "1762ee67-219f-411e-a9b6-ae6be6af3ed2",
+      "label": "West spine 1",
+      "kind": "checkpoint",
+      "x": 550.0,
+      "y": 455.0
+    },
+    {
+      "id": "76fc0f0f-8ded-4636-9c8c-67eb97ef1661",
+      "label": "West spine 2",
+      "kind": "checkpoint",
+      "x": 550.0,
+      "y": 550.0
+    }
+  ],
+  "photos_by_node": {
+    "North hall centre": [
+      "front",
+      "left",
+      "back",
+      "right"
+    ]
+  },
+  "status": "draft_ready_for_human_secondary_review",
+  "notes": [
+    "Underlay is the Figma-derived IA Level 1 SVG (1536x1024).",
+    "Fifteen waypoints remain labeled (verify) for human correction.",
+    "Four-direction photos were smoke-tested on North hall centre; Embedding is not connected.",
+    "Muffler/Hive names are absent from this Level 1 draft and were not invented."
+  ],
+  "unlabeled_nodes": [
+    {
+      "id": "94b6abbb-db4d-49b9-8da0-85f5bb1ab549",
+      "x": 779.0,
+      "y": 429.0
+    }
+  ]
+}

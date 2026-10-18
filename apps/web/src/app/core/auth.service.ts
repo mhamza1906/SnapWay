@@ -3,19 +3,26 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { UiService } from './ui.service';
 
 export interface SessionIdentity {
   authenticated: boolean;
   username?: string;
   email?: string;
+  picture?: string;
   is_staff?: boolean;
   is_superuser?: boolean;
   memberships?: { target_id: string; role: 'admin' | 'volunteer' }[];
+  mode?: ExperienceMode;
+  available_modes?: ExperienceMode[];
+  can_admin?: boolean;
 }
+
+export type ExperienceMode = 'developer' | 'public';
 
 export function safeReturnPath(value: string | null): string {
   return value &&
-    /^\/(map|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
+    /^\/(explore|my-maps|developer-contribution|map|public|overview|graph-editor|map-optimize|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
       value,
     ) &&
     !/[\\\r\n]/.test(value)
@@ -27,19 +34,23 @@ export function safeReturnPath(value: string | null): string {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
+  private readonly ui = inject(UiService);
   private pending?: Promise<SessionIdentity>;
   readonly session = signal<SessionIdentity | null>(null);
   readonly error = signal('');
   readonly busy = signal(false);
   readonly signedIn = computed(() => this.session()?.authenticated === true);
+  readonly mode = computed<ExperienceMode>(() => this.session()?.mode ?? 'public');
+  readonly isDeveloper = computed(() => this.signedIn() && this.mode() === 'developer');
+  readonly landingPath = computed(() => (this.isDeveloper() ? '/overview' : '/public'));
+  readonly canAdmin = computed(() => this.isDeveloper() && this.session()?.can_admin === true);
   readonly name = computed(() => this.session()?.username || 'Guest');
   readonly initials = computed(() => this.name().slice(0, 2).toUpperCase());
   readonly role = computed(() => {
     const user = this.session();
     if (!user?.authenticated) return 'Guest';
-    if (user.is_staff || user.is_superuser) return 'Staff';
-    const memberships = user.memberships ?? [];
-    return memberships.length ? 'Map contributor' : 'No map membership';
+    if (!this.isDeveloper()) return 'Public User';
+    return 'Developer';
   });
 
   refresh(): Promise<SessionIdentity> {
@@ -59,8 +70,10 @@ export class AuthService {
       }));
   }
 
-  async signIn(returnPath: string): Promise<void> {
+  async signIn(mode: ExperienceMode): Promise<void> {
+    if (this.busy()) return;
     this.busy.set(true);
+    this.ui.beginBusy('Signing in…');
     try {
       // Refresh also obtains Django's CSRF cookie for the same-origin form POST.
       await this.refresh();
@@ -73,10 +86,10 @@ export class AuthService {
       if (!token) throw new Error('Sign-in needs cookies enabled. Reload this page and try again.');
       const form = this.document.createElement('form');
       form.method = 'POST';
-      form.action = '/accounts/google/login/';
+      form.action = '/api/auth/google/start/';
       for (const [name, value] of Object.entries({
         csrfmiddlewaretoken: decodeURIComponent(token),
-        next: '/auth/complete?returnUrl=' + encodeURIComponent(safeReturnPath(returnPath)),
+        mode,
       })) {
         const input = this.document.createElement('input');
         input.type = 'hidden';
@@ -90,11 +103,34 @@ export class AuthService {
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not start Google sign-in.');
       this.busy.set(false);
+      this.ui.endBusy();
+    }
+  }
+
+  async switchMode(mode: ExperienceMode): Promise<boolean> {
+    if (this.busy()) return false;
+    this.busy.set(true);
+    this.ui.beginBusy('Switching…');
+    try {
+      await this.refresh();
+      const session = await firstValueFrom(
+        this.http.post<SessionIdentity>('/api/auth/mode/', { mode }),
+      );
+      this.session.set(session);
+      this.error.set('');
+      return true;
+    } catch {
+      this.error.set('Could not switch your experience. Please try again.');
+      return false;
+    } finally {
+      this.busy.set(false);
+      this.ui.endBusy();
     }
   }
 
   async signOut(): Promise<boolean> {
     this.busy.set(true);
+    this.ui.beginBusy('Signing out…');
     try {
       await this.refresh();
       const session = await firstValueFrom(
@@ -108,11 +144,12 @@ export class AuthService {
       return false;
     } finally {
       this.busy.set(false);
+      this.ui.endBusy();
     }
   }
 }
 
-export const sessionGuard: CanActivateFn = async (_route, state) => {
+export const sessionGuard = (async (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   try {
@@ -120,7 +157,44 @@ export const sessionGuard: CanActivateFn = async (_route, state) => {
   } catch {
     /* The sign-in page displays the service failure with a retry. */
   }
-  return router.createUrlTree(['/welcome'], {
+  return router.createUrlTree(['/sign-in'], {
     queryParams: { returnUrl: safeReturnPath(state.url) },
   });
-};
+}) satisfies CanActivateFn;
+
+export const developerGuard = (async (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const result = await sessionGuard(route, state);
+  if (result !== true) return result;
+  return auth.isDeveloper() ? true : router.createUrlTree(['/public']);
+}) satisfies CanActivateFn;
+
+export const publicGuard = (async (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const result = await sessionGuard(route, state);
+  if (result !== true) return result;
+  return auth.isDeveloper() ? router.createUrlTree(['/overview']) : true;
+}) satisfies CanActivateFn;
+
+/** Anonymous discovery map stays; signed-in Public Users use the visitor journey. */
+export const publicDiscoveryGuard = (async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  try {
+    await auth.refresh();
+  } catch {
+    /* Keep the public discovery map when session refresh fails. */
+  }
+  if (auth.signedIn() && !auth.isDeveloper()) return router.createUrlTree(['/public']);
+  return true;
+}) satisfies CanActivateFn;
+
+export const adminGuard = (async (route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const result = await developerGuard(route, state);
+  if (result !== true) return result;
+  return auth.canAdmin() ? true : router.createUrlTree(['/overview']);
+}) satisfies CanActivateFn;

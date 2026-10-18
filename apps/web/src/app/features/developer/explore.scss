@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+.explore {
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: #e6eee7;
+}
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.floor-panel {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  bottom: 70px;
+  max-height: calc(100% - 94px);
+  width: min(380px, calc(100% - 48px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #fffffff5;
+  backdrop-filter: blur(16px);
+  border: 1px solid #e0e6dc;
+  border-radius: 18px;
+  box-shadow: 0 16px 60px #1b39212b;
+  padding: 0 18px 18px;
+  scrollbar-width: thin;
+  z-index: 2;
+}
+.floor-panel header {
+  padding: 22px 0 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  border-bottom: 1px solid #e6ebe3;
+}
+.floor-panel h1 {
+  font-size: 24px;
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
+}
+.floor-panel header p:last-child {
+  font-size: 11px;
+  color: #849187;
+  margin: 0;
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #8d9a87;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+.floor-card {
+  display: flex;
+  gap: 16px;
+  padding: 23px 0;
+  border-bottom: 1px solid #e6ebe3;
+  align-items: center;
+}
+.floor-number {
+  background: #f3eedb;
+  border-radius: 12px;
+  min-width: 60px;
+  padding: 14px 8px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  color: #a48a39;
+}
+.floor-number.draft {
+  background: #f8e4df;
+  color: #b24a3a;
+}
+.floor-card h2 {
+  font-size: 17px;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+.floor-card p {
+  font-size: 10px;
+  color: #839180;
+}
+.floor-card .btn {
+  font-size: 10px;
+  min-height: 32px;
+  padding: 8px;
+}
+.floor-card .btn app-icon {
+  width: 14px;
+}
+.new-floor {
+  width: 100%;
+  margin-top: 18px;
+  font-size: 11px;
+}
+.more {
+  width: 100%;
+  margin-top: 12px;
+}
+.candidate-body {
+  padding: 28px 0 5px;
+}
+.candidate-body h2 {
+  font-size: 20px;
+}
+.candidate-body p {
+  color: #788b7d;
+  font-size: 12px;
+}
+.candidate-body .btn {
+  width: 100%;
+  margin-top: 10px;
+}
+.new-place-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #eaf0e4;
+  color: #91a576;
+  width: 65px;
+  height: 65px;
+  margin-bottom: 24px;
+}
+.new-place-icon app-icon {
+  width: 30px;
+  height: 30px;
+}
+@media (max-width: 760px) {
+  .floor-panel {
+    right: 14px;
+    top: 14px;
+    bottom: 64px;
+    width: min(380px, calc(100% - 28px));
+    max-height: calc(100% - 78px);
+  }
+  .map-legend {
+    bottom: 27px;
+    left: 14px;
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+  .legend-hint {
+    display: none;
+  }
+  .map-message {
+    top: 14px;
+    left: 14px;
+  }
+  .map-note {
+    left: 14px;
+    bottom: 80px;
+  }
+  .available {
+    top: 14px;
+    left: 14px;
+  }
+}

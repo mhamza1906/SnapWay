@@ -90,6 +90,70 @@ describe('Visitor camera opening and consent', () => {
     grant({ getTracks: () => [{ stop }] });
     await vi.waitFor(() => expect(stop).toHaveBeenCalled());
   });
+  it('uploads one camera JPEG with a visitor capability and emits the exact detected node', async () => {
+    const stop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop }] }) },
+    });
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) =>
+      callback(new Blob(['synthetic-jpeg'], { type: 'image/jpeg' })),
+    );
+    const fixture = setup();
+    fixture.componentRef.setInput('publicationId', 'destination-publication');
+    await vi.waitFor(() => expect(fixture.componentInstance.ready()).toBe(true));
+    Object.defineProperties(fixture.componentInstance.video()!.nativeElement, {
+      videoWidth: { value: 1280 },
+      videoHeight: { value: 720 },
+    });
+    const emitted = vi.spyOn(fixture.componentInstance.matched, 'emit');
+    const taking = fixture.componentInstance.take();
+    const http = TestBed.inject(HttpTestingController);
+    const session = await vi.waitFor(() => http.expectOne('/api/navigation/sessions/'));
+    expect(session.request.body).toEqual({ publication_id: 'destination-publication' });
+    session.flush({ token: 'synthetic-capability' });
+    const request = await vi.waitFor(() => http.expectOne('/api/navigation/localize/'));
+    expect(request.request.headers.get('Authorization')).toBe('Navigation synthetic-capability');
+    expect(request.request.body.get('image').type).toBe('image/jpeg');
+    expect(JSON.parse(request.request.body.get('meta')).source).toBe('camera');
+    const node = {
+      node_id: 'revision-node',
+      stable_id: 'stable-node',
+      revision_id: 'revision',
+      target_id: 'target',
+      label: 'West stair landing',
+      kind: 'stairs',
+      floor_id: 'floor',
+      floor_name: 'Floor 1',
+      building_id: 'building',
+      building_name: 'Route building',
+    };
+    const result = {
+      node_id: node.node_id,
+      revision_id: node.revision_id,
+      matched_node: node,
+      localization_token: 'signed-location',
+      decision: {
+        outcome: 'likely_match',
+        node_id: node.node_id,
+        location_id: node.node_id,
+        reasons: [],
+      },
+      candidates: [],
+      backend_used: 'megaloc',
+      thresholds_id: 'synthetic-thresholds',
+    };
+    request.flush(result);
+    await taking;
+    expect(emitted).toHaveBeenCalledExactlyOnceWith(result);
+    expect(stop).toHaveBeenCalled();
+    http.verify();
+    fixture.destroy();
+  });
   it('shows permission recovery when the device refuses camera access', async () => {
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,

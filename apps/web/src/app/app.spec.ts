@@ -15,7 +15,7 @@ describe('Workspace shell routing', () => {
       providers: [
         provideRouter([
           { path: 'welcome', component: RouteContent },
-          { path: 'navigate', component: RouteContent },
+          { path: 'app-preview', component: RouteContent },
           { path: 'targets', component: RouteContent },
         ]),
         { provide: PROTOTYPE_STORAGE, useValue: null },
@@ -25,7 +25,10 @@ describe('Workspace shell routing', () => {
             refresh: async () => ({ authenticated: true }),
             initials: () => 'TS',
             name: () => 'Test',
+            session: () => ({ email: 'test@example.com' }),
             role: () => 'No map membership',
+            isDeveloper: () => true,
+            canAdmin: () => false,
             busy: () => false,
             error: () => '',
           },
@@ -39,15 +42,16 @@ describe('Workspace shell routing', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Route content');
-    await router.navigateByUrl('/navigate?target=innovation#capture');
+    await router.navigateByUrl('/app-preview?target=innovation#capture');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Back to workspace');
     await router.navigateByUrl('/targets?status=open#capture');
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.breadcrumb strong').textContent).toBe(
-      'Mapping targets',
+    expect(fixture.nativeElement.querySelector('.skip-link').getAttribute('href')).toBe(
+      '/targets?status=open#main-content',
     );
+    expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.header-title').textContent.trim()).toBe('My maps');
   });
 });

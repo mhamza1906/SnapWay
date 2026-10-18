@@ -1,0 +1,67 @@
+.account {
+  margin-left: auto;
+  position: relative;
+}
+.avatar {
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px #dce5e8;
+  background: #8299d5;
+  color: #fff;
+  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  font-size: 17px;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.menu-dismiss {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  z-index: 41;
+}
+.account-menu {
+  position: absolute;
+  right: 0;
+  top: 60px;
+  width: min(320px, calc(100vw - 32px));
+  border: 1px solid #e1e7e5;
+  box-shadow: 0 14px 60px #19313b24;
+  border-radius: 18px;
+  background: white;
+  padding: 20px;
+  display: grid;
+  gap: 8px;
+  z-index: 42;
+}
+.account-menu small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+.account-role {
+  font-size: 11px;
+  color: #577467;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.account-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: white;
+  text-align: left;
+}
+.account-menu button:hover {
+  background: #f3f6f4;
+}

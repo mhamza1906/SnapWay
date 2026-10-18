@@ -30,6 +30,15 @@ describe('place-match results', () => {
     expect(bad.kind).toBe('error');
     const offline = parseMatchResponse({ status: 503, body: '', roundTripMs: 1 }, 1);
     expect(offline.kind === 'error' && offline.message).toContain('No matching backend');
+    const malformedNode = parseMatchResponse(
+      {
+        status: 200,
+        roundTripMs: 1,
+        body: JSON.stringify({ ...result, matched_node: { node_id: 'unscoped-node' } }),
+      },
+      1,
+    );
+    expect(malformedNode.kind).toBe('error');
   });
 
   it('shows similarity as a raw score, not a percentage', () => {

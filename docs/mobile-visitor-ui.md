@@ -1,20 +1,30 @@
 # Mobile visitor navigation UI
 
-Updated October 18, 2026. Feature work on `feature/frontend-user`; implementation
+Updated October 18, 2026. Authenticated web `/public` now hosts this visitor journey
+on `feature/merged-integration` (modes handoff from [authentication-modes.md](authentication-modes.md)).
+Feature work originated on `feature/frontend-user`; implementation
 commits include `a0564a9` and `ca59f45`; heading spacing and local Android packaging
 notes are recorded in `1407e12`; the publication-fixture correction is in `57e8b26`.
 The installed-app API connection below is pending commit.
 Personal execution details remain in ignored `local/ACTIONS.md`.
 
+The October 18 [camera-to-node integration](localization-visitor-match.md#camera-result-to-confirmed-visitor-node)
+now returns a validated node object, shows its label/floor/building inside the
+indoor panel and preserves that exact node through confirmation and routing.
+Its API contract, changed files and validation are maintained in the linked
+localization feature record; this extension is pending deployment.
+
 ## Entry points and interaction
 
 The existing Angular/Capacitor architecture and locked dependencies are retained.
-The website still starts at `/map`, including on phone browsers. The separate
-Capacitor visitor build starts at the new destination-first screen and redirects
-`/map` and `/navigate` there. It excludes contributor features. `/app-preview` in
-the web build explicitly previews the installed-app layout; viewport width does
-not switch the website into that experience. `/app-review` redirects to
-`/app-preview` as a compatibility entry for the requested visitor page.
+Anonymous website discovery still starts at `/map`. Signed-in Public Users land
+on `/public` (same destination-first visitor journey) after Google sign-in; `/map`
+and `/navigate` redirect them there. The separate Capacitor visitor build starts
+at the destination-first screen and redirects `/map` and `/navigate` there. It
+excludes contributor features. `/app-preview` in the web build explicitly previews
+the installed-app layout for Developers; viewport width does not switch the website
+into that experience.
+`/app-review` remains a compatibility redirect to `/app-preview`.
 
 **Find your destination** sits beside the existing SnapWay route mark in a single
 vertically aligned header row, with the 32 px logo on the left and a 20 px heading.
@@ -284,7 +294,35 @@ no live inference or R2-fetch success is claimed. Android visitor production
 build and asset/plugin sync pass; migration drift, Ruff, changed-file Prettier,
 whitespace and local environment-contract checks pass. No new APK was built or
 installed in this task. Personal execution history is in ignored `local/ACTIONS.md`.
-Applicable commit: pending; suggested `feat(navigation): add photo-guided shortest-path routing`.
+Applicable navigation commit: `bd1a713` (`feat(navigation): add photo-guided shortest-path routing`).
+
+### Navigation and workspace merge reconciliation — October 18, 2026
+
+Reconciled navigation commit `bd1a713` with workspace/authentication integration
+`f6ad116` on `feature/static-image`. The [route table](../apps/web/src/app/app.routes.ts)
+retains the sign-in entry, Public User routes and `/app-review` compatibility alias.
+The newer [editor controller](../apps/web/src/app/features/graph-editor/graph-editor.ts)
+and [template](../apps/web/src/app/features/graph-editor/graph-editor.html) keep
+selection, undo, gesture commands, four-direction photos and stair/elevator node
+types; the type selector is available while adding a waypoint. The reconciled
+[graph service](../apps/api/maps/services/graph.py) keeps all supported waypoint
+kinds, input validation and stable-ID restoration for undo.
+
+[Migration 0007](../apps/api/maps/migrations/0007_merge_navigation_workspace.py)
+joins the independent floor-connection and workspace migration branches without
+rewriting either history. [Retention](../apps/api/maps/services/retention.py) removes
+transfers before deleting their endpoint nodes; the other floor's graph remains
+intact. [Regression coverage](../apps/api/tests/test_photo_routing.py) checks this
+combined lifecycle. This reconciliation changes no architecture, dependencies,
+environment template or private configuration and performs no cloud migration.
+
+Validation: all **169 backend tests pass on isolated PostgreSQL** and all **115
+frontend tests pass**. The SQLite suite passed 150 tests with 18 PostgreSQL-only
+skips before the cleanup regression was added; its focused routing suite then
+passed 12 with one PostgreSQL-only skip. Web production build passes with the
+incoming `app.scss` size-budget warning (282 bytes over the warning threshold).
+Migration drift and local environment-contract checks pass. Personal details are
+in ignored `local/ACTIONS.md`; merge resolutions are pending commit.
 
 ## Installed Android API connection
 

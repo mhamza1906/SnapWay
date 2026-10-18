@@ -232,5 +232,5 @@ def test_authentication_error_page_has_recovery_without_private_error_details():
     page = render_to_string(
         "socialaccount/authentication_error.html", {"exception": "never-show-token"}
     )
-    assert 'href="/welcome"' in page
+    assert 'href="/sign-in"' in page
     assert "never-show-token" not in page

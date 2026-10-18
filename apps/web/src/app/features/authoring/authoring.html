@@ -1,24 +1,8 @@
-<main class="page authoring-page" id="main-content">
-  <header class="page-heading">
-    <div>
-      <p class="eyebrow">MAP AUTHORING · AI PIPELINE</p>
-      <h1>Build a map from a floor plan</h1>
-      <p>
-        Upload a PDF or image, let the AI map rooms and doorways, then fix doorways by hand. Every
-        result is a draft: agent-inspected, not human reviewed.
-      </p>
-    </div>
-    @if (health(); as h) {
-      <span
-        class="badge"
-        [class.green]="h.configured"
-        [class.red]="!h.configured"
-        data-testid="provider"
-      >
-        {{ h.environment ?? '' }} · {{ h.provider }} {{ h.model
-        }}{{ h.effort ? ' · ' + h.effort : '' }}
-      </span>
-    }
+<section class="page authoring-page setup-page">
+  <header class="page-heading page-heading-compact">
+    <p>
+      Find a building or create one, set coordinates, then upload a floor plan and open the editor.
+    </p>
   </header>
 
   @if (offline()) {
@@ -31,289 +15,124 @@
     <p class="notice" role="status" data-testid="message">{{ message() }}</p>
   }
 
-  <section class="panel" aria-labelledby="source-title">
+  <section class="panel setup-panel">
     <div class="panel-heading">
-      <h2 id="source-title">1. Floor plan</h2>
-      @if (building(); as b) {
-        <span class="badge blue">{{ b.name }}</span>
-      }
+      <h2>Building</h2>
+      <span class="hint">{{
+        auth.canAdmin()
+          ? 'Published maps go live when you approve them.'
+          : 'Finished maps go to an administrator for review.'
+      }}</span>
     </div>
-    <div class="panel-body source-row">
-      <label class="field"
-        >Building name
-        <input #nameInput placeholder="Optional; defaults to the file name" />
-      </label>
-      <label class="btn primary" [class.disabled]="busy() || !!offline()">
-        <app-icon name="map" /> Upload PDF / PNG / JPEG
-        <input
-          type="file"
-          accept="application/pdf,image/png,image/jpeg"
-          hidden
-          [disabled]="busy() || !!offline()"
-          (change)="upload($event, nameInput)"
-          data-testid="plan-input"
-        />
-      </label>
-      @if (library().length) {
-        <label class="field"
-          >…or open an existing building
-          <select (change)="open(value($event))" [disabled]="busy()" data-testid="library">
-            <option value="">Choose a building</option>
-            @for (entry of library(); track entry.key) {
-              <option [value]="entry.key">
-                {{ entry.name }} · {{ entry.floors.length }} floor(s) · {{ entry.sourceLabel }}
+    <div class="panel-body setup-grid">
+      <fieldset class="mode-field full">
+        <legend>How do you want to start?</legend>
+        <label class="choice"
+          ><input
+            type="radio"
+            name="setup-mode"
+            [checked]="mode() === 'existing'"
+            (change)="mode.set('existing')"
+          />
+          Search an existing building</label
+        >
+        <label class="choice"
+          ><input
+            type="radio"
+            name="setup-mode"
+            [checked]="mode() === 'new'"
+            (change)="mode.set('new')"
+          />
+          Create a new building</label
+        >
+      </fieldset>
+
+      @if (mode() === 'existing') {
+        <label class="field full"
+          >Existing building
+          <select
+            aria-label="Existing building"
+            [disabled]="busy() || !library().length"
+            (change)="selectLibrary(value($event))"
+            data-testid="library"
+          >
+            <option value="">
+              {{ library().length ? 'Choose a building' : 'No buildings yet' }}
+            </option>
+            @for (entry of library(); track entry.target_id) {
+              <option [value]="entry.target_id" [selected]="selectedTarget() === entry.target_id">
+                {{ entry.building }} · {{ entry.floor }}
               </option>
             }
           </select>
         </label>
+      } @else {
+        <label class="field"
+          >Building name<input
+            aria-label="Building name"
+            [value]="buildingName()"
+            (input)="buildingName.set(value($event))"
+            maxlength="200"
+            placeholder="e.g. Instructional Centre"
+        /></label>
+        <label class="field"
+          >Floor code<input
+            aria-label="Floor code"
+            [value]="floorCode()"
+            (input)="floorCode.set(value($event))"
+            maxlength="50"
+            placeholder="e.g. 1"
+        /></label>
       }
+
+      <label class="field"
+        >Latitude<input
+          aria-label="Building latitude"
+          type="number"
+          min="-90"
+          max="90"
+          step="0.000001"
+          [value]="latitude()"
+          (input)="latitude.set(value($event))"
+          placeholder="Optional"
+      /></label>
+      <label class="field"
+        >Longitude<input
+          aria-label="Building longitude"
+          type="number"
+          min="-180"
+          max="180"
+          step="0.000001"
+          [value]="longitude()"
+          (input)="longitude.set(value($event))"
+          placeholder="Optional"
+      /></label>
+
+      <div class="actions full">
+        <label class="btn primary upload-btn" [class.disabled]="busy() || !canUpload()">
+          <app-icon name="upload" /> Upload floor plan
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            [disabled]="busy() || !canUpload()"
+            (change)="uploadAndEdit($event)"
+            data-testid="plan-input"
+          />
+        </label>
+        <button
+          class="btn secondary"
+          type="button"
+          [disabled]="busy() || !canOpenEditor()"
+          (click)="openEditor()"
+        >
+          Open manual editor without Image 2.5
+        </button>
+      </div>
+      <p class="hint full">
+        Upload runs GPT Image 2.5 optimization, then opens the regenerate / vectorize review page
+        (no graph tools yet). PNG, JPEG, or WebP only.
+      </p>
     </div>
   </section>
-
-  @if (summary(); as s) {
-    <nav class="floor-tabs" aria-label="Floors">
-      @for (f of s.floors; track f.floorId) {
-        <button
-          class="btn small"
-          [class.primary]="f.floorId === floorId()"
-          [class.secondary]="f.floorId !== floorId()"
-          (click)="selectFloor(f.floorId)"
-        >
-          {{ f.label }} · {{ f.counts.ready }}/{{ f.counts.destinations }} rooms ready
-        </button>
-      }
-    </nav>
-
-    <section class="panel" aria-labelledby="build-title">
-      <div class="panel-heading">
-        <h2 id="build-title">2. Build the map with AI</h2>
-        @if (floor(); as f) {
-          <span class="badge" [class.green]="f.regions > 0" [class.orange]="!f.regions">
-            {{ f.regions ? f.regions + ' regions mapped' : 'not mapped yet' }}
-          </span>
-        }
-      </div>
-      <div class="panel-body">
-        <p class="hint">
-          This step calls the AI provider shown above (paid, usually 15–20 calls per floor, a few
-          minutes). Re-running an unchanged plan reuses cached answers.
-        </p>
-        <div class="button-row">
-          <button
-            class="btn primary"
-            [disabled]="busy() || !!offline()"
-            (click)="buildWithAi(false)"
-          >
-            Build this floor
-          </button>
-          @if (s.floors.length > 1) {
-            <button
-              class="btn secondary"
-              [disabled]="busy() || !!offline()"
-              (click)="buildWithAi(true)"
-            >
-              Build all {{ s.floors.length }} floors
-            </button>
-          }
-          @if (jobRunning()) {
-            <button class="btn danger" (click)="cancelJob()">Cancel</button>
-          }
-        </div>
-        @if (job(); as j) {
-          <p class="job" data-testid="job">
-            <strong>{{ j.status }}</strong> · {{ j.progress?.message }}
-            @if (j.progress?.stats; as st) {
-              · {{ st.calls }} calls · {{ st.cacheHits }} cache hits
-            }
-          </p>
-        }
-      </div>
-    </section>
-
-    @if (floor(); as f) {
-      @if (mapped()) {
-        <div class="authoring-grid">
-          <section class="panel map-panel" aria-labelledby="map-title">
-            <div class="panel-heading">
-              <h2 id="map-title">{{ f.label }}</h2>
-              <span class="badge"
-                >{{ f.counts.verified }} verified · {{ f.counts.assumed }} assumed</span
-              >
-            </div>
-            <div class="panel-body">
-              <div class="map-svg" [innerHTML]="svg()" data-testid="map"></div>
-              <div class="route-row">
-                <select aria-label="Route start" (change)="routeFrom.set(value($event))">
-                  <option value="">Start room</option>
-                  @for (r of f.rooms; track r.id) {
-                    <option [value]="r.id" [disabled]="!r.ready">{{ r.label }}</option>
-                  }
-                </select>
-                <select aria-label="Route destination" (change)="routeTo.set(value($event))">
-                  <option value="">Destination room</option>
-                  @for (r of f.rooms; track r.id) {
-                    <option [value]="r.id" [disabled]="!r.ready">{{ r.label }}</option>
-                  }
-                </select>
-                <button
-                  class="btn secondary small"
-                  [disabled]="busy() || !routeFrom() || !routeTo()"
-                  (click)="previewRoute()"
-                >
-                  Preview route
-                </button>
-              </div>
-              @if (routeNote()) {
-                <p class="hint" data-testid="route-note">{{ routeNote() }}</p>
-              }
-            </div>
-          </section>
-
-          <section class="panel tools-panel" aria-labelledby="doors-title">
-            <div class="panel-heading">
-              <h2 id="doors-title">3. Doorways</h2>
-              <button class="btn secondary small" [disabled]="busy()" (click)="placeAll()">
-                Place assumed doorways
-              </button>
-            </div>
-            <div class="panel-body">
-              <label class="field"
-                >Your name (recorded on confirmations and room decisions)
-                <input [value]="reviewer()" (input)="reviewer.set(value($event))" />
-              </label>
-
-              <h3>Needs attention ({{ f.needsAttention.length }})</h3>
-              @for (q of f.needsAttention; track q.spaceId) {
-                <div class="item" data-testid="needs-attention">
-                  <strong>{{ q.label }}</strong>
-                  <small>{{ q.reason }}</small>
-                  <div class="button-row">
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy()"
-                      (click)="makeRoom(q.spaceId, q.label)"
-                    >
-                      Make it a room
-                    </button>
-                    <button
-                      class="btn small danger"
-                      [disabled]="busy()"
-                      (click)="notRoom(q.spaceId, q.label)"
-                    >
-                      Not a room
-                    </button>
-                  </div>
-                </div>
-              } @empty {
-                <p class="hint">Every region has a usable doorway or is non-walkable.</p>
-              }
-
-              <h3>Add a doorway to any room</h3>
-              <p class="hint">
-                A room can have several doorways, and one edge can hold several. Routes use
-                whichever doorway is closest.
-              </p>
-              <select aria-label="Room to add a doorway to" (change)="chooseAddRoom(value($event))">
-                <option value="">Choose a room</option>
-                @for (sp of f.spaces; track sp.id) {
-                  <option [value]="sp.id">{{ sp.label }} · {{ sp.doors }} doorway(s)</option>
-                }
-              </select>
-              @if (addRoom()) {
-                <select aria-label="Edge for the new doorway" (change)="addEdge.set(value($event))">
-                  <option value="">Best available edge</option>
-                  @for (e of addEdges(); track e.key) {
-                    <option [value]="e.key">
-                      {{ e.adjacentLabel }} ·
-                      {{ e.hallway ? e.adjacentKind : 'neighbouring room' }} · {{ e.length }} px ·
-                      {{ e.doors }} doorway(s) on it
-                    </option>
-                  }
-                </select>
-                <button class="btn small primary" [disabled]="busy()" (click)="addDoor()">
-                  Add doorway
-                </button>
-              }
-
-              <h3>Assumed doorways ({{ f.assumed.length }})</h3>
-              @for (d of f.assumed; track d.doorId) {
-                <div class="item" data-testid="assumed-door">
-                  <strong>{{ d.roomLabel }}</strong>
-                  <span class="badge orange">assumed · room has {{ d.roomDoors }} doorway(s)</span>
-                  <label class="field"
-                    >Opens onto
-                    <select (change)="setEdit(d, { edgeKey: num($event), t: 0.5 })">
-                      @for (c of d.candidates; track c.key) {
-                        <option [value]="c.key" [selected]="c.key === editOf(d).edgeKey">
-                          {{ c.adjacentLabel }} ·
-                          {{ c.hallway ? c.adjacentKind : 'neighbouring room' }} · {{ c.length }} px
-                        </option>
-                      }
-                    </select>
-                  </label>
-                  <label class="field"
-                    >Position along edge · {{ (editOf(d).t * 100).toFixed(0) }}%
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      [value]="editOf(d).t"
-                      (input)="setEdit(d, { t: num($event) })"
-                    />
-                  </label>
-                  <label class="field"
-                    >Width (px)
-                    <input
-                      type="number"
-                      min="2"
-                      [value]="editOf(d).width"
-                      (change)="setEdit(d, { width: num($event) })"
-                    />
-                  </label>
-                  <div class="button-row">
-                    <button class="btn small primary" [disabled]="busy()" (click)="applyMove(d)">
-                      Apply move
-                    </button>
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy() || !reviewer()"
-                      (click)="applyMove(d, true)"
-                    >
-                      Confirm doorway
-                    </button>
-                    <button
-                      class="btn small secondary"
-                      [disabled]="busy()"
-                      (click)="addDoor(d.roomId)"
-                    >
-                      Add another
-                    </button>
-                    <button class="btn small danger" [disabled]="busy()" (click)="removeDoor(d)">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              } @empty {
-                <p class="hint">No assumed doorways on this floor.</p>
-              }
-            </div>
-          </section>
-        </div>
-      }
-    }
-
-    <section class="panel" aria-labelledby="save-title">
-      <div class="panel-heading"><h2 id="save-title">4. Keep it</h2></div>
-      <div class="panel-body button-row">
-        <button class="btn secondary" [disabled]="busy() || !building()" (click)="saveCopy()">
-          Save a copy in the pipeline
-        </button>
-        <span class="hint">
-          {{ s.validationErrors }} validation error(s). Importing into the SnapWay editor and Django
-          storage is a later step.
-        </span>
-      </div>
-    </section>
-  }
-</main>
+</section>

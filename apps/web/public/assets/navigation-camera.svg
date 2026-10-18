@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" fill="none">
+  <defs>
+    <linearGradient id="wallL" x1="45" y1="170" x2="285" y2="170" gradientUnits="userSpaceOnUse"><stop stop-color="#b7bcb0"/><stop offset="1" stop-color="#edece1"/></linearGradient>
+    <linearGradient id="wallR" x1="355" y1="170" x2="598" y2="170" gradientUnits="userSpaceOnUse"><stop stop-color="#efeee5"/><stop offset="1" stop-color="#a6afa1"/></linearGradient>
+    <linearGradient id="ceiling" x1="320" y1="29" x2="320" y2="142" gradientUnits="userSpaceOnUse"><stop stop-color="#c9cfc0"/><stop offset="1" stop-color="#eef0e5"/></linearGradient>
+    <linearGradient id="floor" x1="320" y1="180" x2="320" y2="319" gradientUnits="userSpaceOnUse"><stop stop-color="#b3b8a7"/><stop offset=".45" stop-color="#e2e0cf"/><stop offset="1" stop-color="#bbbca8"/></linearGradient>
+    <linearGradient id="glass" x1="90" y1="100" x2="185" y2="237" gradientUnits="userSpaceOnUse"><stop stop-color="#6b8581"/><stop offset=".4" stop-color="#a7b9ad"/><stop offset=".43" stop-color="#c3cfc0"/><stop offset="1" stop-color="#7c9489"/></linearGradient>
+    <linearGradient id="glassR" x1="477" y1="121" x2="558" y2="243" gradientUnits="userSpaceOnUse"><stop stop-color="#7c9286"/><stop offset=".5" stop-color="#b0c0ac"/><stop offset="1" stop-color="#607d73"/></linearGradient>
+    <linearGradient id="door" x1="300" y1="137" x2="334" y2="202" gradientUnits="userSpaceOnUse"><stop stop-color="#8f9c84"/><stop offset="1" stop-color="#60765e"/></linearGradient>
+    <linearGradient id="coat" x1="426" y1="165" x2="464" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#5a6861"/><stop offset=".5" stop-color="#364c43"/><stop offset="1" stop-color="#293f36"/></linearGradient>
+    <linearGradient id="skin" x1="437" y1="142" x2="451" y2="164" gradientUnits="userSpaceOnUse"><stop stop-color="#c3b49b"/><stop offset="1" stop-color="#968e78"/></linearGradient>
+    <linearGradient id="screen" x1="36" y1="0" x2="600" y2="330" gradientUnits="userSpaceOnUse"><stop stop-color="#fdfef7"/><stop offset="1" stop-color="#f2f4e9"/></linearGradient>
+    <linearGradient id="scan" x1="0" y1="0" x2="0" y2="55" gradientUnits="userSpaceOnUse"><stop stop-color="#acd8ac" stop-opacity="0"/><stop offset="1" stop-color="#d3ffbb" stop-opacity=".18"/></linearGradient>
+    <radialGradient id="light"><stop stop-color="#fffef1" stop-opacity=".7"/><stop offset="1" stop-color="#fffef1" stop-opacity="0"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+    <clipPath id="cameraClip"><rect x="34" y="23" width="572" height="291" rx="13"/></clipPath>
+  </defs>
+  <style>
+    .scan { animation: sweep 5s ease-in-out infinite; }
+    .detection { animation: acquire 5s ease-in-out infinite; }
+    .progress { stroke-dasharray:140; animation: tracking 5s ease-in-out infinite; }
+    @keyframes sweep { 0%,100%{transform:translateY(0);opacity:0} 12%{opacity:1} 65%{transform:translateY(245px);opacity:1} 80%{transform:translateY(245px);opacity:0} }
+    @keyframes acquire { 0%,20%,100%{opacity:.12} 45%,85%{opacity:1} }
+    @keyframes tracking { 0%,15%{stroke-dashoffset:140} 70%,100%{stroke-dashoffset:0} }
+    @media(prefers-reduced-motion:reduce){.scan,.detection,.progress{animation:none}.scan{opacity:.25}.progress{stroke-dashoffset:0}}
+  </style>
+  <!-- A vector-built camera view: geometry and shading remain resolution independent. -->
+  <rect x="21" y="9" width="598" height="319" rx="25" fill="url(#screen)" stroke="#b9c7ae"/>
+  <g clip-path="url(#cameraClip)">
+    <rect x="34" y="23" width="572" height="291" fill="#d5d9cc"/>
+    <path d="M34 23H606L359 131H282Z" fill="url(#ceiling)"/>
+    <path d="M34 23L282 131V201L34 314Z" fill="url(#wallL)"/>
+    <path d="M606 23L359 131V201L606 314Z" fill="url(#wallR)"/>
+    <path d="M34 314L282 201H359L606 314Z" fill="url(#floor)"/>
+    <path d="M282 131H359V202H282Z" fill="#dfe3d4"/>
+    <g stroke="#889682" stroke-opacity=".22">
+      <path d="M111 23L294 131M221 23L307 131M422 23L334 131M528 23L347 131"/>
+      <path d="M34 53H606M119 76H522M188 101H453M244 118H395"/>
+      <path d="M96 314L294 202M211 314L310 202M430 314L332 202M549 314L347 202"/>
+      <path d="M77 294H564M150 261H491M210 233H431M258 213H383"/>
+    </g>
+    <!-- Recessed ceiling lights with soft light spill on the polished floor. -->
+    <g fill="#fffff2"><path d="M204 37H237L261 65H238Z"/><path d="M401 37H435L400 65H379Z"/><path d="M263 85H278L290 101H279Z"/><path d="M362 85H376L362 101H351Z"/><path d="M298 117H306L310 124H304Z"/><path d="M334 117H342L336 124H330Z"/></g>
+    <ellipse cx="320" cy="268" rx="122" ry="32" fill="url(#light)"/>
+    <g fill="#f8f7e5" opacity=".35" filter="url(#soft)"><path d="M190 284H218L258 243H241Z"/><path d="M409 284H440L400 243H384Z"/></g>
+    <!-- Glazed doors, deep jambs, handles, transoms and skirting establish scale. -->
+    <path d="M78 78L184 121V237L78 285Z" fill="#61766c"/>
+    <path d="M86 90L177 126V232L86 271Z" fill="url(#glass)"/>
+    <path d="M86 125L177 150M131 109V251" stroke="#d1d6c7" stroke-width="3"/>
+    <path d="M91 97L116 107V248L91 259Z" fill="#dce5d6" opacity=".18"/>
+    <path d="M166 181V202" stroke="#e4e4d6" stroke-width="3" stroke-linecap="round"/>
+    <path d="M79 78L73 83V289L78 285Z" fill="#a2a995"/>
+    <path d="M212 122L251 138V207L212 225Z" fill="#8c9b86"/><path d="M216 130L247 142V204L216 217Z" fill="#bfcabc"/><path d="M240 167V178" stroke="#71816b" stroke-width="2"/>
+    <path d="M460 117L566 76V283L460 236Z" fill="#637c70"/>
+    <path d="M468 125L557 90V269L468 230Z" fill="url(#glassR)"/>
+    <path d="M468 151L557 124M511 108V250" stroke="#c8d1bf" stroke-width="3"/>
+    <path d="M518 110L551 97V254L518 241Z" fill="#e7ead8" opacity=".16"/>
+    <path d="M480 183V203" stroke="#e4e4d6" stroke-width="3" stroke-linecap="round"/>
+    <path d="M390 139L430 123V224L390 207Z" fill="#9baa94"/><path d="M395 144L425 132V215L395 202Z" fill="#c1cdb8"/>
+    <path d="M34 304L282 196M359 196L606 304" stroke="#8e9c86" stroke-width="3"/>
+    <path d="M34 309L282 200M359 200L606 309" stroke="#e6e8db" stroke-width="2"/>
+    <!-- The stable entrance is the recognized navigation landmark. -->
+    <path d="M300 139H336V202H300Z" fill="#566c54"/><path d="M303 142H333V201H303Z" fill="url(#door)"/>
+    <path d="M305 144H317V190H305Z" fill="#bfccae" opacity=".3"/><path d="M328 169V181" stroke="#e5dfbf" stroke-width="2"/>
+    <rect x="303" y="129" width="30" height="7" rx="1" fill="#6b8061"/><text x="318" y="132.5" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="4" fill="#f8f9ed">EXIT</text>
+    <path d="M278 201H363L367 207H274Z" fill="#5d715b" opacity=".25"/>
+    <!-- A naturally proportioned walking figure, excluded from landmark matching. -->
+    <ellipse cx="445" cy="269" rx="25" ry="6" fill="#51634c" opacity=".22" filter="url(#soft)"/>
+    <path d="M438 216L452 216L453 241L462 263L453 267L442 242L438 229L436 249L433 267L424 266L427 244L428 218Z" fill="#39433c"/>
+    <path d="M425 264L434 265L435 270L421 271Q418 268 425 264ZM453 263L462 261L466 267L454 269Z" fill="#26342f"/>
+    <path d="M437 155L437 168L447 170L448 154Z" fill="url(#skin)"/>
+    <path d="M434 142Q436 135 444 136Q453 137 454 145L452 157Q447 163 440 158L436 151Z" fill="url(#skin)"/>
+    <path d="M434 147Q430 137 439 133Q450 129 455 141L453 148L449 143Q441 146 438 140L438 150Z" fill="#3e463d"/>
+    <path d="M434 164Q427 165 424 177L418 201L423 218L428 216L427 201L432 187L430 222Q443 229 456 220L454 189L460 204L455 222L461 223L467 203L460 176Q457 169 448 165L443 172Z" fill="url(#coat)"/>
+    <path d="M443 173L442 220M431 184L430 207" stroke="#9caa94" stroke-opacity=".28"/>
+    <path d="M419 216L424 214L427 224Q425 230 422 226ZM455 220L461 221L460 230Q454 232 454 226Z" fill="#a89f88"/>
+    <path d="M447 169L454 196L459 216" stroke="#24382e" stroke-width="3"/>
+    <path d="M450 200L465 197L471 216L455 221Z" fill="#71816b" stroke="#4e6350"/>
+    <!-- A small indoor plant anchors the near foreground. -->
+    <path d="M50 271H77L73 304H55Z" fill="#a9af98"/><path d="M63 275L61 232M65 271L75 239" stroke="#63795b" stroke-width="2"/>
+    <g fill="#6f8761"><path d="M62 252Q37 252 44 234Q60 232 62 252Z"/><path d="M62 240Q47 231 54 216Q70 221 62 240Z"/><path d="M63 259Q79 237 90 247Q87 265 63 259Z"/><path d="M69 250Q65 228 81 227Q89 241 69 250Z"/></g>
+    <g class="scan"><rect x="34" y="25" width="572" height="55" fill="url(#scan)"/><path d="M34 80H606" stroke="#c7f2ac" stroke-opacity=".8"/></g>
+    <g class="detection" stroke="#f0ffd6" stroke-width="1.5">
+      <path d="M291 151V134H308M327 134H344V151M291 191V209H308M327 209H344V191"/>
+      <path d="M346 139L372 113H410" stroke-opacity=".7"/>
+      <rect x="370" y="93" width="150" height="24" rx="6" fill="#304d38" stroke="none"/>
+      <circle cx="392" cy="105" r="3" fill="#d2e8ab" stroke="none"/>
+      <text x="452" y="105" text-anchor="middle" dominant-baseline="middle" textLength="98" lengthAdjust="spacing" fill="#f4f8e9" stroke="none" font-size="8" font-weight="600" font-family="sans-serif">ENTRANCE MATCHED</text>
+    </g>
+    <g stroke="#f7ffeb" stroke-width="2" opacity=".85"><path d="M52 62V42H73M567 42H588V62M52 274V295H73M567 295H588V274"/></g>
+    <rect x="49" y="38" width="82" height="21" rx="10.5" fill="#344c3c" fill-opacity=".7"/><circle cx="61" cy="48.5" r="2.5" fill="#b5d9a2"/><text x="96" y="48.5" text-anchor="middle" dominant-baseline="middle" textLength="50" lengthAdjust="spacing" font-family="sans-serif" font-size="8" fill="#f5fae9">LIVE VIEW</text>
+    <rect x="228" y="268" width="182" height="30" rx="15" fill="#f3f8e9" fill-opacity=".94"/><path d="M245 283L250 277L255 283M250 277V289" stroke="#4f6e46" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><text x="332" y="283" text-anchor="middle" dominant-baseline="middle" textLength="122" lengthAdjust="spacing" font-family="sans-serif" font-size="10" fill="#42633f">A clearer way forward</text>
+    <path class="progress" d="M249 301H389" stroke="#d4e9bc" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <rect x="34" y="23" width="572" height="291" rx="13" stroke="#8b9f80" stroke-opacity=".2"/>
+</svg>

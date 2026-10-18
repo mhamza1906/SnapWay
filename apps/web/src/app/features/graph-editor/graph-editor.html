@@ -1,155 +1,407 @@
-<div class="graph-page">
-  <header class="graph-bar">
-    <div class="brand-block">
-      <a class="brand" routerLink="/map">SnapWay</a>
-      <a class="workspace-return" routerLink="/overview">← Back to workspace</a>
-      <h1>Graph editor</h1>
-      <p class="lede">Place waypoints and connections on the floor plan.</p>
-    </div>
-    <div class="tools" role="toolbar" aria-label="Graph tools">
+<section class="editor" aria-label="Map editing workspace">
+  <div class="toolbar" role="toolbar" aria-label="Map editing tools">
+    <button class="tool" aria-label="Back to My maps" (click)="back()" [disabled]="busy()">
+      <app-icon name="arrow-left" /><span class="tip">My maps</span>
+    </button>
+    <div class="tool-divider"></div>
+    @for (item of tools; track item.key) {
       <button
-        type="button"
         class="tool"
-        [class.active]="tool() === 'select'"
-        (click)="setTool('select')"
+        [class.active]="tool() === item.key"
+        [attr.aria-label]="item.name"
+        [attr.aria-pressed]="tool() === item.key"
+        (click)="setTool(item.key)"
+        [disabled]="!revisionId()"
       >
-        Select
+        <app-icon [name]="item.icon" /><span class="tip"
+          >{{ item.name }} &middot; {{ item.shortcut }}</span
+        >
       </button>
-      <button type="button" class="tool" [class.active]="tool() === 'add'" (click)="setTool('add')">
-        Add waypoint
-      </button>
-      <button
-        type="button"
-        class="tool"
-        [class.active]="tool() === 'connect'"
-        (click)="setTool('connect')"
-      >
-        Connect
-      </button>
-      <button type="button" class="tool" [class.active]="tool() === 'cut'" (click)="setTool('cut')">
-        Cut connection
-      </button>
-      <label class="tool upload">
-        Upload underlay
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          hidden
-          (change)="onUnderlayPicked($event)"
-        />
-      </label>
-      <button
-        type="button"
-        class="tool danger"
-        [disabled]="!selectedNodeId() && !selectedEdgeId()"
-        (click)="removeSelected()"
-      >
-        Remove
-      </button>
-      <button type="button" class="tool" (click)="startNewMap()">New map</button>
+    }
+    <button
+      class="tool"
+      aria-label="Upload floor plan"
+      (click)="underlay.click()"
+      [disabled]="busy() || !revisionId()"
+    >
+      <app-icon name="upload" /><span class="tip">Upload SVG or image</span>
+    </button>
+    <button
+      class="tool"
+      aria-label="Undo move"
+      (click)="history()"
+      [disabled]="busy() || !undoStack().length"
+    >
+      <app-icon name="undo" /><span class="tip">Undo last edit &middot; Ctrl Z</span>
+    </button>
+    <button
+      class="tool"
+      aria-label="Redo move"
+      (click)="history(true)"
+      [disabled]="busy() || !redoStack().length"
+    >
+      <app-icon name="redo" /><span class="tip">Redo last edit &middot; Ctrl Shift Z</span>
+    </button>
+    <button class="tool" aria-label="Select all waypoints" (click)="selectAll()">
+      <app-icon name="select" /><span class="tip">Select all &middot; Ctrl A</span>
+    </button>
+    <button
+      class="tool danger"
+      aria-label="Delete selected items"
+      (click)="removeSelected()"
+      [disabled]="busy() || (!selectedIds().length && !selectedEdgeId())"
+    >
+      <app-icon name="trash" /><span class="tip">Delete selection & attached references</span>
+    </button>
+    <button
+      class="tool"
+      aria-label="Toggle waypoint labels"
+      [attr.aria-pressed]="labels()"
+      (click)="labels.set(!labels())"
+    >
+      <app-icon name="eye" /><span class="tip">Show / hide labels</span>
+    </button>
+    <button class="tool" aria-label="Fit floor plan" (click)="canvas()?.fit()">
+      <app-icon name="fit" /><span class="tip">Fit plan &middot; 0</span>
+    </button>
+    <button class="tool" aria-label="Zoom out" (click)="canvas()?.zoomBy(0.8)">
+      <app-icon name="zoom-out" /><span class="tip">Zoom out &middot; -</span>
+    </button>
+    <button class="tool" aria-label="Zoom in" (click)="canvas()?.zoomBy(1.25)">
+      <app-icon name="zoom-in" /><span class="tip">Zoom in &middot; +</span>
+    </button>
+    <button
+      class="tool ai-tool"
+      aria-label="Build with AI"
+      [attr.aria-expanded]="layout.aiOpen()"
+      (click)="layout.openAI()"
+    >
+      <app-icon name="sparkles" /><span class="tip">Build with AI</span>
+    </button>
+    <button
+      class="tool"
+      aria-label="Rebuild MegaLoc index"
+      (click)="rebuildIndex()"
+      [disabled]="busy() || !revisionId()"
+    >
+      <app-icon name="layers" /><span class="tip">Rebuild MegaLoc index</span>
+    </button>
+    <button
+      class="tool publish-tool"
+      [attr.aria-label]="canPublish() ? 'Approve and publish map' : 'Submit map for review'"
+      (click)="finishEditing()"
+      [disabled]="busy() || !revisionId()"
+    >
+      <app-icon name="check" /><span class="tip">{{
+        canPublish() ? 'Approve & publish' : 'Submit for review'
+      }}</span>
+    </button>
+  </div>
+  <input
+    #underlay
+    hidden
+    type="file"
+    accept="image/svg+xml,image/png,image/jpeg,image/webp"
+    aria-label="Floor plan file"
+    (change)="onUnderlayPicked($event)"
+  />
+  <header class="editor-heading">
+    <div>
+      <span class="eyebrow">MY MAPS / EDIT</span>
+      <h1>{{ title() }}</h1>
     </div>
+    <span class="save-state" role="status">{{ busy() ? 'Saving...' : status() }}</span>
   </header>
-
-  @if (tool() === 'add') {
-    <div class="label-row">
-      <label>
-        Waypoint type
-        <select [value]="nodeKind()" (change)="nodeKind.set($any($event.target).value)">
-          <option value="checkpoint">Checkpoint</option>
-          <option value="junction">Junction</option>
-          <option value="stairs">Stairs</option>
-          <option value="lift">Elevator</option>
-        </select>
-      </label>
-      <label>
-        Waypoint label
-        <input
-          type="text"
-          [value]="labelDraft()"
-          (input)="labelDraft.set($any($event.target).value)"
-          placeholder="e.g. Studio 101"
-          maxlength="120"
-        />
-      </label>
+  @if (error()) {
+    <div class="editor-error" role="alert">
+      {{ error()
+      }}<button (click)="error.set(null)" aria-label="Dismiss editor error">
+        <app-icon name="close" />
+      </button>
     </div>
   }
-
-  <div class="workspace">
-    <div class="stage">
+  <div class="editor-body" [class.ai-open]="layout.aiOpen()">
+    <div class="canvas-area">
       <app-graph-canvas
         [width]="width()"
         [height]="height()"
         [underlayUrl]="underlayUrl()"
         [nodes]="nodes()"
         [edges]="edges()"
-        [selectedNodeId]="selectedNodeId()"
+        [selectedIds]="selectedIds()"
         [selectedEdgeId]="selectedEdgeId()"
         [connectFromId]="connectFromId()"
         [tool]="tool()"
+        [disabled]="busy()"
+        [labels]="labels()"
+        [spacePan]="spacePan()"
+        (selectionChanged)="select($event)"
+        (moved)="moveNodes($event)"
         (canvasClicked)="onCanvasClick($event)"
         (nodeClicked)="onNodeClick($event)"
         (edgeClicked)="onEdgeClick($event)"
       />
-    </div>
-
-    @if (tool() === 'select' && selectedNodeId(); as nodeId) {
-      <aside class="inspector" aria-label="Selected waypoint">
-        <h2>Waypoint</h2>
-        <label>
-          Label
-          <input
-            type="text"
-            [value]="editLabel()"
-            (input)="editLabel.set($any($event.target).value)"
-            maxlength="120"
-            placeholder="Classroom or landmark name"
-          />
-        </label>
-        <button type="button" class="tool active save" (click)="saveLabel()">Save label</button>
-
-        <div class="photos-block">
-          <div class="photos-head">
-            <h3>Photos</h3>
-            <label class="tool upload small">
-              Attach
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                hidden
-                (change)="onPhotoPicked($event)"
-              />
-            </label>
-          </div>
-          @if (photosLoading()) {
-            <p class="muted">Loading…</p>
-          } @else if (!photos().length) {
-            <p class="muted">No photos yet. Attach a reference image for this waypoint.</p>
-          } @else {
-            <ul class="photo-list">
-              @for (photo of photos(); track photo.id) {
-                <li>
-                  <a [href]="photo.url" target="_blank" rel="noopener">
-                    <img [src]="photo.url" alt="Node reference photo" />
-                  </a>
-                  <button type="button" class="tool danger small" (click)="removePhoto(photo.id)">
-                    Remove
-                  </button>
-                </li>
+      @if (selectedNode(); as node) {
+        <aside class="inspector" aria-label="Waypoint properties">
+          <details open>
+            <summary>
+              <span><app-icon name="pin" />Waypoint properties</span
+              ><span class="subtle">{{ node.kind }}</span>
+            </summary>
+            <div class="inspector-content">
+              <label
+                >Label<input
+                  maxlength="120"
+                  aria-label="Waypoint label"
+                  [value]="editLabel()"
+                  (input)="editLabel.set($any($event.target).value)"
+              /></label>
+              <div class="fields">
+                <label
+                  >X<input
+                    type="number"
+                    min="0"
+                    [max]="width()"
+                    step=".01"
+                    [value]="editX()"
+                    (input)="editX.set(+$any($event.target).value)" /></label
+                ><label
+                  >Y<input
+                    type="number"
+                    min="0"
+                    [max]="height()"
+                    step=".01"
+                    [value]="editY()"
+                    (input)="editY.set(+$any($event.target).value)"
+                /></label>
+              </div>
+              <div class="fields">
+                <label
+                  >Kind<select
+                    [value]="nodeKind()"
+                    (change)="nodeKind.set($any($event.target).value)"
+                  >
+                    @for (kind of kinds; track kind) {
+                      <option [value]="kind">{{ kind }}</option>
+                    }
+                  </select></label
+                ><button
+                  class="icon-action"
+                  aria-label="Save waypoint properties"
+                  title="Save waypoint properties"
+                  (click)="saveNode()"
+                  [disabled]="busy()"
+                >
+                  <app-icon name="check" />
+                </button>
+              </div>
+              <div class="photo-heading">
+                <strong>Four views</strong><span>Stored photos &middot; Embedding pending</span>
+              </div>
+              <p class="orientation">Front = plan up. Clockwise at 90&deg; intervals.</p>
+              @if (photosLoading()) {
+                <p role="status">Loading photos...</p>
               }
-            </ul>
-          }
+              <div class="photo-grid">
+                @for (direction of directions; track direction.key) {
+                  <div class="photo-slot">
+                    <label
+                      class="photo-picker"
+                      [class.uploading]="uploading().includes(node.id + direction.key)"
+                    >
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        [attr.aria-label]="'Upload ' + direction.label + ' photo'"
+                        [disabled]="uploading().includes(node.id + direction.key)"
+                        (change)="onPhotoPicked($event, direction.key)"
+                      />
+                      @if (photo(direction.key); as photo) {
+                        <img [src]="photo.url" [alt]="direction.label + ' reference photo'" />
+                      } @else {
+                        <app-icon name="camera" />
+                      }
+                      <span
+                        >{{ direction.label }} <small>{{ direction.angle }}&deg;</small></span
+                      >
+                      @if (uploading().includes(node.id + direction.key)) {
+                        <b role="status">Uploading...</b>
+                      }
+                    </label>
+                    @if (photo(direction.key); as photo) {
+                      <button
+                        class="photo-remove"
+                        [attr.aria-label]="'Remove ' + direction.label + ' photo'"
+                        (click)="removePhoto(photo.id)"
+                        [disabled]="busy()"
+                      >
+                        <app-icon name="close" />
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+              <small class="subtle"
+                >Click a view to upload or replace &middot; PNG/JPEG/WebP, 5 MiB.</small
+              >
+              @for (photo of photos(); track photo.id) {
+                @if (!photo.direction) {
+                  <div class="legacy-photo">
+                    <img [src]="photo.url" alt="Unassigned reference photo" /><span
+                      >Unassigned legacy photo</span
+                    ><button
+                      class="icon-action"
+                      aria-label="Remove unassigned photo"
+                      (click)="removePhoto(photo.id)"
+                      [disabled]="busy()"
+                    >
+                      <app-icon name="trash" />
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </details>
+        </aside>
+      } @else if (selectedEdge(); as edge) {
+        <aside class="inspector compact" aria-label="Connection properties">
+          <details open>
+            <summary>Connection properties</summary>
+            <div class="inspector-content">
+              <p class="orientation">
+                Directed edge. Weights are routing costs, not surveyed metres.
+              </p>
+              <label
+                >Weight<input
+                  type="number"
+                  min="0"
+                  step=".01"
+                  [value]="edgeWeight()"
+                  (input)="edgeWeight.set(+$any($event.target).value)" /></label
+              ><label class="check-field"
+                ><input
+                  type="checkbox"
+                  [checked]="bothDirections()"
+                  (change)="bothDirections.set($any($event.target).checked)"
+                />Also update reverse edge if present</label
+              ><button
+                class="icon-action"
+                aria-label="Save connection weight"
+                title="Save connection weight"
+                (click)="saveWeight()"
+                [disabled]="busy()"
+              >
+                <app-icon name="check" />
+              </button>
+            </div>
+          </details>
+        </aside>
+      } @else if (selectedIds().length > 1) {
+        <div class="selection-note">
+          <app-icon name="select" />{{ selectedIds().length }} waypoints selected &middot; drag
+          together, use arrows, or Delete
         </div>
+      }
+      @if (tool() === 'add') {
+        <div class="tool-options">
+          <label>
+            Waypoint type
+            <select [value]="nodeKind()" (change)="nodeKind.set($any($event.target).value)">
+              @for (kind of kinds; track kind) {
+                <option [value]="kind">{{ kind === 'lift' ? 'Elevator' : kind }}</option>
+              }
+            </select>
+          </label>
+          <label
+            >New waypoint label<input
+              placeholder="Optional label"
+              [value]="labelDraft()"
+              (input)="labelDraft.set($any($event.target).value)"
+          /></label>
+        </div>
+      }
+      @if (tool() === 'connect' || tool() === 'cut') {
+        <div class="tool-options">
+          <label class="check-field"
+            ><input
+              type="checkbox"
+              [checked]="bothDirections()"
+              (change)="bothDirections.set($any($event.target).checked)"
+            />Two-way connection</label
+          ><small>{{
+            tool() === 'connect'
+              ? 'Choose start, then destination.'
+              : 'Choose a connection to remove.'
+          }}</small>
+        </div>
+      }
+      <div class="canvas-hint">
+        {{ canvas()?.zoom() }}% <span>&middot;</span> {{ nodes().length }} waypoints
+        <span>&middot;</span> {{ edges().length }} directed edges <span>&middot;</span> Shift: add
+        to selection <span>&middot;</span> Space: pan <span>&middot;</span> Wheel: zoom
+      </div>
+    </div>
+    @if (layout.aiOpen()) {
+      <aside class="ai-panel" aria-label="Build with AI panel">
+        <header>
+          <span class="ai-symbol"><app-icon name="sparkles" /></span>
+          <div>
+            <h2>Build with AI</h2>
+            <small>Your map, in conversation</small>
+          </div>
+          <button
+            class="icon-action"
+            aria-label="Close AI panel"
+            (click)="layout.aiOpen.set(false)"
+          >
+            <app-icon name="close" />
+          </button>
+        </header>
+        <div class="ai-content">
+          <span class="integration-badge">Agent integration coming soon</span>
+          <h3>Make the next move.</h3>
+          <p>Describe a change, ask about a connection, or work with selected waypoints.</p>
+          <div class="context-card">
+            <app-icon name="layers" /><span
+              >{{ nodes().length }} waypoints &middot; {{ selectedIds().length }} selected<small
+                >Context: your current editing snapshot</small
+              ></span
+            >
+          </div>
+          <div class="messages" aria-live="polite">
+            @for (message of messages(); track $index) {
+              <div class="chat-message">
+                <small>{{ message.context }}</small>
+                <p>{{ message.text }}</p>
+                <span
+                  >Queued in this session. No agent is connected and no map changes were made.</span
+                >
+              </div>
+            }
+          </div>
+        </div>
+        <form class="composer" (submit)="$event.preventDefault(); sendPrompt()">
+          <label class="sr-only" for="ai-prompt">Message to map agent</label
+          ><textarea
+            id="ai-prompt"
+            rows="3"
+            placeholder="Describe what you want to build..."
+            [value]="prompt()"
+            (input)="prompt.set($any($event.target).value)"
+          ></textarea>
+          <div>
+            <small>Interface preview &middot; no API calls</small
+            ><button
+              class="icon-action"
+              type="submit"
+              aria-label="Queue message"
+              [disabled]="!prompt().trim()"
+            >
+              <app-icon name="send" />
+            </button>
+          </div>
+        </form>
       </aside>
     }
   </div>
-
-  <footer class="status-line">
-    <span>{{ status() }}</span>
-    @if (error(); as err) {
-      <span class="err">{{ err }}</span>
-    }
-    @if (!authenticated()) {
-      <a class="signin" href="/accounts/google/login/">Sign in with Google</a>
-    }
-  </footer>
-</div>
+</section>

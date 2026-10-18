@@ -1,4 +1,28 @@
 <main class="journey" [class.guiding]="active()">
+  @if (auth.signedIn() && !active()) {
+    <section class="account-bar" aria-label="Account">
+      <p>
+        Signed in as <strong>{{ auth.name() }}</strong>
+        <span class="account-mode">Public User</span>
+      </p>
+      <div class="account-actions">
+        <button
+          type="button"
+          class="text-button"
+          (click)="switchToDeveloper()"
+          [disabled]="auth.busy()"
+        >
+          Switch to Developer
+        </button>
+        <button type="button" class="text-button" (click)="signOut()" [disabled]="auth.busy()">
+          Sign out
+        </button>
+      </div>
+      @if (auth.error()) {
+        <p class="account-error" role="alert">{{ auth.error() }}</p>
+      }
+    </section>
+  }
   @if (!active()) {
     <section class="search-panel">
       <div class="destination-heading">
@@ -92,6 +116,19 @@
       </label>
       @if (guidancePhoto(); as photo) {
         <app-guidance-photo [photo]="photo" (next)="moveFrame(1)" (previous)="moveFrame(-1)" />
+      } @else if (suggestedLocation()) {
+        <section class="photo-placeholder match-confirmation" aria-label="Detected checkpoint">
+          <span class="photo-symbol"><app-icon name="pin" /></span>
+          <h2>Are you near {{ suggestedLocation() }}?</h2>
+          @if (suggestedNode(); as node) {
+            <p>{{ node.floor_name }} · {{ node.building_name }}</p>
+          }
+          <p>Check the sign against your surroundings.</p>
+          <button class="primary" (click)="confirmMatch()">
+            Yes, use this location<app-icon name="check" />
+          </button>
+          <button class="text-button" (click)="recenter()">Take another photo</button>
+        </section>
       } @else {
         <span class="view-tag"><span class="dot"></span>INDOOR GUIDANCE</span>
         <div class="photo-placeholder">
@@ -155,14 +192,6 @@
         ><button class="text-button" (click)="locationPrompt.set(true)">
           Location options<app-icon name="settings" />
         </button>
-      </div>
-    } @else if (active() && indoor() && suggestedLocation()) {
-      <div class="match-confirmation">
-        <strong>Are you near {{ suggestedLocation() }}?</strong>
-        <p>Check the sign against your surroundings.</p>
-        <button class="primary" (click)="confirmMatch()">
-          Yes, use this location<app-icon name="check" /></button
-        ><button class="text-button" (click)="recenter()">Take another photo</button>
       </div>
     } @else if (indoor()) {
       <button class="text-button" (click)="showOutdoor()">

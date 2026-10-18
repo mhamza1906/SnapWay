@@ -1,9 +1,16 @@
 import { Component, input } from '@angular/core';
 const paths: Record<string, string> = {
+  cursor: 'm5 3 14 9-7 1-3 7z',
+  hand: 'M8 12V6a2 2 0 0 1 4 0v5 M12 9V4a2 2 0 0 1 4 0v7 M16 9a2 2 0 0 1 4 0v7l-4 5H9l-6-8a2 2 0 0 1 3-2l2 2',
+  connect: 'M8 5h8 M5 8v8 M8 19h8 M19 8v8 M2 2h6v6H2z M16 16h6v6h-6z',
+  fit: 'M3 9V3h6 M15 3h6v6 M21 15v6h-6 M9 21H3v-6 M8 8h8v8H8z',
+  select: 'M3 8V3h5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5 M8 8h8v8H8z',
+  send: 'm3 3 19 9-19 9 4-9z M7 12h15',
   grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
   map: 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z M9 3v15 M15 6v15',
   layers: 'm12 3 10 6-10 6L2 9z M2 13l10 6 10-6 M2 17l10 6 10-6',
   plus: 'M12 5v14 M5 12h14',
+  lock: 'M5 10h14v11H5z M8 10V6a4 4 0 0 1 8 0v4 M12 14v3',
   close: 'm6 6 12 12 M18 6 6 18',
   check: 'm5 12 4 4L19 6',
   'arrow-right': 'M4 12h16 m-6-6 6 6-6 6',

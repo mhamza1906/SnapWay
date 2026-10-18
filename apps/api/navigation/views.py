@@ -26,6 +26,7 @@ from navigation.authentication import DevTokenAuthentication, NavigationCapabili
 from navigation.models import NavigationSession
 from navigation.permissions import CanLocalize, caller_kind
 from navigation.services import placematch
+from navigation.services.detected_node import resolve_detected_node
 from navigation.services.placematch import MAX_UPLOAD_BYTES, EngineError
 from navigation.views_routing import location_token
 
@@ -212,13 +213,29 @@ class LocalizeView(LocalizationView):
                     {"detail": "The reference catalog changed. Please retry."}, status=503
                 )
         ctx = enrich_target_context(decision.get("target_id"))
+        matched_node = None
+        handoff = None
+        if decision.get("outcome") == "likely_match":
+            matched_node = resolve_detected_node(decision, entries)
+            if matched_node is None:
+                return Response(
+                    {
+                        "error": "stale_location",
+                        "detail": "The matched checkpoint is no longer "
+                        "available. Take another photo or ask the map owner "
+                        "to rebuild its photo index.",
+                    },
+                    status=409,
+                )
+            handoff = location_token({"decision": {**decision, **matched_node}})
         return Response(
             {
                 **body,
                 **ctx,
                 "node_id": decision.get("node_id") or decision.get("location_id"),
                 "revision_id": decision.get("revision_id") or ctx.get("revision_id"),
-                "localization_token": location_token(body),
+                "matched_node": matched_node,
+                "localization_token": handoff,
                 "caller": caller_kind(request),
             }
         )

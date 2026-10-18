@@ -1,10 +1,14 @@
 """Published graph routing, scoped localization handoff and cross-floor permissions."""
 
+import io
+import json
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.core import signing
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, connection, transaction
 from django.utils import timezone
 from maps.models import (
@@ -26,8 +30,10 @@ from maps.models import (
     Room,
 )
 from navigation.models import NavigationSession
+from navigation.services import placematch
 from navigation.services.routing import RouteUnavailable, relative_angle, shortest_path
 from navigation.views_routing import LOCATION_SALT
+from PIL import Image
 from rest_framework.test import APIClient
 
 pytestmark = pytest.mark.django_db
@@ -111,6 +117,22 @@ def graph():
         RevisionArtifact.objects.create(
             revision=revision, kind="svg", state="ready", asset=svg, input_content_hash="a" * 64
         )
+        index_asset = Asset.objects.create(
+            target=target,
+            uploaded_by=user,
+            kind="index",
+            storage_key=f"route/{number}.zip",
+            sha256="a" * 64,
+            content_type="application/zip",
+            byte_size=100,
+        )
+        RevisionArtifact.objects.create(
+            revision=revision,
+            kind="index",
+            state="ready",
+            asset=index_asset,
+            input_content_hash="a" * 64,
+        )
         publication = Publication.objects.create(
             target=target,
             revision=revision,
@@ -159,6 +181,79 @@ def test_weighted_route_and_photo_angle(graph):
     assert body["frames"][1]["image_url"] is None
     assert body["frames"][1]["next_angle"] is None
     assert response["Cache-Control"] == "no-store"
+
+
+@pytest.mark.parametrize("outcome", ["likely_match", "uncertain", "no_supported_match"])
+def test_camera_localization_node_handoff_and_route(graph, monkeypatch, outcome):
+    start = graph.floors[0]
+    node = start.nodes["checkpoint"]
+    monkeypatch.setattr(placematch, "ensure_catalog_synced", lambda entries: None)
+    monkeypatch.setattr(
+        placematch,
+        "match_global",
+        lambda image, meta: {
+            "decision": {
+                "outcome": outcome,
+                "node_id": str(node.id),
+                "location_id": str(node.id),
+                "revision_id": str(start.revision.id),
+                "target_id": str(start.revision.target_id),
+            },
+            "candidates": [],
+            "backend_used": "megaloc",
+        },
+    )
+    client = APIClient()
+    session = client.post(
+        "/api/navigation/sessions/",
+        {"publication_id": str(graph.floors[1].publication.id)},
+        format="json",
+    )
+    assert session.status_code == 201
+    client.credentials(HTTP_AUTHORIZATION=f"Navigation {session.data['token']}")
+    image = io.BytesIO()
+    Image.new("RGB", (32, 24), "white").save(image, format="JPEG")
+    response = client.post(
+        "/api/navigation/localize/",
+        {
+            "image": SimpleUploadedFile("camera.jpg", image.getvalue(), content_type="image/jpeg"),
+            "meta": json.dumps({"client_frame_id": 1, "source": "camera"}),
+        },
+        format="multipart",
+    )
+    assert response.status_code == 200, response.content
+    body = response.json()
+    if outcome != "likely_match":
+        assert body["matched_node"] is None
+        assert body["localization_token"] is None
+        return
+    assert body["matched_node"]["node_id"] == str(node.id)
+    assert body["matched_node"]["stable_id"] == str(node.stable_id)
+    assert body["matched_node"]["label"] == "checkpoint"
+    assert body["matched_node"]["floor_name"] == "Floor 1"
+    handoff = signing.loads(body["localization_token"], salt=LOCATION_SALT)
+    assert handoff == {"node_id": str(node.id), "revision_id": str(start.revision.id)}
+    route = route_body(graph, floor=1)
+    route["localization_token"] = body["localization_token"]
+    response = client.post("/api/navigation/photo-route/", route, format="json")
+    assert response.status_code == 200
+    assert response.data["frames"][0]["node_id"] == str(node.id)
+
+
+@pytest.mark.parametrize("bad_field", ["node_id", "revision_id", "target_id", "location_id"])
+def test_localization_refuses_stale_or_inconsistent_detected_node(graph, bad_field):
+    from maps.services.index_catalog import eligible_index_entries
+    from navigation.services.detected_node import resolve_detected_node
+
+    floor = graph.floors[0]
+    decision = {
+        "node_id": str(floor.nodes["checkpoint"].id),
+        "location_id": str(floor.nodes["checkpoint"].id),
+        "revision_id": str(floor.revision.id),
+        "target_id": str(floor.revision.target_id),
+    }
+    decision[bad_field] = str(uuid4())
+    assert resolve_detected_node(decision, eligible_index_entries()) is None
 
 
 @pytest.mark.parametrize(
@@ -246,6 +341,21 @@ def test_photo_relative_angles():
     assert relative_angle(90, 0) == -90
     assert relative_angle(270, 0) == 90
     assert relative_angle(None, 45) is None
+
+
+def test_archived_floor_deletion_removes_transfers_and_retains_other_floor(graph):
+    from maps.services.retention import archive, delete_archived
+
+    Contribution.objects.filter(
+        pk__in=[floor.revision.contribution_id for floor in graph.floors]
+    ).update(status="merged")
+    removed, retained = graph.floors
+    archive(graph.user, removed.revision.target_id)
+    delete_archived(graph.user, removed.revision.target_id)
+    assert not FloorConnection.objects.exists()
+    assert not Revision.objects.filter(pk=removed.revision.id).exists()
+    assert Revision.objects.filter(pk=retained.revision.id).exists()
+    assert Node.objects.filter(revision=retained.revision).count() == 4
 
 
 def test_expired_location_requires_recapture(graph, monkeypatch):

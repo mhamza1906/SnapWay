@@ -41,6 +41,7 @@ class PublicBuildingListView(APIView):
                 {
                     "id": str(building.id),
                     "name": building.name,
+                    "place_id": building.google_place_id,
                     "slug": building.slug,
                     "address": building.address,
                     "latitude": float(building.latitude),

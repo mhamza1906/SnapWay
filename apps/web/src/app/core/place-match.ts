@@ -13,7 +13,21 @@ export interface MatchCandidate {
   cosine: number;
 }
 
+export interface DetectedNode {
+  node_id: string;
+  stable_id: string;
+  revision_id: string;
+  target_id: string;
+  label: string;
+  kind: string;
+  floor_id: string;
+  floor_name: string;
+  building_id: string;
+  building_name: string;
+}
+
 export interface MatchResult {
+  matched_node?: DetectedNode | null;
   node_id?: string | null;
   revision_id?: string | null;
   target_id?: string | null;
@@ -59,6 +73,7 @@ const OUTCOMES = new Set<string>(Object.keys(OUTCOME_LABEL));
 const STATUS_MESSAGE: Record<number, string> = {
   401: 'The server rejected the token. Check debug settings.',
   403: 'Not allowed to localize with this account.',
+  409: 'The map changed. Take another photo.',
   413: 'The frame was too large for the server.',
   415: 'The server accepts JPEG frames only.',
   429: 'Too many frames; wait a moment and try again.',
@@ -83,11 +98,29 @@ function isCandidate(value: unknown): value is MatchCandidate {
   return !!c && typeof c.reference_id === 'string' && typeof c.cosine === 'number';
 }
 
+function isDetectedNode(value: unknown): value is DetectedNode {
+  if (!value || typeof value !== 'object') return false;
+  const node = value as Record<string, unknown>;
+  return [
+    'node_id',
+    'stable_id',
+    'revision_id',
+    'target_id',
+    'label',
+    'kind',
+    'floor_id',
+    'floor_name',
+    'building_id',
+    'building_name',
+  ].every((key) => typeof node[key] === 'string' && (node[key] as string).length > 0);
+}
+
 function isResult(value: unknown): value is MatchResult {
   const r = value as MatchResult;
   return (
     !!r &&
     !!r.decision &&
+    (r.matched_node == null || isDetectedNode(r.matched_node)) &&
     OUTCOMES.has(r.decision.outcome) &&
     Array.isArray(r.decision.reasons) &&
     Array.isArray(r.candidates) &&

@@ -1,8 +1,8 @@
 # Visitor localization against stored MegaLoc indexes
 
 **Canonical product visitor path** (with [localization-megaloc.md](localization-megaloc.md)).  
-**Branch:** `feature/visitor-localization-match`  
-**Status:** Backend implemented and live-E2E verified (no frontend UI in this PR).  
+**On:** `main` / `feature/frontend-iteration` (merged via PR #15; no separate merge needed).  
+**Status:** Backend + visitor camera localize live; graph editor can rebuild MegaLoc indexes.  
 Personal history: ignored `local/ACTIONS.md`.
 
 ## Goal
@@ -16,7 +16,7 @@ JPEG → Django POST /api/navigation/localize/
   → JSON: decision, node_id, target_id, floor_id, building_id, …
 ```
 
-Frontend is owned by teammates; this document is the **API handoff**.
+Visitor UI posts from [`visitor-camera.ts`](../apps/web/src/app/features/visitor/visitor-camera.ts). Index rebuild: graph editor toolbar or `manage.py build_reference_index`.
 
 ## Design
 
@@ -26,7 +26,7 @@ Frontend is owned by teammates; this document is the **API handoff**.
 - **Django:** [`maps/services/index_catalog.py`](../apps/api/maps/services/index_catalog.py), [`navigation/services/placematch.py`](../apps/api/navigation/services/placematch.py), [`LocalizeView`](../apps/api/navigation/views.py) (default `mode=global`; `mode=legacy` keeps old single-set match).
 - **Cross-floor guard:** if top-1/top-2 are different `target_id` and cosine margin is thin → `uncertain`.
 - **Thresholds:** without `apps/place-match/data/calibration/current.json`, MegaLoc never returns `likely_match` (stays `uncertain`). Local E2E can use REPORT-v2 MegaLoc accept ≥ 0.331 (gitignored under `data/`).
-- **Not in this PR:** Angular UI, Capture/`LocalizationResult` persistence, Vertex/verify on global path.
+- **Still later:** Capture/`LocalizationResult` persistence, Vertex/verify on global path, visitor text route guidance (separate branch).
 
 ## Frontend handoff — `POST /api/navigation/localize/`
 
@@ -61,6 +61,19 @@ Success **200** (shape abbreviated):
     "reasons": ["…"]
   },
   "node_id": "<uuid>",
+  "matched_node": {
+    "node_id": "<revision-local node uuid>",
+    "stable_id": "<stable node uuid>",
+    "revision_id": "<uuid>",
+    "target_id": "<uuid>",
+    "label": "West stair landing",
+    "kind": "stairs",
+    "floor_id": "<uuid>",
+    "floor_name": "Floor 1",
+    "building_id": "<uuid>",
+    "building_name": "Example building"
+  },
+  "localization_token": "<signed short-lived route handoff>",
   "target_id": "<uuid>",
   "floor_id": "<uuid>",
   "building_id": "<uuid>",
@@ -82,8 +95,51 @@ Errors:
 | Status | `error` | When |
 | --- | --- | --- |
 | 503 | `index_not_ready` | No ready indexes in catalog |
+| 409 | `stale_location` | Accepted engine IDs do not resolve to a node on an eligible revision/target, or node/location IDs disagree |
 | 503 | `not_configured` / `unavailable` | Engine URL/token missing or down |
 | 415 / 413 / 400 | `invalid_image` / validation | Bad JPEG / meta |
+
+## Camera result to confirmed visitor node
+
+October 18 integration extension, pending deployment: camera capture continues
+to use the existing JPEG/meta endpoint and MegaLoc global matcher. There is no
+new recognition model or scene-text pipeline. The
+[node resolver](../apps/api/navigation/services/detected_node.py) validates a
+`likely_match` against the eligible index revision/target and loads the exact
+`maps_node` row. It returns `matched_node` with the camera-location node's ID,
+stable identity, label, floor and building; this is not an observed target node
+or proof that another node is ahead of the camera. Only a resolved node receives
+the signed route handoff. Uncertain/unsupported outcomes return null
+`matched_node` and null `localization_token`; stale identities return 409.
+
+The [API integration](../apps/api/navigation/views.py) preserves engine scores
+and decisions. [Typed response validation](../apps/web/src/app/core/place-match.ts)
+accepts the new object and rejects malformed node payloads while retaining legacy
+response support. The [visitor controller](../apps/web/src/app/features/visitor/visitor.ts)
+keeps suggested and confirmed node objects separately, checks the selected
+building and returned identities, and uses the signed location for routing only
+after user confirmation. The [confirmation panel](../apps/web/src/app/features/visitor/visitor.html)
+shows the node label, floor and building inside the visible indoor panel;
+image browsing does not change the confirmed physical node. Recapture,
+cancellation, background and destination changes clear the detected-node state.
+
+[Camera coverage](../apps/web/src/app/features/visitor/visitor-camera.spec.ts)
+exercises one browser JPEG upload with an in-memory visitor capability and the
+exact returned node. [API integration coverage](../apps/api/tests/test_photo_routing.py)
+runs real session, multipart-localize, node validation, signed-handoff and route
+views with only the engine boundary mocked. [Global API coverage](../apps/api/tests/test_localize_global.py),
+[visitor route coverage](../apps/web/src/app/features/visitor/visitor.spec.ts)
+and [payload validation](../apps/web/src/app/core/place-match.spec.ts) cover IDs,
+cross-floor starts, uncertain results, malformed payloads and reset behavior.
+
+Validation for this extension: 176 backend tests pass on isolated PostgreSQL;
+158 pass with 18 PostgreSQL-only skips on SQLite. All 116 frontend tests pass.
+Web and visitor production builds, Android asset sync and browser acceptance
+with fake camera/synthetic responses pass. This is integration evidence, not a
+new live MegaLoc accuracy test, real R2-fetch verification or physical-device
+acceptance. The earlier dated live evidence below belongs to the teammate's
+existing matcher. No dependencies, database migrations, env keys/private values
+or architecture change are required. Current extension commit is pending.
 
 ## How to run (backend)
 
@@ -114,3 +170,4 @@ python scripts/dev.py api
 - Draft + multi-floor design on this branch (2026-10-17).
 - Backend global catalog + localize (2026-10-17).
 - Live E2E: catalog sync deadlock fix + calibrated localize → `likely_match` (2026-10-17).
+- Confirmed on `feature/frontend-iteration` (2026-10-18): engine health + empty catalog sync + Django localize → `likely_match` (2 catalog sets).
