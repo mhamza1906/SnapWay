@@ -7,6 +7,7 @@ import { renderSamIbrahimFloor } from '../../apps/pipeline/server/projects/sam-i
 import { photoPointGraph } from '../../apps/web/src/app/features/authoring/photo-graph.ts';
 
 const building = JSON.parse(readFileSync(new URL('../../apps/pipeline/public/buildings/sam-ibrahim.json', import.meta.url)));
+const exclusions = JSON.parse(readFileSync(new URL('./data/photo-stop-exclusions.json', import.meta.url)));
 const sharp = createRequire(new URL('../../apps/pipeline/package.json', import.meta.url))('sharp');
 const walks = [];
 for (const floor of building.floors) {
@@ -14,8 +15,11 @@ for (const floor of building.floors) {
   for (const hall of floor.geometry.spaces.filter(space => ['corridor','lobby'].includes(space.kind))) {
     const plan = planHallPoints(building, floor.id, hall.id, {maxPoints:30});
     const retained = planHallPoints(building, floor.id, hall.id, {maxPoints:30,adaptive:false});
+    const excluded = exclusions.bySpaceId[hall.id] || [];
+    plan.points = plan.points.filter(point => !excluded.includes(point.order));
     if (!plan.points.length) continue;
-    walks.push({source:`${building.id}:${floor.id}:${hall.id}:adaptive-30-v1`,previousSources:['adaptive-20-v1',20,12].map(version=>`${building.id}:${floor.id}:${hall.id}:${version}`),title:`Sam Ibrahim · ${hall.label}`,
+    const version = excluded.length ? `${exclusions.sourcePlan}-pruned` : 'adaptive-30-v1';
+    walks.push({source:`${building.id}:${floor.id}:${hall.id}:${version}`,previousSources:['adaptive-30-v1','adaptive-20-v1',20,12].map(version=>`${building.id}:${floor.id}:${hall.id}:${version}`),title:`Sam Ibrahim · ${hall.label}`,
       floor:floor.label,width:floor.width,height:floor.height,points:plan.points.length,
       underlay, ...photoPointGraph(plan,retained.points)});
   }

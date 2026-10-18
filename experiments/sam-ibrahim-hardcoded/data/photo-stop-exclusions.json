@@ -1,0 +1,7 @@
+{
+  "sourcePlan": "adaptive-30-v1",
+  "reason": "User removed the four uncollected Level 1 stops; retain completed point numbers and path geometry.",
+  "bySpaceId": {
+    "L1-project-circulation-2": [5, 6, 23, 30]
+  }
+}
