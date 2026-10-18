@@ -1,80 +1,79 @@
-# Sam Ibrahim: offline SVG navigation experiment
+# Sam Ibrahim: hardcoded SVG project and cross-floor routes
 
-This experiment manually reconstructs selected room boundaries, circulation, doorway thresholds and navigation graphs from the six original vectorized SVGs, compared with the 45-page `Sam_Ibrahim_Indoor_Navigation_Review.pdf`. It preserves the report's complete inventory and unresolved stair/room relationships. It is an incomplete, unverified navigation draft for later integration.
+Sam Ibrahim is integrated into the main authoring application on `feature/map-authoring-pipeline`. The project manually traces selected rooms, circulation, doorway thresholds and six named stair/elevator cores from the six original SVGs, compared with the 45-page `Sam_Ibrahim_Indoor_Navigation_Review.pdf`. It enables explicitly inferred cross-floor routes at the user's request. It is an agent-inspected project draft, not a field-verified navigation or accessibility map.
 
-Branch: `feature/sam-ibrahim-hardcoded-navigation`, based on local `feature/map-authoring-pipeline` commit `9f5e2ca`. Work began at `dfa97f7` (vectorizer.ai plus SVG reading) and the isolated branch was advanced to the new local tip before completion; the imported pure pipeline modules were unchanged between those revisions. The source checkout contained an unfinished merge at the start, so this work uses a separate checkout, `SnapWay-sam-hardcoded`. All implementation files are in [experiments/sam-ibrahim-hardcoded](../experiments/sam-ibrahim-hardcoded/). Existing application, backend and pipeline files are unchanged relative to the final base. No providers, network requests, environment files or credentials are used. No dependencies were added.
+The earlier isolated experiment remains available as a strict reference. Its code and original SVGs were brought onto the feature branch by merge `2e005d8` (experiment commits `36157d9` and `0a9fa3c`). Git `main` was not changed. No dependencies, provider settings, credentials, AI pipeline orchestration or shared pathfinding algorithms were changed. The new integration adds a built-in building, project renderer, route-preview API fields and small authoring UI changes. No model or vectorization calls are needed to build this project.
 
-## Reproduce and inspect
+## Open and reproduce
 
-Use Node 22 or later and the pipeline's existing installed dependencies. From the repository root:
+With the normal development services running, open `/authoring` and choose **Open Sam Ibrahim project**. Select start and destination rooms from any floor, choose **Stairs or elevator**, **Prefer stairs** or **Elevator · exclude stairs**, then preview the route. Floor tabs retain each floor's route overlay; the result lists stair/elevator transitions. Elevator-only excludes stair edges; it does not certify accessibility. The original SVG is the map underlay, with clickable traced rooms and thresholds plus labelled core landings.
+
+Use Node 22 or later and the existing dependencies in `apps/pipeline`. From the repository root:
 
 ```sh
+node experiments/sam-ibrahim-hardcoded/project-cli.mjs build
+node experiments/sam-ibrahim-hardcoded/project-cli.mjs build --install
+node experiments/sam-ibrahim-hardcoded/project-cli.mjs route LB-R02 L5-R22 --prefer-stairs
+node experiments/sam-ibrahim-hardcoded/project-cli.mjs route LB-R02 L5-R22 --stairs-free
 node --test experiments/sam-ibrahim-hardcoded/*.test.mjs
-node experiments/sam-ibrahim-hardcoded/cli.mjs check
-node experiments/sam-ibrahim-hardcoded/cli.mjs build
-node experiments/sam-ibrahim-hardcoded/cli.mjs inspect L2-R06
-node experiments/sam-ibrahim-hardcoded/cli.mjs inspect L2:P06
-node experiments/sam-ibrahim-hardcoded/cli.mjs route L1-R01 L1-R02 --draft
-node experiments/sam-ibrahim-hardcoded/cli.mjs route L3-R01 L3-R19 --draft --stairs-free
 ```
 
-The isolated [package.json](../experiments/sam-ibrahim-hardcoded/package.json) also exposes `build`, `check` and `test`. There is no server or application build step. In the development worktree, an ignored symlink points to the source checkout's existing `apps/pipeline/node_modules`. A fresh checkout must have the dependencies already specified by `apps/pipeline/package.json`; this experiment does not install them or change the lockfile.
+`build` writes `building.json`, `connections.json`, `summary.json` and six navigation SVGs to ignored `experiments/sam-ibrahim-hardcoded/output/project/`. `--install` also updates the committed [built-in project](../apps/pipeline/public/buildings/sam-ibrahim.json), saving a timestamped backup of the previous file in that output directory first. It never overwrites another building or the user's saved project. The experiment [package scripts](../experiments/sam-ibrahim-hardcoded/package.json) expose `project:build`, `project:install` and `test`.
 
-`build` writes only to the experiment's ignored `output/`, or a directory supplied with `--out`. The [ignore file](../experiments/sam-ibrahim-hardcoded/.gitignore) excludes generated artifacts and Python caches. Outputs include:
+A fresh checkout requires the repository's normal private environment setup for the full app, described in [the environment contract](environment-sync.md). Offline project generation and tests require no credentials. This worktree lacks `local/.env`; no private settings were created or changed during validation. The fixed-source renderer needs the committed `experiments/sam-ibrahim-hardcoded/source/` files alongside the pipeline service.
 
-| File | Contents |
+## Implemented coverage
+
+| Item | Integrated project |
+| --- | ---: |
+| Floors | 6: B, 1, 2, 3, 4, 5 |
+| Traced destination rooms | 50 |
+| Rooms currently connected | 46 |
+| Routing nodes / edges | 228 / 247 |
+| Named cores | 4 stairs (A–D), 2 elevators (B/C) |
+| Floor-side landings | 36 |
+| Adjacent-floor inferred links | 30 |
+| Authored horizontal approaches attached | 32 |
+| Horizontal approaches unresolved | 4 |
+| Verified cross-floor links | 0 |
+
+Every ordered pair of floors has an exercised stairs route and an elevator route. Every currently available traced room can reach the basement test destination. Level 5's west and central traces now connect through the traced north doorway. Examples include Collaboratorium (`LB-R02`) to Level 5 (`L5-R22`), using Stair C by default or Elevator B with stairs excluded.
+
+The four unresolved horizontal approaches are Stair A on B, 1 and 2, and Stair D on B. Their floor-side positions and inferred vertical core continuity are recorded, but there is no floor-corridor attachment at those landings. Other attached cores provide routes across all six floors. Floor service, re-entry, elevator operation and landing elevations remain assumptions.
+
+Four Level 2 rooms remain unavailable: Corner Shop (`L2-R01`), Spot (`L2-R02`), Cloud (`L2-R06`) and Keystone (`L2-R07`). Their thresholds remain candidates. Most small upper-floor rooms, several tiered rooms and lower service areas are still untraced. The 366 preserved PDF regions are an inventory, not 366 navigable rooms. Unknown scale, empty photo collections and no localization result are retained.
+
+## Manual construction and pipeline reuse
+
+| Automated pipeline step | Project-specific implementation |
 | --- | --- |
-| `building.draft.json` | Existing pipeline building schema; explicit SVG polygons, assumed doors and validated same-floor graph |
-| `navigation-bundle.draft.json` | Existing navigation export, still unverified |
-| `navigation-graph.draft.json` | Actual routing nodes and edges, with an empty connector list |
-| `geometry-vertices.json` | Individually identified polygon vertices in SVG viewBox units; these are not destination nodes |
-| `review-graph.json` | Complete observations, portal candidates, room correspondences, core matches and unanswered questions |
-| `coverage.json` | Per-floor mapped, unmapped, unresolved and currently routable IDs |
-| `capture-plans.draft.json` | Existing pipeline's manual reference-photo suggestions, without photos or metric distances |
-| `pipeline-report.json` | Provenance, unresolved thresholds, candidate landings, discarded room-transit edges and availability |
-| `source-audit.json`, `summary.json` | Hash/reference checks and current coverage/counts |
-| `L*-source-comparison.svg` | Original source with manual geometry and threshold overlays |
-| `L*-selected-source-shapes.svg` | Highlighted original SVG elements cited by the geometry and core observations |
-| `L*-navigation.draft.svg` | Original source with actual navigation nodes and edge polylines |
+| Read/vectorize source | Freeze the six existing original SVGs byte-for-byte and audit their hashes and path-first shape IDs |
+| Identify spaces | Preserve every printed PDF region/portal and associate selected identities with SVG source shapes |
+| Trace geometry | Explicit room vertices, circulation polygons and threshold segments in the original SVG frame |
+| Decide access | Existing `applyAccessDecisions` transaction with assumed evidence and `agent-inspected` review |
+| Construct paths | Existing graph builder, with terminal-room interior shortcuts removed in the local adapter |
+| Connect floors | Explicit named-core landing definitions, validated authored approach polylines and existing `connectLandings` |
+| Show the project | Built-in library entry, original-SVG renderer and per-floor route overlays in `/authoring` |
 
-Optional PDF comparison panels require locally rendered full pages named `page-03.png` through `page-08.png`:
+[project.mjs](../experiments/sam-ibrahim-hardcoded/project.mjs) unions only authored circulation, subtracts destination rooms, partitions holes into simple polygons and adds analytical seams. Project-only geometry corrections preserve the west walls beside Level 4/5 Stair A and the narrow openings in Level 4's east passage and Level 5's northwest link. They do not alter the strict reference geometry. It remaps room thresholds and builds through the existing access adapter.
 
-```sh
-node experiments/sam-ibrahim-hardcoded/cli.mjs compare \
-  --report-images /absolute/path/to/rendered-review-pages
-```
+Each accepted connector `approachPath` becomes a graph edge. Its final join may snap at most 25 SVG units to an existing validated corridor edge, which is split at the junction. All approach segments and joins are checked against walkable geometry and terminal-room interiors. The other authored corridor `paths`, `joins` and the older experiment's `spines` remain review aids; merged polygons and derived seams determine normal corridor connectivity. Unresolved approaches get a local landing footprint but no invented horizontal bridge.
 
-These panels sit beside the SVG rather than being aligned onto it. The PDF and rendered images remain external. The complete inventory is already checked in, so ordinary builds need neither the PDF nor Python. To reproduce extraction, use [tools/extract-review.py](../experiments/sam-ibrahim-hardcoded/tools/extract-review.py) with an existing Python environment containing `pypdf` and Pillow, and `--source-root /absolute/path/to/Hack_The_valley`. The extractor checks the specific PDF hash and inventory counts; it is not a generic floor-plan parser.
+Six named cores are connected only between adjacent levels. Every connector records the project assumption and unknown real-world access. Existing schema `reviewed` graph flags indicate deterministic geometry checks; they do not mean human approval. All access review records say `agent-inspected`. The UI and API expose the inferred status, and verified-accessibility requests return no route.
 
-## How this replaces the automated steps
+The UI's **Build with AI** controls remain the normal authoring workflow. Re-running them replaces manually traced geometry, so use the project CLI to regenerate the authored baseline. Opening the built-in project provides a fresh copy; ordinary edits are saved through the existing application mechanism. Geometry edits rebuild graph portions and must be route-checked afterward.
 
-| Existing pipeline work | Manual experiment |
-| --- | --- |
-| Crop/vectorize source plans, then read SVG elements | Freeze the existing original SVGs byte-for-byte; enumerate their shapes with the same path-first IDs |
-| Classify spaces and establish identities | Transcribe every printed PDF region and portal relationship; manually associate selected identities with source shapes |
-| Trace geometry | Author explicit vertices in the original SVG viewBox; do not turn PDF annotation boxes into walkable polygons |
-| Decide openings and access | Author threshold segments and apply them through the existing `applyAccessDecisions` transaction, explicitly `agent-inspected` and `assumed` |
-| Build graphs and choose destination endpoints | Reuse existing graph and routing modules; rooms terminate at doorway endpoints, with interior through-room paths removed locally |
-| Match floors | Preserve named-core correspondences as separate candidate links; no unverified cross-floor connector is inserted |
-| Export navigation and propose capture points | Reuse existing navigation-bundle and capture-point helpers, retaining unknown scale and empty photo collections |
+## PDF and SVG evidence
 
-The adapter imports only pure modules under `apps/pipeline/shared/`. It does not invoke the SVG-reading model, vectorization service, pipeline orchestration or server. The pipeline automatically treats some large multi-door rooms as circulation; the experiment filters edges entering any terminal room's interior so tiered lecture rooms cannot become shortcuts. That behavior is contained in the experiment.
+[source-manifest.json](../experiments/sam-ibrahim-hardcoded/data/source-manifest.json) records source hashes, dimensions and frames. Frozen originals: [B](../experiments/sam-ibrahim-hardcoded/source/Level-B-original.svg), [1](../experiments/sam-ibrahim-hardcoded/source/Level-1-original.svg), [2](../experiments/sam-ibrahim-hardcoded/source/Level-2-original.svg), [3](../experiments/sam-ibrahim-hardcoded/source/Level-3-original.svg), [4](../experiments/sam-ibrahim-hardcoded/source/Level-4-original.svg), [5](../experiments/sam-ibrahim-hardcoded/source/Level-5-original.svg). Clean redraws are not source evidence. Embedded PNGs in the installed project are display renderings of those SVGs, never the source of graph coordinates.
 
-The manually authored lower-floor `spines` and landing `approachPath` lines are review aids. The routing graph is built by the unchanged pipeline from the polygons and accepted draft thresholds; those hand-positioned lines do not inject edges or force connections. Unsupported branches remain unresolved.
+The PDF's normalized crop frame differs from each original SVG frame. `crossFrameTransform` stays null: report centres and annotation boxes never become walking coordinates. `L2:original-svg-viewbox` and `svg-original-L2` are naming aliases for the same SVG frame, and similarly for other floors. Geometry is authored in SVG units, normalized in the source spec and restored to SVG units by the adapter. There is no metres-per-unit scale.
 
-## Source frames and evidence
+`pN` follows the pipeline's `compactSvg` path-first enumeration, not DOM order. The audit rejects changed hashes, mismatched dimensions/frames and missing nested references. A valid reference establishes the existence of a source shape, not physical correctness of a doorway or floor connection.
 
-[source-manifest.json](../experiments/sam-ibrahim-hardcoded/data/source-manifest.json) records source hashes, dimensions, frames and six local frozen-source mappings. The frozen files are [B](../experiments/sam-ibrahim-hardcoded/source/Level-B-original.svg), [1](../experiments/sam-ibrahim-hardcoded/source/Level-1-original.svg), [2](../experiments/sam-ibrahim-hardcoded/source/Level-2-original.svg), [3](../experiments/sam-ibrahim-hardcoded/source/Level-3-original.svg), [4](../experiments/sam-ibrahim-hardcoded/source/Level-4-original.svg) and [5](../experiments/sam-ibrahim-hardcoded/source/Level-5-original.svg). Earlier cleaned derivatives are catalogued only; they are not source evidence for these outlines.
+The complete [review inventory](../experiments/sam-ibrahim-hardcoded/data/review-inventory.json) contains 366 regions and 330 portal candidates; [review questions](../experiments/sam-ibrahim-hardcoded/data/review-questions.json) preserve Q01–Q10 and completeness discrepancies. Portal IDs are qualified by floor, such as `L2:P06` and `L5:P001`.
 
-The report's normalized crop frame differs from each original SVG frame. `L2:report-crop-normalized` therefore cannot be used as `svg-original-L2`. The manifest's `L2:original-svg-viewbox` and code's `svg-original-L2` are aliases for the same original source frame; their naming difference is not a geometric transformation. The same convention applies to the other floors. `crossFrameTransform` remains null. Report centres are observations, never walkable endpoints. Geometry is authored in SVG units, stored as normalized tuples, and converted back to SVG units by the adapter. There is no metres-per-unit scale.
-
-`pN` follows `compactSvg` at the base commit: all paths are numbered first, followed by supported non-path elements. It is not global DOM ordering. The audit rejects changed source hashes, mismatched dimensions/frames and missing shape IDs, including nested doorway and landing-anchor references. A valid reference proves the cited shape exists; it does not prove that a hand-traced outline, doorway, name or physical connection is correct.
-
-## PDF findings retained in code
-
-The complete [review inventory](../experiments/sam-ibrahim-hardcoded/data/review-inventory.json) contains 366 regions and 330 portal candidates. Portal IDs repeat between floors and are globally qualified, such as `L2:P06` and `L5:P001`, while retaining their printed labels. The [review questions](../experiments/sam-ibrahim-hardcoded/data/review-questions.json) preserve Q01–Q10 and the discrepancies/completeness observations.
-
-| Level | Printed regions | Portal candidates | Overview page |
+| Level | Printed regions | Portal candidates | PDF overview page |
 | --- | ---: | ---: | ---: |
 | 5 | 105 | 95 | 3 |
 | 4 | 115 | 108 | 4 |
@@ -83,36 +82,32 @@ The complete [review inventory](../experiments/sam-ibrahim-hardcoded/data/review
 | 1 | 34 | 29 | 7 |
 | B | 32 | 27 | 8 |
 
-- Cloud: two Level 2 portal observations; the Level 3 depiction has no resolved doorway. Its footprint is not a route or a floor connector.
-- Conveyor: two Level 2 and three Level 3 portal observations, with unresolved `IA2150`/`IA2150A` identity and entrance elevations. No room-interior stair/terrace link is inferred.
-- The unnamed eastern tiered classroom on B/1 may correspond across levels. It is distinct from the basement Green Room; repeated seating does not establish a connection.
-- Stair cores A–D and elevators B/C have 30 adjacent-floor identity matches. The additional B/1 core match and 12 unresolved open stair flights are also retained. Their 62 landing/endpoint records have unknown actual landing coordinates/elevations; a source depiction anchor is separate.
-- Roof gardens are Level 4 features. Unresolved voids, garden access, exterior exit groups and service-space access are not silently made walkable.
-- Official classroom and door totals are completeness evidence, not a substitute for establishing each doorway.
+Cloud's Level 3 projection has no resolved entrance. Conveyor's `IA2150`/`IA2150A` identity and entrance elevations remain unresolved. The eastern B/1 tiered classroom is distinct from the basement Green Room, and repeated seating does not establish a walkable connection. None of these room interiors become stairs or shortcuts. Roof gardens remain Level 4 observations; voids and exterior/service routes are not silently made walkable.
 
-## Current route coverage and limitations
+The evidence graph retains 62 candidate landing/endpoint records and 43 candidate relationships, including 30 adjacent named-core matches, a separate B/1 match and 12 unresolved open flights. The integrated project separately selects 36 floor-side named-core landings; it does not enable every candidate relationship.
 
-Selected outlines exist on all six floors. Examples exercised in both directions include Collaboratorium–Green Room, Brainstorm–Dark Matter, Mission Control–Rhythm, Hive–the southeast Level 3 rooms, the west/southwest Level 4 rooms, and the Level 5 north/central rooms. `coverage.json` is the authoritative list; preserved inventory entries are not all traced geometry.
+To regenerate side-by-side comparisons from locally rendered PDF overview pages:
 
-The Level 2 Corner Shop, Spot and Cloud thresholds remain positioned candidates because the existing graph builder does not attach their corridor branches. Corner Shop lost its branch after the north corridor was corrected to avoid the Keystone rim; source-preserving partition trials did not restore it. Keystone's southeast threshold is also unresolved after comparing its curved boundary. No rescue edge crosses these gaps. The separate Level 5 west and central traces remain disconnected. Lower-floor service areas, several tiered rooms and most small upper-floor enclosures remain untraced.
+```sh
+node experiments/sam-ibrahim-hardcoded/cli.mjs compare --report-images /absolute/path/to/rendered-review-pages
+```
 
-The routing wrapper requires `allowDraft: true` (`--draft` in the CLI). Default strict requests return no route. Cross-floor requests return no route even in draft mode. `--accessible` also returns no route because no verified accessible network exists. `--stairs-free` only filters accepted graph edges; it does not establish accessibility. Generated schema review flags indicate deterministic geometry checks, not human or field approval. Every review record explicitly says `agent-inspected`.
+The external PDF and page PNGs are not required for ordinary builds. [tools/extract-review.py](../experiments/sam-ibrahim-hardcoded/tools/extract-review.py) reproduces the inventory with an existing Python environment containing `pypdf` and Pillow; it validates this report's specific hash and counts.
 
-For later integration, treat this as proposed authoring data. Recheck source geometry, doorway widths/elevations, scale, corridor continuity, landing locations, stair re-entry and elevator service before accepting routes. No user position is inferred, and no localization result is produced.
+## Strict reference and implementation files
 
-## Implementation and verification
+The original [cli.mjs](../experiments/sam-ibrahim-hardcoded/cli.mjs) still supports `check`, `build`, `inspect`, `route --draft` and `compare`. Its outputs go to the experiment's ignored `output/`, separate from `output/project/`. Strict routes require draft opt-in and never cross floors; its original graph has 140 nodes and 132 edges. It preserves geometry vertices, review graph, coverage, navigation exports, source overlays and manual capture suggestions for comparison.
 
-- [data/lower-floors.mjs](../experiments/sam-ibrahim-hardcoded/data/lower-floors.mjs) and [data/upper-floors.mjs](../experiments/sam-ibrahim-hardcoded/data/upper-floors.mjs): explicit vertices, thresholds, source references and unresolved approaches.
-- [review-graph.mjs](../experiments/sam-ibrahim-hardcoded/review-graph.mjs): full evidence graph, room identities and non-traversable stair/elevator relationships.
-- [pipeline-adapter.mjs](../experiments/sam-ibrahim-hardcoded/pipeline-adapter.mjs): schema/access/graph/routing/export adapter and terminal-room filter.
-- [model.mjs](../experiments/sam-ibrahim-hardcoded/model.mjs): deterministic assembly, vertex IDs, coverage and capture suggestions.
-- [svg-tools.mjs](../experiments/sam-ibrahim-hardcoded/svg-tools.mjs): original source inspection, reference audit and static comparison views.
-- [render-navigation.mjs](../experiments/sam-ibrahim-hardcoded/render-navigation.mjs): graph visualization from generated nodes and edges; optional route presentation uses the existing display helper.
-- [cli.mjs](../experiments/sam-ibrahim-hardcoded/cli.mjs): build, check, inspect, route and compare commands.
-- Tests: [model](../experiments/sam-ibrahim-hardcoded/model.test.mjs), [adapter](../experiments/sam-ibrahim-hardcoded/pipeline-adapter.test.mjs), [SVG evidence](../experiments/sam-ibrahim-hardcoded/svg-tools.test.mjs), and [navigation renderer](../experiments/sam-ibrahim-hardcoded/render-navigation.test.mjs).
+- Source geometry and evidence: [lower floors](../experiments/sam-ibrahim-hardcoded/data/lower-floors.mjs), [upper floors](../experiments/sam-ibrahim-hardcoded/data/upper-floors.mjs), [review graph](../experiments/sam-ibrahim-hardcoded/review-graph.mjs), [SVG audit](../experiments/sam-ibrahim-hardcoded/svg-tools.mjs).
+- Integrated landing/corridor definitions: [lower connectors](../experiments/sam-ibrahim-hardcoded/data/project-connectors-lower.mjs) and [all-floor connector assembly](../experiments/sam-ibrahim-hardcoded/data/project-connectors.mjs).
+- Build and install: [project builder](../experiments/sam-ibrahim-hardcoded/project.mjs), [project CLI](../experiments/sam-ibrahim-hardcoded/project-cli.mjs), [package scripts](../experiments/sam-ibrahim-hardcoded/package.json), [installed building](../apps/pipeline/public/buildings/sam-ibrahim.json).
+- Shared-module adapters and rendering: [pipeline adapter](../experiments/sam-ibrahim-hardcoded/pipeline-adapter.mjs), [strict model](../experiments/sam-ibrahim-hardcoded/model.mjs), [offline navigation renderer](../experiments/sam-ibrahim-hardcoded/render-navigation.mjs).
+- App service: [source renderer](../apps/pipeline/server/projects/sam-ibrahim.js) and [authoring routes](../apps/pipeline/server/authoring-routes.js).
+- App UI: [component](../apps/web/src/app/features/authoring/authoring.ts), [template](../apps/web/src/app/features/authoring/authoring.html), [styles](../apps/web/src/app/features/authoring/authoring.scss), [service contract](../apps/web/src/app/features/authoring/pipeline.service.ts), [component tests](../apps/web/src/app/features/authoring/authoring.spec.ts).
+- Project tests: [data/source checks](../experiments/sam-ibrahim-hardcoded/project-connectors.test.mjs), [routes and determinism](../experiments/sam-ibrahim-hardcoded/project.test.mjs), [library/API/rendering](../apps/pipeline/tests/sam-ibrahim-project.test.js). The original experiment tests remain alongside these.
 
-Tests cover complete inventory/reference integrity, source tampering, frame mismatches, schema round-trips, every retained graph edge, representative bidirectional routes, inaccessible/unresolved cases, no cross-floor or tiered-room shortcuts, deterministic adapter output and absence of metric/photo claims. Source comparisons were visually inspected against the original SVGs and PDF imagery. This is code/geometry validation, not physical route validation.
+## Verification
 
-Final verification on 2026-10-18: all 26 experiment tests pass. The existing access, building, capture-point, centreline and route-display suites pass 58 tests, with nine skipped for the absent optional Waterloo fixture. The initial-document checker passes all 14 documents. Re-extracting the PDF produces byte-identical inventory, questions and source-manifest files; two independent builds produce ten byte-identical JSON artifacts; all 18 generated SVGs parse as valid XML. The final graph has 140 nodes and 132 edges, with 429 geometry vertices, 67 traced regions (50 inventory regions plus 17 circulation partitions), 65 draft thresholds including analytical partition joins, and 33 manual capture plans. There are zero verified cross-floor edges. No application, backend, existing pipeline or dependency files differ from base `9f5e2ca`.
+Verification on 2026-10-18: 34 experiment/project tests pass; the full pipeline suite passes 230 tests with 18 skips for the absent optional Waterloo regression fixture. The authoring component's 32 tests and production web build pass. Tests exercise all 30 ordered floor pairs with stairs and elevators, all 46 available rooms, unknown accessibility, unresolved thresholds, source hashes/references, every graph edge and reproducible project assembly. API checks cover the built-in library, invalid options, transition instructions and source rendering. Final SVG placements were inspected against original source geometry and PDF imagery. These are software and source checks, not physical validation.
 
-Development actions are recorded in the contributor's ignored `local/ACTIONS.md`. This document is the shared feature record. Implementation commit: [36157d9](https://github.com/mhamza1906/SnapWay/commit/36157d9), based on `9f5e2ca`. Both the experiment and this record are saved locally; the implementation link becomes available remotely after the branch is pushed. No push or integration was performed.
+The shared feature record is this document; contributor actions are appended to ignored `local/ACTIONS.md`. Work is saved on the local feature branch; no push or merge into Git `main` is part of this integration.

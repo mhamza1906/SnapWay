@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node cli.mjs build",
+    "project:build": "node project-cli.mjs build",
+    "project:install": "node project-cli.mjs build --install",
     "test": "node --test *.test.mjs",
     "check": "node cli.mjs check"
   }

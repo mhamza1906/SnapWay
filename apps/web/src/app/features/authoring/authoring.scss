@@ -26,6 +26,13 @@ input {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.route-row {
+  margin: 0.75rem 0;
+  .field {
+    flex: 1 1 12rem;
+    margin: 0;
+  }
+}
 .authoring-grid {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);

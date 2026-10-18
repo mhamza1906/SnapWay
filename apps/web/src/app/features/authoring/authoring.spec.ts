@@ -1207,6 +1207,138 @@ describe('map authoring page', () => {
     expect(within<HTMLSelectElement>(row(el, 'h1'), 'region-kind').value).toBe('corridor');
     expect(within(el, 'error').textContent).toContain('Unknown kind.');
   });
+
+  it('opens the saved Sam Ibrahim project without starting a model job', async () => {
+    const fixture = await start();
+    const el = fixture.nativeElement as HTMLElement;
+    within<HTMLButtonElement>(el, 'open-sam-project').click();
+    http.expectOne(`${PIPELINE_BASE}/buildings/sam-ibrahim`).flush({
+      ...building,
+      id: 'sam-ibrahim-hardcoded',
+      name: 'Sam Ibrahim Building',
+    });
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/authoring/summary`).flush({
+      ...summary,
+      id: 'sam-ibrahim-hardcoded',
+      name: 'Sam Ibrahim Building',
+    });
+    await renderOverlay();
+    fixture.detectChanges();
+    expect(within(el, 'sam-project-notice').textContent).toContain('manually inferred');
+    http.expectNone(`${PIPELINE_BASE}/map-jobs`);
+  });
+
+  it('routes between floors and keeps the route and endpoints while changing the displayed floor', async () => {
+    const upper: FloorSummary = {
+      ...summary.floors[0],
+      floorId: 'floor-2',
+      label: 'Floor 2',
+      level: 2,
+      rooms: [
+        { id: 'r2', label: '201', kind: 'room', ready: true, reason: '', doors: 1 },
+        { id: 'r3', label: '202', kind: 'room', ready: false, reason: 'No opening', doors: 0 },
+      ],
+    };
+    const { fixture, page, el } = await startMapped(
+      { ...summary, floors: [summary.floors[0], upper] },
+      { ...building, floors: [...building.floors, { id: 'floor-2', label: 'Floor 2' }] },
+    );
+    const destination = el.querySelector('[aria-label="Route destination"]') as HTMLSelectElement;
+    expect([...destination.options].map((option) => option.textContent?.trim())).toContain(
+      'Floor 2 · 201',
+    );
+    expect([...destination.options].find((option) => option.value === 'r3')?.disabled).toBe(true);
+    await page.setRouteEndpoint('from', 'r1');
+    await page.setRouteEndpoint('to', 'r2');
+    await page.setRoutePreference('elevator');
+    const previewing = page.previewRoute();
+    const request = http.expectOne(`${PIPELINE_BASE}/authoring/routes`);
+    expect(request.request.body).toEqual(
+      jasmineLike({ from: 'r1', to: 'r2', options: { excludeStairs: true } }),
+    );
+    const lowerPath = [
+      [
+        { x: 1, y: 2 },
+        { x: 3, y: 4 },
+      ],
+    ];
+    const upperPath = [
+      [
+        { x: 5, y: 6 },
+        { x: 7, y: 8 },
+      ],
+    ];
+    request.flush({
+      route: {
+        steps: 3,
+        floors: [
+          { floorId: 'floor-1', segments: lowerPath },
+          { floorId: 'floor-2', segments: upperPath },
+        ],
+        transitions: [
+          {
+            connectorId: 'lift-b',
+            label: 'Elevator B',
+            type: 'elevator',
+            fromFloorId: 'floor-1',
+            toFloorId: 'floor-2',
+          },
+        ],
+        instructions: [
+          {
+            text: 'Take Elevator B to Floor 2.',
+            floorId: 'floor-1',
+            targetFloorId: 'floor-2',
+            step: 1,
+          },
+        ],
+      },
+    });
+    expect(await renderOverlay()).toEqual({ routes: lowerPath });
+    await previewing;
+    fixture.detectChanges();
+    expect(within(el, 'route-details').textContent).toContain('Elevator B · Floor 1 → Floor 2');
+    const selecting = page.selectFloor('floor-2');
+    expect(await renderOverlay()).toEqual({ routes: upperPath });
+    await selecting;
+    fixture.detectChanges();
+    expect(page.routeFrom()).toBe('r1');
+    expect(page.routeTo()).toBe('r2');
+    expect(page.routePreview()?.steps).toBe(3);
+    expect((el.querySelector('[aria-label="Route destination"]') as HTMLSelectElement).value).toBe(
+      'r2',
+    );
+
+    const changing = page.setRoutePreference('stairs');
+    expect(await renderOverlay()).toEqual({});
+    await changing;
+    expect(page.routePreview()).toBeNull();
+    const retrying = page.previewRoute();
+    const stairsRequest = http.expectOne(`${PIPELINE_BASE}/authoring/routes`);
+    expect(stairsRequest.request.body.options).toEqual({ elevatorPenalty: 1000 });
+    stairsRequest.flush({ route: null, message: 'No connected route.' });
+    expect(await renderOverlay()).toEqual({ routes: [] });
+    await retrying;
+    expect(page.routePreview()).toBeNull();
+    expect(page.routeNote()).toBe('No connected route.');
+  });
+
+  it('invalidates a displayed route when building data reloads while preserving available endpoints', async () => {
+    const { page } = await startMapped();
+    page.routeFrom.set('r1');
+    page.routeTo.set('r1');
+    page.routePreview.set({ steps: 0, floors: [{ floorId: 'floor-1', segments: [] }] });
+    const reopening = page.open('plan-1');
+    http.expectOne(`${PIPELINE_BASE}/buildings/plan-1`).flush(building);
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/authoring/summary`).flush(summary);
+    await renderOverlay();
+    await reopening;
+    expect(page.routePreview()).toBeNull();
+    expect(page.routeFrom()).toBe('r1');
+    expect(page.routeTo()).toBe('r1');
+  });
 });
 
 // Partial match without depending on the building payload.

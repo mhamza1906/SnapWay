@@ -10,7 +10,8 @@ import { emptyMap } from "../shared/map.js";
 import { designedSVG, seamParent } from "../shared/building/design.js";
 import { planHallPoints } from "../shared/building/capture-points.js";
 import { accessInventory, spaceRole } from "../shared/building/access.js";
-import { roomAvailability, routeBuilding } from "../shared/building/routing.js";
+import { roomAvailability, routeBuilding, routeFailureReason } from "../shared/building/routing.js";
+import { renderSamIbrahimFloor, SAM_IBRAHIM_ID } from "./projects/sam-ibrahim.js";
 import { routeDisplaySegments } from "../shared/building/route-display.js";
 import { validateBuilding } from "../shared/building/validation.js";
 import {
@@ -105,7 +106,7 @@ function focusView(svg, floor, spaceId) {
 export function renderFloor(building, floorId, overlay = {}) {
   overlay ||= {};
   const floor = building.floors.find((f) => f.id === floorId),
-    svg = focusView(designedSVG(building, floorId), floor, overlay.focus);
+    svg = focusView(renderSamIbrahimFloor(building, floorId) || designedSVG(building, floorId), floor, overlay.focus);
   if (overlay.highlight !== undefined && !Array.isArray(overlay.highlight)) throw new Error("overlay.highlight must be a list of region IDs.");
   const wanted = new Set((overlay.highlight || []).filter((id) => typeof id === "string")),
     regions = floor.geometry.spaces.filter((s) => wanted.has(s.id)).map((s) =>
@@ -164,10 +165,26 @@ export function authoringRouter() {
       const building = BuildingSchema.parse(req.body.building),
         known = new Set(building.floors.flatMap((f) => f.geometry.spaces.map((s) => s.id)));
       for (const id of [req.body.from, req.body.to]) if (!known.has(id)) throw new Error(`Unknown room ${id}.`);
-      const route = routeBuilding(building, req.body.from, req.body.to);
-      if (!route) return res.json({ route: null, message: "No connected route between these rooms yet." });
-      const floors = route.floorIds.map((floorId) => ({ floorId, segments: routeDisplaySegments(route, floorId).map((seg) => seg.displayPoints) }));
-      res.json({ route: { steps: route.steps.length, cost: route.cost, units: route.units, floorIds: route.floorIds, floors } });
+      const options = req.body.options ?? {};
+      if (!options || typeof options !== 'object' || Array.isArray(options)) throw new Error('Route options must be an object.');
+      for (const key of Object.keys(options)) {
+        if (['excludeStairs','verifiedAccessible'].includes(key)) {
+          if (typeof options[key] !== 'boolean') throw new Error(`${key} must be a boolean.`);
+        } else if (['stairsPenalty','elevatorPenalty'].includes(key)) {
+          if (!Number.isFinite(options[key]) || options[key] < 0 || options[key] > 10000) throw new Error(`${key} must be between 0 and 10000.`);
+        } else throw new Error(`Unsupported route option: ${key}`);
+      }
+      const route = routeBuilding(building, req.body.from, req.body.to, options);
+      if (!route) return res.json({ route: null, message: routeFailureReason(building, roomAvailability(building), req.body.from, req.body.to, options) });
+      const floors = [...new Set(route.floorIds)].map((floorId) => ({ floorId, segments: routeDisplaySegments(route, floorId).map((seg) => seg.displayPoints) }));
+      const nodes = new Map(building.nodes.map(n=>[n.id,n]));
+      const transitions = route.steps.filter(s=>s.connectorId).map(s=>{
+        const connector = building.connectors.find(c=>c.id===s.connectorId);
+        return {connectorId:connector.id,label:connector.label,type:connector.type,fromFloorId:nodes.get(s.from).floorId,toFloorId:nodes.get(s.to).floorId};
+      });
+      res.json({ route: { steps: route.steps.length, cost: route.cost, units: route.units, floorIds: route.floorIds, floors,
+        instructions:route.instructions, transitions, stairsFree:route.stairsFree, accessible:route.accessible,
+        ...(building.id===SAM_IBRAHIM_ID?{evidenceStatus:'assumed-project',notice:'Project-specific inferred connections from the PDF and original SVGs. Landing elevations, service and accessibility are unverified.'}:{}) } });
     } catch (e) { next(e); }
   });
   // Doorway tools.

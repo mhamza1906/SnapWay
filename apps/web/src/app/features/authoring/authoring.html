@@ -30,6 +30,13 @@
   @if (message()) {
     <p class="notice" role="status" data-testid="message">{{ message() }}</p>
   }
+  @if (samIbrahimProject()) {
+    <p class="notice" data-testid="sam-project-notice">
+      Sam Ibrahim source-plan draft · Stair and elevator connections are manually inferred from the
+      SVGs and PDF. Routes preview these assumptions; access, floor connections and accessibility
+      have not been verified on site.
+    </p>
+  }
 
   <section class="panel" aria-labelledby="source-title">
     <div class="panel-heading">
@@ -92,6 +99,14 @@
       }
     </div>
     <div class="panel-body source-row">
+      <button
+        class="btn secondary"
+        [disabled]="busy() || !!offline()"
+        (click)="open('sam-ibrahim')"
+        data-testid="open-sam-project"
+      >
+        Open Sam Ibrahim project
+      </button>
       <label class="field"
         >Building name
         <input #nameInput placeholder="Optional; defaults to the file name" />
@@ -242,18 +257,51 @@
                 data-testid="map"
               ></div>
               <div class="route-row">
-                <select aria-label="Route start" (change)="routeFrom.set(value($event))">
-                  <option value="">Start room</option>
-                  @for (r of f.rooms; track r.id) {
-                    <option [value]="r.id" [disabled]="!r.ready">{{ r.label }}</option>
-                  }
-                </select>
-                <select aria-label="Route destination" (change)="routeTo.set(value($event))">
-                  <option value="">Destination room</option>
-                  @for (r of f.rooms; track r.id) {
-                    <option [value]="r.id" [disabled]="!r.ready">{{ r.label }}</option>
-                  }
-                </select>
+                <label class="field">
+                  Start room · any floor
+                  <select
+                    aria-label="Route start"
+                    [value]="routeFrom()"
+                    [disabled]="busy()"
+                    (change)="setRouteEndpoint('from', value($event))"
+                  >
+                    <option value="">Choose start</option>
+                    @for (r of routeRooms(); track r.id) {
+                      <option [value]="r.id" [disabled]="!r.ready">
+                        {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
+                      </option>
+                    }
+                  </select>
+                </label>
+                <label class="field">
+                  Destination · any floor
+                  <select
+                    aria-label="Route destination"
+                    [value]="routeTo()"
+                    [disabled]="busy()"
+                    (change)="setRouteEndpoint('to', value($event))"
+                  >
+                    <option value="">Choose destination</option>
+                    @for (r of routeRooms(); track r.id) {
+                      <option [value]="r.id" [disabled]="!r.ready">
+                        {{ r.floorLabel }} · {{ r.label }}{{ r.ready ? '' : ' · unavailable' }}
+                      </option>
+                    }
+                  </select>
+                </label>
+                <label class="field">
+                  Floor connection
+                  <select
+                    aria-label="Floor connection preference"
+                    [value]="routePreference()"
+                    [disabled]="busy()"
+                    (change)="setRoutePreference(value($event))"
+                  >
+                    <option value="any">Stairs or elevator</option>
+                    <option value="stairs">Prefer stairs</option>
+                    <option value="elevator">Elevator · exclude stairs</option>
+                  </select>
+                </label>
                 <button
                   class="btn secondary small"
                   [disabled]="busy() || !routeFrom() || !routeTo()"
@@ -264,6 +312,46 @@
               </div>
               @if (routeNote()) {
                 <p class="hint" data-testid="route-note">{{ routeNote() }}</p>
+              }
+              @if (routePreference() === 'elevator') {
+                <p class="hint">Excluding stairs does not establish an accessible route.</p>
+              }
+              @if (routePreview(); as route) {
+                <div class="route-details" data-testid="route-details">
+                  <nav class="floor-tabs" aria-label="Route floors">
+                    @for (part of routeFloors(); track part.floorId) {
+                      <button
+                        class="btn small"
+                        [class.primary]="part.floorId === floorId()"
+                        [class.secondary]="part.floorId !== floorId()"
+                        (click)="selectFloor(part.floorId)"
+                      >
+                        {{ part.label }}
+                      </button>
+                    }
+                  </nav>
+                  @if (route.transitions?.length) {
+                    <ol class="route-transitions" aria-label="Floor transitions">
+                      @for (transition of route.transitions; track $index) {
+                        <li>
+                          {{ transition.label }} · {{ floorLabel(transition.fromFloorId) }} →
+                          {{ floorLabel(transition.toFloorId) }}
+                          ({{ transition.type === 'stairs' ? 'stairs' : 'elevator' }})
+                        </li>
+                      }
+                    </ol>
+                  }
+                  @if (route.instructions?.length) {
+                    <details>
+                      <summary>Route instructions</summary>
+                      <ol>
+                        @for (instruction of route.instructions; track $index) {
+                          <li>{{ instruction.text }}</li>
+                        }
+                      </ol>
+                    </details>
+                  }
+                </div>
               }
             </div>
           </section>

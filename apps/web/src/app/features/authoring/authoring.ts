@@ -31,6 +31,7 @@ import {
   PlanType,
   Point,
   RenderOverlay,
+  RoutePreview,
   SpaceRole,
   SpaceSummary,
   HallPlan,
@@ -257,6 +258,20 @@ export class AuthoringPage implements OnInit {
   readonly routeFrom = signal('');
   readonly routeTo = signal('');
   readonly routeNote = signal('');
+  readonly routePreference = signal<'any' | 'stairs' | 'elevator'>('any');
+  readonly routePreview = signal<RoutePreview | null>(null);
+  readonly routeRooms = computed(() =>
+    (this.summary()?.floors ?? []).flatMap((floor) =>
+      floor.rooms.map((room) => ({ ...room, floorId: floor.floorId, floorLabel: floor.label })),
+    ),
+  );
+  readonly routeFloors = computed(() =>
+    (this.routePreview()?.floors ?? []).map((floor) => ({
+      ...floor,
+      label: this.floorLabel(floor.floorId),
+    })),
+  );
+  readonly samIbrahimProject = computed(() => this.building()?.id === 'sam-ibrahim-hardcoded');
   // Plan type: a floor plan is one floor; a building plan needs its floor count.
   readonly planType = signal<PlanType | ''>('');
   readonly floorCount = signal<number | null>(null);
@@ -479,8 +494,13 @@ export class AuthoringPage implements OnInit {
   }
 
   private load(edited: Edited): void {
+    const sameBuilding = this.building()?.id === edited.building.id;
     this.building.set(edited.building);
     this.summary.set(edited.summary);
+    this.clearRoutePreview();
+    const roomIds = new Set(this.routeRooms().map((room) => room.id));
+    if (!sameBuilding || !roomIds.has(this.routeFrom())) this.routeFrom.set('');
+    if (!sameBuilding || !roomIds.has(this.routeTo())) this.routeTo.set('');
     if (!edited.summary.floors.some((f) => f.floorId === this.floorId()))
       this.floorId.set(edited.summary.floors[0]?.floorId ?? '');
     this.edits.set({});
@@ -520,10 +540,9 @@ export class AuthoringPage implements OnInit {
     this.selectedRegions.set([]);
     this.focused.set(null);
     this.doorLine.set(null);
-    this.overlay = {};
-    this.routeFrom.set('');
-    this.routeTo.set('');
-    this.routeNote.set('');
+    this.overlay = {
+      routes: this.routePreview()?.floors.find((floor) => floor.floorId === id)?.segments ?? [],
+    };
     await this.repaint();
   }
 
@@ -1334,6 +1353,31 @@ export class AuthoringPage implements OnInit {
   }
 
   // --- routes, saving --------------------------------------------------------
+  floorLabel(id: string): string {
+    return this.summary()?.floors.find((floor) => floor.floorId === id)?.label ?? id;
+  }
+
+  private clearRoutePreview(): void {
+    this.routePreview.set(null);
+    this.routeNote.set('');
+    this.overlay = {};
+  }
+
+  async setRouteEndpoint(endpoint: 'from' | 'to', id: string): Promise<void> {
+    (endpoint === 'from' ? this.routeFrom : this.routeTo).set(id);
+    const hadPreview = !!this.routePreview();
+    this.clearRoutePreview();
+    if (hadPreview) await this.redraw();
+  }
+
+  async setRoutePreference(preference: string): Promise<void> {
+    if (!['any', 'stairs', 'elevator'].includes(preference)) return;
+    this.routePreference.set(preference as 'any' | 'stairs' | 'elevator');
+    const hadPreview = !!this.routePreview();
+    this.clearRoutePreview();
+    if (hadPreview) await this.redraw();
+  }
+
   async previewRoute(): Promise<void> {
     const building = this.building();
     if (!building || !this.routeFrom() || !this.routeTo()) return;
@@ -1342,13 +1386,23 @@ export class AuthoringPage implements OnInit {
         building,
         this.routeFrom(),
         this.routeTo(),
+        this.routePreference() === 'elevator'
+          ? { excludeStairs: true }
+          : this.routePreference() === 'stairs'
+            ? { elevatorPenalty: 1000 }
+            : {},
       );
+      this.routePreview.set(route);
       const here = route?.floors.find((f) => f.floorId === this.floorId());
       this.selectedRegions.set([]);
       this.focused.set(null);
       this.doorLine.set(null);
       this.overlay = { routes: here?.segments ?? [] };
-      this.routeNote.set(route ? `Route found: ${route.steps} steps.` : (message ?? 'No route.'));
+      this.routeNote.set(
+        route
+          ? `Route found on ${route.floors.length} floor${route.floors.length === 1 ? '' : 's'}.`
+          : (message ?? 'No connected route for these rooms and this preference.'),
+      );
       await this.redraw();
     });
   }

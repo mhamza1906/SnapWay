@@ -16,6 +16,24 @@ export interface Point {
   x: number;
   y: number;
 }
+export interface RouteOptions {
+  excludeStairs?: boolean;
+  stairsPenalty?: number;
+  elevatorPenalty?: number;
+}
+export interface RoutePreview {
+  steps: number;
+  floors: { floorId: string; segments: Point[][] }[];
+  floorIds?: string[];
+  instructions?: { text: string; floorId: string; targetFloorId?: string; step: number }[];
+  transitions?: {
+    connectorId: string;
+    label: string;
+    type: 'stairs' | 'elevator';
+    fromFloorId: string;
+    toFloorId: string;
+  }[];
+}
 export interface EdgeOption {
   key: number;
   adjacentId: string;
@@ -520,11 +538,12 @@ export class PipelineService {
     building: PipelineBuilding,
     from: string,
     to: string,
+    options: RouteOptions = {},
   ): Promise<{
-    route: { steps: number; floors: { floorId: string; segments: Point[][] }[] } | null;
+    route: RoutePreview | null;
     message?: string;
   }> {
-    return this.postLight('/authoring/routes', building, { from, to });
+    return this.postLight('/authoring/routes', building, { from, to, options });
   }
   library(): Promise<{ buildings: LibraryEntry[] }> {
     return this.get('/buildings');
