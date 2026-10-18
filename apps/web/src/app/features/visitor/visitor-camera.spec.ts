@@ -47,7 +47,6 @@ describe('Visitor camera opening and consent', () => {
   });
   function setup() {
     const fixture = TestBed.createComponent(VisitorCamera);
-    fixture.componentRef.setInput('buildingName', 'IA Sam Ibrahim Building');
     fixture.detectChanges();
     return fixture;
   }
@@ -67,8 +66,9 @@ describe('Visitor camera opening and consent', () => {
         audio: false,
       }),
     );
-    expect(fixture.nativeElement.textContent).toContain('IA Sam Ibrahim Building');
-    expect(fixture.nativeElement.textContent).toContain('Keep the sign readable');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Keep a nearby sign or landmark clearly in view',
+    );
     TestBed.inject(HttpTestingController).expectNone('/api/navigation/localize/');
     fixture.destroy();
     expect(stop).toHaveBeenCalled();

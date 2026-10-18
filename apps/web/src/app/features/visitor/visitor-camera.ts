@@ -48,14 +48,6 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
       </button>
       <span class="symbol"><app-icon name="camera" /></span>
       <h2 id="camera-title">Show us where you are</h2>
-      <p>
-        In {{ buildingName() }}, point your camera at a nearby room number, corridor sign, or
-        distinctive landmark.
-      </p>
-      <p>
-        Keep the sign readable and hold your phone steady. Tap <strong>Take photo</strong> when
-        you’re ready.
-      </p>
       @if (!native) {
         <video #video autoplay playsinline muted aria-label="Camera preview"></video>
       } @else if (nativePreview()) {
@@ -76,11 +68,7 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
               : 'Take photo'
         }}
       </button>
-      <small>{{
-        demo()
-          ? 'Demo capture stays on this device. Indoor location matching is not available yet.'
-          : 'The photo is sent for location matching. You can cancel at any time.'
-      }}</small>
+      <small>Keep a nearby sign or landmark clearly in view and hold your phone steady.</small>
     </section>
   </div>`,
   styles: [
@@ -94,19 +82,23 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
         height: 100%;
         background: #172a255f;
         display: flex;
-        align-items: end;
+        align-items: center;
         justify-content: center;
-        padding-top: env(safe-area-inset-top);
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+          max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
       }
       section {
         position: relative;
-        width: min(100%, 480px);
+        width: min(100%, 640px);
         max-height: 100%;
         overflow: auto;
         background: #fff;
-        border-radius: 28px 28px 0 0;
-        padding: 30px 24px calc(24px + env(safe-area-inset-bottom));
+        border-radius: 24px;
+        padding: 20px 20px 18px;
         text-align: center;
+      }
+      section:focus {
+        outline: none;
       }
       .close {
         position: absolute;
@@ -123,9 +115,9 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
       .symbol {
         display: grid;
         place-items: center;
-        margin: 0 auto 20px;
-        width: 52px;
-        height: 52px;
+        margin: 0 auto 8px;
+        width: 32px;
+        height: 32px;
         background: #e8efe7;
         border-radius: 18px;
         color: #305a45;
@@ -142,7 +134,7 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
       img {
         display: block;
         width: 100%;
-        max-height: 36dvh;
+        height: clamp(160px, calc(100dvh - 270px), 560px);
         object-fit: cover;
         border-radius: 18px;
         background: #172a25;
@@ -172,7 +164,6 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
 })
 export class VisitorCamera implements AfterViewInit {
   private readonly device = inject(VISITOR_CAPTURE_DEVICE);
-  readonly buildingName = input('your destination building');
   readonly demo = input(false);
   readonly captured = output<void>();
   readonly closed = output<void>();

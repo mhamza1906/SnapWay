@@ -1,90 +1,31 @@
 <main class="journey" [class.guiding]="active()">
-  <header class="brand">
-    <span class="brand-mark"><app-icon name="route" /></span
-    ><strong>snapway<span> / go</span></strong
-    ><span class="walking"><app-icon name="compass" /> On foot</span>
-  </header>
   @if (!active()) {
     <section class="search-panel">
-      @if (building(); as b) {
-        <div class="building-chip">
-          <app-icon name="building" /><span>{{ b.name }}</span
-          ><button (click)="changeBuilding()" aria-label="Change building">
-            <app-icon name="close" />
-          </button>
-        </div>
-      }
-      <label for="destination-search">{{
-        building() ? 'Choose your room' : 'Your destination'
-      }}</label>
-      <div class="search-box">
-        <app-icon name="search" /><input
-          id="destination-search"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-controls="destination-options"
-          [attr.aria-expanded]="expanded()"
-          [attr.aria-activedescendant]="
-            expanded() && options().length ? 'destination-' + highlighted() : null
-          "
-          [placeholder]="building() ? 'Room number or name' : 'Building or room, e.g. IA5061'"
-          [value]="query()"
-          (input)="search($event)"
-          (focus)="expanded.set(true)"
-          (keydown)="keydown($event)"
-          (blur)="expanded.set(false)"
-          autocomplete="off"
-        /><app-icon name="arrow-right" />
+      <div class="destination-heading">
+        <span class="destination-logo" role="img" aria-label="SnapWay">
+          <app-icon name="route" />
+        </span>
+        <h1>Find your destination</h1>
       </div>
-      @if (expanded()) {
-        <div
-          id="destination-options"
-          class="options"
-          role="listbox"
-          aria-label="Matching destinations"
-        >
-          @for (option of options(); track option.key; let index = $index) {
-            <button
-              [id]="'destination-' + index"
-              role="option"
-              [attr.aria-selected]="index === highlighted()"
-              [class.highlighted]="index === highlighted()"
-              (pointerdown)="$event.preventDefault()"
-              (click)="choose(option)"
-            >
-              <span class="option-icon"><app-icon [name]="option.room ? 'pin' : 'building'" /></span
-              ><span
-                ><strong>{{ option.room?.label ?? option.building.name }}</strong
-                ><small>{{
-                  option.room
-                    ? option.building.name + ' · ' + option.floor?.name
-                    : option.building.address
-                }}</small></span
-              >
-              @if (option.building.demo) {
-                <span class="demo-badge">Demo</span>
-              }
-              <app-icon name="arrow-right" />
-            </button>
-          } @empty {
-            <p class="empty">
-              {{
-                loading()
-                  ? 'Loading destinations…'
-                  : error() ||
-                    (building()
-                      ? 'No published rooms match. Try a different room or building.'
-                      : 'No published destinations match yet.')
-              }}
-            </p>
-          }
-        </div>
-      }
-      @if (destination(); as d) {
-        <div class="selected-summary">
-          <span class="dot"></span>{{ d.room?.label }}<span>· {{ d.floor?.name }}</span>
-        </div>
-      }
+      <div class="destination-selects">
+        <app-destination-search
+          fieldId="destination-building"
+          label="Building"
+          placeholder="Search building"
+          [options]="buildingSuggestions()"
+          [selectedKey]="building()?.id ?? ''"
+          (selected)="selectBuilding($event)"
+        />
+        <app-destination-search
+          fieldId="destination-room"
+          label="Room"
+          [placeholder]="building() && !options().length ? 'No rooms available' : 'Room number'"
+          [options]="roomSuggestions()"
+          [disabled]="!building() || !options().length"
+          [selectedKey]="destination()?.key ?? ''"
+          (selected)="selectRoom($event)"
+        />
+      </div>
       @if (error()) {
         <button class="retry" (click)="load()">{{ error() }} Retry</button>
       }
@@ -96,14 +37,17 @@
         <small>ON YOUR WAY TO</small><strong>{{ destinationLabel() }}</strong
         ><span>{{ destination()?.room ? building()?.name : building()?.address }}</span>
       </div>
-      <button class="cancel" (click)="end()">Cancel</button
+      <button
+        class="cancel"
+        (click)="end()"
+        aria-label="Cancel navigation"
+        title="Cancel navigation"
+      >
+        <app-icon name="close" /></button
       ><button class="finish" (click)="end(true)">Finish</button>
     </section>
   }
 
-  @if (active() && building()?.demo) {
-    <p class="demo-note">Demo destination · Indoor guidance photos are not available yet.</p>
-  }
   <section class="viewport" [class.indoors]="indoor()" aria-label="Navigation view">
     @if (!indoor()) {
       <div
@@ -128,15 +72,6 @@
           <div class="prompt-card">
             <span class="prompt-icon"><app-icon name="building" /></span>
             <h2 id="position-question">Are you inside {{ building()?.name }}?</h2>
-            <p>
-              {{
-                building()?.demo
-                  ? 'Try taking a photo for ' +
-                    destinationLabel() +
-                    '. Indoor guidance is coming soon.'
-                  : 'For ' + destinationLabel() + ', we’ll find your starting point with one photo.'
-              }}
-            </p>
             <button class="primary" (click)="chooseEnvironment(true)">
               Yes, I’m inside<app-icon name="camera" />
             </button>
@@ -196,23 +131,11 @@
     @if (message()) {
       <p class="message" role="status">{{ message() }}</p>
     }
-    @if (!active() && !indoor() && !locationPrompt()) {
-      <div class="location-note">
-        <app-icon name="location" /><span>{{ locationMessage() }}</span>
-        @if (!location()) {
-          <button (click)="locate()" [disabled]="locating()">
-            {{ locating() ? 'Locating…' : 'Use location' }}
-          </button>
-        }
-      </div>
-    } @else if (active() && !indoor() && !locationPrompt()) {
-      <div class="outdoor-instruction">
-        <span class="instruction-icon"><app-icon name="arrow" /></span>
-        <div>
-          <strong>Walk to {{ building()?.name }}</strong>
-          <p>Follow Google Maps. When you arrive, continue indoors.</p>
-        </div>
-      </div>
+    @if (!indoor() && !locationPrompt() && locationMessage()) {
+      <p class="gps-status" role="status">{{ locationMessage() }}</p>
+    }
+    @if (active() && !indoor() && !locationPrompt()) {
+      <p class="outdoor-hint">Follow Google Maps. When you arrive, continue indoors.</p>
       <div class="outdoor-actions">
         <a class="text-button" [href]="directions()" target="_blank" rel="noopener noreferrer"
           >Open Google Maps<app-icon name="arrow" /></a
@@ -220,12 +143,6 @@
           Location options<app-icon name="settings" />
         </button>
       </div>
-      <small class="gps-status"
-        >{{ locationMessage() }}
-        <button (click)="locate()" [disabled]="locating()">
-          {{ locating() ? 'Locating…' : 'Update location' }}
-        </button></small
-      >
     } @else if (active() && indoor() && suggestedLocation()) {
       <div class="match-confirmation">
         <strong>Are you near {{ suggestedLocation() }}?</strong>
@@ -235,27 +152,6 @@
         ><button class="text-button" (click)="recenter()">Take another photo</button>
       </div>
     } @else if (indoor()) {
-      @if (active()) {
-        <div class="indoor-status">
-          <span class="instruction-icon"
-            ><app-icon [name]="confirmedLocation() ? 'check' : 'camera'"
-          /></span>
-          <div>
-            <strong>{{
-              confirmedLocation()
-                ? 'Last confirmed: ' + confirmedLocation()
-                : 'Start with one photo'
-            }}</strong>
-            <p>
-              {{
-                confirmedLocation()
-                  ? 'Moved or lost your way? Tap Re-center.'
-                  : 'Camera access starts when you tap Take a photo.'
-              }}
-            </p>
-          </div>
-        </div>
-      }
       <button class="text-button" (click)="showOutdoor()">
         Back to outdoor map<app-icon name="map" />
       </button>
@@ -264,7 +160,6 @@
 </main>
 @if (cameraOpen()) {
   <app-visitor-camera
-    [buildingName]="building()?.name ?? ''"
     [demo]="building()?.demo ?? false"
     (captured)="demoPhotoCaptured()"
     (closed)="cameraOpen.set(false)"

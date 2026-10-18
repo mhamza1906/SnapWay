@@ -13,44 +13,8 @@
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
 }
-.brand {
-  display: flex;
-  gap: 9px;
-  align-items: center;
-  padding: 20px 24px 12px;
-}
-.brand strong {
-  font-size: 21px;
-  letter-spacing: -1px;
-  font-weight: 650;
-}
-.brand strong span {
-  color: #7a897d;
-  font-weight: 400;
-}
-.brand-mark {
-  background: #315b46;
-  color: white;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 11px;
-}
-.walking {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  margin-left: auto;
-  font-size: 11px;
-  color: #6a796e;
-}
-.walking app-icon {
-  width: 14px;
-  height: 14px;
-}
 .search-panel {
-  padding: 16px 24px 18px;
+  padding: 6px 24px 3px;
   position: relative;
   z-index: 3;
 }
@@ -60,43 +24,11 @@ label {
   font-weight: 600;
   margin-bottom: 8px;
 }
-.search-box {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  gap: 10px;
-  border: 1px solid #d7dfd3;
-  border-radius: 15px;
-  background: white;
-  color: #7b8b7a;
-}
-.search-box:focus-within {
-  border-color: #315b46;
-  box-shadow: 0 0 0 3px #315b4610;
-}
-.search-box input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: none;
-  outline: none;
-  height: 54px;
-  color: #233d30;
-  font-size: 16px;
-  letter-spacing: -0.4px;
-}
-.search-box input::placeholder {
-  color: #90998e;
-  font-size: 13px;
-}
-.search-box > app-icon:last-child {
-  width: 17px;
-}
 .viewport {
   position: relative;
   isolation: isolate;
-  min-height: 270px;
-  flex: 1;
+  height: max(320px, calc(100dvh - 114px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  flex: none;
   margin: 0 14px;
   border-radius: 22px;
   overflow: hidden;
@@ -138,30 +70,8 @@ label {
 .journey-footer {
   padding: 15px 24px 10px;
 }
-.location-note {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  color: #84907d;
-  font-size: 9px;
-  margin: 0 0 15px;
-}
-.location-note app-icon {
-  width: 13px;
-  height: 13px;
-}
-.location-note span {
-  flex: 1;
-}
-.location-note button,
-.gps-status button {
-  border: 0;
-  background: none;
-  color: #315b46;
-  font-size: 10px;
-  font-weight: 600;
-  min-height: 44px;
-  padding: 0 0 0 6px;
+.journey-footer:has(> .gps-status:only-child) {
+  padding: 7px 24px;
 }
 .primary {
   display: flex;

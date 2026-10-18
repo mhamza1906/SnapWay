@@ -70,19 +70,19 @@ describe('Installed visitor journey', () => {
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
     return fixture;
   }
-  it('supports building-first selection and a direct room search', async () => {
+  it('supports building-first selection before completing a room destination', async () => {
     const page = (await setup()).componentInstance;
     const results = searchDestinations([building], 'IA', null);
     expect(results.some((r) => !r.room && r.building.id === 'ia')).toBe(true);
     page.choose(results.find((r) => !r.room)!);
     expect(page.destination()).toBeNull();
     expect(page.options()[0].room?.label).toBe('IA2021');
-    page.changeBuilding();
+    page.selectBuilding('');
     page.choose(searchDestinations([building], 'IA2021', null)[0]);
     expect(page.destination()?.room?.id).toBe('room-2021');
     expect(page.building()?.id).toBe('ia');
   });
-  it('offers both real-location demos with an empty API and routes a room or building correctly', async () => {
+  it('offers both real-location demos and requires a room in either building', async () => {
     const page = (await setup([])).componentInstance;
     expect(page.buildings()).toHaveLength(2);
     page.choose(searchDestinations(page.buildings(), 'IA', null).find((option) => !option.room)!);
@@ -95,19 +95,95 @@ describe('Installed visitor journey', () => {
     page.demoPhotoCaptured();
     expect(page.cameraOpen()).toBe(false);
     expect(page.confirmedLocation()).toBe('');
-    expect(page.message()).toContain('your location has not been determined');
+    expect(page.message()).toContain('Location matching is not connected');
     page.end();
-    page.changeBuilding();
+    page.selectBuilding('');
     page.choose(
       searchDestinations(page.buildings(), 'IC', null).find(
         (option) => option.building.slug === 'ic',
       )!,
     );
-    expect(page.destinationLabel()).toBe('Instructional Centre (IC)');
+    expect(page.destination()).toBeNull();
+    expect(page.locationPrompt()).toBe(false);
+    page.selectRoom(page.options()[0].key);
+    expect(page.destinationLabel()).toBe('IC101');
     expect(page.locationPrompt()).toBe(true);
-    expect(page.destination()?.room).toBeUndefined();
-    expect(page.building()?.floors).toEqual([]);
+    expect(page.destination()?.floor?.name).toBe('1st floor (demo)');
     expect(new URL(page.directions()).searchParams.get('destination')).toBe('43.786816,-79.189484');
+  });
+  it('filters building and room searches, clears rooms when editing a building, and starts only on a room suggestion', async () => {
+    const fixture = await setup([]);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    const buildingInput = fixture.nativeElement.querySelector(
+      '#destination-building',
+    ) as HTMLInputElement;
+    const roomInput = fixture.nativeElement.querySelector('#destination-room') as HTMLInputElement;
+    const type = (input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    const option = () =>
+      fixture.nativeElement.querySelector('[role="option"]') as HTMLButtonElement;
+    expect(roomInput.disabled).toBe(true);
+    type(buildingInput, 'ia');
+    expect(fixture.nativeElement.querySelectorAll('[role="option"]')).toHaveLength(1);
+    expect(option().textContent).toContain('Sam Ibrahim Building');
+    expect(page.building()).toBeNull();
+    option().click();
+    fixture.detectChanges();
+    expect(roomInput.disabled).toBe(false);
+    type(roomInput, 'ia 5061');
+    expect(option().textContent).toContain('IA5061');
+    expect(page.locationPrompt()).toBe(false);
+    type(buildingInput, 'IC');
+    expect(roomInput.disabled).toBe(true);
+    expect(roomInput.value).toBe('');
+    expect(option().textContent).toContain('Instructional Centre');
+    option().click();
+    fixture.detectChanges();
+    type(roomInput, 'IA5061');
+    expect(fixture.nativeElement.querySelectorAll('[role="option"]')).toHaveLength(0);
+    expect(fixture.nativeElement.textContent).toContain('No matches found.');
+    type(roomInput, 'ic 101');
+    expect(page.active()).toBe(false);
+    roomInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    fixture.detectChanges();
+    expect(roomInput.getAttribute('aria-activedescendant')).toBe('destination-room-option-0');
+    roomInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+    expect(page.active()).toBe(true);
+    expect(fixture.nativeElement.querySelector('#position-question').textContent).toContain(
+      'Instructional Centre (IC)',
+    );
+    expect(fixture.nativeElement.querySelector('input[role="combobox"]')).toBeNull();
+    page.end();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#destination-room').value).toBe('');
+    expect(page.locationPrompt()).toBe(false);
+  });
+  it('lists all rooms and leaves buildings without rooms inactive', async () => {
+    const manyRooms = structuredClone(building);
+    manyRooms.floors[0].destinations = Array.from({ length: 20 }, (_, i) => ({
+      id: `room-${i}`,
+      label: `IA${i}`,
+      name: '',
+    }));
+    const page = (await setup([manyRooms])).componentInstance;
+    page.selectBuilding('ia');
+    expect(page.options()).toHaveLength(20);
+    page.selectRoom(page.options()[19].key);
+    expect(page.destinationLabel()).toBe('IA19');
+    page.end();
+    const empty = structuredClone(building);
+    empty.floors = [];
+    page.buildings.set([empty]);
+    page.selectBuilding('ia');
+    page.selectRoom('invalid');
+    expect(page.options()).toEqual([]);
+    expect(page.destination()).toBeNull();
+    expect(page.active()).toBe(false);
   });
   it('prefers a matching published building and retains demos if discovery is unavailable', async () => {
     const first = (await setup()).componentInstance;
@@ -227,7 +303,7 @@ describe('Installed visitor journey', () => {
     fixture.detectChanges();
     expect(page.cameraOpen()).toBe(true);
     expect(fixture.nativeElement.querySelector('[role="dialog"]').textContent).toContain(
-      'room number, corridor sign, or distinctive landmark',
+      'Keep a nearby sign or landmark clearly in view',
     );
     expect(page.active()).toBe(true);
     expect(fixture.nativeElement.querySelector('input[role="combobox"]')).toBeNull();

@@ -4,11 +4,6 @@
   gap: 10px;
   padding: 15px 20px 20px;
 }
-.demo-note {
-  margin: -4px 24px 14px;
-  font-size: 11px;
-  color: #6c7d63;
-}
 .navigation-bar > div {
   flex: 1;
   min-width: 0;
@@ -48,16 +43,21 @@
   font-size: 11px;
 }
 .cancel {
-  border: 1px solid #d9e1d2;
-  background: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  padding: 0;
+  border: 1px solid #e9cbc5;
+  background: #fff5f3;
+  color: #b33f36;
+}
+.cancel:hover {
+  background: #f9e3de;
 }
 .finish {
   background: #315b46;
   color: white;
   border: 0;
-}
-.guiding .viewport {
-  min-height: 52dvh;
 }
 .indoors {
   background: linear-gradient(160deg, #edf1e6, #e1e8d7);
@@ -108,33 +108,11 @@
   bottom: 18px;
   font-size: 11px;
 }
-.outdoor-instruction,
-.indoor-status {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 3px 0 9px;
-}
-.instruction-icon {
-  border-radius: 14px;
-  background: #e6ecdf;
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  height: 44px;
-  color: #5d8054;
-}
-.outdoor-instruction strong,
-.indoor-status strong {
-  font-size: 12px;
-  font-weight: 550;
-}
-.outdoor-instruction p,
-.indoor-status p,
+.outdoor-hint,
 .match-confirmation p {
-  color: #84907c;
-  font-size: 10px;
-  margin: 5px 0 0;
+  color: #7b8875;
+  font-size: 11px;
+  margin: 0 0 10px;
 }
 .outdoor-actions {
   display: flex;
@@ -159,6 +137,8 @@
 .gps-status {
   display: block;
   font-size: 9px;
+  line-height: 11px;
+  margin: 0;
   color: #7b8875;
 }
 @media (min-width: 600px) {

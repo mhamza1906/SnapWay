@@ -36,8 +36,18 @@ export const VISITOR_DEMO_BUILDINGS: readonly VisitorBuilding[] = [
     latitude: 43.786816,
     longitude: -79.189484,
     demo: true,
-    buildingDestination: true,
-    floors: [],
+    floors: [
+      {
+        target_id: 'demo-ic-floor-1',
+        name: '1st floor (demo)',
+        code: '1',
+        publication_id: '',
+        sequence: 0,
+        checkpoints: [],
+        // Fictional room for exercising selection, not a verified campus room.
+        destinations: [{ id: 'demo-ic101', label: 'IC101', name: 'Sample room' }],
+      },
+    ],
   },
 ];
 

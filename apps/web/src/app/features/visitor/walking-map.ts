@@ -148,6 +148,7 @@ export class WalkingMap implements AfterViewInit {
           map: this.map,
           position: location,
           title: 'Your approximate location',
+          content: this.markerPin('#dc3c35'),
         });
     }
     if (this.target) this.target.map = null;
@@ -156,6 +157,7 @@ export class WalkingMap implements AfterViewInit {
           map: this.map,
           position: destination,
           title: 'Destination building',
+          content: this.markerPin('#2563eb'),
         })
       : undefined;
     const center = location ?? destination;
@@ -163,5 +165,24 @@ export class WalkingMap implements AfterViewInit {
       this.map.panTo(center);
       this.map.setZoom(17);
     }
+  }
+  private markerPin(color: string): SVGSVGElement {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 32 42');
+    svg.setAttribute('width', '32');
+    svg.setAttribute('height', '42');
+    svg.setAttribute('aria-hidden', 'true');
+    const pin = document.createElementNS(svg.namespaceURI, 'path');
+    pin.setAttribute('d', 'M16 41C13 30 1 25 1 16a15 15 0 0 1 30 0c0 9-12 14-15 25Z');
+    pin.setAttribute('fill', color);
+    pin.setAttribute('stroke', '#ffffff');
+    pin.setAttribute('stroke-width', '1.5');
+    const center = document.createElementNS(svg.namespaceURI, 'circle');
+    center.setAttribute('cx', '16');
+    center.setAttribute('cy', '16');
+    center.setAttribute('r', '5');
+    center.setAttribute('fill', '#ffffff');
+    svg.append(pin, center);
+    return svg;
   }
 }

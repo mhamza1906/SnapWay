@@ -6,7 +6,6 @@ export interface VisitorRoom {
 
 export interface VisitorBuilding {
   demo?: boolean;
-  buildingDestination?: boolean;
   id: string;
   name: string;
   slug?: string;

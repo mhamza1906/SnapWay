@@ -1,7 +1,8 @@
 # Mobile visitor navigation UI
 
 Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
-is uncommitted. Suggested commit: `feat(mobile): add dedicated visitor navigation UI`.
+baseline is `a0564a9`. Current refinement is uncommitted; suggested commit:
+`style(mobile): distinguish user and building map markers` within the pending visitor UI refinement.
 Personal execution details remain in ignored `local/ACTIONS.md`.
 
 ## Entry points and interaction
@@ -13,20 +14,47 @@ Capacitor visitor build starts at the new destination-first screen and redirects
 the web build explicitly previews the installed-app layout; viewport width does
 not switch the website into that experience.
 
-Search supports building selection followed by room selection, or a direct room
-query such as `IA5061`. Matching ignores spacing/case and also accepts the building
-slug prefixed to a room number. Published destinations are supplemented by the
-two bundled demo entries below. IC is selectable as a building-level destination;
-no IC room or floor is invented. Both kinds use the same destination-specific
-inside/outside prompt and camera flow.
+**Find your destination** sits beside the existing SnapWay route mark in a single
+vertically aligned header row, with the 32 px logo on the left and a 20 px heading.
+The two search fields remain on the same row beneath it. Each field has a separate
+underline, without a filled box or rounded border. An 18 px gap separates the wider Building field from
+Room. Focus strengthens the underline; the disabled room field has a muted line.
+The fields use **Search building** and **Room number** as placeholders, with
+Building/Room accessible names retained for assistive technology. Input text is
+14 px; a 44 px field with 5 px bottom padding brings the underline closer to the
+text while preserving the touch target. Each field opens matching suggestions as the
+visitor types, ignoring case, spaces and punctuation. Building search accepts its
+code, name or address; room search accepts the selected building's room number or
+name, including a building code prefix. A suggestion must be chosen to establish a
+selection; typing alone does not start navigation.
 
-The Google map uses walking-scale zoom 17, an approximate-location marker and the
-selected building marker. No location question appears on initial load. For IA,
-selecting the building opens room selection; selecting IA5061 completes the
-destination. Selecting IC completes its building-level destination immediately.
+Room is disabled until a building is chosen and searches only that building's
+available rooms. Editing the chosen building immediately clears the selection and
+room query; the visitor chooses another building suggestion before searching rooms.
+Suggestions support pointer selection, Arrow keys, Enter, Escape and Tab/blur.
+The shared autocomplete has empty-result feedback and exposes combobox/listbox
+relationships and the active suggestion to assistive technology. Published
+destinations are supplemented by the two bundled demos below. Both require a room
+suggestion before navigation starts.
+
+The Google map uses walking-scale zoom 17. The visitor's approximate-location
+marker is red (`#dc3c35`); the destination building marker is blue (`#2563eb`).
+Each uses its own local SVG pin with a white border/center, passed to the existing
+AdvancedMarkerElement content option. Marker titles retain **Your approximate
+location** and **Destination building** so meaning is available beyond color. No location question appears on initial load. Selecting
+either building enables room selection; selecting IA5061 or IC101 completes the
+destination.
 A complete destination starts the journey and covers the map
 with **Are you inside [destination building name]?**, using the selected destination's
-actual building name and room label. Search is replaced by **Cancel** and **Finish**.
+actual building name. The search fields are replaced by a red cancel SVG button
+(accessible name **Cancel navigation**) and **Finish**. The icon retains a 44 px
+tap target. Cancelling returns silently to search, without a cancellation status
+message. The original taller active panel is preserved (730 px high with an
+89 px header at a 390 by 844 viewport). Only the search header is compacted to
+match that top edge. Map, inside/outside question and indoor photo panels share a
+viewport-based height, reserving 114 px for header/footer, with a 320 px minimum
+and safe-area adjustments. Footer content cannot shrink the panel. Longer footer messages remain
+in the page flow rather than squeezing the panel.
 There is no
 second destination confirmation or disabled destination button. **Open Google Maps**
 launches outdoor walking navigation. Google supplies the
@@ -34,13 +62,18 @@ outdoor route; SnapWay does not draw an invented route or claim an entrance-leve
 coordinate where the database supplies only a building coordinate.
 
 **Yes, I'm inside** immediately opens the camera screen and asks for permission
-if needed. It names the destination building and asks the visitor to aim at a room
-number, corridor sign or distinctive landmark, keep the sign readable and hold the
-phone steady. **Take photo** captures/submits one fresh photo; opening the camera
-alone does not submit a photo. **No, I'm outside** keeps the walking map available.
+if needed. The dialog is centered both horizontally and vertically, has rounded
+corners on all sides, and uses up to 640 px of width with safe-area margins. Its
+preview is substantially taller (up to 560 px, sized to the available viewport),
+while the title, capture button and short hint remain available; short screens can
+scroll the dialog. Under **Show us where you are**, the camera preview leads directly to
+**Take photo**, followed by one hint: **Keep a nearby sign or landmark clearly in
+view and hold your phone steady.** The photo shows the visitor's current scene to
+find their starting position, not the destination room. **Take photo** captures/submits
+one fresh photo; opening the camera alone does not submit a photo. **No, I'm outside** keeps the walking map available.
 For a bundled demo, Take photo exercises capture locally without uploading to the
-localization API or claiming a recognized location; the screen explicitly reports
-that indoor guidance is not available yet.
+localization API or claiming a recognized location; completion feedback explains
+that demo location matching is not connected and never claims a position.
 
 GPS is used for the outdoor map; it does not automatically reopen the question or
 infer indoor entry. The previous proximity-triggered prompt was removed to follow
@@ -61,9 +94,15 @@ user action, not automatically verified arrival. Cancellation, recapture, backgr
 and map changes clear guidance; background also closes capture and stops GPS.
 An active outdoor walk resumes previously requested GPS when foregrounded again.
 
-The introductory slogan, heading/subtitle and outdoor-map badge were removed at
-the contributor's request. Google default map controls (including camera/zoom
-buttons) are disabled in this view, preserving map gestures and provider attribution.
+The brand/on-foot header, introductory slogan, heading/subtitle, outdoor-map badge,
+demo guidance banner and indoor/outdoor instruction rows were removed at the
+contributor's request. The outside footer says **Follow Google Maps. When you arrive,
+continue indoors.** No welcome-back message persists when switching modes. Camera
+help is condensed to the hint below Take photo; the building question has no photo
+subtitle. GPS is requested only through the map's re-center control; there is no
+Use/Update location action or initial location hint. Accuracy/progress/permission
+feedback remains available after a GPS request. Google default map controls
+(including camera/zoom buttons) are disabled in this view, preserving map gestures and provider attribution.
 One custom GPS-center control appears outdoors; only the photo re-center appears
 indoors. Both are hidden while the inside/outside prompt covers the map. Cancelling
 or finishing clears the destination and hides the question until another is selected.
@@ -84,7 +123,7 @@ the walking-navigation URL can open Google Maps independently.
 | Demo destination | Address | Latitude | Longitude | University map location / marker |
 | --- | --- | --- | --- | --- |
 | Sam Ibrahim Building (IA), IA5061, 5th floor | 1050 Military Trail, Scarborough, ON M1C 1G9 | 43.788609 | -79.191116 | 959718 / 723740 |
-| Instructional Centre (IC), building arrival | 1095 Military Trail, Scarborough, ON M1C 5J9 | 43.786816 | -79.189484 | 493695 / 363654 |
+| Instructional Centre (IC), IC101 (fictional demo room) | 1095 Military Trail, Scarborough, ON M1C 5J9 | 43.786816 | -79.189484 | 493695 / 363654 |
 
 Coordinates were read on October 17, 2026 from the **Buildings** category (48600)
 of the [University of Toronto campus map](https://map.utoronto.ca/?id=1809).
@@ -99,9 +138,11 @@ entrances, room coordinates, floor plans or localization checkpoints.
 IA5061, the fifth floor and 1050 Military Trail. Addresses/postcodes retain the
 requesting contributor's supplied text; the university map supplied the coordinates.
 An older OSM record used the general campus mailing address for IA, so it was not
-used as the address or coordinate authority. IC has no room/floor supplied here.
-The IA floor uses an empty publication ID, sequence 0 and no checkpoints; IC has
-no floor records. A demo label and guidance-unavailable message remain visible.
+used as the address or coordinate authority. IC101 and its first-floor grouping are
+fictional test data added at the contributor's request, not verified university
+room records. Both demo floors use empty publication IDs, sequence 0 and no
+checkpoints. Building options retain a compact Demo label; no persistent demo
+banner takes space from navigation.
 
 Demo capture emits only a local completion event. Android/browser does not upload
 or retain the captured JPEG; iOS uses its existing app-sandbox frame storage and
@@ -113,7 +154,7 @@ position. Published destinations retain the existing authenticated matching path
 from the current, non-invalidated publication of an open target. Draft geometry,
 internal room purpose/provenance, asset paths, memberships and private instructions
 remain excluded. No migration is required. Existing clients can ignore the new
-fields. Search exposes empty/retry states for unavailable live data while retaining
+fields. Selection exposes unavailable-room/retry states for unavailable live data while retaining
 the two labelled demos for visitor UI testing.
 
 The browser/Android capture path uses rear-facing `getUserMedia`, creates a JPEG
@@ -158,35 +199,47 @@ member's approval under [AGENTS.md](../AGENTS.md).
 
 | Area | Changed files |
 | --- | --- |
-| Visitor state and screen | [controller](../apps/web/src/app/features/visitor/visitor.ts), [template](../apps/web/src/app/features/visitor/visitor.html), [base styles](../apps/web/src/app/features/visitor/visitor.scss), [search styles](../apps/web/src/app/features/visitor/visitor-search.scss), [guidance styles](../apps/web/src/app/features/visitor/visitor-guidance.scss), [map prompt styles](../apps/web/src/app/features/visitor/visitor-prompt.scss) |
-| Search, location, media | [models/search](../apps/web/src/app/features/visitor/visitor.models.ts), [demo catalogue](../apps/web/src/app/features/visitor/visitor-demo.ts), [coordinate evidence](assets/mobile-visitor/utsc-building-markers.source.json), [walking map](../apps/web/src/app/features/visitor/walking-map.ts), [single-photo capture](../apps/web/src/app/features/visitor/visitor-camera.ts), [image/arrow renderer](../apps/web/src/app/features/visitor/guidance-photo.ts) |
+| Visitor state and screen | [controller](../apps/web/src/app/features/visitor/visitor.ts), [template](../apps/web/src/app/features/visitor/visitor.html), [base styles](../apps/web/src/app/features/visitor/visitor.scss), [search layout](../apps/web/src/app/features/visitor/visitor-search.scss), [autocomplete control](../apps/web/src/app/features/visitor/visitor-destination-search.ts), [guidance styles](../apps/web/src/app/features/visitor/visitor-guidance.scss), [map prompt styles](../apps/web/src/app/features/visitor/visitor-prompt.scss) |
+| Selection, location, media | [destination models](../apps/web/src/app/features/visitor/visitor.models.ts), [demo catalogue](../apps/web/src/app/features/visitor/visitor-demo.ts), [coordinate evidence](assets/mobile-visitor/utsc-building-markers.source.json), [walking map](../apps/web/src/app/features/visitor/walking-map.ts), [single-photo capture](../apps/web/src/app/features/visitor/visitor-camera.ts), [image/arrow renderer](../apps/web/src/app/features/visitor/guidance-photo.ts) |
 | Entry points | [Capacitor entry](../apps/web/src/main.visitor.ts), [web preview route](../apps/web/src/app/app.routes.ts), [fullscreen preview shell](../apps/web/src/app/app.ts) |
 | Native permissions | [Android manifest](../apps/web/android/app/src/main/AndroidManifest.xml), [iOS usage text](../apps/web/ios/App/App/Info.plist) |
 | Published discovery | [public view](../apps/api/maps/views.py), [privacy/publication tests](../apps/api/tests/test_google_integration.py) |
 | Frontend coverage and related record | [journey tests](../apps/web/src/app/features/visitor/visitor.spec.ts), [camera permission/lifecycle tests](../apps/web/src/app/features/visitor/visitor-camera.spec.ts), [existing frontend feature record](frontend-iteration.md) |
 
-Validation: all **87 frontend tests** and **7 focused backend tests** pass. Web and
-visitor production builds pass without budget warnings. Android and iOS asset/plugin
-sync, changed-file Prettier, Ruff lint/format, plist parsing, local env contract and
-Git whitespace checks pass. Android SDK/physical devices are unavailable; there is
-no signed APK, native runtime or deployed release acceptance in these results.
+Validation: the preceding autocomplete implementation passed **89 frontend tests**.
+This presentation-only refinement passes web/visitor production builds, Android
+asset/plugin sync, browser acceptance at four phone widths, changed-file Prettier, local env
+contract and Git whitespace checks; unit tests were not rerun for these
+presentation-only changes.
+Earlier backend validation passed **7 focused tests**;
+backend code is unchanged here. Earlier iOS sync, Ruff and plist checks are recorded
+for the original implementation, not rerun for this Android-facing refinement.
+No physical-device run, signed APK or deployed-release acceptance is claimed.
 
-Browser acceptance passes building-first/direct-room search, the fullscreen journey,
+Browser acceptance passes consistent panel bounds across search/prompt/indoor/outdoor
+states at the original taller height, a centered camera with a larger preview,
+the red accessible cancel icon, logo/heading alignment, clearer placeholders and
+building/room searches on the same row with separate underlines, matching suggestions,
+disabled/reset room selection, the fullscreen journey,
 single-photo upload, location confirmation, re-center/cancel/finish, and
 building-specific inside/outside prompts only after room selection, automatic camera
 opening from **Yes**, automatic journey start on room selection, and mutually exclusive
 GPS/photo controls. It confirms no upload before **Take photo**, no initial prompt,
-no premature prompt during IA room selection, and no automatic GPS-triggered prompt.
+no premature prompt for either building before room selection, and no automatic GPS-triggered prompt.
 With an empty discovery response it also selects both actual-location demos, checks
 both coordinate-based walking URLs and captures a demo photo without a localization
 request or confirmed position. There is no horizontal
 overflow at 320/375/390/430 px. The check uses
 isolated published-building fixtures, synthetic GPS and fake camera media, with
 Google services deliberately unconfigured; it does not mutate shared maps or call
-paid providers. Destination and indoor screenshots were inspected visually. Real
-Google navigation handoff and GPS remain physical-device acceptance work.
+paid providers. Search, camera and outdoor screenshots were inspected visually. Real
+Google navigation handoff and GPS remain physical-device acceptance work. A separate
+local check supplies a mock Maps runtime and synthetic GPS to verify both rendered
+marker colors and labels, including a subsequent GPS update; it makes no provider
+calls.
 
 Official references: [Google Maps walking/navigation URLs](https://developers.google.com/maps/documentation/urls/get-started),
 [Capacitor web/native API boundary](https://capacitorjs.com/docs/core-apis/web),
 [Capacitor geolocation permissions](https://capacitorjs.com/docs/apis/geolocation),
-[Google Maps control options](https://developers.google.com/maps/documentation/javascript/controls).
+[Google Maps control options](https://developers.google.com/maps/documentation/javascript/controls),
+[custom Advanced Marker content](https://developers.google.com/maps/documentation/javascript/advanced-markers/html-markers).

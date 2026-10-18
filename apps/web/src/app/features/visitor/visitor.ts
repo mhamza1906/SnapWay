@@ -13,12 +13,13 @@ import { matchingCheckpoint, type MatchResult } from '../../core/place-match';
 import { VisitorCamera } from './visitor-camera';
 import { WalkingMap } from './walking-map';
 import { GuidancePhotoView, type GuidancePhoto } from './guidance-photo';
-import { searchDestinations, type DestinationOption, type VisitorBuilding } from './visitor.models';
+import { type DestinationOption, type VisitorBuilding } from './visitor.models';
 import { withDemoBuildings } from './visitor-demo';
+import { DestinationSearch } from './visitor-destination-search';
 
 @Component({
   selector: 'app-visitor-journey',
-  imports: [Icon, WalkingMap, VisitorCamera, GuidancePhotoView],
+  imports: [Icon, WalkingMap, VisitorCamera, GuidancePhotoView, DestinationSearch],
   templateUrl: './visitor.html',
   styleUrls: [
     './visitor.scss',
@@ -33,17 +34,40 @@ export class VisitorJourney {
   readonly buildings = signal<VisitorBuilding[]>(withDemoBuildings([]));
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly query = signal('');
   readonly building = signal<VisitorBuilding | null>(null);
   readonly destination = signal<DestinationOption | null>(null);
   readonly destinationLabel = computed(
     () => this.destination()?.room?.label ?? this.destination()?.building.name ?? '',
   );
-  readonly options = computed(() =>
-    searchDestinations(this.buildings(), this.query(), this.building()),
+  readonly options = computed<DestinationOption[]>(() => {
+    const building = this.building();
+    return (
+      building?.floors.flatMap((floor) =>
+        (floor.destinations ?? []).map((room) => ({
+          key: `${floor.target_id}:${room.id}`,
+          building,
+          floor,
+          room,
+        })),
+      ) ?? []
+    );
+  });
+  readonly buildingSuggestions = computed(() =>
+    this.buildings().map((building) => ({
+      key: building.id,
+      label: building.name,
+      detail: `${building.demo ? 'Demo · ' : ''}${building.address}`,
+      searchText: `${building.slug ?? ''} ${building.name} ${building.address}`,
+    })),
   );
-  readonly expanded = signal(false);
-  readonly highlighted = signal(0);
+  readonly roomSuggestions = computed(() =>
+    this.options().map((option) => ({
+      key: option.key,
+      label: option.room!.label,
+      detail: option.floor!.name,
+      searchText: `${option.room!.label} ${option.room!.name} ${option.building.slug ?? ''}${option.room!.label}`,
+    })),
+  );
   readonly active = signal(false);
   readonly indoor = signal(false);
   readonly cameraOpen = signal(false);
@@ -60,7 +84,7 @@ export class VisitorJourney {
     return building ? { lat: building.latitude, lng: building.longitude } : null;
   });
   readonly locating = signal(false);
-  readonly locationMessage = signal('Use your location for a walking view.');
+  readonly locationMessage = signal('');
   readonly message = signal('');
   readonly confirmedLocation = signal('');
   readonly suggestedLocation = signal('');
@@ -96,8 +120,7 @@ export class VisitorJourney {
       this.confirmedLocation.set('');
       this.suggestedLocation.set('');
       this.guidancePhoto.set(null);
-      if (this.active() && this.indoor())
-        this.message.set('Welcome back. Take a fresh photo to locate yourself.');
+      this.message.set('');
     };
     document.addEventListener('visibilitychange', pause);
     inject(DestroyRef).onDestroy(() => {
@@ -126,51 +149,25 @@ export class VisitorJourney {
       if (!this.destroyed && attempt === this.loadAttempt) this.loading.set(false);
     }
   }
-  search(event: Event) {
-    this.query.set((event.target as HTMLInputElement).value);
+  selectBuilding(id: string) {
+    this.building.set(this.buildings().find((building) => building.id === id) ?? null);
     this.destination.set(null);
-    this.expanded.set(true);
-    this.highlighted.set(0);
+    this.confirmedLocation.set('');
+    this.suggestedLocation.set('');
     this.message.set('');
   }
-  keydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') this.expanded.set(false);
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      this.expanded.set(true);
-      const count = this.options().length;
-      this.highlighted.update((index) =>
-        count ? (index + (event.key === 'ArrowDown' ? 1 : -1) + count) % count : 0,
-      );
-      document
-        .getElementById(`destination-${this.highlighted()}`)
-        ?.scrollIntoView?.({ block: 'nearest' });
-    }
-    if (event.key === 'Enter' && this.expanded() && this.options()[this.highlighted()]) {
-      event.preventDefault();
-      this.choose(this.options()[this.highlighted()]);
-    }
+  selectRoom(key: string) {
+    const option = this.options().find((option) => option.key === key);
+    if (option) this.choose(option);
   }
   choose(option: DestinationOption) {
-    const chosen = !!option.room || !!option.building.buildingDestination;
     this.building.set(option.building);
-    this.destination.set(chosen ? option : null);
-    this.query.set(option.room?.label ?? '');
-    this.expanded.set(!chosen);
-    this.highlighted.set(0);
+    this.destination.set(option.room ? option : null);
     this.confirmedLocation.set('');
-    if (chosen) this.start();
-  }
-  changeBuilding() {
-    this.building.set(null);
-    this.destination.set(null);
-    this.query.set('');
-    this.expanded.set(true);
-    this.highlighted.set(0);
+    if (option.room) this.start();
   }
   start() {
     if (!this.destination()) return;
-    this.expanded.set(false);
     this.active.set(true);
     this.environment.set('unknown');
     this.indoor.set(false);
@@ -188,7 +185,10 @@ export class VisitorJourney {
     if (inside) this.stopLocation();
     this.active.set(true);
     if (inside) this.recenter();
-    else this.cameraOpen.set(false);
+    else {
+      this.cameraOpen.set(false);
+      this.message.set('');
+    }
   }
   showOutdoor() {
     this.chooseEnvironment(false);
@@ -209,10 +209,9 @@ export class VisitorJourney {
     this.environment.set('unknown');
     this.locationPrompt.set(false);
     this.destination.set(null);
-    this.query.set('');
     this.confirmedLocation.set('');
     this.suggestedLocation.set('');
-    this.message.set(finished ? 'Navigation finished. Where to next?' : 'Navigation cancelled.');
+    this.message.set(finished ? 'Navigation finished. Where to next?' : '');
   }
   acceptMatch(result: MatchResult) {
     if (!this.active() || !this.indoor() || this.building()?.demo) return;
@@ -242,9 +241,7 @@ export class VisitorJourney {
   demoPhotoCaptured() {
     if (!this.active() || !this.indoor() || !this.building()?.demo) return;
     this.cameraOpen.set(false);
-    this.message.set(
-      'Demo photo captured. Indoor guidance is coming soon; your location has not been determined.',
-    );
+    this.message.set('Photo captured. Location matching is not connected for this demo.');
   }
   recenter() {
     if (!this.active() || !this.indoor() || !this.destination()) return;
