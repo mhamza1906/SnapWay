@@ -2,6 +2,7 @@
 
 Updated October 18, 2026. Work remains on `feature/map-authoring-pipeline`.
 Implementation: [ab0c726](https://github.com/mhamza1906/SnapWay/commit/ab0c726).
+Review: [draft PR #22](https://github.com/mhamza1906/SnapWay/pull/22).
 Merged main at [db168a3](https://github.com/mhamza1906/SnapWay/commit/db168a3)
 into the existing feature work; Git main is unchanged. The local recovery branch
 is `backup/map-authoring-before-mobile-main-20261018`. Personal execution history
@@ -148,7 +149,7 @@ secret, env key or schema version was introduced.
 
 - 217 frontend tests pass; production website and visitor builds pass.
 - 234 tests pass on an isolated local PostgreSQL database, including real database
-  constraints. The SQLite run passes with its expected PostgreSQL skips.
+  constraints. SQLite passes 215 cases with 19 expected PostgreSQL skips.
 - 233 pipeline tests pass, with 18 optional-fixture skips; 41 Sam project tests pass.
 - 37 cloud packaging/controller/audit tests pass.
 - Android Java compilation, lint and debug APK build pass; unsigned iOS simulator
@@ -180,3 +181,6 @@ No computer/browser automation was used. Physical camera permission, orientation
 background/restart, cellular transport, Maps display and independent live location
 accuracy remain device acceptance checks. No production release, production data
 transfer, new cloud resource, paid AI call or model download occurred locally.
+
+The read-only GitHub Actions cloud audit succeeded without a local SSH key; see
+[the observed runtime/capacity results](cloud-integration-readiness.md#deployment-work-still-required).

@@ -124,6 +124,18 @@ restricted to published maps and cannot use these unpublished walks.
 
 ## Deployment work still required
 
+The [read-only CI audit](https://github.com/mhamza1906/SnapWay/actions/runs/39115318153)
+successfully authenticated using the existing GitHub Actions Vultr identity,
+without the contributor's local SSH key. On October 18 it observed 3 CPU threads,
+7,935 MiB RAM (7,263 MiB available), 8,191 MiB swap and about 208 GiB free disk.
+Only `snapway-api-green.service` was listed as active. `python3`, `uv` and `caddy`
+were available to that identity; `node` was absent from its PATH. Private ports
+5175 and 8790 did not respond. Public liveness/readiness returned 200; the new
+hosted-map route returned 404 because this feature is not deployed. No protected
+env file was read, and no server configuration or application data was changed.
+These observations supersede the older two-CPU/four-GB estimate for capacity
+planning, without demonstrating model speed or readiness on this host.
+
 The [default release packager](../scripts/package_release.py) ships API and web.
 The new opt-in [mobile runtime package](cloud-runtime-packaging.md) also includes
 Node pipeline/Sam renderer sources and `apps/place-match`, plus unit templates;

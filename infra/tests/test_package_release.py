@@ -121,8 +121,13 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(
                 "source/apps/place-match/uv.lock"
             )
             assert len(metadata["service_templates"]) == 2
-            for path, content in mobile_tracked.items():
-                assert archive.extractfile("source/" + path).read().decode() == content
+            for path in mobile_tracked:
+                # Compare exact committed bytes: Windows fixture files may use
+                # CRLF, and git's autocrlf policy may normalize their blobs.
+                committed = subprocess.check_output(
+                    ["git", "-C", str(tmp_path), "show", f"HEAD:{path}"]
+                )
+                assert archive.extractfile("source/" + path).read() == committed
             for path in mobile_private:
                 assert "source/" + path not in archive.getnames()
             for path in (

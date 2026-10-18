@@ -54,7 +54,9 @@ def test_audit_keeps_existing_main_only_production_gates():
 
 def test_cloud_audit_pins_host_keys_and_never_reads_remote_credentials_or_mutates():
     script = (ROOT / "infra/cloud-readiness.sh").read_text()
-    subprocess.run(["bash", "-n", str(ROOT / "infra/cloud-readiness.sh")], check=True)
+    # Feed LF bytes through stdin: no Windows drive path or text-mode CRLF
+    # conversion reaches Bash, regardless of which Windows Bash is selected.
+    subprocess.run(["bash", "-n"], input=script.encode("utf-8"), check=True)
     assert "umask 077" in script
     assert "StrictHostKeyChecking=yes" in script
     assert "UserKnownHostsFile=$sshdir/known_hosts" in script
