@@ -402,15 +402,41 @@
                 }
               </div>
               <div class="panel-body">
+                <div class="button-row">
+                  <label class="field">
+                    Maximum photo stops per circulation
+                    <input
+                      type="number"
+                      min="2"
+                      max="30"
+                      step="1"
+                      [value]="photoStopLimit()"
+                      [disabled]="busy()"
+                      (input)="photoStopLimit.set(+$any($event.target).value)"
+                      data-testid="photo-stop-limit"
+                    />
+                  </label>
+                  @if (hallPlan(); as plan) {
+                    <button
+                      class="btn small primary"
+                      [disabled]="busy() || !validPhotoStopLimit()"
+                      (click)="showHallPoints(plan.spaceId)"
+                      data-testid="update-photo-stops"
+                    >
+                      Update photo stops
+                    </button>
+                  }
+                </div>
+                @if (!validPhotoStopLimit()) {
+                  <p class="hint warn">Choose a whole number from 2 to 30.</p>
+                }
                 @if (hallPlan(); as plan) {
                   <p class="hint">
-                    Numbered in walking order,
-                    {{
-                      plan.scaleVerified
-                        ? 'every ' + plan.spacingM + ' m'
-                        : 'every ' + plan.spacingPx + ' map pixels (no verified scale)'
-                    }}. Tick points here or click them on the map, then remove them. Relabel numbers
-                    the rest 1 to {{ plan.points.length }} with no gaps.
+                    {{ plan.points.length }} photo stops, spread through this circulation area.
+                    Junctions and turns are prioritized; fewer stops mean fewer reference views.
+                    Updating replaces this point list and keeps the walking paths. Tick points here
+                    or click them on the map, then remove them. Relabel numbers the rest 1 to
+                    {{ plan.points.length }} with no gaps.
                   </p>
                   <div class="merge-actions">
                     <button

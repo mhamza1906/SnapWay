@@ -410,6 +410,13 @@ export class AuthoringPage implements OnInit {
   readonly merges = computed(() => this.floor()?.merges ?? []);
   /** The photo point plan drawn on the map, if any. */
   readonly hallPlan = signal<HallPlan | null>(null);
+  readonly photoStopLimit = signal(8);
+  readonly validPhotoStopLimit = computed(
+    () =>
+      Number.isInteger(this.photoStopLimit()) &&
+      this.photoStopLimit() >= 2 &&
+      this.photoStopLimit() <= 30,
+  );
   /** The one selected region, when it is a hall (corridor or lobby). */
   readonly selectedHall = computed(() => {
     const s = this.selectedSpaces();
@@ -1106,13 +1113,20 @@ export class AuthoringPage implements OnInit {
   }
 
   /** Plans photo points over the whole selected hall and draws them. */
-  async showHallPoints(): Promise<void> {
+  async showHallPoints(spaceId?: string): Promise<void> {
     const building = this.building(),
-      hall = this.selectedHall(),
+      hall = spaceId
+        ? this.floor()?.spaces.find((space) => space.id === spaceId)
+        : this.selectedHall(),
       floorId = this.floorId();
-    if (!building || !hall) return;
+    if (!building || !hall || !this.validPhotoStopLimit()) return;
     await this.run(async () => {
-      const plan = await this.pipeline.hallPoints(building, floorId, hall.id);
+      const plan = await this.pipeline.hallPoints(
+        building,
+        floorId,
+        hall.id,
+        this.photoStopLimit(),
+      );
       if (this.floorId() !== floorId || this.building() !== building) return;
       this.sentGraph.set(null);
       this.hallPlan.set({ ...plan, points: plan.points.map((p, i) => ({ ...p, key: i })) });
@@ -1121,10 +1135,7 @@ export class AuthoringPage implements OnInit {
       this.sidePanel.set('photos');
       this.drawPhotos();
       this.say(
-        `${plan.points.length} photo points across ${plan.label}, numbered in walking order, ` +
-          (plan.scaleVerified
-            ? `every ${plan.spacingM} m.`
-            : `every ${Math.round(plan.spacingPx)} map pixels (no verified scale, so not metres).`),
+        `${plan.points.length} photo stops across ${plan.label}. Limit: ${plan.maxPoints ?? this.photoStopLimit()} stops. Walking paths are unchanged.`,
       );
       await this.redraw();
     }, 'hall-points');

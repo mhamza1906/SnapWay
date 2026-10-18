@@ -1380,6 +1380,52 @@ describe('map authoring page', () => {
     expect(shown.photoPoints).toBeUndefined();
   });
 
+  it('defaults to eight photo stops and regenerates the same hall with the chosen limit', async () => {
+    const s = withSpaces(
+      regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),
+    );
+    const { page, fixture, el } = await startMapped(s);
+    page.selectedRegions.set(['h1']);
+    for (const limit of [8, 6]) {
+      if (limit === 6) {
+        const input = el.querySelector('[data-testid="photo-stop-limit"]') as HTMLInputElement;
+        input.value = '6';
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+      }
+      const planning = page.showHallPoints(limit === 6 ? 'h1' : undefined);
+      const request = http.expectOne(`${PIPELINE_BASE}/authoring/hall-points`);
+      expect(request.request.body.maxPoints).toBe(limit);
+      expect(request.request.body.spaceId).toBe('h1');
+      request.flush({
+        spaceId: 'h1',
+        label: 'Hallway 3',
+        scaleVerified: false,
+        spacingM: null,
+        spacingPx: 10,
+        maxPoints: limit,
+        lines: [],
+        points: Array.from({ length: limit }, (_, i) => ({
+          x: i * 10,
+          y: 0,
+          order: i + 1,
+          reason: 'spacing',
+        })),
+      });
+      expect((await renderOverlay()).photoPoints).toHaveLength(limit);
+      await planning;
+      fixture.detectChanges();
+      expect(page.hallPlan()?.points).toHaveLength(limit);
+    }
+    page.photoStopLimit.set(1);
+    fixture.detectChanges();
+    expect(
+      (el.querySelector('[data-testid="update-photo-stops"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+    await page.showHallPoints('h1');
+    http.expectNone(`${PIPELINE_BASE}/authoring/hall-points`);
+  });
+
   it('ignores a photo-planning response arriving after a floor switch', async () => {
     const s = withSpaces(
       regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),

@@ -5,6 +5,7 @@ import express from 'express';
 import { authoringRouter, renderFloor } from '../server/authoring-routes.js';
 import { libraryEntry } from '../server/building-library.js';
 import { BuildingSchema } from '../shared/building/schema.js';
+import { planHallPoints } from '../shared/building/capture-points.js';
 
 let building,server,base;
 before(async()=>{
@@ -16,6 +17,43 @@ before(async()=>{
 });
 after(()=>server?.close());
 const post=async(path,data)=>{const response=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return {status:response.status,data:await response.json()};};
+
+test('sparse photo stops respect the budget on every hall without changing walking paths or building data',()=>{
+  const before=JSON.stringify(building);
+  for(const floor of building.floors) for(const hall of floor.geometry.spaces.filter(s=>['corridor','lobby'].includes(s.kind))) {
+    const normal=planHallPoints(building,floor.id,hall.id);
+    assert(normal.points.length<=8);
+    for(const maxPoints of [2,6,12,30]) {
+      const plan=planHallPoints(building,floor.id,hall.id,{maxPoints});
+      assert.equal(plan.points.length,Math.min(maxPoints,plan.candidateCount));
+      assert.deepEqual(plan.lines,normal.lines);
+      assert.deepEqual(plan,planHallPoints(building,floor.id,hall.id,{maxPoints}));
+      assert.deepEqual(plan.points.map(p=>p.order),plan.points.map((_,i)=>i+1));
+      for(const p of plan.points) {
+        const distances=plan.lines.flatMap(line=>line.slice(1).map((b,i)=>{
+          const a=line[i],dx=b.x-a.x,dy=b.y-a.y;
+          const t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1)));
+          return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
+        }));
+        assert(Math.min(...distances)<0.02,`${floor.id}: point ${p.order} left the walking path`);
+      }
+    }
+  }
+  assert.equal(JSON.stringify(building),before);
+});
+
+test('hall-points API defaults to eight stops, accepts a smaller budget and rejects invalid budgets',async()=>{
+  const input={building,floorId:'L5',spaceId:'L5-project-circulation-1'};
+  for(const maxPoints of [undefined,6,12]) {
+    const {status,data}=await post('/hall-points',{...input,maxPoints});
+    assert.equal(status,200,JSON.stringify(data));
+    assert.equal(data.points.length,maxPoints??8);
+    assert(data.points.some(p=>p.reason==='turn'||p.reason==='junction'));
+  }
+  for(const maxPoints of [0,1,31,2.5,'6']) {
+    const {status}=await post('/hall-points',{...input,maxPoints});assert.equal(status,400);
+  }
+});
 
 test('built-in project is available in the normal building library with six original source frames',async()=>{
   const entry=await libraryEntry('sam-ibrahim');

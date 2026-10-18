@@ -394,12 +394,15 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
 // depth-first walk from the dead end nearest the top-left corner.
 // Spacing is `spacingM` metres on a verified scale; otherwise `spacingPx` map
 // pixels (default 2.2% of the floor's larger side) and metres are null.
-export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx } = {}) {
+// This spacing generates candidates, not a required photo at every interval.
+// A sparse, distributed subset is selected; graph lines are never thinned.
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 8 } = {}) {
   const floor = floorOf(building, floorId),
     pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
     hall = pieces.find((s) => s.id === spaceId);
   if (!hall) throw new CaptureError("Unknown region.", 404);
   if (!Number.isFinite(spacingM) || spacingM < 0.5 || spacingM > 50) throw new CaptureError("spacingM must be between 0.5 and 50.");
+  if (!Number.isInteger(maxPoints) || maxPoints < 2 || maxPoints > 30) throw new CaptureError("maxPoints must be a whole number between 2 and 30.");
   const ppm = scaleOf(floor), all = floor.geometry.spaces.flatMap((s) => s.polygon),
     side = Math.max(Math.max(...all.map((p) => p.x)) - Math.min(...all.map((p) => p.x)), Math.max(...all.map((p) => p.y)) - Math.min(...all.map((p) => p.y))),
     step = ppm ? spacingM * ppm : Number.isFinite(spacingPx) && spacingPx > 0 ? spacingPx : Math.round(0.022 * side),
@@ -445,23 +448,42 @@ export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spaci
   visits.forEach((v, i) => {
     if (v.node) { const kp = points.find((q) => q.nodeId === v.node); if (kp && kp._visit === Infinity) kp._visit = i; return; }
     const pts = v.forward ? v.edge.path : [...v.edge.path].reverse(), total = polyLength(pts);
-    for (let k = 1; k * step < total - min / 2; k++) {
-      let want = k * step, at = 0;
+    const place = (want, reason) => {
+      let at = 0;
       for (let j = 1; j < pts.length; j++) {
         const d = distance(pts[j - 1], pts[j]);
         if (at + d >= want) {
           const t = (want - at) / (d || 1);
-          add({ x: pts[j - 1].x + (pts[j].x - pts[j - 1].x) * t, y: pts[j - 1].y + (pts[j].y - pts[j - 1].y) * t }, "spacing", { edgeId: v.edge.id, _visit: i + k / 1000 });
+          add({ x: pts[j - 1].x + (pts[j].x - pts[j - 1].x) * t, y: pts[j - 1].y + (pts[j].y - pts[j - 1].y) * t }, reason, { edgeId: v.edge.id, _visit: i + want / (total + 1) });
           break;
         }
         at += d;
       }
-    }
+    };
+    for (const turn of turns(pts, min / 2)) place(turn, "turn");
+    for (let k = 1; k * step < total - min / 2; k++) place(k * step, "spacing");
   });
   points.sort((a, z) => a._visit - z._visit);
+  // Farthest-point sampling spreads the limited stops through the whole hall.
+  // Weight junctions/turns above ordinary straight-hall candidates, without
+  // letting a cluster of junctions consume the entire capture budget.
+  const weight = { junction: 1.6, turn: 1.4, end: 1.2, spacing: 1 };
+  const selected = [];
+  const remaining = [...points];
+  while (selected.length < maxPoints && remaining.length) {
+    let best = 0, bestScore = -Infinity;
+    remaining.forEach((point, index) => {
+      const separation = selected.length ? Math.min(...selected.map(other => distance(point, other))) : 1;
+      const score = separation * weight[point.reason];
+      if (score > bestScore) { best = index; bestScore = score; }
+    });
+    selected.push(...remaining.splice(best, 1));
+  }
+  selected.sort((a, z) => a._visit - z._visit);
   return {
     spaceId, label: hall.label, scaleVerified: !!ppm, spacingM: ppm ? spacingM : null, spacingPx: r2(step),
+    selectionMode: "sparse", maxPoints, candidateCount: points.length,
     lines: edges.map((e) => e.path.map((p) => ({ x: r2(p.x), y: r2(p.y) }))),
-    points: points.map(({ _visit, ...q }, i) => ({ order: i + 1, ...q, nodeId: q.nodeId ?? null, edgeId: q.edgeId ?? null })),
+    points: selected.map(({ _visit, ...q }, i) => ({ order: i + 1, ...q, nodeId: q.nodeId ?? null, edgeId: q.edgeId ?? null })),
   };
 }

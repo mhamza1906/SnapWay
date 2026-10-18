@@ -113,12 +113,15 @@ export interface HallPoint {
   order: number;
   x: number;
   y: number;
-  reason: 'junction' | 'end' | 'spacing';
+  reason: 'junction' | 'end' | 'spacing' | 'turn';
   /** Editor only: a stable key for picking the point, and whether it is picked. */
   key?: number;
   selected?: boolean;
 }
 export interface HallPlan {
+  selectionMode?: 'sparse';
+  maxPoints?: number;
+  candidateCount?: number;
   spaceId: string;
   label: string;
   scaleVerified: boolean;
@@ -509,8 +512,13 @@ export class PipelineService {
     return this.postLight('/authoring/spaces/merge', building, { floorId, ...merge });
   }
   /** Photo points for a whole hall, in walking order (read-only). */
-  hallPoints(building: PipelineBuilding, floorId: string, spaceId: string): Promise<HallPlan> {
-    return this.postLight('/authoring/hall-points', building, { floorId, spaceId });
+  hallPoints(
+    building: PipelineBuilding,
+    floorId: string,
+    spaceId: string,
+    maxPoints = 8,
+  ): Promise<HallPlan> {
+    return this.postLight('/authoring/hall-points', building, { floorId, spaceId, maxPoints });
   }
   /** Folds every thin strip on the floor into its neighbour (each undoable under Merged rooms). */
   foldStrips(
