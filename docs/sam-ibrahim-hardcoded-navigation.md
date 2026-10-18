@@ -22,6 +22,12 @@ node --test experiments/sam-ibrahim-hardcoded/*.test.mjs
 
 A fresh checkout requires the repository's normal private environment setup for the full app, described in [the environment contract](environment-sync.md). Offline project generation and tests require no credentials. This worktree lacks `local/.env`; no private settings were created or changed during validation. The fixed-source renderer needs the committed `experiments/sam-ibrahim-hardcoded/source/` files alongside the pipeline service.
 
+## Live preview check and stale-server recovery
+
+After updating this branch, restart the Node pipeline service (`npm run prod` from `apps/pipeline`) so its imported renderer and route API reload. Angular hot reload alone does not update the backend. On 2026-10-18, the running process still served the old generic outline renderer despite the new frontend and project JSON. Restarting the same local service restored the original SVG underlay and six named connector markers without changing map data or credentials. Its existing legacy environment fallback remained configured; the missing consolidated `local/.env` contract issue is separate.
+
+Verified in the user's live Chrome app at `http://127.0.0.1:4200/authoring`: select **Level B · The Collaboratorium** → **Level 5 · L5-R22 west perimeter enclosure**, choose **Prefer stairs**, then **Preview route**. The result traverses Stair C through all six floors. Switching to **Elevator · exclude stairs** and previewing again traverses Elevator C in the tested browser state. Select **Level 5** in the route-floor tabs to see the destination overlay on the original plan. Both modes and overlay retention were checked in the running UI. The source underlay shows untraced rooms too; only the traced destinations in the selectors are routable. **Build with AI** is unnecessary for testing the hardcoded project and replaces its authored geometry.
+
 ## Implemented coverage
 
 | Item | Integrated project |
