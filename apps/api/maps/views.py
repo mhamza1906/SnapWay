@@ -28,6 +28,7 @@ class PublicBuildingListView(APIView):
                 target__floor__building__longitude__isnull=False,
             )
             .select_related("target__floor__building")
+            .prefetch_related("revision__nodes__room")
             .order_by("target__floor__building__name", "target__floor__sort_order", "target_id")
         )
         buildings = {}
@@ -40,6 +41,7 @@ class PublicBuildingListView(APIView):
                 {
                     "id": str(building.id),
                     "name": building.name,
+                    "slug": building.slug,
                     "address": building.address,
                     "latitude": float(building.latitude),
                     "longitude": float(building.longitude),
@@ -53,6 +55,21 @@ class PublicBuildingListView(APIView):
                     "code": floor.code,
                     "publication_id": str(publication.id),
                     "sequence": publication.sequence,
+                    "checkpoints": [
+                        {"id": str(node.stable_id), "label": node.label}
+                        for node in publication.revision.nodes.all()
+                    ],
+                    "destinations": [
+                        {
+                            "id": str(node.stable_id),
+                            "label": node.room.number or node.room.name or node.label,
+                            "name": node.room.name,
+                        }
+                        for node in publication.revision.nodes.all()
+                        if node.kind == "room"
+                        and node.room is not None
+                        and node.room.revision_id == publication.revision_id
+                    ],
                 }
             )
         response = Response({"buildings": list(buildings.values())})

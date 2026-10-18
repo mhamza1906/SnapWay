@@ -1,0 +1,168 @@
+<main class="journey" [class.guiding]="active()">
+  @if (!active()) {
+    <section class="search-panel">
+      <div class="destination-heading">
+        <span class="destination-logo" role="img" aria-label="SnapWay">
+          <app-icon name="route" />
+        </span>
+        <h1>Find your destination</h1>
+      </div>
+      <div class="destination-selects">
+        <app-destination-search
+          fieldId="destination-building"
+          label="Building"
+          placeholder="Search building"
+          [options]="buildingSuggestions()"
+          [selectedKey]="building()?.id ?? ''"
+          (selected)="selectBuilding($event)"
+        />
+        <app-destination-search
+          fieldId="destination-room"
+          label="Room"
+          [placeholder]="building() && !options().length ? 'No rooms available' : 'Room number'"
+          [options]="roomSuggestions()"
+          [disabled]="!building() || !options().length"
+          [selectedKey]="destination()?.key ?? ''"
+          (selected)="selectRoom($event)"
+        />
+      </div>
+      @if (error()) {
+        <button class="retry" (click)="load()">{{ error() }} Retry</button>
+      }
+    </section>
+  } @else {
+    <section class="navigation-bar">
+      <span class="route-pin"><app-icon name="pin" /></span>
+      <div>
+        <small>ON YOUR WAY TO</small><strong>{{ destinationLabel() }}</strong
+        ><span>{{ destination()?.room ? building()?.name : building()?.address }}</span>
+      </div>
+      <button
+        class="cancel"
+        (click)="end()"
+        aria-label="Cancel navigation"
+        title="Cancel navigation"
+      >
+        <app-icon name="close" /></button
+      ><button class="finish" (click)="end(true)">Finish</button>
+    </section>
+  }
+
+  <section class="viewport" [class.indoors]="indoor()" aria-label="Navigation view">
+    @if (!indoor()) {
+      <div
+        class="outdoor-surface"
+        [inert]="locationPrompt()"
+        [attr.aria-hidden]="locationPrompt() ? 'true' : null"
+      >
+        <app-walking-map [location]="location()" [destination]="point()" />
+        @if (!locationPrompt()) {
+          <button
+            class="map-location"
+            (click)="locate()"
+            [disabled]="locating()"
+            aria-label="Center map on my location"
+          >
+            <app-icon name="location" />
+          </button>
+        }
+      </div>
+      @if (locationPrompt() && destination()) {
+        <section class="position-prompt" aria-labelledby="position-question">
+          <div class="prompt-card">
+            <span class="prompt-icon"><app-icon name="building" /></span>
+            <h2 id="position-question">Are you inside {{ building()?.name }}?</h2>
+            <button class="primary" (click)="chooseEnvironment(true)">
+              Yes, I’m inside<app-icon name="camera" />
+            </button>
+            <button class="outside-choice" (click)="chooseEnvironment(false)">
+              No, I’m outside<app-icon name="map" />
+            </button>
+          </div>
+        </section>
+      }
+    } @else {
+      @if (guidancePhoto(); as photo) {
+        <app-guidance-photo [photo]="photo" />
+      } @else {
+        <span class="view-tag"><span class="dot"></span>INDOOR GUIDANCE</span>
+        <div class="photo-placeholder">
+          <span class="photo-symbol"
+            ><app-icon [name]="confirmedLocation() ? 'image' : 'camera'"
+          /></span>
+          <h2>
+            {{
+              !destination()
+                ? 'Choose your room above.'
+                : confirmedLocation()
+                  ? 'Your next steps, in pictures.'
+                  : 'Let’s find you inside.'
+            }}
+          </h2>
+          <p>
+            {{
+              !destination()
+                ? 'Then take one photo to find your indoor starting point.'
+                : confirmedLocation()
+                  ? 'Reference photos and direction arrows will appear here once this route is available.'
+                  : 'One photo of a door sign or landmark helps us find your starting point.'
+            }}
+          </p>
+          @if (destination() && !confirmedLocation()) {
+            <button class="primary capture" (click)="recenter()">
+              <app-icon name="camera" />Take a photo
+            </button>
+          }
+        </div>
+      }
+      @if (destination()) {
+        <button
+          class="recenter"
+          (click)="recenter()"
+          aria-label="Re-center: take another photo to relocate"
+        >
+          <app-icon name="location" /><span>Re-center</span>
+        </button>
+      }
+    }
+  </section>
+
+  <footer class="journey-footer">
+    @if (message()) {
+      <p class="message" role="status">{{ message() }}</p>
+    }
+    @if (!indoor() && !locationPrompt() && locationMessage()) {
+      <p class="gps-status" role="status">{{ locationMessage() }}</p>
+    }
+    @if (active() && !indoor() && !locationPrompt()) {
+      <p class="outdoor-hint">Follow Google Maps. When you arrive, continue indoors.</p>
+      <div class="outdoor-actions">
+        <a class="text-button" [href]="directions()" target="_blank" rel="noopener noreferrer"
+          >Open Google Maps<app-icon name="arrow" /></a
+        ><button class="text-button" (click)="locationPrompt.set(true)">
+          Location options<app-icon name="settings" />
+        </button>
+      </div>
+    } @else if (active() && indoor() && suggestedLocation()) {
+      <div class="match-confirmation">
+        <strong>Are you near {{ suggestedLocation() }}?</strong>
+        <p>Check the sign against your surroundings.</p>
+        <button class="primary" (click)="confirmMatch()">
+          Yes, use this location<app-icon name="check" /></button
+        ><button class="text-button" (click)="recenter()">Take another photo</button>
+      </div>
+    } @else if (indoor()) {
+      <button class="text-button" (click)="showOutdoor()">
+        Back to outdoor map<app-icon name="map" />
+      </button>
+    }
+  </footer>
+</main>
+@if (cameraOpen()) {
+  <app-visitor-camera
+    [demo]="building()?.demo ?? false"
+    (captured)="demoPhotoCaptured()"
+    (closed)="cameraOpen.set(false)"
+    (matched)="acceptMatch($event)"
+  />
+}

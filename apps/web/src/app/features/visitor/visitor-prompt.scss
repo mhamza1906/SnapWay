@@ -1,0 +1,58 @@
+.outdoor-surface {
+  position: absolute;
+  inset: 0;
+}
+.position-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 24px;
+  background: #eef2e8;
+}
+.prompt-card {
+  width: 100%;
+  max-width: 310px;
+  text-align: center;
+}
+.prompt-icon {
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+  background: #dde7d6;
+  color: #315b46;
+}
+.prompt-card h2 {
+  font-size: 23px;
+  font-weight: 550;
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+.prompt-card p {
+  color: #70806a;
+  font-size: 13px;
+  margin: 0 0 22px;
+}
+.outside-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 18px;
+  border: 1px solid #d2ddc9;
+  border-radius: 16px;
+  background: #f8faf5;
+  margin-top: 10px;
+  color: #315b46;
+  font-size: 13px;
+}
+.outside-choice:hover {
+  background: #e3ebdc;
+}

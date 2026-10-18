@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>SnapWay uses the camera to recognise where you are inside a building. Frames stay on this iPhone and are sent to a matching server only when you choose to.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>SnapWay uses your approximate location for the outdoor walking map and to suggest when to continue indoors.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>SnapWay lets you choose an existing photo for localization in the navigation preview.</string>
 	<key>UILaunchStoryboardName</key>

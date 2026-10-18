@@ -1,5 +1,9 @@
 # Frontend iteration: Google Maps and session integration
 
+Subsequent packaged-app UI work is maintained in the single
+[mobile visitor UI record](mobile-visitor-ui.md). It replaces the visitor entry's
+default map with a dedicated journey screen; the website retains `/map`.
+
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
 Merged remote main through PR #10 (`67db1fe`, graph editor / R2 media) into this
 branch after the earlier PR #9 single-env baseline. Main's later schema-map
