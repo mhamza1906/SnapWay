@@ -9,11 +9,17 @@ import { ExplorePage } from './explore';
 
 describe('Developer Explore', () => {
   const map = { addListener: vi.fn(), panTo: vi.fn(), setZoom: vi.fn(), fitBounds: vi.fn() };
-  const markers: { map: unknown; content: HTMLElement; title: string; click?: () => void }[] = [];
+  const markers: {
+    map: unknown;
+    title: string;
+    icon?: { url: string };
+    click?: () => void;
+    setMap?: (value: unknown) => void;
+  }[] = [];
   const sdk = {
     error: signal(''),
     load: async () => ({
-      mapId: 'test',
+      mapId: 'DEMO_MAP_ID',
       maps: {
         Map: class {
           constructor() {
@@ -23,23 +29,37 @@ describe('Developer Explore', () => {
         LatLngBounds: class {
           extend() {}
         },
-        marker: {
-          AdvancedMarkerElement: class {
+        Size: class {
+          constructor(
+            public width: number,
+            public height: number,
+          ) {}
+        },
+        Marker: class {
+          map: unknown;
+          title: string;
+          icon?: { url: string };
+          click?: () => void;
+          constructor(options: {
             map: unknown;
-            content: HTMLElement;
             title: string;
-            click?: () => void;
-            constructor(options: { map: unknown; content: HTMLElement; title: string }) {
-              this.map = options.map;
-              this.content = options.content;
-              this.title = options.title;
-              markers.push(this);
-            }
-            addListener(_event: string, callback: () => void) {
-              this.click = callback;
-              return { remove() {} };
-            }
-          },
+            icon?: { url: string };
+          }) {
+            this.map = options.map;
+            this.title = options.title;
+            this.icon = options.icon;
+            markers.push(this);
+          }
+          setMap(value: unknown) {
+            this.map = value;
+          }
+          addListener(_event: string, callback: () => void) {
+            this.click = callback;
+            return { remove() {} };
+          }
+        },
+        marker: {
+          AdvancedMarkerElement: class {},
         },
         event: { clearInstanceListeners: vi.fn() },
         importLibrary: async () => ({}),
@@ -70,19 +90,21 @@ describe('Developer Explore', () => {
       address: 'Campus',
       latitude: 43.7,
       longitude: -79.1,
+      published: true,
       floors: Array.from({ length: 55 }, (_, i) => ({
         target_id: `t${i}`,
         name: `Floor ${i}`,
         code: String(i),
         publication_id: `p${i}`,
         sequence: 1,
+        published: true,
       })),
     };
-    http.expectOne('/api/maps/public/buildings/').flush({ buildings: [building] });
+    http.expectOne('/api/maps/workspace/buildings/').flush({ buildings: [building] });
     await fixture.whenStable();
     expect(fixture.componentInstance.error()).toBe('');
     await vi.waitFor(() => expect(markers.length).toBe(1));
-    expect(markers[0].content.querySelector('path')?.getAttribute('fill')).toBe('#f4c63d');
+    expect(markers[0].icon?.url).toContain(encodeURIComponent('#f4c63d'));
     markers[0].click!();
     fixture.detectChanges();
     expect(fixture.componentInstance.visibleFloors().length).toBe(20);
@@ -102,5 +124,37 @@ describe('Developer Explore', () => {
     http.verify();
     fixture.destroy();
     expect(markers[0].map).toBeNull();
+  });
+
+  it('renders draft buildings with red markers', async () => {
+    const fixture = TestBed.createComponent(ExplorePage);
+    fixture.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/maps/workspace/buildings/').flush({
+      buildings: [
+        {
+          id: 'b2',
+          name: 'Draft building',
+          address: '',
+          latitude: 43.788,
+          longitude: -79.19,
+          published: false,
+          floors: [
+            {
+              target_id: 't-draft',
+              name: 'Floor 2',
+              code: '2',
+              publication_id: null,
+              sequence: 0,
+              published: false,
+            },
+          ],
+        },
+      ],
+    });
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(markers.length).toBe(1));
+    expect(markers[0].icon?.url).toContain(encodeURIComponent('#e25b45'));
+    fixture.destroy();
   });
 });

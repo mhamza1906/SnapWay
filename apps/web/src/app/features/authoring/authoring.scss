@@ -1,76 +1,71 @@
-.authoring-page {
+.setup-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 28px;
+  margin: 0;
 }
-// Long option labels and the map's intrinsic width must not widen the page.
-.authoring-page > *,
-.authoring-grid > *,
-.panel-body > * {
-  min-width: 0;
-}
-select,
-input {
-  min-width: 0;
-}
-.source-row,
-.button-row,
-.route-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: end;
-}
-.floor-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.authoring-grid {
+.setup-panel .panel-body.setup-grid {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
   align-items: start;
 }
-@media (max-width: 960px) {
-  .authoring-grid {
-    grid-template-columns: 1fr;
-  }
+.setup-grid .field,
+.setup-grid .mode-field,
+.setup-grid .actions,
+.setup-grid .hint {
+  margin-bottom: 0;
+  min-width: 0;
 }
-.map-svg {
-  width: 100%;
-  overflow: auto;
-  border-radius: 0.5rem;
-  background: #f7f7f4;
+.setup-grid .full {
+  grid-column: 1 / -1;
 }
-.map-svg ::ng-deep svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.tools-panel .panel-body {
-  display: grid;
-  gap: 0.6rem;
-  max-height: 80vh;
-  overflow: auto;
-}
-.item {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.6rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-.hint,
-.job {
+.mode-field {
+  border: 0;
+  padding: 0;
   margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.8;
+  display: grid;
+  gap: 0.55rem;
 }
-label.btn.disabled {
+.mode-field legend {
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+}
+.choice {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+.upload-btn.disabled {
   opacity: 0.5;
   pointer-events: none;
 }
-select {
-  max-width: 100%;
-  width: 100%;
+@media (max-width: 1000px) {
+  .setup-page {
+    padding: 20px 16px;
+  }
+}
+@media (max-width: 720px) {
+  .setup-panel .panel-body.setup-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

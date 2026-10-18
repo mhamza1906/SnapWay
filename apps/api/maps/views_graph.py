@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from maps.models import MapTarget, Membership, Revision
 from maps.permissions import IsAuthenticatedMapMember
 from maps.services.draft import ensure_demo_draft
+from maps.services.editor import EditorConflict, edit_graph
 from maps.services.graph import (
     GraphError,
     GraphPermissionError,
@@ -30,6 +31,8 @@ from maps.services.underlay import store_underlay_file
 
 
 def _error_response(exc: Exception):
+    if isinstance(exc, EditorConflict):
+        return Response({"detail": str(exc)}, status=409)
     if isinstance(exc, GraphPermissionError | PermissionError | PermissionDenied):
         return Response({"detail": str(exc)}, status=status.HTTP_403_FORBIDDEN)
     if isinstance(exc, ValidationError):
@@ -108,6 +111,17 @@ class GraphListView(RevisionGraphMixin, APIView):
     def get(self, request, revision_id):
         revision = self.get_revision()
         return Response(list_graph(revision))
+
+    @extend_schema(
+        summary="Commit one atomic editor gesture",
+        request=OpenApiTypes.OBJECT,
+        responses={200: OpenApiTypes.OBJECT, 409: OpenApiTypes.OBJECT},
+    )
+    def patch(self, request, revision_id):
+        try:
+            return Response(edit_graph(self.get_revision(), data=request.data, actor=request.user))
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(exc)
 
 
 class NodeCollectionView(RevisionGraphMixin, APIView):
@@ -231,6 +245,7 @@ class NodePhotoCollectionView(RevisionGraphMixin, APIView):
                 uploaded_file=uploaded,
                 actor=request.user,
                 content_type=uploaded.content_type,
+                direction=request.data.get("direction") or None,
             )
         except Exception as exc:  # noqa: BLE001
             return _error_response(exc)

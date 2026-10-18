@@ -1,6 +1,6 @@
 # Developer workspace and publication lifecycle
 
-Updated October 17, 2026. Branch: `feature/frontend-iteration`.
+Updated October 18, 2026. Branch: `feature/frontend-iteration`.
 This is the active workspace specification, implementation guide and acceptance
 record. It supersedes the prototype workspace menus and browser-storage workflow
 in [frontend iteration](frontend-iteration.md) and [frontend prototype](frontend-prototype.md).
@@ -10,7 +10,7 @@ Personal execution details remain in the contributor's ignored `local/ACTIONS.md
 
 | Route | Behavior |
 | --- | --- |
-| `/explore` | Shared Google map with permanent yellow markers for buildings containing current, valid publications. Closing a selection or searching never filters these markers. |
+| `/explore` | Shared Google map. Yellow markers = buildings with current publications; red markers = draft-only floors visible to the signed-in developer (`GET /api/maps/workspace/buildings/`). Header hosts search + locate; classic Map markers (not Advanced Marker / DEMO_MAP_ID). |
 | `/my-maps` | Server-owned map cards sorted by the caller's latest edit time, descending; centered grid with one to three cards per row. |
 | `/authoring` | **Request new map** for Developers; **Initialize new map** for provisioned administrators. Both use the same existing AI pipeline. Manual editing also works when AI is unavailable. |
 | `/graph-editor?target=<uuid>` | Create/resume the caller's pinned editing snapshot; upload underlay, edit graph and attach waypoint photographs. Finish submits for review or immediately approves/publishes when the caller administers this target. |
@@ -26,21 +26,28 @@ the web `/navigate` legacy link leads there. The separate native visitor entry
 is preserved. The verified Developer login landing still passes through the
 compatible `/overview` redirect before reaching My maps.
 
-The workspace header uses the existing navy/blue camera/road/arrow wordmark.
-Its account menu uses the authenticated Google account's `picture` claim, with
-HTTPS Google image-host validation and an initials fallback. Sign out and
-same-account Public User switching live in this menu. There is no selectable
-administrator identity or self-service administrator registration.
+The workspace header uses the existing navy/blue camera/road/arrow wordmark and
+a centered title (or, on Explore, the search field + locate control). Page bodies
+keep a single supporting sentence—no repeated eyebrow/h1 stacks. Long waits share
+one global semi-transparent spinner overlay via `UiService`. The account menu uses
+the authenticated Google account's `picture` claim, with HTTPS Google image-host
+validation and an initials fallback. Sign out and same-account Public User
+switching live in this menu. There is no selectable administrator identity or
+self-service administrator registration.
 [Google's profile claim documentation](https://developers.google.com/identity/openid-connect/openid-connect)
 defines the profile-picture URL; the client does not construct one from email.
 
 ## Explore and building identity
 
-Discovery only includes open targets with a current, non-invalidated publication
-and building coordinates. Clicking a yellow marker opens a panel bounded by the
-map viewport in both dimensions. It progressively reveals 20 floor cards at a
+Developer Explore loads `GET /api/maps/workspace/buildings/` (developer session):
+every open target the caller can see that has building latitude/longitude.
+Buildings with any current publication render yellow; draft-only buildings
+render red. Public visitor discovery remains
+`GET /api/maps/public/buildings/` (published only). Clicking a marker opens a
+panel bounded by the map viewport. It progressively reveals 20 floor cards at a
 time as the panel scrolls; an accessible Load more button provides the same
-operation. Closing the panel leaves every publication marker on the map.
+operation. Closing the panel leaves every marker on the map. Locate places a
+blue user pin and pans the map.
 
 Clicking another Google POI or a map position starts a building selection and
 offers the role-appropriate creation flow. Published buildings also have an
@@ -136,7 +143,10 @@ and return `Cache-Control: no-store`. Mutation requests use Django CSRF protecti
 
 | Method and suffix | Purpose |
 | --- | --- |
-| GET / POST root | List caller's maps / create building-floor draft. |
+| GET / POST root | List caller's maps / create building-floor draft. List cards omit `preview_url` so the grid does not download full underlay SVGs/images per card; the UI shows a map icon until dedicated thumbnails exist. |
+| GET `buildings/` | Developer Explore markers: open floors with coordinates (yellow if published, red if draft-only). |
+| GET/POST `targets/<id>/optimize/…` | Image 2.5 raster optimize status/upload/regenerate; see [map-image-optimize.md](map-image-optimize.md). |
+| POST `targets/<id>/vectorize-demo/` | Demo-only fixed IA floor-4 SVG (no Vectorizer.AI). |
 | POST `targets/<id>/edit/` | Resume or clone the caller's editing snapshot. |
 | POST `contributions/<id>/pipeline/` | Import selected pipeline floor, SVG and graph into an empty owned draft. |
 | POST `contributions/<id>/submit/` | Freeze draft, submit or automatically approve/publish according to server authority. |
@@ -244,10 +254,13 @@ The screenshots below show those explicitly labeled, temporary QA maps:
 - [apps/web/src/app/app.scss](../apps/web/src/app/app.scss)
 - [apps/web/src/app/app.spec.ts](../apps/web/src/app/app.spec.ts)
 - [apps/web/src/app/app.ts](../apps/web/src/app/app.ts)
+- [apps/web/src/app/app-overlays.scss](../apps/web/src/app/app-overlays.scss)
 - [apps/web/src/app/core/auth.service.ts](../apps/web/src/app/core/auth.service.ts)
 - [apps/web/src/app/core/google-maps.service.ts](../apps/web/src/app/core/google-maps.service.ts)
 - [apps/web/src/app/core/graph-api.service.ts](../apps/web/src/app/core/graph-api.service.ts)
+- [apps/web/src/app/core/ui.service.ts](../apps/web/src/app/core/ui.service.ts)
 - [apps/web/src/app/core/workspace-api.service.ts](../apps/web/src/app/core/workspace-api.service.ts)
+- [apps/web/src/app/core/workspace-chrome.service.ts](../apps/web/src/app/core/workspace-chrome.service.ts)
 - [apps/web/src/app/features/authoring/authoring.html](../apps/web/src/app/features/authoring/authoring.html)
 - [apps/web/src/app/features/authoring/authoring.spec.ts](../apps/web/src/app/features/authoring/authoring.spec.ts)
 - [apps/web/src/app/features/authoring/authoring.ts](../apps/web/src/app/features/authoring/authoring.ts)

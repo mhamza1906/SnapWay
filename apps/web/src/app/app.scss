@@ -19,17 +19,59 @@
   width: 230px;
   flex-shrink: 0;
 }
-.breadcrumb {
+.header-center {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-width: 0;
-  color: #7c878a;
-  font-size: 12px;
+  justify-content: center;
+  gap: 10px;
 }
-.breadcrumb strong {
-  font-weight: 550;
-  color: #273c47;
+.header-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #243842;
+  text-align: center;
+}
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, 100%);
+  background: #f7f9f7;
+  border: 1px solid #dde5e1;
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #71828b;
+}
+.header-search input {
+  border: 0;
+  outline: 0;
+  background: none;
+  min-width: 0;
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+}
+.header-search button,
+.header-locate {
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #85988b;
+  cursor: pointer;
+  padding: 0;
+}
+.header-locate {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #e0e7e1;
+  background: #fff;
+  flex-shrink: 0;
 }
 .sidebar {
   position: fixed;
@@ -140,10 +182,16 @@ nav a app-icon {
   border-top: 1px solid var(--line);
 }
 .workspace-content {
+  box-sizing: border-box;
   padding-top: 78px;
   margin-left: 278px;
   min-width: 0;
   min-height: 100dvh;
+}
+.workspace-content.explore-content,
+.workspace-content.bleed-content {
+  height: 100dvh;
+  overflow: hidden;
 }
 .mobile-toggle {
   display: none;
@@ -248,4 +296,32 @@ nav a app-icon {
 }
 .skip-link:focus {
   top: 8px;
+}
+
+/* Navigation can be folded on every viewport; opening it remains an explicit choice. */
+.mobile-toggle {
+  display: flex;
+  flex: 0 0 32px;
+}
+.sidebar {
+  transition: transform 0.22s ease;
+}
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+.workspace-content.sidebar-collapsed {
+  margin-left: 0;
+}
+.sidebar-scrim {
+  display: none;
+}
+@media (max-width: 760px) {
+  .sidebar-scrim {
+    display: block;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
 }

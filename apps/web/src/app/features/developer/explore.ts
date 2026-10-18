@@ -17,12 +17,21 @@ import {
   MapsRuntime,
   MarkerHandle,
   MapClick,
+  detachMarker,
+  mapPinIcon,
 } from '../../core/google-maps.service';
 import { AuthService } from '../../core/auth.service';
+import { UiService } from '../../core/ui.service';
+import { WorkspaceChrome } from '../../core/workspace-chrome.service';
 import { Icon } from '../../shared/icon';
 import { PublicBuilding } from '../map/map';
 
-type Building = PublicBuilding & { place_id?: string };
+type ExploreFloor = PublicBuilding['floors'][number] & { published?: boolean };
+type Building = Omit<PublicBuilding, 'floors'> & {
+  place_id?: string;
+  published?: boolean;
+  floors: ExploreFloor[];
+};
 interface PlaceData {
   id: string;
   displayName?: string;
@@ -36,27 +45,12 @@ interface PlacesLibrary {
     searchByText(options: Record<string, unknown>): Promise<{ places: PlaceData[] }>;
   };
 }
+
 @Component({
   selector: 'app-developer-explore',
   imports: [RouterLink, Icon],
   template: `<section class="explore" aria-label="Explore buildings">
     <div #canvas class="map-canvas"></div>
-    <form class="map-search" (submit)="search($event)">
-      <app-icon name="search" /><input
-        aria-label="Search buildings or addresses"
-        placeholder="Search buildings or addresses"
-        [value]="query()"
-        (input)="query.set($any($event.target).value)"
-      /><button aria-label="Search" [disabled]="searching()">
-        <app-icon name="arrow-right" />
-      </button>
-    </form>
-    <button class="locate" aria-label="Use my location" (click)="locate()">
-      <app-icon name="location" />
-    </button>
-    @if (loading()) {
-      <div class="map-message" role="status">Opening your map…</div>
-    }
     @if (error() || sdk.error()) {
       <div class="map-message error" role="alert">
         {{ error() || sdk.error() }}<button class="btn" (click)="retry()">Retry</button>
@@ -69,12 +63,10 @@ interface PlacesLibrary {
       <aside class="floor-panel" aria-label="Published floors" (scroll)="moreFloors($event)">
         <header>
           <div>
-            <p class="eyebrow">PUBLISHED PLACE</p>
+            <p class="eyebrow">{{ building.published ? 'MAPPED PLACE' : 'DRAFT PLACE' }}</p>
             <h1>{{ building.name }}</h1>
             <p>
-              {{ building.floors.length }} available floor{{
-                building.floors.length === 1 ? '' : 's'
-              }}
+              {{ building.floors.length }} floor{{ building.floors.length === 1 ? '' : 's' }}
             </p>
           </div>
           <button
@@ -87,12 +79,12 @@ interface PlacesLibrary {
         </header>
         @for (floor of visibleFloors(); track floor.target_id) {
           <article class="floor-card">
-            <div class="floor-number">
+            <div class="floor-number" [class.draft]="!floor.published">
               <app-icon name="layers" /><strong>{{ floor.code }}</strong>
             </div>
             <div>
               <h2>{{ floor.name }}</h2>
-              <p>Published · Version {{ floor.sequence }}</p>
+              <p>{{ floor.published ? 'Published · Version ' + floor.sequence : 'Editing snapshot' }}</p>
               <a
                 class="btn secondary"
                 routerLink="/graph-editor"
@@ -163,7 +155,8 @@ interface PlacesLibrary {
       </aside>
     }
     <div class="map-legend">
-      <span class="yellow-dot"></span>Published floors
+      <span class="yellow-dot"></span>Published
+      <span class="red-dot"></span>Draft
       <span class="legend-hint">Select any building to map a new floor</span>
     </div>
     @if (buildings().length && !selected() && !candidate()) {
@@ -185,6 +178,8 @@ export class ExplorePage implements AfterViewInit {
   readonly sdk = inject(GoogleMapsService);
   readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
+  private readonly ui = inject(UiService);
+  private readonly chrome = inject(WorkspaceChrome);
   private readonly destroy = inject(DestroyRef);
   readonly canvas = viewChild.required<ElementRef<HTMLElement>>('canvas');
   readonly buildings = signal<Building[]>([]);
@@ -207,85 +202,100 @@ export class ExplorePage implements AfterViewInit {
   private maps?: MapsRuntime;
   private map?: MapHandle;
   private markers: MarkerHandle[] = [];
+  private userMarker?: MarkerHandle;
   private destroyed = false;
   private clickVersion = 0;
+
   constructor() {
+    this.chrome.bindExplore({
+      search: (query) => this.runSearch(query),
+      locate: () => this.locate(),
+    });
     this.destroy.onDestroy(() => {
       this.destroyed = true;
-      this.markers.forEach((m) => {
-        this.maps?.event.clearInstanceListeners(m);
-        m.map = null;
-      });
+      this.chrome.unbindExplore();
+      this.markers.forEach((m) => detachMarker(this.maps, m));
+      if (this.userMarker) detachMarker(this.maps, this.userMarker);
       if (this.map) this.maps?.event.clearInstanceListeners(this.map);
     });
   }
+
   ngAfterViewInit() {
     void this.initialize();
   }
+
   async initialize() {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [runtime, data] = await Promise.all([
-        this.sdk.load(),
-        firstValueFrom(this.http.get<{ buildings: Building[] }>('/api/maps/public/buildings/')),
-      ]);
-      if (this.destroyed) return;
-      this.maps = runtime.maps;
-      this.buildings.set(data.buildings);
-      this.map ??= new runtime.maps.Map(this.canvas().nativeElement, {
-        center: { lat: 43.784, lng: -79.187 },
-        zoom: 16,
-        mapId: runtime.mapId,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        clickableIcons: true,
-        gestureHandling: 'greedy',
-      });
-      this.maps.event.clearInstanceListeners(this.map);
-      this.map.addListener('click', (event) => void this.onMapClick(event));
-      this.markers.forEach((m) => {
-        this.maps?.event.clearInstanceListeners(m);
-        m.map = null;
-      });
-      this.markers = data.buildings.map((b) => {
-        const pin = document.createElement('div');
-        pin.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="35" height="45" viewBox="0 0 35 45"><path d="M17.5 43C14 37 2 25 2 17a15.5 15.5 0 0 1 31 0c0 8-12 20-15.5 26Z" fill="#f4c63d" stroke="#fff" stroke-width="2.5"/><circle cx="17.5" cy="17" r="5" fill="#665117"/></svg>';
-        const marker = new runtime.maps.marker.AdvancedMarkerElement({
-          map: this.map,
-          position: { lat: b.latitude, lng: b.longitude },
-          title: `${b.name} · ${b.floors.length} published floors`,
-          content: pin,
-          gmpClickable: true,
-        });
-        marker.addListener('click', () => this.choose(b));
-        return marker;
-      });
-      if (data.buildings.length === 1) {
-        const b = data.buildings[0];
-        this.map.panTo({ lat: b.latitude, lng: b.longitude });
-        this.map.setZoom(17);
-      } else if (data.buildings.length) {
-        const bounds = new runtime.maps.LatLngBounds();
-        data.buildings.forEach((b) => bounds.extend({ lat: b.latitude, lng: b.longitude }));
-        this.map.fitBounds(bounds, 100);
-      }
-      if (navigator.permissions) {
-        const p = await navigator.permissions.query({ name: 'geolocation' }).catch(() => null);
-        if (!this.destroyed && p?.state === 'granted') this.locate();
-      }
+      await this.ui.runBusy(async () => {
+        const [runtime, data] = await Promise.all([
+          this.sdk.load(),
+          firstValueFrom(
+            this.http.get<{ buildings: Building[] }>('/api/maps/workspace/buildings/'),
+          ),
+        ]);
+        if (this.destroyed) return;
+        this.maps = runtime.maps;
+        this.buildings.set(data.buildings);
+        const mapOptions: Record<string, unknown> = {
+          center: { lat: 43.784, lng: -79.187 },
+          zoom: 16,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          clickableIcons: true,
+          gestureHandling: 'greedy',
+        };
+        // Cloud mapId is optional styling; omit DEMO_MAP_ID so classic markers stay reliable.
+        if (runtime.mapId && runtime.mapId !== 'DEMO_MAP_ID') mapOptions['mapId'] = runtime.mapId;
+        this.map ??= new runtime.maps.Map(this.canvas().nativeElement, mapOptions);
+        this.maps.event.clearInstanceListeners(this.map);
+        this.map.addListener('click', (event) => void this.onMapClick(event));
+        this.renderMarkers();
+        if (data.buildings.length === 1) {
+          const b = data.buildings[0];
+          this.map.panTo({ lat: b.latitude, lng: b.longitude });
+          this.map.setZoom(17);
+        } else if (data.buildings.length) {
+          const bounds = new runtime.maps.LatLngBounds();
+          data.buildings.forEach((b) => bounds.extend({ lat: b.latitude, lng: b.longitude }));
+          this.map.fitBounds(bounds, 100);
+        }
+        if (navigator.permissions) {
+          const p = await navigator.permissions.query({ name: 'geolocation' }).catch(() => null);
+          if (!this.destroyed && p?.state === 'granted') this.locate();
+        }
+      }, 'Opening map…');
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Could not load buildings. Please retry.');
     } finally {
       this.loading.set(false);
     }
   }
+
+  private renderMarkers() {
+    if (!this.maps || !this.map) return;
+    this.markers.forEach((m) => detachMarker(this.maps, m));
+    this.markers = this.buildings().map((building) => {
+      const fill = building.published ? '#f4c63d' : '#e25b45';
+      const marker = new this.maps!.Marker({
+        map: this.map,
+        position: { lat: building.latitude, lng: building.longitude },
+        title: `${building.name} · ${building.floors.length} floors`,
+        icon: mapPinIcon(this.maps!, fill),
+        optimized: false,
+      });
+      marker.addListener('click', () => this.choose(building));
+      return marker;
+    });
+  }
+
   retry() {
     if (this.sdk.error()) window.location.reload();
     else void this.initialize();
   }
+
   choose(building: Building) {
     this.clickVersion++;
     this.candidate.set(null);
@@ -294,10 +304,12 @@ export class ExplorePage implements AfterViewInit {
     this.map?.panTo({ lat: building.latitude, lng: building.longitude });
     this.map?.setZoom(18);
   }
+
   moreFloors(event: Event) {
     const el = event.target as HTMLElement;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) this.limit.update(this.addPage);
   }
+
   private async onMapClick(event: MapClick) {
     if (!event.latLng) return;
     event.stop?.();
@@ -331,11 +343,14 @@ export class ExplorePage implements AfterViewInit {
       }
     }
   }
-  async search(event: Event) {
-    event.preventDefault();
-    if (!this.query().trim() || this.searching()) return;
+
+  async runSearch(rawQuery: string) {
+    const query = rawQuery.trim();
+    this.query.set(query);
+    this.chrome.exploreQuery.set(query);
+    if (!query || this.searching()) return;
     const match = this.buildings().find((b) =>
-      (b.name + ' ' + b.address).toLowerCase().includes(this.query().toLowerCase()),
+      (b.name + ' ' + b.address).toLowerCase().includes(query.toLowerCase()),
     );
     if (match) {
       this.choose(match);
@@ -345,34 +360,37 @@ export class ExplorePage implements AfterViewInit {
     this.searching.set(true);
     this.note.set('');
     try {
-      const { Place } = (await this.maps.importLibrary('places')) as PlacesLibrary;
-      const result = await Place.searchByText({
-        textQuery: this.query(),
-        fields: ['id', 'displayName', 'formattedAddress', 'location'],
-      });
-      const place = result.places[0];
-      if (!place?.location) {
-        this.note.set('No matching building found. Try a more specific address.');
-        return;
-      }
-      const lat = place.location.lat(),
-        lng = place.location.lng();
-      this.selected.set(null);
-      this.candidate.set({
-        id: place.id,
-        name: place.displayName || this.query(),
-        address: place.formattedAddress || '',
-        lat,
-        lng,
-      });
-      this.map?.panTo({ lat, lng });
-      this.map?.setZoom(18);
+      await this.ui.runBusy(async () => {
+        const { Place } = (await this.maps!.importLibrary('places')) as PlacesLibrary;
+        const result = await Place.searchByText({
+          textQuery: query,
+          fields: ['id', 'displayName', 'formattedAddress', 'location'],
+        });
+        const place = result.places[0];
+        if (!place?.location) {
+          this.note.set('No matching building found. Try a more specific address.');
+          return;
+        }
+        const lat = place.location.lat(),
+          lng = place.location.lng();
+        this.selected.set(null);
+        this.candidate.set({
+          id: place.id,
+          name: place.displayName || query,
+          address: place.formattedAddress || '',
+          lat,
+          lng,
+        });
+        this.map?.panTo({ lat, lng });
+        this.map?.setZoom(18);
+      }, 'Searching…');
     } catch {
       this.note.set('Place search is unavailable. Select the building directly on the map.');
     } finally {
       this.searching.set(false);
     }
   }
+
   locate() {
     if (!navigator.geolocation) {
       this.note.set('Location is unavailable in this browser.');
@@ -381,12 +399,31 @@ export class ExplorePage implements AfterViewInit {
     this.note.set('Finding your location…');
     navigator.geolocation.getCurrentPosition(
       (p) => {
-        if (this.destroyed) return;
-        this.map?.panTo({ lat: p.coords.latitude, lng: p.coords.longitude });
-        this.map?.setZoom(17);
+        if (this.destroyed || !this.maps || !this.map) return;
+        const point = { lat: p.coords.latitude, lng: p.coords.longitude };
+        this.map.panTo(point);
+        this.map.setZoom(17);
+        if (this.userMarker) {
+          this.userMarker.position = point;
+          this.userMarker.setMap?.(this.map ?? null);
+        } else {
+          this.userMarker = new this.maps.Marker({
+            map: this.map,
+            position: point,
+            title: 'Your approximate location',
+            icon: mapPinIcon(this.maps, '#3b82c4'),
+            zIndex: 999,
+            optimized: false,
+          });
+        }
         this.note.set('Map centered on your location.');
       },
-      () => this.note.set('Location permission was unavailable. You can still explore the map.'),
+      (error) =>
+        this.note.set(
+          error.code === 1
+            ? 'Location permission was denied. You can still explore the map.'
+            : 'Location permission was unavailable. You can still explore the map.',
+        ),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   }

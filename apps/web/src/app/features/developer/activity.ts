@@ -7,12 +7,8 @@ import { WorkspaceApi, workspaceError } from '../../core/workspace-api.service';
   imports: [DatePipe, RouterLink],
   styleUrls: ['./workspace.scss', './exports.scss'],
   template: `<section class="page live-page">
-    <header class="page-heading">
-      <div>
-        <p class="eyebrow">DEVELOPER CONTRIBUTION</p>
-        <h1>Activity</h1>
-        <p>Server-recorded submissions, publication decisions and map archival.</p>
-      </div>
+    <header class="page-heading page-heading-compact">
+      <p>Server-recorded submissions, publication decisions and map archival.</p>
       <a class="btn secondary" routerLink="/developer-contribution">Back to contributions</a>
     </header>
     @if (error()) {

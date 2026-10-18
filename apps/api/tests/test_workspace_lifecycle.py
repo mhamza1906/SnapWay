@@ -224,9 +224,17 @@ def test_exports_and_building_markers_only_expose_published_floors(people):
     submit(alice, draft.pk)
     client = client_for(alice)
     assert not client.get("/api/maps/public/buildings/").json()["buildings"]
+    workspace = client.get("/api/maps/workspace/buildings/").json()["buildings"]
+    assert len(workspace) == 1
+    assert workspace[0]["published"] is False
+    assert workspace[0]["latitude"] == 43.78412
+    assert workspace[0]["floors"][0]["published"] is False
     review(admin, draft.pk, "approved")
     buildings = client.get("/api/maps/public/buildings/").json()["buildings"]
     assert len(buildings) == 1 and buildings[0]["floors"][0]["code"] == "4"
+    published = client.get("/api/maps/workspace/buildings/").json()["buildings"]
+    assert published[0]["published"] is True
+    assert published[0]["floors"][0]["published"] is True
     for format in ["json", "graph", "svg"]:
         response = client.get(
             f"/api/maps/workspace/targets/{draft.target_id}/export/?kind={format}"
@@ -320,6 +328,21 @@ def test_archival_can_destroy_a_pending_proposal_after_its_copy_is_published(peo
     archive(admin, first.target_id)
     assert not Contribution.objects.filter(pk=first.pk).exists()
     assert Publication.objects.filter(revision=second.head_revision).exists()
+
+
+def test_my_maps_list_omits_underlay_preview_urls(people):
+    """Card grid must not point img tags at full floor-plan assets."""
+    _, alice, _ = people
+    contribution = new_map(alice)
+    plan(contribution)
+    assert contribution.head_revision.source_asset_id
+    from maps.services.workspace import card
+
+    detail = card(contribution.target, contribution, include_preview=True)
+    assert detail["preview_url"]
+    listed = client_for(alice).get("/api/maps/workspace/").json()["maps"]
+    assert len(listed) >= 1
+    assert all(row.get("preview_url") is None for row in listed)
 
 
 def test_create_api_requires_position_and_cannot_self_grant_admin(people):

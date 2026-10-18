@@ -1,8 +1,10 @@
 :host {
   display: block;
+  height: 100%;
+  min-height: 0;
 }
 .explore {
-  height: calc(100dvh - 78px);
+  height: 100%;
   min-height: 0;
   position: relative;
   overflow: hidden;
@@ -12,54 +14,12 @@
   position: absolute;
   inset: 0;
 }
-.map-search {
-  position: absolute;
-  left: 28px;
-  top: 22px;
-  width: min(480px, calc(100% - 110px));
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  background: #fffffff5;
-  padding: 14px 17px;
-  border: 1px solid #dce4e4;
-  border-radius: 12px;
-  box-shadow: 0 5px 20px #24423816;
-  color: #71828b;
-}
-.map-search input {
-  border: 0;
-  outline: 0;
-  background: none;
-  min-width: 0;
-  width: 100%;
-  font-size: 13px;
-}
-.map-search button {
-  border: 0;
-  background: transparent;
-  display: flex;
-  color: #85988b;
-}
-.locate {
-  position: absolute;
-  right: 24px;
-  top: 22px;
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border: 1px solid #e0e7e1;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 3px 13px #223b341c;
-}
 .floor-panel {
   position: absolute;
   right: 24px;
-  top: 88px;
+  top: 24px;
   bottom: 70px;
-  max-height: calc(100% - 158px);
+  max-height: calc(100% - 94px);
   width: min(380px, calc(100% - 48px));
   overflow: auto;
   overscroll-behavior: contain;
@@ -70,6 +30,7 @@
   box-shadow: 0 16px 60px #1b39212b;
   padding: 0 18px 18px;
   scrollbar-width: thin;
+  z-index: 2;
 }
 .floor-panel header {
   padding: 22px 0 16px;
@@ -111,6 +72,10 @@
   place-items: center;
   gap: 8px;
   color: #a48a39;
+}
+.floor-number.draft {
+  background: #f8e4df;
+  color: #b24a3a;
 }
 .floor-card h2 {
   font-size: 17px;
@@ -167,27 +132,12 @@
   height: 30px;
 }
 @media (max-width: 760px) {
-  .explore {
-    height: calc(100dvh - 68px);
-  }
-  .map-search {
-    left: 14px;
-    top: 15px;
-    width: calc(100% - 82px);
-    padding: 13px 12px;
-  }
-  .locate {
-    top: 15px;
-    right: 14px;
-    width: 43px;
-    height: 43px;
-  }
   .floor-panel {
     right: 14px;
-    top: 78px;
+    top: 14px;
     bottom: 64px;
     width: min(380px, calc(100% - 28px));
-    max-height: calc(100% - 142px);
+    max-height: calc(100% - 78px);
   }
   .map-legend {
     bottom: 27px;
@@ -199,7 +149,7 @@
     display: none;
   }
   .map-message {
-    top: 78px;
+    top: 14px;
     left: 14px;
   }
   .map-note {
@@ -207,7 +157,7 @@
     bottom: 80px;
   }
   .available {
-    top: 78px;
+    top: 14px;
     left: 14px;
   }
 }

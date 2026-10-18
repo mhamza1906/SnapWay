@@ -8,12 +8,8 @@ import { Icon } from '../../shared/icon';
   imports: [DatePipe, RouterLink, Icon],
   styleUrl: './workspace.scss',
   template: `<section class="page live-page">
-    <header class="page-heading">
-      <div>
-        <p class="eyebrow">CURATE THE SHARED MAP</p>
-        <h1>Developer contribution</h1>
-        <p>Review new floors and map updates, or manage archived places.</p>
-      </div>
+    <header class="page-heading page-heading-compact">
+      <p>Review new floors and map updates, or manage archived places.</p>
       <a class="btn secondary" routerLink="/developer-contribution/activity"
         ><app-icon name="activity" />Activity</a
       >

@@ -3,20 +3,15 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { WorkspaceApi, MapCard, workspaceError } from '../../core/workspace-api.service';
 import { AuthService } from '../../core/auth.service';
+import { UiService } from '../../core/ui.service';
 import { Icon } from '../../shared/icon';
 
 @Component({
   selector: 'app-my-maps',
   imports: [DatePipe, RouterLink, Icon],
   template: `<section class="page live-page">
-    <header class="page-heading">
-      <div>
-        <p class="eyebrow">YOUR PLACES, TAKING SHAPE</p>
-        <h1>
-          My maps<span class="count">{{ maps().length }}</span>
-        </h1>
-        <p>Pick up where you left off. Every edit starts from your own snapshot.</p>
-      </div>
+    <header class="page-heading page-heading-compact">
+      <p>Pick up where you left off. Every edit starts from your own snapshot.</p>
       <a class="btn primary" routerLink="/authoring"
         ><app-icon name="plus" />{{ auth.canAdmin() ? 'Initialize new map' : 'Request new map' }}</a
       >
@@ -37,15 +32,13 @@ import { Icon } from '../../shared/icon';
         {{ error() }} <button class="btn" (click)="load()">Retry</button>
       </div>
     }
-    @if (loading()) {
-      <p class="empty-state" role="status">Loading your maps…</p>
-    } @else {
+    @if (!loading()) {
       <section class="map-grid" aria-label="Your maps">
         @for (map of filtered(); track map.id) {
           <article class="map-card">
             <a
-              class="map-preview"
-              [routerLink]="map.status === 'archived' ? '/my-maps' : '/graph-editor'"
+              class="map-preview map-edit-link"
+              [routerLink]="map.status === 'archived' ? '/my-maps' : editLink(map)"
               [queryParams]="{ target: map.target_id }"
             >
               @if (map.preview_url) {
@@ -56,7 +49,7 @@ import { Icon } from '../../shared/icon';
               <span
                 class="status"
                 [class.published]="map.status === 'merged' || map.status === 'published'"
-                >{{ label(map.status) }}</span
+                >{{ label(map.status, map.authoring_stage) }}</span
               >
             </a>
             <div class="map-card-body">
@@ -67,11 +60,9 @@ import { Icon } from '../../shared/icon';
                 @if (map.status !== 'archived') {
                   <a
                     class="btn secondary"
-                    routerLink="/graph-editor"
+                    [routerLink]="editLink(map)"
                     [queryParams]="{ target: map.target_id }"
-                    ><app-icon name="edit" />{{
-                      map.status === 'draft' ? 'Continue editing' : 'Start new edit'
-                    }}</a
+                    ><app-icon name="edit" />{{ editLabel(map) }}</a
                   >
                 }
                 <a
@@ -96,11 +87,15 @@ import { Icon } from '../../shared/icon';
       </section>
     }
   </section>`,
-  styleUrl: './workspace.scss',
+  styleUrls: ['./workspace.scss'],
+  styles: [
+    "\n.map-card {\n  position: relative;\n}\n.map-edit-link { position: static; }\n.map-edit-link::after {\n  content: '';\n  position: absolute;\n  inset: 0;\n  z-index: 1;\n}\n.card-actions {\n  position: relative;\n  z-index: 2;\n}\n.map-card:focus-within {\n  outline: 2px solid #378cac;\n  outline-offset: 3px;\n}\n",
+  ],
 })
 export class MyMapsPage implements OnInit {
   readonly api = inject(WorkspaceApi);
   readonly auth = inject(AuthService);
+  private readonly ui = inject(UiService);
   readonly maps = signal<MapCard[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
@@ -117,14 +112,27 @@ export class MyMapsPage implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.maps.set((await this.api.maps()).maps);
+      await this.ui.runBusy(async () => {
+        this.maps.set((await this.api.maps()).maps);
+      }, 'Loading maps…');
     } catch (e) {
       this.error.set(workspaceError(e));
     } finally {
       this.loading.set(false);
     }
   }
-  label(status: string) {
+  editLink(map: MapCard) {
+    return map.edit_path || '/graph-editor';
+  }
+  editLabel(map: MapCard) {
+    if (map.authoring_stage === 'image_optimize' || map.authoring_stage === 'vectorized_demo') {
+      return 'Continue Image 2.5 review';
+    }
+    return map.status === 'draft' ? 'Continue editing' : 'Start new edit';
+  }
+  label(status: string, stage?: string | null) {
+    if (stage === 'image_optimize') return 'Image 2.5 review';
+    if (stage === 'vectorized_demo') return 'Demo vector ready';
     return (
       {
         merged: 'Published',

@@ -100,6 +100,15 @@ p {
   color: var(--muted);
   margin: 0;
 }
+.page-heading-compact {
+  align-items: center;
+  margin-bottom: 22px;
+}
+.page-heading-compact > p {
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 42rem;
+}
 .actions {
   display: flex;
   gap: 10px;

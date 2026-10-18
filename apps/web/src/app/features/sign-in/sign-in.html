@@ -131,9 +131,6 @@
       </button>
     </div>
     <div class="connection-status" aria-live="polite">
-      @if (loading()) {
-        <p>Checking Google sign-in…</p>
-      }
       @if (error() || auth.error()) {
         <p role="alert">
           {{ auth.error() || error() }} <button class="retry" (click)="load()">Try again</button>

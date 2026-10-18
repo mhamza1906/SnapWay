@@ -42,6 +42,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/authoring/authoring').then((m) => m.AuthoringPage),
   },
   {
+    path: 'map-optimize',
+    canActivate: [developerGuard],
+    loadComponent: () =>
+      import('./features/map-optimize/map-optimize').then((m) => m.MapOptimizePage),
+  },
+  {
     path: 'settings',
     canActivate: [developerGuard],
     loadComponent: () => import('./features/developer/exports').then((m) => m.MapExportsPage),

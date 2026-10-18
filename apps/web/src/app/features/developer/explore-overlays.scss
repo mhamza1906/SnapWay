@@ -13,13 +13,21 @@
   color: #536a5d;
   max-width: calc(100% - 50px);
 }
-.yellow-dot {
+.yellow-dot,
+.red-dot {
   width: 10px;
   height: 10px;
-  background: #eabc2d;
-  border: 1px solid #d4a923;
   border-radius: 50%;
   flex-shrink: 0;
+}
+.yellow-dot {
+  background: #eabc2d;
+  border: 1px solid #d4a923;
+}
+.red-dot {
+  background: #e25b45;
+  border: 1px solid #c74a37;
+  margin-left: 4px;
 }
 .legend-hint {
   padding-left: 12px;
@@ -29,7 +37,8 @@
 .map-message {
   position: absolute;
   left: 24px;
-  top: 88px;
+  top: 24px;
+  z-index: 2;
   padding: 18px;
   background: white;
   border-radius: 12px;
@@ -57,7 +66,8 @@
 .available {
   position: absolute;
   left: 24px;
-  top: 90px;
+  top: 24px;
+  z-index: 2;
   font-size: 11px;
   background: white;
   border-radius: 10px;

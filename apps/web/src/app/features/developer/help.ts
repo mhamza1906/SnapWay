@@ -6,18 +6,14 @@ import { AuthService } from '../../core/auth.service';
   imports: [RouterLink],
   styleUrls: ['./workspace.scss', './exports.scss'],
   template: `<section class="page live-page">
-    <header class="page-heading">
-      <div>
-        <p class="eyebrow">A GOOD PLACE TO START</p>
-        <h1>Build a place people can find.</h1>
-        <p>A floor plan, a connected graph, and one clear route forward.</p>
-      </div>
+    <header class="page-heading page-heading-compact">
+      <p>A floor plan, a connected graph, and one clear route forward.</p>
     </header>
     <section class="export-panel">
       <h2>1. Find your building</h2>
       <p>
-        Open Explore. Yellow pins identify buildings with published floors. Choose an existing floor
-        to update it, or select another building to create a floor.
+        Open Explore. Yellow pins mark published buildings; red pins mark your draft floors. Choose
+        an existing floor to update it, or select another building to create a floor.
       </p>
       <h2>2. Work in your snapshot</h2>
       <p>

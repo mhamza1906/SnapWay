@@ -10,7 +10,7 @@ from xml.sax.saxutils import escape, quoteattr
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -65,7 +65,69 @@ def visible_targets(user, admin=False):
     ).distinct()
 
 
+def workspace_buildings(user):
+    """Developer Explore markers: every visible open floor with building coordinates.
+
+    Yellow markers use buildings that have at least one current publication.
+    Red markers are draft-only buildings the caller can already edit.
+    Public discovery stays on ``/api/maps/public/buildings/`` (published only).
+    """
+    targets = (
+        visible_targets(user)
+        .filter(
+            status=MapTarget.Status.OPEN,
+            floor__building__latitude__isnull=False,
+            floor__building__longitude__isnull=False,
+        )
+        .select_related("floor__building")
+        .prefetch_related(
+            Prefetch(
+                "publications",
+                queryset=Publication.objects.filter(
+                    is_current=True, invalidated_at__isnull=True
+                ),
+                to_attr="current_pubs",
+            )
+        )
+        .order_by("floor__building__name", "floor__sort_order", "id")
+    )
+    buildings: dict[str, dict] = {}
+    for target in targets:
+        floor = target.floor
+        building = floor.building
+        publication = (getattr(target, "current_pubs", None) or [None])[0]
+        entry = buildings.setdefault(
+            str(building.id),
+            {
+                "id": str(building.id),
+                "name": building.name,
+                "place_id": building.google_place_id,
+                "address": building.address,
+                "latitude": float(building.latitude),
+                "longitude": float(building.longitude),
+                "published": False,
+                "floors": [],
+            },
+        )
+        if publication:
+            entry["published"] = True
+        entry["floors"].append(
+            {
+                "target_id": str(target.id),
+                "name": floor.name,
+                "code": floor.code,
+                "publication_id": str(publication.id) if publication else None,
+                "sequence": publication.sequence if publication else 0,
+                "published": publication is not None,
+            }
+        )
+    return list(buildings.values())
+
+
 def current_publication(target):
+    cached = getattr(target, "current_pubs", None)
+    if cached is not None:
+        return cached[0] if cached else None
     return target.publications.filter(is_current=True, invalidated_at__isnull=True).first()
 
 
@@ -100,7 +162,42 @@ def revision_payload(revision):
     return payload
 
 
-def card(target, contribution=None):
+def plan_display_asset(revision):
+    """Pick the card/underlay asset: vectorized SVG first, then Image 2.5 SoT.
+
+    Raw user uploads are never preferred once an optimized raster exists. Returns
+    ``(asset, kind)`` where kind is ``vector`` | ``optimize`` | ``None``.
+    """
+    if not revision:
+        return None, None
+    artifact = (
+        revision.artifacts.filter(kind="svg", state="ready")
+        .select_related("asset")
+        .first()
+    )
+    if artifact and artifact.asset_id:
+        return artifact.asset, "vector"
+    source = revision.source_asset
+    if source and source.content_type == "image/svg+xml":
+        return source, "vector"
+    optimized = revision.standardized_asset
+    if optimized is not None:
+        return optimized, "optimize"
+    # After Image 2.5, source_asset is the optimized SoT (often still kind=standardized).
+    if source and source.kind == Asset.Kind.STANDARDIZED:
+        return source, "optimize"
+    if source and source.content_type != "image/svg+xml":
+        # Legacy raw photo only when nothing else exists (pre-optimize drafts).
+        return source, "source"
+    return None, None
+
+
+def card(target, contribution=None, *, include_preview=True):
+    """Serialize a map card.
+
+    Preview preference: vectorized SVG, then Image 2.5 optimized raster. List
+    endpoints may still omit preview URLs for bandwidth; sorting uses preview_kind.
+    """
     publication = current_publication(target)
     if not publication and target.status == "archived":
         publication = target.publications.order_by("-sequence").first()
@@ -110,6 +207,20 @@ def card(target, contribution=None):
         else (publication.revision if publication else None)
     )
     floor = target.floor
+    display, preview_kind = plan_display_asset(revision)
+    preview = signed_url(display.storage_key) if include_preview and display else None
+    authoring = {}
+    if revision and isinstance(revision.geometry, dict):
+        authoring = dict(revision.geometry.get("authoring") or {})
+    stage = str(authoring.get("stage") or "")
+    if not stage and preview_kind == "vector":
+        stage = "vectorized"
+    # Image 2.5 / demo-vector review stays off the graph editor until that step finishes.
+    edit_path = (
+        "/map-optimize"
+        if stage in {"image_optimize", "vectorized_demo"}
+        else "/graph-editor"
+    )
     return {
         "id": str(contribution.id if contribution else target.id),
         "target_id": str(target.id),
@@ -126,9 +237,10 @@ def card(target, contribution=None):
         "author": contribution.author.get_username() if contribution else "",
         "updated_at": contribution.updated_at if contribution else target.updated_at,
         "sequence": publication.sequence if publication else None,
-        "preview_url": signed_url(revision.source_asset.storage_key)
-        if revision and revision.source_asset_id
-        else None,
+        "preview_url": preview,
+        "preview_kind": preview_kind,
+        "authoring_stage": stage or None,
+        "edit_path": edit_path,
         "can_admin": False,
     }
 

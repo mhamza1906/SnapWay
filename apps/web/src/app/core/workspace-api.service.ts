@@ -18,6 +18,12 @@ export interface MapCard {
   updated_at: string;
   sequence: number | null;
   preview_url: string | null;
+  /** vector | optimize | source — My maps prefers vector, then optimize */
+  preview_kind?: string | null;
+  /** e.g. image_optimize | vectorized_demo — drives My maps edit destination */
+  authoring_stage?: string | null;
+  /** /map-optimize while raster review is open; otherwise /graph-editor */
+  edit_path?: string;
   can_admin: boolean;
 }
 export interface MapRevision extends GraphPayload {
@@ -41,6 +47,28 @@ export interface NewMap {
   longitude?: number;
   address?: string;
 }
+export interface OptimizeReview {
+  revision_id: string;
+  target_id: string;
+  contribution_id?: string;
+  stage: string;
+  model: string;
+  source_url: string | null;
+  optimized_url: string | null;
+  coordinate_frame?: unknown;
+  disclosure?: string | null;
+  vector_url?: string | null;
+  vector_mock?: boolean;
+}
+export interface VectorizeDemoResult {
+  floorId: string;
+  mock: boolean;
+  provider: string;
+  navigationReady: boolean;
+  disclosure: string;
+  svg_url: string;
+  sha256: string;
+}
 const base = '/api/maps/workspace/';
 @Injectable({ providedIn: 'root' })
 export class WorkspaceApi {
@@ -54,6 +82,32 @@ export class WorkspaceApi {
   edit(target: string) {
     return firstValueFrom(
       this.http.post<MapCard & MapRevision>(`${base}targets/${target}/edit/`, {}),
+    );
+  }
+  optimizeStatus(target: string) {
+    return firstValueFrom(this.http.get<OptimizeReview>(`${base}targets/${target}/optimize/`));
+  }
+  optimizeUpload(target: string, file: File, prompt = '') {
+    const form = new FormData();
+    form.append('file', file);
+    if (prompt) form.append('prompt', prompt);
+    return firstValueFrom(
+      this.http.post<OptimizeReview>(`${base}targets/${target}/optimize/upload/`, form),
+    );
+  }
+  optimizeRegenerate(target: string, prompt = '') {
+    return firstValueFrom(
+      this.http.post<OptimizeReview>(`${base}targets/${target}/optimize/regenerate/`, {
+        ...(prompt ? { prompt } : {}),
+      }),
+    );
+  }
+  vectorizeDemo(target: string) {
+    return firstValueFrom(
+      this.http.post<OptimizeReview & VectorizeDemoResult>(
+        `${base}targets/${target}/vectorize-demo/`,
+        {},
+      ),
     );
   }
   submit(contribution: string) {

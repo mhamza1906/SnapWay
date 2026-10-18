@@ -17,6 +17,8 @@ import {
   MapHandle,
   MapsRuntime,
   MarkerHandle,
+  detachMarker,
+  mapPinIcon,
 } from '../../core/google-maps.service';
 import { Icon } from '../../shared/icon';
 
@@ -72,7 +74,7 @@ export class PublicMapPage implements AfterViewInit {
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.clearMarkers();
-      if (this.userMarker) this.userMarker.map = null;
+      if (this.userMarker) detachMarker(this.maps, this.userMarker);
       if (this.map) this.maps?.event.clearInstanceListeners(this.map);
     });
   }
@@ -98,15 +100,16 @@ export class PublicMapPage implements AfterViewInit {
       const { maps, mapId } = await this.sdk.load();
       if (this.destroyed || attempt !== this.attempt) return;
       this.maps = maps;
-      this.map ??= new maps.Map(this.canvas().nativeElement, {
+      const mapOptions: Record<string, unknown> = {
         center: { lat: 43.6532, lng: -79.3832 },
         zoom: 12,
-        mapId,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
         clickableIcons: false,
-      });
+      };
+      if (mapId && mapId !== 'DEMO_MAP_ID') mapOptions['mapId'] = mapId;
+      this.map ??= new maps.Map(this.canvas().nativeElement, mapOptions);
       await buildings;
       if (this.destroyed || attempt !== this.attempt) return;
       this.renderMarkers();
@@ -145,10 +148,7 @@ export class PublicMapPage implements AfterViewInit {
   }
 
   private clearMarkers() {
-    for (const marker of this.markers) {
-      this.maps?.event.clearInstanceListeners(marker);
-      marker.map = null;
-    }
+    for (const marker of this.markers) detachMarker(this.maps, marker);
     this.markers = [];
   }
 
@@ -156,11 +156,12 @@ export class PublicMapPage implements AfterViewInit {
     this.clearMarkers();
     if (!this.maps || !this.map) return;
     for (const building of this.buildings()) {
-      const marker = new this.maps.marker.AdvancedMarkerElement({
+      const marker = new this.maps.Marker({
         map: this.map,
         position: { lat: building.latitude, lng: building.longitude },
         title: building.name,
-        gmpClickable: true,
+        icon: mapPinIcon(this.maps, '#f4c63d'),
+        optimized: false,
       });
       marker.addListener('click', () => this.choose(building));
       this.markers.push(marker);
@@ -206,13 +207,19 @@ export class PublicMapPage implements AfterViewInit {
         this.locationMessage.set(`Location found · accuracy about ${Math.round(point.accuracy)} m`);
         this.map?.panTo(point);
         this.map?.setZoom(17);
-        if (this.userMarker) this.userMarker.position = point;
-        else if (this.maps && this.map)
-          this.userMarker = new this.maps.marker.AdvancedMarkerElement({
+        if (this.userMarker) {
+          this.userMarker.position = point;
+          this.userMarker.setMap?.(this.map ?? null);
+        } else if (this.maps && this.map) {
+          this.userMarker = new this.maps.Marker({
             map: this.map,
             position: point,
             title: 'Your approximate location',
+            icon: mapPinIcon(this.maps, '#3b82c4'),
+            zIndex: 999,
+            optimized: false,
           });
+        }
         this.locating.set(false);
       },
       (error) => {

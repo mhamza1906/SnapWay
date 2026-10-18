@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import math
+import uuid
 from typing import Any
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 from maps.models import Contribution, Edge, MapTarget, Membership, Node, Revision
@@ -13,7 +15,16 @@ from maps.services.media_store import signed_url
 from maps.services.membership import get_active_membership
 
 WRITABLE_ROLES = frozenset({Membership.Role.ADMIN, Membership.Role.VOLUNTEER})
-NODE_KINDS = frozenset({Node.Kind.CHECKPOINT, Node.Kind.JUNCTION})
+NODE_KINDS = frozenset(
+    {
+        Node.Kind.CHECKPOINT,
+        Node.Kind.JUNCTION,
+        Node.Kind.DOOR,
+        Node.Kind.ENTRANCE,
+        Node.Kind.STAIRS,
+        Node.Kind.LIFT,
+    }
+)
 
 
 class GraphError(ValueError):
@@ -41,7 +52,9 @@ def _require_writable(user, revision: Revision) -> Membership:
     if membership is None or membership.role not in WRITABLE_ROLES:
         raise GraphPermissionError("Volunteer or admin membership is required.")
     now = timezone.now()
-    Contribution.objects.filter(pk=contribution.pk).update(updated_at=now)
+    Contribution.objects.filter(pk=contribution.pk).update(
+        updated_at=now, lock_version=F("lock_version") + 1
+    )
     MapTarget.objects.filter(pk=target.pk).update(updated_at=now)
     return membership
 
@@ -74,10 +87,17 @@ def list_graph(revision: Revision) -> dict[str, Any]:
         for e in revision.edges.select_related("from_node", "to_node").order_by("created_at")
     ]
     underlay_url = None
-    if revision.source_asset_id:
-        underlay_url = signed_url(revision.source_asset.storage_key)
+    # Vector SVG first, then Image 2.5 SoT (see workspace.plan_display_asset).
+    from maps.services.workspace import plan_display_asset
+
+    underlay, _kind = plan_display_asset(revision)
+    if underlay is not None:
+        underlay_url = signed_url(underlay.storage_key)
     return {
         "revision_id": str(revision.id),
+        "lock_version": Contribution.objects.values_list("lock_version", flat=True).get(
+            pk=revision.contribution_id
+        ),
         "coordinate_frame": revision.coordinate_frame,
         "underlay_url": underlay_url,
         "nodes": nodes,
@@ -94,8 +114,12 @@ def add_node(
     label: str = "",
     kind: str = Node.Kind.CHECKPOINT,
     actor,
+    lock: bool = True,
+    node_id=None,
 ) -> Node:
-    _require_writable(actor, revision)
+    # Editor gestures already hold the writable lock; skip a second Tiger round-trip.
+    if lock:
+        _require_writable(actor, revision)
     if x is None or y is None:
         raise GraphError("x and y are required.")
     width = float(revision.coordinate_frame.get("width", 1000))
@@ -105,15 +129,21 @@ def add_node(
     ):
         raise GraphError("Waypoint must be inside the floor plan.")
     if kind not in NODE_KINDS:
-        raise GraphError("kind must be checkpoint or junction for this slice.")
-    node = Node.objects.create(
-        revision=revision,
-        kind=kind,
-        x=float(x),
-        y=float(y),
-        label=(label or "")[:120],
-    )
-    return node
+        raise GraphError("Unsupported waypoint kind (rooms require a linked room record).")
+    fields = {
+        "revision": revision,
+        "kind": kind,
+        "x": float(x),
+        "y": float(y),
+        "label": (label or "")[:120],
+    }
+    # Optional id lets undo restore a deleted waypoint without breaking edge endpoints.
+    if node_id is not None:
+        try:
+            fields["id"] = uuid.UUID(str(node_id))
+        except (ValueError, TypeError) as exc:
+            raise GraphError("Invalid waypoint id.") from exc
+    return Node.objects.create(**fields)
 
 
 @transaction.atomic
@@ -129,8 +159,9 @@ def update_node(revision: Revision, *, node_id, label: str, actor) -> Node:
 
 
 @transaction.atomic
-def remove_node(revision: Revision, *, node_id, actor) -> None:
-    _require_writable(actor, revision)
+def remove_node(revision: Revision, *, node_id, actor, lock: bool = True) -> None:
+    if lock:
+        _require_writable(actor, revision)
     try:
         node = revision.nodes.get(pk=node_id)
     except Node.DoesNotExist as exc:
@@ -152,8 +183,10 @@ def add_edge(
     from_id,
     to_id,
     actor,
+    lock: bool = True,
 ) -> Edge:
-    _require_writable(actor, revision)
+    if lock:
+        _require_writable(actor, revision)
     if str(from_id) == str(to_id):
         raise GraphError("Self-loop edges are not allowed.")
     try:
@@ -187,8 +220,9 @@ def update_edge(revision: Revision, *, edge_id, cost, actor) -> Edge:
 
 
 @transaction.atomic
-def remove_edge(revision: Revision, *, edge_id, actor) -> None:
-    _require_writable(actor, revision)
+def remove_edge(revision: Revision, *, edge_id, actor, lock: bool = True) -> None:
+    if lock:
+        _require_writable(actor, revision)
     try:
         edge = revision.edges.get(pk=edge_id)
     except Edge.DoesNotExist as exc:

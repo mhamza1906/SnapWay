@@ -3,20 +3,24 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } fro
 import { filter, map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { UiService } from './core/ui.service';
+import { WorkspaceChrome } from './core/workspace-chrome.service';
 import { Icon } from './shared/icon';
 import { AuthService } from './core/auth.service';
 import { SnapwayBrand } from './shared/snapway-brand';
+import { WorkspaceLayout } from './core/workspace-layout.service';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, SnapwayBrand],
   templateUrl: './app.html',
-  styleUrls: ['./app.scss', './app-account.scss'],
+  styleUrls: ['./app.scss', './app-account.scss', './app-overlays.scss'],
   host: { '(window:keydown.escape)': 'closeMenus()' },
 })
 export class App implements OnInit {
+  readonly layout = inject(WorkspaceLayout);
   readonly auth = inject(AuthService);
   readonly ui = inject(UiService);
+  readonly chrome = inject(WorkspaceChrome);
   private readonly router = inject(Router);
   readonly url = toSignal(
     this.router.events.pipe(
@@ -43,6 +47,7 @@ export class App implements OnInit {
         'my-maps': 'My maps',
         'graph-editor': 'My maps / Edit snapshot',
         authoring: this.auth.canAdmin() ? 'Initialize new map' : 'Request new map',
+        'map-optimize': 'Image 2.5 review',
         'developer-contribution': 'Developer contribution',
         settings: 'Settings',
         help: 'Getting started',
@@ -66,6 +71,7 @@ export class App implements OnInit {
   }
   closeMenus() {
     this.mobileOpen.set(false);
+    this.layout.navigationEnd();
     this.profileOpen.set(false);
   }
   skipLink() {

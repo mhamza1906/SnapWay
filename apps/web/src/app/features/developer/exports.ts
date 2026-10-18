@@ -7,12 +7,8 @@ import { Icon } from '../../shared/icon';
   imports: [RouterLink, Icon],
   styleUrls: ['./workspace.scss', './exports.scss'],
   template: `<section class="page live-page">
-    <header class="page-heading">
-      <div>
-        <p class="eyebrow">TAKE YOUR WORK WITH YOU</p>
-        <h1>Settings & exports</h1>
-        <p>Your maps are saved to the server. Download a copy whenever you need it.</p>
-      </div>
+    <header class="page-heading page-heading-compact">
+      <p>Your maps are saved to the server. Download a copy whenever you need it.</p>
     </header>
     @if (error()) {
       <p class="error-state" role="alert">{{ error() }}</p>

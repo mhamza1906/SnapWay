@@ -2,6 +2,7 @@
 
 from accounts.modes import IsDeveloperMode
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
@@ -9,7 +10,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from maps.models import AuditEvent, Contribution
+from maps.models import AuditEvent, Contribution, Membership, Publication
 from maps.services import retention
 from maps.services import workspace as svc
 
@@ -59,26 +60,78 @@ class WorkspaceView(APIView):
 
 
 @extend_schema(exclude=True)
+class WorkspaceBuildingsView(WorkspaceView):
+    """Explore discovery for signed-in developers (draft + published floors with coordinates)."""
+
+    def get(self, request):
+        return Response({"buildings": svc.workspace_buildings(request.user)})
+
+
+@extend_schema(exclude=True)
 class WorkspaceMapsView(WorkspaceView):
     def get(self, request):
-        targets = svc.visible_targets(request.user)
+        # List must stay metadata-only: do not sign underlay URLs here. Each
+        # preview_url pointed at the full floor-plan asset (often a large SVG),
+        # so three cards triggered three full underlay downloads in the browser.
+        targets = list(
+            svc.visible_targets(request.user).prefetch_related(
+                Prefetch(
+                    "contributions",
+                    queryset=Contribution.objects.filter(author=request.user)
+                    .select_related(
+                        "head_revision__source_asset",
+                        "head_revision__standardized_asset",
+                        "author",
+                    )
+                    .order_by("-updated_at"),
+                    to_attr="user_contributions",
+                ),
+                Prefetch(
+                    "publications",
+                    queryset=Publication.objects.filter(
+                        is_current=True, invalidated_at__isnull=True
+                    ).select_related("revision"),
+                    to_attr="current_pubs",
+                ),
+            )
+        )
+        target_ids = [target.id for target in targets]
+        staff = request.user.is_staff or request.user.is_superuser
+        admin_ids = set()
+        if not staff and target_ids:
+            admin_ids = set(
+                Membership.objects.filter(
+                    user=request.user,
+                    role=Membership.Role.ADMIN,
+                    revoked_at__isnull=True,
+                    target_id__in=target_ids,
+                ).values_list("target_id", flat=True)
+            )
         cards = []
         for target in targets:
-            contribution = (
-                target.contributions.filter(author=request.user)
-                .select_related(
-                    "head_revision__source_asset",
-                    "author",
-                )
-                .order_by("-updated_at")
-                .first()
-            )
-            if not contribution and not svc.current_publication(target):
+            contribution = (getattr(target, "user_contributions", None) or [None])[0]
+            publication = (getattr(target, "current_pubs", None) or [None])[0]
+            if not contribution and not publication:
                 continue
-            row = svc.card(target, contribution)
-            row["can_admin"] = svc.is_admin(request.user, target)
+            # Preview URLs stay off the list payload (bandwidth); preview_kind still
+            # drives sort: vectorized first, then Image 2.5, then everything else.
+            row = svc.card(target, contribution, include_preview=False)
+            row["can_admin"] = staff or target.id in admin_ids
             cards.append(row)
-        cards.sort(key=lambda row: row["updated_at"], reverse=True)
+
+        def sort_key(row: dict):
+            kind = row.get("preview_kind") or ""
+            stage = row.get("authoring_stage") or ""
+            rank = {"vector": 0, "optimize": 1}.get(kind, 3)
+            if stage == "image_optimize":
+                rank = min(rank, 1)
+            elif stage == "vectorized_demo":
+                rank = 0
+            updated = row.get("updated_at")
+            stamp = updated.timestamp() if hasattr(updated, "timestamp") else 0
+            return (rank, -stamp)
+
+        cards.sort(key=sort_key)
         return Response({"maps": cards})
 
     def post(self, request):

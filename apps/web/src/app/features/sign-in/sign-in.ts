@@ -3,6 +3,7 @@ import { afterNextRender, Component, ElementRef, inject, signal, viewChild } fro
 import { RouterLink } from '@angular/router';
 import { AuthService, ExperienceMode } from '../../core/auth.service';
 import { ClientConfigService } from '../../core/client-config.service';
+import { UiService } from '../../core/ui.service';
 import { Icon } from '../../shared/icon';
 
 // Every glyph has four cubic segments, so it can open into a thread without scaling.
@@ -77,6 +78,7 @@ export class SignInPage {
   private readonly document = inject(DOCUMENT);
   private readonly brandMotion = viewChild<ElementRef<SVGSVGElement>>('brandMotion');
   private readonly config = inject(ClientConfigService);
+  private readonly ui = inject(UiService);
   readonly loading = signal(true);
   readonly enabled = signal(false);
   readonly error = signal('');
@@ -107,6 +109,7 @@ export class SignInPage {
   resume(event: PageTransitionEvent) {
     if (event.persisted) {
       this.auth.busy.set(false);
+      this.ui.endBusy();
       this.selected.set(null);
     }
   }
@@ -115,7 +118,9 @@ export class SignInPage {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.enabled.set((await this.config.load()).auth.google_enabled);
+      await this.ui.runBusy(async () => {
+        this.enabled.set((await this.config.load()).auth.google_enabled);
+      }, 'Checking Google sign-in…');
     } catch {
       this.error.set('We could not connect. Please try again.');
     } finally {

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { UiService } from './ui.service';
 
 export interface SessionIdentity {
   authenticated: boolean;
@@ -21,7 +22,7 @@ export type ExperienceMode = 'developer' | 'public';
 
 export function safeReturnPath(value: string | null): string {
   return value &&
-    /^\/(explore|my-maps|developer-contribution|map|public|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
+    /^\/(explore|my-maps|developer-contribution|map|public|overview|graph-editor|map-optimize|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
       value,
     ) &&
     !/[\\\r\n]/.test(value)
@@ -33,6 +34,7 @@ export function safeReturnPath(value: string | null): string {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
+  private readonly ui = inject(UiService);
   private pending?: Promise<SessionIdentity>;
   readonly session = signal<SessionIdentity | null>(null);
   readonly error = signal('');
@@ -71,6 +73,7 @@ export class AuthService {
   async signIn(mode: ExperienceMode): Promise<void> {
     if (this.busy()) return;
     this.busy.set(true);
+    this.ui.beginBusy('Signing in…');
     try {
       // Refresh also obtains Django's CSRF cookie for the same-origin form POST.
       await this.refresh();
@@ -100,12 +103,14 @@ export class AuthService {
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Could not start Google sign-in.');
       this.busy.set(false);
+      this.ui.endBusy();
     }
   }
 
   async switchMode(mode: ExperienceMode): Promise<boolean> {
     if (this.busy()) return false;
     this.busy.set(true);
+    this.ui.beginBusy('Switching…');
     try {
       await this.refresh();
       const session = await firstValueFrom(
@@ -119,11 +124,13 @@ export class AuthService {
       return false;
     } finally {
       this.busy.set(false);
+      this.ui.endBusy();
     }
   }
 
   async signOut(): Promise<boolean> {
     this.busy.set(true);
+    this.ui.beginBusy('Signing out…');
     try {
       await this.refresh();
       const session = await firstValueFrom(
@@ -137,6 +144,7 @@ export class AuthService {
       return false;
     } finally {
       this.busy.set(false);
+      this.ui.endBusy();
     }
   }
 }

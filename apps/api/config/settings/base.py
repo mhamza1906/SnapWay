@@ -148,3 +148,9 @@ PLACEMATCH_ENGINE_TOKEN = env("PLACEMATCH_ENGINE_TOKEN", default="")
 PLACEMATCH_ENGINE_TIMEOUT_S = env.float("PLACEMATCH_ENGINE_TIMEOUT_S", default=30.0)
 # Development-only bearer token for the iOS debug build; ignored unless DEBUG is true.
 PLACEMATCH_DEV_TOKEN = env("PLACEMATCH_DEV_TOKEN", default="")
+
+# GPT Image 2.5 raster optimize (authoring upload chain). Empty key disables live calls.
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+OPENAI_IMAGE_MODEL = env("OPENAI_IMAGE_MODEL", default="gpt-image-2.5-sunburst") or (
+    "gpt-image-2.5-sunburst"
+)

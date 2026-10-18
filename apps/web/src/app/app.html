@@ -3,14 +3,38 @@
   <header class="workspace-header">
     <button
       class="mobile-toggle btn ghost icon-only"
-      aria-label="Open navigation"
-      (click)="mobileOpen.set(true)"
+      aria-label="Toggle navigation"
+      [attr.aria-expanded]="layout.sidebarOpen()"
+      (click)="layout.toggleSidebar()"
     >
       <app-icon name="menu" />
     </button>
     <a routerLink="/explore" class="brand" aria-label="Snapway home"><app-snapway-brand /></a>
-    <div class="breadcrumb">
-      <span>Mapping workspace</span><strong>{{ title() }}</strong>
+    <div class="header-center">
+      @if (url() === '/explore') {
+        <form class="header-search" (submit)="chrome.submitSearch($event)">
+          <app-icon name="search" />
+          <input
+            aria-label="Search buildings or addresses"
+            placeholder="Search buildings or addresses"
+            [value]="chrome.exploreQuery()"
+            (input)="chrome.exploreQuery.set($any($event.target).value)"
+          />
+          <button type="submit" aria-label="Search" [disabled]="chrome.exploreSearching()">
+            <app-icon name="arrow-right" />
+          </button>
+        </form>
+        <button
+          class="header-locate"
+          type="button"
+          aria-label="Use my location"
+          (click)="chrome.locate()"
+        >
+          <app-icon name="location" />
+        </button>
+      } @else {
+        <h1 class="header-title">{{ title() }}</h1>
+      }
     </div>
     <div class="account">
       <button
@@ -53,14 +77,19 @@
       }
     </div>
   </header>
-  @if (mobileOpen()) {
+  @if (layout.sidebarOpen()) {
     <button
       class="sidebar-scrim"
       aria-label="Close navigation"
-      (click)="mobileOpen.set(false)"
+      (click)="layout.sidebarOpen.set(false)"
     ></button>
   }
-  <aside class="sidebar" [class.open]="mobileOpen()">
+  <aside
+    class="sidebar"
+    [class.open]="layout.sidebarOpen()"
+    [class.collapsed]="!layout.sidebarOpen()"
+    [attr.inert]="!layout.sidebarOpen() ? '' : null"
+  >
     <div class="workspace-name">
       <span class="workspace-monogram"><app-icon name="building" /></span
       ><span
@@ -72,7 +101,7 @@
     <p class="nav-label">WORKSPACE</p>
     <nav aria-label="Main navigation">
       @for (item of links(); track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active" (click)="mobileOpen.set(false)"
+        <a [routerLink]="item.path" routerLinkActive="active" (click)="layout.navigationEnd()"
           ><app-icon [name]="item.icon" />{{ item.label }}</a
         >
       }
@@ -97,6 +126,8 @@
     tabindex="-1"
     class="workspace-content"
     [class.explore-content]="url() === '/explore'"
+    [class.bleed-content]="url() === '/graph-editor'"
+    [class.sidebar-collapsed]="!layout.sidebarOpen()"
   >
     <router-outlet />
   </main>
@@ -105,6 +136,14 @@
     <div class="visitor-return"><a routerLink="/my-maps">Back to workspace</a></div>
   }
   <main id="main-content" tabindex="-1"><router-outlet /></main>
+}
+@if (ui.busy()) {
+  <div class="global-busy" role="status" aria-live="polite" aria-busy="true">
+    <div class="global-busy-card">
+      <span class="global-spinner" aria-hidden="true"></span>
+      <p>{{ ui.busyMessage() }}</p>
+    </div>
+  </div>
 }
 @if (ui.toast()) {
   <div class="toast" role="status">

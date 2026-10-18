@@ -52,6 +52,6 @@ describe('Workspace shell routing', () => {
       '/targets?status=open#main-content',
     );
     expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.breadcrumb strong').textContent).toBe('My maps');
+    expect(fixture.nativeElement.querySelector('.header-title').textContent.trim()).toBe('My maps');
   });
 });
