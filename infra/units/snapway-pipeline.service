@@ -16,10 +16,10 @@ Environment=APP_ENV=prod
 Environment=PORT=5175
 Environment=UV_THREADPOOL_SIZE=2
 Environment=OMP_NUM_THREADS=2
-BindReadOnlyPaths=/srv/indoor-nav/shared/pipeline-node_modules:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/node_modules
+BindReadOnlyPaths=@PIPELINE_NODE_MODULES@:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/node_modules
 BindPaths=/srv/indoor-nav/shared/pipeline-local:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/.local
 BindPaths=/srv/indoor-nav/shared/pipeline-output:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/output
-ExecStart=@NODE_BINARY@ /srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/server/start.js prod
+ExecStart=/usr/bin/env APP_ENV=prod PORT=5175 UV_THREADPOOL_SIZE=2 OMP_NUM_THREADS=2 @NODE_BINARY@ /srv/indoor-nav/releases/@RELEASE_ID@/source/apps/pipeline/server/start.js prod
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=45

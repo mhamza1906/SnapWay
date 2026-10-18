@@ -37,6 +37,8 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(
         "experiments/sam-ibrahim-hardcoded/project.mjs": "// committed project",
         "infra/units/snapway-pipeline.service": "# reviewed pipeline template",
         "infra/units/snapway-placematch.service": "# reviewed engine template",
+        "infra/prepare-mobile-runtime.sh": "# runtime preparation entry",
+        "infra/install-mobile-services.sh": "# authorized operator entry",
         ".node-version": "24.15.0",
     }
     # Defensive exclusions cover accidental commits, beyond ignored local files.

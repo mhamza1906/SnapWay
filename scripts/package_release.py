@@ -16,6 +16,8 @@ MOBILE_SOURCE_PATHS = (
     ".node-version",
     "infra/units/snapway-pipeline.service",
     "infra/units/snapway-placematch.service",
+    "infra/prepare-mobile-runtime.sh",
+    "infra/install-mobile-services.sh",
 )
 MOBILE_REQUIRED_PATHS = (
     "apps/pipeline/package.json",

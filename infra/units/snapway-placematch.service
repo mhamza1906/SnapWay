@@ -21,9 +21,9 @@ Environment=NUMEXPR_NUM_THREADS=2
 Environment=MOBILE_STORE_FRAMES=0
 Environment=MOBILE_ENABLE_VERTEX=0
 Environment=CUDA_VISIBLE_DEVICES=
-BindPaths=/srv/indoor-nav/shared/placematch-data:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/data
-BindPaths=/srv/indoor-nav/shared/placematch-runs:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/runs
-ExecStart=@PLACEMATCH_VENV@/bin/python -m placematch.cli serve-mobile --host 127.0.0.1 --port 8790
+BindPaths=@PLACEMATCH_DATA@:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/data
+BindPaths=@PLACEMATCH_RUNS@:/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match/runs
+ExecStart=/usr/bin/env PYTHONPATH=/srv/indoor-nav/releases/@RELEASE_ID@/source/apps/place-match OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 NUMEXPR_NUM_THREADS=2 MOBILE_STORE_FRAMES=0 MOBILE_ENABLE_VERTEX=0 CUDA_VISIBLE_DEVICES= @PLACEMATCH_VENV@/bin/python -m placematch.cli serve-mobile --host 127.0.0.1 --port 8790
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=45
@@ -31,7 +31,7 @@ NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectHome=yes
 ProtectSystem=strict
-ReadWritePaths=/srv/indoor-nav/shared/placematch-data /srv/indoor-nav/shared/placematch-runs
+ReadWritePaths=@PLACEMATCH_DATA@ @PLACEMATCH_RUNS@
 UMask=0077
 
 [Install]
