@@ -482,3 +482,5 @@ Before the density reduction, verification on 2026-10-18 passed 37 authoring/con
 Sparse-plan verification on 2026-10-18: 38 authoring/conversion tests, 232 pipeline tests (18 optional-fixture skips) and the production web build passed. All Sam Ibrahim halls were checked at limits 2, 6, 12 and 30 for deterministic counts, on-path coordinates, unchanged polylines and unchanged building data. Invalid budgets are rejected by the API. Live Chrome showed 8 markers on Level 5 circulation 1, regenerated exactly 6 through the control, then restored 8. The local pipeline service was restarted with its existing provider configuration; no model calls or environment changes were made.
 
 Implementation: [dc708c0](https://github.com/mhamza1906/SnapWay/commit/dc708c0) on the local feature branch; the remote link becomes available after a push.
+
+Sparse stop limits: [4bf3c00](https://github.com/mhamza1906/SnapWay/commit/4bf3c00) on the local feature branch; the remote link becomes available after a push.
