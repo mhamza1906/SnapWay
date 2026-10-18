@@ -4,7 +4,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { WorkspaceApi } from '../../core/workspace-api.service';
 import { provideRouter } from '@angular/router';
 import { GraphApiService } from '../../core/graph-api.service';
-import { GraphEditorPage, MAP3D_SCENES } from './graph-editor';
+import { GraphEditorPage, SAM_IBRAHIM_3D_PATH, map3dScene } from './graph-editor';
 
 describe('GraphEditorPage', () => {
   let fixture: ComponentFixture<GraphEditorPage>;
@@ -119,11 +119,38 @@ describe('GraphEditorPage', () => {
     expect(fixture.componentInstance.viewMode()).toBe('2d');
   });
 
+  it('opens a production draft directly in 3D using loaded metadata', async () => {
+    const workspace = TestBed.inject(WorkspaceApi);
+    vi.spyOn(workspace, 'edit').mockResolvedValue({
+      ...(await api.ensureDraft()),
+      target_id: 'production-id',
+      building: 'Sam Ibrahim Building',
+      floor: 'Level 1',
+      title: 'Sam Ibrahim · Level 1 circulation 2',
+    } as Awaited<ReturnType<WorkspaceApi['edit']>>);
+    Object.defineProperty(TestBed.inject(ActivatedRoute).snapshot, 'queryParamMap', {
+      value: convertToParamMap({ target: 'production-id', view: '3d' }),
+      configurable: true,
+    });
+    await fixture.componentInstance.ngOnInit();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.targetId()).toBe('production-id');
+    expect(fixture.componentInstance.viewMode()).toBe('3d');
+    expect(fixture.nativeElement.querySelector('iframe.map3d-frame')?.getAttribute('src')).toBe(
+      SAM_IBRAHIM_3D_PATH,
+    );
+  });
+
   it('switches to the Sam Ibrahim 3D photo map and syncs the selected point', async () => {
     const page = fixture.componentInstance;
     await page.ngOnInit();
-    const [target, path] = Object.entries(MAP3D_SCENES)[0];
-    page.targetId.set(target);
+    const path = SAM_IBRAHIM_3D_PATH;
+    page.targetId.set('production-target-with-a-different-id');
+    page.mapIdentity.set({
+      building: 'Sam Ibrahim Building',
+      floor: 'Level 1',
+      title: 'Sam Ibrahim · Level 1 circulation 2',
+    });
     page.nodes.set([{ id: 'n13', x: 1, y: 2, label: 'Point 13', kind: 'checkpoint' }]);
     page.select(['n13']);
     fixture.detectChanges();
@@ -147,5 +174,26 @@ describe('GraphEditorPage', () => {
     page.setView('2d');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('iframe.map3d-frame')).toBeNull();
+  });
+});
+
+describe('Sam Ibrahim 3D scene identity', () => {
+  it.each(['Level 1', '1', 'Level 1 circulation 2', ' Floor 1 '])(
+    'recognises %s independently of a database target ID',
+    (floor) => {
+      expect(map3dScene({ building: 'Sam Ibrahim Building', floor, title: '' })).toBe(
+        SAM_IBRAHIM_3D_PATH,
+      );
+    },
+  );
+  it.each([
+    ['Sam Ibrahim Building', 'Level 2', ''],
+    ['Sam Ibrahim Building', 'Level 10', ''],
+    ['Another Building', 'Level 1', ''],
+    ['Sam Ibrahim Building', 'Level 1', 'Level 1 circulation 1'],
+    ['Sam Ibrahim Building', 'Level 1 circulation 3', ''],
+    ['', '', 'Sam Ibrahim Level 1'],
+  ])('does not offer the snapshot for %s / %s / %s', (building, floor, title) => {
+    expect(map3dScene({ building, floor, title })).toBeNull();
   });
 });

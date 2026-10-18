@@ -2,7 +2,11 @@
 
 The map builder (graph editor, `/graph-editor?target=…`) shows a **2D | 3D** toggle in its heading when the
 target has a prebuilt 3D photo map. Today only **Sam Ibrahim · Level 1 circulation 2**
-(target `fda54111-8056-4133-8894-b4fc5cdb1028`) has one.
+has one. The editor identifies it by the draft's building and floor metadata,
+not an environment-specific target UUID: `Sam Ibrahim` / `Sam Ibrahim Building`
+and Level 1 (including `1`, `Floor 1`, or `Level 1 circulation 2`). Explicit
+circulations other than 2 are excluded. Local and production imports may have
+unrelated IDs; the same matching map gets the toggle and `?view=3d` in either.
 
 - **2D** is the existing editable canvas. Nothing about it changed.
 - **3D** embeds a static three.js photo map of the same floor. It is view only:
@@ -15,13 +19,13 @@ target has a prebuilt 3D photo map. Today only **Sam Ibrahim · Level 1 circulat
 
 ## Files
 
-| File | Purpose |
-| --- | --- |
-| [`apps/web/src/app/features/graph-editor/graph-editor.ts`](../apps/web/src/app/features/graph-editor/graph-editor.ts) | `MAP3D_SCENES` (target → scene URL), `viewMode`, `setView()`, `onMap3dMessage()`, shortcut guard |
-| [`apps/web/src/app/features/graph-editor/graph-editor.html`](../apps/web/src/app/features/graph-editor/graph-editor.html) | 2D/3D toggle, iframe in place of the canvas |
-| [`apps/web/src/app/features/graph-editor/graph-editor.scss`](../apps/web/src/app/features/graph-editor/graph-editor.scss) | Toggle and frame styles |
-| [`apps/web/src/app/features/graph-editor/graph-editor.spec.ts`](../apps/web/src/app/features/graph-editor/graph-editor.spec.ts) | No toggle for other targets; switching to 3D, deep link and selection sync |
-| [`apps/web/public/map3d/sam-ibrahim-level1/`](../apps/web/public/map3d/sam-ibrahim-level1/) | Static scene, about 13 MB: `3d/index.html` (viewer), `3d/level1.glb` (Floor/Corridors/Walls, 0.9 MB), `3d/stops.json`, `3d/rooms.json`, `3d/thumbs/` (512 px), `photos/` (104 photos at 900 px), `underlay.png` |
+| File                                                                                                                            | Purpose                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`apps/web/src/app/features/graph-editor/graph-editor.ts`](../apps/web/src/app/features/graph-editor/graph-editor.ts)           | `map3dScene` (building/floor metadata → scene URL), `viewMode`, `setView()`, `onMap3dMessage()`, shortcut guard                                                                                                 |
+| [`apps/web/src/app/features/graph-editor/graph-editor.html`](../apps/web/src/app/features/graph-editor/graph-editor.html)       | 2D/3D toggle, iframe in place of the canvas                                                                                                                                                                     |
+| [`apps/web/src/app/features/graph-editor/graph-editor.scss`](../apps/web/src/app/features/graph-editor/graph-editor.scss)       | Toggle and frame styles                                                                                                                                                                                         |
+| [`apps/web/src/app/features/graph-editor/graph-editor.spec.ts`](../apps/web/src/app/features/graph-editor/graph-editor.spec.ts) | No toggle for other targets; switching to 3D, deep link and selection sync                                                                                                                                      |
+| [`apps/web/public/map3d/sam-ibrahim-level1/`](../apps/web/public/map3d/sam-ibrahim-level1/)                                     | Static scene, about 13 MB: `3d/index.html` (viewer), `3d/level1.glb` (Floor/Corridors/Walls, 0.9 MB), `3d/stops.json`, `3d/rooms.json`, `3d/thumbs/` (512 px), `photos/` (104 photos at 900 px), `underlay.png` |
 
 ## Data and conventions
 
@@ -39,5 +43,13 @@ target has a prebuilt 3D photo map. Today only **Sam Ibrahim · Level 1 circulat
 
 ## Checks
 
-- **Unit tests.** `npx ng test --watch=false --include src/app/features/graph-editor/graph-editor.spec.ts` passes (4 tests).
+- **Unit tests.** `npx ng test --watch=false --include src/app/features/graph-editor/graph-editor.spec.ts` covers metadata matching across environments, other-floor/circulation exclusion, and 3D selection sync.
 - **Full suite.** `npm run build` and `npm test` in `apps/web` are the full checks.
+
+## Production identity repair (2026-10-18)
+
+Removed the local-only target UUID allowlist. The scene now resolves from loaded
+building/floor metadata before applying a `view=3d` deep link. Tests cover a
+production-style target with another ID, selection sync by point label, supported
+Level 1 names, and rejection of other buildings, floors and circulation areas.
+No database, environment, media or dependency changes are required.

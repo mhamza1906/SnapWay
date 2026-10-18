@@ -27,10 +27,30 @@ import { Icon } from '../../shared/icon';
 type HistoryEntry = { undo: EditorCommand; redo: EditorCommand };
 export type MapView = '2d' | '3d';
 
-/** Prebuilt 3D photo maps (public/map3d), keyed by target id. Only Sam Ibrahim Level 1 has one. */
-export const MAP3D_SCENES: Record<string, string> = {
-  'fda54111-8056-4133-8894-b4fc5cdb1028': '/map3d/sam-ibrahim-level1/3d/index.html',
-};
+/** Static scene identity must survive different database IDs in each environment. */
+export const SAM_IBRAHIM_3D_PATH = '/map3d/sam-ibrahim-level1/3d/index.html';
+
+export function map3dScene(identity: {
+  building: string;
+  floor: string;
+  title: string;
+}): string | null {
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[·–—_-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const building = normalize(identity.building);
+  const floor = normalize(identity.floor);
+  const title = normalize(identity.title);
+  const circulation = /\bcirculation\s+(\d+)\b/.exec(`${floor} ${title}`);
+  if (circulation && circulation[1] !== '2') return null;
+  return /^sam ibrahim(?: building)?$/.test(building) &&
+    /^(?:level\s*|floor\s*)?1(?: circulation 2)?$/.test(floor)
+    ? SAM_IBRAHIM_3D_PATH
+    : null;
+}
 
 @Component({
   selector: 'app-graph-editor',
@@ -48,7 +68,8 @@ export class GraphEditorPage implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   readonly canvas = viewChild(GraphCanvas);
   readonly viewMode = signal<MapView>('2d');
-  readonly map3dPath = computed(() => MAP3D_SCENES[this.targetId() ?? ''] ?? null);
+  readonly mapIdentity = signal({ building: '', floor: '', title: '' });
+  readonly map3dPath = computed(() => map3dScene(this.mapIdentity()));
   readonly map3dSrc = signal<SafeResourceUrl | null>(null);
   readonly tool = signal<GraphTool>('select');
   readonly status = signal('Loading draft...');
@@ -142,6 +163,11 @@ export class GraphEditorPage implements OnInit, OnDestroy {
       this.canPublish.set(draft.can_admin);
       this.revisionId.set(draft.revision_id);
       this.targetId.set(draft.target_id);
+      this.mapIdentity.set({
+        building: draft.building ?? '',
+        floor: draft.floor || draft.floor_code || '',
+        title: draft.title ?? '',
+      });
       this.title.set(draft.building ? `${draft.building} - ${draft.floor}` : 'Edit your snapshot');
       await this.refresh();
       if (this.route.snapshot.queryParamMap.get('view') === '3d') this.setView('3d');
