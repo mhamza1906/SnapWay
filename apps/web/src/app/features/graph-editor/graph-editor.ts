@@ -28,6 +28,7 @@ export class GraphEditorPage implements OnInit {
   readonly selectedEdgeId = signal<string | null>(null);
   readonly connectFromId = signal<string | null>(null);
   readonly labelDraft = signal('');
+  readonly nodeKind = signal('checkpoint');
   readonly editLabel = signal('');
   readonly photos = signal<NodePhoto[]>([]);
   readonly photosLoading = signal(false);
@@ -116,7 +117,7 @@ export class GraphEditorPage implements OnInit {
         x: point.x,
         y: point.y,
         label: this.labelDraft().trim(),
-        kind: 'checkpoint',
+        kind: this.nodeKind(),
       });
       this.nodes.update((list) => [...list, node]);
       this.status.set(`Saved waypoint${node.label ? ` “${node.label}”` : ''} to server`);

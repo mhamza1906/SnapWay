@@ -14,8 +14,16 @@ export interface MatchCandidate {
 }
 
 export interface MatchResult {
+  node_id?: string | null;
+  revision_id?: string | null;
+  target_id?: string | null;
+  building_id?: string | null;
+  floor_name?: string | null;
+  localization_token?: string | null;
   reference_set: string;
   decision: {
+    node_id?: string | null;
+    revision_id?: string | null;
     outcome: MatchDecisionOutcome;
     reference_id: string | null;
     location_id: string | null;

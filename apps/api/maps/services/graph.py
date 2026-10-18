@@ -13,7 +13,7 @@ from maps.services.media_store import signed_url
 from maps.services.membership import get_active_membership
 
 WRITABLE_ROLES = frozenset({Membership.Role.ADMIN, Membership.Role.VOLUNTEER})
-NODE_KINDS = frozenset({Node.Kind.CHECKPOINT, Node.Kind.JUNCTION})
+NODE_KINDS = frozenset({Node.Kind.CHECKPOINT, Node.Kind.JUNCTION, Node.Kind.STAIRS, Node.Kind.LIFT})
 
 
 class GraphError(ValueError):
@@ -84,7 +84,7 @@ def add_node(
     if x is None or y is None:
         raise GraphError("x and y are required.")
     if kind not in NODE_KINDS:
-        raise GraphError("kind must be checkpoint or junction for this slice.")
+        raise GraphError("kind must be checkpoint, junction, stairs or lift.")
     node = Node.objects.create(
         revision=revision,
         kind=kind,

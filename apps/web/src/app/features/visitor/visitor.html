@@ -82,8 +82,16 @@
         </section>
       }
     } @else {
+      <label class="route-preference">
+        Route preference
+        <select [value]="preference()" (change)="setPreference($any($event.target).value)">
+          <option value="any">Shortest available route</option>
+          <option value="avoid_stairs">Avoid stairs</option>
+          <option value="avoid_elevators">Avoid elevators</option>
+        </select>
+      </label>
       @if (guidancePhoto(); as photo) {
-        <app-guidance-photo [photo]="photo" />
+        <app-guidance-photo [photo]="photo" (next)="moveFrame(1)" (previous)="moveFrame(-1)" />
       } @else {
         <span class="view-tag"><span class="dot"></span>INDOOR GUIDANCE</span>
         <div class="photo-placeholder">
@@ -95,7 +103,9 @@
               !destination()
                 ? 'Choose your room above.'
                 : confirmedLocation()
-                  ? 'Your next steps, in pictures.'
+                  ? routeLoading()
+                    ? 'Finding your route…'
+                    : 'Your next steps, in pictures.'
                   : 'Let’s find you inside.'
             }}
           </h2>
@@ -104,7 +114,7 @@
               !destination()
                 ? 'Then take one photo to find your indoor starting point.'
                 : confirmedLocation()
-                  ? 'Reference photos and direction arrows will appear here once this route is available.'
+                  ? 'Choose your route preference, then load the photos for your route.'
                   : 'One photo of a door sign or landmark helps us find your starting point.'
             }}
           </p>
@@ -112,6 +122,9 @@
             <button class="primary capture" (click)="recenter()">
               <app-icon name="camera" />Take a photo
             </button>
+          }
+          @if (confirmedLocation() && !routeLoading()) {
+            <button class="primary capture" (click)="loadRoute()">Retry route</button>
           }
         </div>
       }
@@ -161,6 +174,7 @@
 @if (cameraOpen()) {
   <app-visitor-camera
     [demo]="building()?.demo ?? false"
+    [publicationId]="destination()?.floor?.publication_id ?? ''"
     (captured)="demoPhotoCaptured()"
     (closed)="cameraOpen.set(false)"
     (matched)="acceptMatch($event)"

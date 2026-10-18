@@ -1,6 +1,6 @@
 # Mobile visitor navigation UI
 
-Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
+Updated October 18, 2026. Feature work on `feature/frontend-user`; implementation
 commits include `a0564a9` and `ca59f45`; heading spacing and local Android packaging
 notes are recorded in `1407e12`; the publication-fixture correction is in `57e8b26`.
 The installed-app API connection below is pending commit.
@@ -13,7 +13,8 @@ The website still starts at `/map`, including on phone browsers. The separate
 Capacitor visitor build starts at the new destination-first screen and redirects
 `/map` and `/navigate` there. It excludes contributor features. `/app-preview` in
 the web build explicitly previews the installed-app layout; viewport width does
-not switch the website into that experience.
+not switch the website into that experience. `/app-review` redirects to
+`/app-preview` as a compatibility entry for the requested visitor page.
 
 **Find your destination** sits beside the existing SnapWay route mark in a single
 vertically aligned header row, with the 32 px logo on the left and a 20 px heading.
@@ -86,14 +87,15 @@ including after **Back to outdoor map**. It is hidden before a destination exist
 One photograph is submitted per
 capture action. Re-center sits at the image area's bottom right and starts a fresh
 photo flow. Uncertain/unmapped results never establish location; a likely result
-must name a checkpoint on the selected published floor, then the visitor confirms
-the nearby sign. Checkpoint matching reuses the existing exact normalized matcher.
+must name a checkpoint in the selected building, then the visitor confirms
+the nearby sign. The global response's node/revision identities support starting
+on a different floor from the destination; recognition is the existing teammate
+implementation described in [the localization handoff](localization-visitor-match.md).
 
-The guidance renderer accepts an image URL, accessible description, instruction
-and explicit straight/left/right/back arrow direction. Its adapter currently has
-no route frames to supply, so the UI shows a waiting state. A recognized checkpoint
-or a reference photo alone does not establish a travel direction. Finishing is a
-user action, not automatically verified arrival. Cancellation, recapture, background
+The guidance renderer now consumes published route frames, reviewed reference
+photos and image-relative arrow angles as described below. Missing imagery or
+orientation is shown explicitly. Finishing is a user action, not automatically
+verified arrival. Cancellation, recapture, background
 and map changes clear guidance; background also closes capture and stops GPS.
 An active outdoor walk resumes previously requested GPS when foregrounded again.
 
@@ -177,17 +179,16 @@ are released and results from a closed capture screen are ignored.
 
 Release integration is still pending:
 
-- Supply reviewed guidance images and a route/publication-aware frame adapter to
-  the typed renderer. No uploaded images, route-generation endpoint, turn sequence
-  or automatic step advancement is implemented by this UI task.
+- Review the reference images and graph connections, publish each floor and
+  populate the explicit floor transfers described below. The frame adapter and
+  photo-route endpoint are implemented; route preview does not verify movement.
 - Apply the exact Android CORS allowance described below and verify restricted
   Google Maps credentials on the physical phone. API address routing is implemented;
   production CORS is verified. Google Maps referrer authorization and final map
   acceptance remain pending with the credential owner.
-- Provide the existing authorized localization session/capability. There is no
-  public visitor-session issuance endpoint yet, and the iOS bridge's configured
-  token transport remains debug-only. Anonymous browser captures may be denied;
-  this change does not bypass that authorization boundary or embed a shared token.
+- Deploy the visitor-session bootstrap and scoped localization integration below.
+  Browser and Android captures use short-lived capabilities; the existing iOS
+  bridge's configured token transport remains debug-only.
 - Verify Android camera/GPS, iOS capture/GPS, external Maps handoff, background/return,
   safe areas and permission recovery on actual phones. Android SDK Platform 36 is
   now installed locally; a successful asset sync alone still does not verify an APK
@@ -197,8 +198,93 @@ The single-env check passes against the current local contract. No template/priv
 env keys, schema version, credential values or dependency versions changed. Existing
 Maps/OAuth/native transport credentials must come from the responsible owner through
 the team's external private channel; this UI does not distribute them. Future API
-origin/guest-session architecture or dependency changes require the requesting
+origin or dependency changes require the requesting
 member's approval under [AGENTS.md](../AGENTS.md).
+
+## Published photo-route walkthrough
+
+The contributor approved cross-floor graph connections on October 18, 2026.
+The [architecture decision](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md#5-data-authority-and-publication)
+keeps floor edges revision-scoped and reuses `Node.kind=stairs|lift`.
+
+The visitor chooses a destination and exactly one route preference: shortest
+available route, avoid stairs, or avoid elevators. After deliberate capture, the
+existing MegaLoc localization must return `likely_match`; the visitor confirms
+the suggested location before routing. This integration uses the returned node
+and revision. It does not add a recognition algorithm or establish that a node is
+physically ahead of the camera.
+
+| API | Contract |
+| --- | --- |
+| `POST /api/navigation/sessions/` | `{publication_id}` for a current, noninvalidated, open map; returns a random 30-minute capability. Only its SHA-256 digest is stored. Camera keeps the secret in memory and sends `Authorization: Navigation <token>` on localization. |
+| `POST /api/navigation/localize/` | Existing JPEG/meta interface. Visitor catalogs and reference/index reads are restricted to published maps in the selected building, including under DEBUG. A likely global match additionally returns a signed `localization_token` valid for 30 minutes. Camera bytes remain unretained. |
+| `POST /api/navigation/photo-route/` | `{publication_id, destination_id, localization_token, preference}`; destination is the room node's stable UUID. Resolves exact start IDs, runs Dijkstra and returns ordered frames and total graph cost. Invalid/expired location, retired publication and disconnected/preference-blocked graph have explicit errors. |
+| `POST /api/navigation/floor-connections/` | Signed-in administrators on both floor targets may submit `{from_node_id, to_node_id, cost, bidirectional}`. Endpoints must be matching stair/lift kinds on different floors in one building. This explicit admin operation records verified connections; direct model creation defaults to unverified. |
+
+Only current noninvalidated publications on open targets participate. Same-floor
+edges and cross-floor transfers must be open and verified. Connections are
+directed; `bidirectional=true` creates both directions atomically. Publishing a
+replacement floor revision requires new transfers to its exact node identities;
+old connections do not silently attach to changed maps. Costs must use a common
+graph-cost scale across floors and transfers; this implementation does not claim
+metres or travel-time optimization for uncalibrated floor plans. Disconnected
+nodes are never joined by geometric proximity.
+
+Each path node selects a reviewed reference photo closest to the outgoing plan
+bearing. R2 URLs use the existing Django storage adapter and expire after 30
+minutes; no object-storage credentials reach the client. With
+`capture_context.heading_frame=plan_up_clockwise`, explicit `heading_degrees`
+takes precedence; otherwise `front=0`, `right=90`, `back=180`, `left=270`. In the
+editor's y-down plan frame, outgoing bearing is `atan2(dx, -dy)`. The arrow rotates
+by outgoing bearing minus the selected photo heading, wrapped to [-180, 180).
+The previous arrow uses the current image's heading toward the previous node.
+The labels are plan-relative, not a claim about geographic north or camera pose.
+
+Different floor plans have no common planar frame: a floor transfer gives an
+explicit stairs/elevator instruction and a next-photo control. Missing photos,
+unknown headings and failed image loads remain visible states with accessible
+previous/next controls. Photo changes reset image errors. Arrow buttons provide
+hover/focus affordances without animation. Browsing a photo changes preview
+index only; confirmed physical location and arrival are never advanced by a tap.
+Recapture, cancellation, background and destination changes invalidate pending
+route responses and clear guidance. Preference changes recompute from the last
+confirmed photo location.
+
+Before live use, deploy the code and apply
+[`maps.0004_floor_connections`](../apps/api/maps/migrations/0004_floor_connections.py)
+using the migration role; verify runtime permissions for the new table. Create
+room destination nodes, review photos (including their headings), verify walking
+edges, publish the floor maps with ready localization indexes, and create the
+reviewed stair/lift transfers via the admin API. The graph editor's add-waypoint
+control now supports stairs and elevators. This work does not publish maps or
+mark existing data reviewed automatically.
+
+A read-only check of Tiger DEV on October 18 found **0 active publications**, all
+**15 reference photos proposed**, and all **115 walking edges unverified**. These
+are live-data preparation blockers, separate from the implemented UI and APIs.
+No live rows, cloud schema, deployment or private values were changed. No env
+template, environment schema version, dependency or external-channel credential update is
+required. Existing R2, localization and exact Android CORS settings remain needed;
+real provider/device acceptance remains a deployment follow-up.
+
+Changed implementation and evidence:
+
+| Area | Files |
+| --- | --- |
+| Route algorithm and transport | [routing service](../apps/api/navigation/services/routing.py), [session/route views](../apps/api/navigation/views_routing.py), [localization integration](../apps/api/navigation/views.py), [URLs](../apps/api/navigation/urls.py), [navigation persistence description](../apps/api/navigation/models.py) |
+| Floor transfers and node types | [models](../apps/api/maps/models.py), [migration/SQL guard](../apps/api/maps/migrations/0004_floor_connections.py), [authorized connection service](../apps/api/maps/services/floor_connections.py), [connection API](../apps/api/navigation/views_connections.py), [graph commands](../apps/api/maps/services/graph.py), [graph editor controller](../apps/web/src/app/features/graph-editor/graph-editor.ts), [type selector](../apps/web/src/app/features/graph-editor/graph-editor.html), [schema notes](database-schema.md) |
+| Visitor integration | [controller](../apps/web/src/app/features/visitor/visitor.ts), [template](../apps/web/src/app/features/visitor/visitor.html), [preference styles](../apps/web/src/app/features/visitor/visitor-guidance.scss), [route types](../apps/web/src/app/features/visitor/visitor-route.ts), [photo renderer](../apps/web/src/app/features/visitor/guidance-photo.ts), [camera/capability](../apps/web/src/app/features/visitor/visitor-camera.ts), [global match types](../apps/web/src/app/core/place-match.ts), [entry alias](../apps/web/src/app/app.routes.ts) |
+| Checks | [routing/security/PostgreSQL tests](../apps/api/tests/test_photo_routing.py), [visitor integration tests](../apps/web/src/app/features/visitor/visitor.spec.ts); ignored `local/tests/photo-route.cjs` and `local/artifacts/photo-route/` contain synthetic browser evidence. |
+
+Validation: **135 backend tests pass on isolated PostgreSQL**; **118 pass and 17
+PostgreSQL-only checks skip on SQLite**. **96 frontend tests pass**. Production
+configuration/schema checks, website build and browser flow at 320/390/430 px
+pass. Browser evidence uses synthetic imagery, fake camera and mocked APIs;
+no live inference or R2-fetch success is claimed. Android visitor production
+build and asset/plugin sync pass; migration drift, Ruff, changed-file Prettier,
+whitespace and local environment-contract checks pass. No new APK was built or
+installed in this task. Personal execution history is in ignored `local/ACTIONS.md`.
+Applicable commit: pending; suggested `feat(navigation): add photo-guided shortest-path routing`.
 
 ## Installed Android API connection
 

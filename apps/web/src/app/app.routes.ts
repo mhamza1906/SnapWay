@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { sessionGuard } from './core/auth.service';
 
 export const routes: Routes = [
+  { path: 'app-review', pathMatch: 'full', redirectTo: 'app-preview' },
   {
     path: 'app-preview',
     loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),

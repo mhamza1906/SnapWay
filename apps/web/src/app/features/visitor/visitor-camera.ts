@@ -165,6 +165,7 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
 export class VisitorCamera implements AfterViewInit {
   private readonly device = inject(VISITOR_CAPTURE_DEVICE);
   readonly demo = input(false);
+  readonly publicationId = input('');
   readonly captured = output<void>();
   readonly closed = output<void>();
   readonly matched = output<MatchResult>();
@@ -371,8 +372,22 @@ export class VisitorCamera implements AfterViewInit {
           }),
         );
         // Existing session/capability permissions remain authoritative.
+        let headers: Record<string, string> = {};
+        if (this.publicationId()) {
+          const session = await firstValueFrom(
+            this.http
+              .post<{ token: string }>('/api/navigation/sessions/', {
+                publication_id: this.publicationId(),
+              })
+              .pipe(timeout(10000)),
+          );
+          if (this.destroyed) return;
+          headers = { Authorization: `Navigation ${session.token}` };
+        }
         const body = await firstValueFrom(
-          this.http.post<unknown>('/api/navigation/localize/', form).pipe(timeout(30000)),
+          this.http
+            .post<unknown>('/api/navigation/localize/', form, { headers })
+            .pipe(timeout(30000)),
         );
         const outcome = parseMatchResponse(
           { status: 200, body: JSON.stringify(body), roundTripMs: 0 },

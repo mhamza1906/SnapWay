@@ -23,9 +23,11 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from navigation.authentication import DevTokenAuthentication, NavigationCapabilityAuthentication
+from navigation.models import NavigationSession
 from navigation.permissions import CanLocalize, caller_kind
 from navigation.services import placematch
 from navigation.services.placematch import MAX_UPLOAD_BYTES, EngineError
+from navigation.views_routing import location_token
 
 MAX_SIDE = 4096
 
@@ -62,6 +64,23 @@ class LocalizationView(APIView):
 
 def _engine_error(exc: EngineError) -> Response:
     return Response({"error": exc.code, "detail": exc.detail}, status=exc.status)
+
+
+def _visitor_entries(request, entries):
+    if not isinstance(request.auth, NavigationSession):
+        return entries
+    from maps.models import Publication
+
+    allowed = {
+        str(pk)
+        for pk in Publication.objects.filter(
+            is_current=True,
+            invalidated_at__isnull=True,
+            target__status="open",
+            target__floor__building_id=request.auth.publication.target.floor.building_id,
+        ).values_list("revision_id", flat=True)
+    }
+    return [entry for entry in entries if entry.revision_id in allowed]
 
 
 def _check_jpeg(upload) -> bytes:
@@ -142,6 +161,10 @@ class LocalizeView(LocalizationView):
         frame_meta = {k: v for k, v in meta.validated_data.items() if v is not None}
 
         if request.query_params.get("mode", "global") == "legacy":
+            if isinstance(request.auth, NavigationSession):
+                return Response(
+                    {"detail": "Visitor sessions use published global localization."}, status=403
+                )
             backend = request.query_params.get("backend", "auto")
             if backend not in {"auto", "megaloc", "vertex"}:
                 return Response({"backend": "Use auto, megaloc or vertex."}, status=400)
@@ -163,6 +186,7 @@ class LocalizeView(LocalizationView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         entries = eligible_index_entries(revision_id=revision_id, target_id=target_id)
+        entries = _visitor_entries(request, entries)
         if not entries:
             return Response(
                 {
@@ -178,6 +202,15 @@ class LocalizeView(LocalizationView):
             return _engine_error(exc)
 
         decision = body.get("decision") or {}
+        if isinstance(request.auth, NavigationSession):
+            allowed = {entry.revision_id for entry in entries}
+            observed = [decision, *body.get("candidates", [])]
+            if any(
+                row.get("revision_id") and row["revision_id"] not in allowed for row in observed
+            ):
+                return Response(
+                    {"detail": "The reference catalog changed. Please retry."}, status=503
+                )
         ctx = enrich_target_context(decision.get("target_id"))
         return Response(
             {
@@ -185,6 +218,7 @@ class LocalizeView(LocalizationView):
                 **ctx,
                 "node_id": decision.get("node_id") or decision.get("location_id"),
                 "revision_id": decision.get("revision_id") or ctx.get("revision_id"),
+                "localization_token": location_token(body),
                 "caller": caller_kind(request),
             }
         )
@@ -196,6 +230,10 @@ class ReferenceThumbnailView(LocalizationView):
         responses={(200, "image/jpeg"): OpenApiTypes.BINARY},
     )
     def get(self, request, reference_set, reference_id):
+        if isinstance(request.auth, NavigationSession) and reference_set not in {
+            entry.set_key for entry in _visitor_entries(request, eligible_index_entries())
+        }:
+            return Response({"detail": "Reference set not available."}, status=404)
         try:
             resp = placematch.thumbnail(reference_set, reference_id)
         except EngineError as exc:
@@ -213,6 +251,10 @@ class MegaLocIndexView(LocalizationView):
         responses={200: OpenApiTypes.OBJECT},
     )
     def get(self, request, reference_set):
+        if isinstance(request.auth, NavigationSession) and reference_set not in {
+            entry.set_key for entry in _visitor_entries(request, eligible_index_entries())
+        }:
+            return Response({"detail": "Reference set not available."}, status=404)
         try:
             return Response(placematch.megaloc_index(reference_set))
         except EngineError as exc:

@@ -53,6 +53,15 @@
   @if (tool() === 'add') {
     <div class="label-row">
       <label>
+        Waypoint type
+        <select [value]="nodeKind()" (change)="nodeKind.set($any($event.target).value)">
+          <option value="checkpoint">Checkpoint</option>
+          <option value="junction">Junction</option>
+          <option value="stairs">Stairs</option>
+          <option value="lift">Elevator</option>
+        </select>
+      </label>
+      <label>
         Waypoint label
         <input
           type="text"

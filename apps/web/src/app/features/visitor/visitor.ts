@@ -16,6 +16,8 @@ import { GuidancePhotoView, type GuidancePhoto } from './guidance-photo';
 import { type DestinationOption, type VisitorBuilding } from './visitor.models';
 import { withDemoBuildings } from './visitor-demo';
 import { DestinationSearch } from './visitor-destination-search';
+import { type PhotoRoute, type RoutePreference } from './visitor-route';
+import { timeout } from 'rxjs';
 
 @Component({
   selector: 'app-visitor-journey',
@@ -89,6 +91,81 @@ export class VisitorJourney {
   readonly confirmedLocation = signal('');
   readonly suggestedLocation = signal('');
   readonly guidancePhoto = signal<GuidancePhoto | null>(null);
+  readonly preference = signal<RoutePreference>('any');
+  readonly routeLoading = signal(false);
+  readonly route = signal<PhotoRoute | null>(null);
+  readonly frameIndex = signal(0);
+  private matchedLocation: MatchResult | null = null;
+  private routeAttempt = 0;
+
+  setPreference(value: string) {
+    if (!['any', 'avoid_stairs', 'avoid_elevators'].includes(value)) return;
+    this.preference.set(value as RoutePreference);
+    if (this.confirmedLocation()) void this.loadRoute();
+  }
+  private clearRoute() {
+    this.routeAttempt++;
+    this.routeLoading.set(false);
+    this.route.set(null);
+    this.frameIndex.set(0);
+    this.guidancePhoto.set(null);
+  }
+  moveFrame(offset: number) {
+    const frames = this.route()?.frames;
+    const index = this.frameIndex() + offset;
+    if (!frames || index < 0 || index >= frames.length) return;
+    this.frameIndex.set(index);
+    const frame = frames[index];
+    this.guidancePhoto.set({
+      imageUrl: frame.image_url,
+      alt: `${frame.label} · ${frame.floor_name}`,
+      instruction: frame.instruction,
+      direction: 'straight',
+      nextAngle: frame.next_angle,
+      previousAngle: frame.previous_angle,
+      hasNext: index + 1 < frames.length,
+      hasPrevious: index > 0,
+      transition: frame.transition,
+      step: index + 1,
+      count: frames.length,
+    });
+  }
+  async loadRoute() {
+    const location = this.matchedLocation;
+    const destination = this.destination();
+    this.clearRoute();
+    const attempt = this.routeAttempt;
+    if (!location?.localization_token || !destination?.floor || !destination.room) {
+      this.message.set('This photo match has no route location. Take another photo to continue.');
+      return;
+    }
+    this.routeLoading.set(true);
+    this.message.set('Finding your route…');
+    try {
+      const route = await firstValueFrom(
+        this.http
+          .post<PhotoRoute>('/api/navigation/photo-route/', {
+            publication_id: destination.floor.publication_id,
+            destination_id: destination.room.id,
+            localization_token: location.localization_token,
+            preference: this.preference(),
+          })
+          .pipe(timeout(15000)),
+      );
+      if (this.destroyed || attempt !== this.routeAttempt) return;
+      this.route.set(route);
+      this.moveFrame(0);
+      this.message.set(
+        'Follow the photos and check each checkpoint around you. Arrows preview the route.',
+      );
+    } catch (error: unknown) {
+      if (this.destroyed || attempt !== this.routeAttempt) return;
+      const detail = (error as { error?: { detail?: string } })?.error?.detail;
+      this.message.set(detail || 'The route could not load. Try again or take another photo.');
+    } finally {
+      if (attempt === this.routeAttempt) this.routeLoading.set(false);
+    }
+  }
   readonly directions = computed(() => {
     const b = this.building();
     if (!b) return '';
@@ -115,6 +192,8 @@ export class VisitorJourney {
         return;
       }
       this.cameraOpen.set(false);
+      this.clearRoute();
+      this.matchedLocation = null;
       this.stopLocation();
       this.location.set(null);
       this.confirmedLocation.set('');
@@ -125,6 +204,7 @@ export class VisitorJourney {
     document.addEventListener('visibilitychange', pause);
     inject(DestroyRef).onDestroy(() => {
       this.destroyed = true;
+      this.clearRoute();
       this.stopLocation();
       document.removeEventListener('visibilitychange', pause);
     });
@@ -150,6 +230,8 @@ export class VisitorJourney {
     }
   }
   selectBuilding(id: string) {
+    this.clearRoute();
+    this.matchedLocation = null;
     this.building.set(this.buildings().find((building) => building.id === id) ?? null);
     this.destination.set(null);
     this.confirmedLocation.set('');
@@ -161,6 +243,8 @@ export class VisitorJourney {
     if (option) this.choose(option);
   }
   choose(option: DestinationOption) {
+    this.clearRoute();
+    this.matchedLocation = null;
     this.building.set(option.building);
     this.destination.set(option.room ? option : null);
     this.confirmedLocation.set('');
@@ -191,6 +275,8 @@ export class VisitorJourney {
     }
   }
   showOutdoor() {
+    this.clearRoute();
+    this.matchedLocation = null;
     this.chooseEnvironment(false);
     this.guidancePhoto.set(null);
     this.cameraOpen.set(false);
@@ -200,6 +286,8 @@ export class VisitorJourney {
     this.suggestedLocation.set('');
   }
   end(finished = false) {
+    this.clearRoute();
+    this.matchedLocation = null;
     this.locationRequested = false;
     this.guidancePhoto.set(null);
     this.cameraOpen.set(false);
@@ -215,28 +303,50 @@ export class VisitorJourney {
   }
   acceptMatch(result: MatchResult) {
     if (!this.active() || !this.indoor() || this.building()?.demo) return;
-    const floor = this.destination()?.floor;
-    const checkpoints = [
-      ...(floor?.checkpoints ?? []),
-      ...(floor?.destinations ?? []).map((room) => ({ id: room.id, label: room.label })),
-    ];
-    const match =
-      result.decision.outcome === 'likely_match'
-        ? matchingCheckpoint(result.decision.location_id, checkpoints)
-        : undefined;
-    this.cameraOpen.set(false);
-    if (!match) {
+    this.suggestedLocation.set('');
+    this.matchedLocation = null;
+    if (result.building_id && result.building_id !== this.building()?.id) {
+      this.cameraOpen.set(false);
       this.message.set(
-        'That photo could not be linked to this floor. Try another sign or landmark.',
+        'That photo matches a different building. Check your destination and try again.',
       );
       return;
     }
-    this.suggestedLocation.set(match.label || match.id);
+    const floors = this.building()?.floors ?? [];
+    const checkpoints = [
+      ...floors.flatMap((floor) => floor.checkpoints ?? []),
+      ...floors
+        .flatMap((floor) => floor.destinations ?? [])
+        .map((room) => ({ id: room.id, label: room.label })),
+    ];
+    const match =
+      result.decision.outcome === 'likely_match'
+        ? matchingCheckpoint(
+            result.node_id ?? result.decision.node_id ?? result.decision.location_id,
+            checkpoints,
+          )
+        : undefined;
+    this.cameraOpen.set(false);
+    const scopedGlobal =
+      result.decision.outcome === 'likely_match' &&
+      result.building_id === this.building()?.id &&
+      !!result.localization_token;
+    if (!match && !scopedGlobal) {
+      this.message.set(
+        'That photo could not be linked to this building. Try another sign or landmark.',
+      );
+      return;
+    }
+    this.matchedLocation = result;
+    this.suggestedLocation.set(
+      match?.label || result.floor_name || match?.id || 'the recognized checkpoint',
+    );
   }
   confirmMatch() {
+    if (!this.suggestedLocation()) return;
     this.confirmedLocation.set(this.suggestedLocation());
     this.suggestedLocation.set('');
-    this.message.set('Location confirmed. Guidance photos for this route are not available yet.');
+    void this.loadRoute();
   }
   demoPhotoCaptured() {
     if (!this.active() || !this.indoor() || !this.building()?.demo) return;
@@ -245,6 +355,8 @@ export class VisitorJourney {
   }
   recenter() {
     if (!this.active() || !this.indoor() || !this.destination()) return;
+    this.clearRoute();
+    this.matchedLocation = null;
     this.guidancePhoto.set(null);
     this.confirmedLocation.set('');
     this.suggestedLocation.set('');

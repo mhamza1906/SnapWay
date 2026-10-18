@@ -235,7 +235,106 @@ describe('Installed visitor journey', () => {
     expect(page.confirmedLocation()).toBe('');
     expect(page.active()).toBe(false);
   });
-  it('accepts only likely matches on the selected floor, with explicit confirmation', async () => {
+  it('loads a route from a confirmed global match and previews photos without changing physical location', async () => {
+    const fixture = await setup();
+    const page = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    page.choose(searchDestinations([building], 'IA2021', null)[0]);
+    page.enterIndoor();
+    page.cameraOpen.set(false);
+    page.acceptMatch({
+      building_id: 'ia',
+      node_id: 'node-on-another-floor',
+      revision_id: 'floor1-rev',
+      floor_name: 'Floor 1',
+      localization_token: 'signed-location',
+      decision: { outcome: 'likely_match', location_id: 'node-on-another-floor' },
+    } as MatchResult);
+    expect(page.suggestedLocation()).toBe('Floor 1');
+    http.expectNone('/api/navigation/photo-route/');
+    page.confirmMatch();
+    const request = http.expectOne('/api/navigation/photo-route/');
+    expect(request.request.body).toEqual({
+      publication_id: 'published-v1',
+      destination_id: 'room-2021',
+      localization_token: 'signed-location',
+      preference: 'any',
+    });
+    const frame = {
+      node_id: 'first',
+      revision_id: 'floor1-rev',
+      label: 'Corridor',
+      floor_name: 'Floor 1',
+      image_url: '/reference.jpg',
+      instruction: 'Continue to the stairs.',
+      next_angle: 45,
+      previous_angle: null,
+      transition: false,
+      orientation_known: true,
+    };
+    request.flush({
+      frames: [
+        frame,
+        { ...frame, node_id: 'last', label: 'Stairs', next_angle: null, previous_angle: -135 },
+      ],
+      total_cost: 2,
+      preference: 'any',
+      publication_ids: [],
+    });
+    await vi.waitFor(() => expect(page.routeLoading()).toBe(false));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.arrow.next').style.transform).toBe(
+      'rotate(45deg)',
+    );
+    fixture.nativeElement.querySelector('.arrow.next').click();
+    fixture.detectChanges();
+    expect(page.frameIndex()).toBe(1);
+    expect(page.confirmedLocation()).toBe('Floor 1');
+    expect(fixture.nativeElement.querySelector('.arrow.previous').style.transform).toBe(
+      'rotate(-135deg)',
+    );
+    page.moveFrame(-1);
+    page.moveFrame(-1);
+    expect(page.frameIndex()).toBe(0);
+    page.recenter();
+    expect(page.route()).toBeNull();
+  });
+  it('ignores a route response after cancellation', async () => {
+    const page = (await setup()).componentInstance;
+    page.choose(searchDestinations([building], 'IA2021', null)[0]);
+    page.enterIndoor();
+    page.acceptMatch({
+      building_id: 'ia',
+      localization_token: 'signed-location',
+      decision: { outcome: 'likely_match', location_id: 'junction' },
+    } as MatchResult);
+    page.confirmMatch();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/navigation/photo-route/');
+    page.end();
+    request.flush({ frames: [], total_cost: 0, preference: 'any', publication_ids: [] });
+    await Promise.resolve();
+    expect(page.route()).toBeNull();
+    expect(page.guidancePhoto()).toBeNull();
+    expect(page.message()).toBe('');
+  });
+  it('recovers a failed image when a new route frame arrives', () => {
+    const fixture = TestBed.createComponent(GuidancePhotoView);
+    const frame = {
+      imageUrl: '/broken.jpg',
+      alt: 'Corridor',
+      instruction: 'Continue',
+      direction: 'straight',
+    };
+    fixture.componentRef.setInput('photo', frame);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('img').dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('could not load');
+    fixture.componentRef.setInput('photo', { ...frame, imageUrl: '/next.jpg' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe('/next.jpg');
+  });
+  it('accepts only likely matches in the selected building, with explicit confirmation', async () => {
     const page = (await setup()).componentInstance;
     page.choose(searchDestinations([building], 'IA2021', null)[0]);
     page.enterIndoor();
