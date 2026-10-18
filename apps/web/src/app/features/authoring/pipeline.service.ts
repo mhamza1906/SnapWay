@@ -518,7 +518,7 @@ export class PipelineService {
     building: PipelineBuilding,
     floorId: string,
     spaceId: string,
-    maxPoints = 20,
+    maxPoints = 30,
   ): Promise<HallPlan> {
     return this.postLight('/authoring/hall-points', building, { floorId, spaceId, maxPoints });
   }

@@ -255,7 +255,7 @@ export function authoringRouter() {
   // Photo points for a whole hall (see planHallPoints); read-only.
   r.post("/hall-points", (req, res, next) => {
     try { const { building, floorId } = body(req);
-      res.json(planHallPoints(building, floorId, req.body.spaceId, { spacingM: req.body.spacingM ?? 2, maxPoints: req.body.maxPoints ?? 20 })); } catch (e) { if (e.status) e.statusCode = e.status; next(e); }
+      res.json(planHallPoints(building, floorId, req.body.spaceId, { spacingM: req.body.spacingM ?? 2, maxPoints: req.body.maxPoints ?? 30 })); } catch (e) { if (e.status) e.statusCode = e.status; next(e); }
   });
   r.post("/spaces/fold-strips", (req, res, next) => {
     try { const { building, floorId } = body(req), out = absorbThinStrips(building, floorId, req.body.reviewer || "");

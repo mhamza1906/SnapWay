@@ -396,7 +396,7 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
 // pixels (default 2.2% of the floor's larger side) and metres are null.
 // This spacing generates candidates, not a required photo at every interval.
 // A sparse, distributed subset is selected; graph lines are never thinned.
-export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 20, adaptive = true } = {}) {
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 30, adaptive = true } = {}) {
   const floor = floorOf(building, floorId),
     pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
     hall = pieces.find((s) => s.id === spaceId);
@@ -465,12 +465,12 @@ export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spaci
   });
   points.sort((a, z) => a._visit - z._visit);
   // Use route length, not room area: long/branched corridors need more views.
-  // Six candidate intervals give a useful starting density; decision points
+  // Four candidate intervals give a denser capture plan; decision points
   // add up to four stops. With no verified scale this remains a plan-relative
   // heuristic, not a measured localization-accuracy guarantee.
   const lengthPx = edges.reduce((sum, edge) => sum + polyLength(edge.path), 0),
     complexity = Math.min(4, points.filter(p => p.reason === "turn").length + 2 * points.filter(p => p.reason === "junction").length),
-    recommendedPoints = Math.min(points.length, maxPoints, Math.max(2, Math.ceil(lengthPx / (6 * step)) + 1 + complexity)),
+    recommendedPoints = Math.min(points.length, maxPoints, Math.max(2, Math.ceil(lengthPx / (4 * step)) + 1 + complexity)),
     budget = adaptive ? recommendedPoints : maxPoints;
   // Farthest-point sampling spreads the limited stops through the whole hall.
   // Weight junctions/turns above ordinary straight-hall candidates, without

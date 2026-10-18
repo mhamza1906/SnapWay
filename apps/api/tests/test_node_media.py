@@ -411,13 +411,24 @@ def walk_expansion(actors, draft, tmp_path):
 
 
 @pytest.mark.django_db
-def test_expand_saved_walk_to_twenty_preserves_node_ids_and_photos(walk_expansion):
+@pytest.mark.parametrize("count", [20, 30])
+def test_expand_saved_walk_preserves_node_ids_and_photos(walk_expansion, count):
     import io
+    import json
 
     from django.core.management import call_command
     from maps.models import Contribution
 
     revision, first, last, photo, source = walk_expansion
+    data = json.loads(source.read_text())
+    walk = data["walks"][0]
+    walk["source"] = f"test:floor:hall:{count}"
+    walk["points"] = count
+    walk["nodes"] = [
+        {"x": i, "y": 10, "label": f"Point {i + 1}", "kind": "checkpoint"} for i in range(count)
+    ]
+    walk["edges"] = [{"from": i, "to": i + 1} for i in range(count - 1)]
+    source.write_text(json.dumps(data))
     for _ in range(2):
         call_command(
             "import_photo_walks",
@@ -430,14 +441,14 @@ def test_expand_saved_walk_to_twenty_preserves_node_ids_and_photos(walk_expansio
     last.refresh_from_db()
     photo.refresh_from_db()
     assert Contribution.objects.count() == 1
-    assert revision.nodes.count() == 20
-    assert revision.edges.count() == 19
+    assert revision.nodes.count() == count
+    assert revision.edges.count() == count - 1
     assert revision.nodes.filter(pk=first.id).exists()
     assert last.label == "Point 20"
     assert (last.x, last.y) == (19, 10)
     assert photo.node_id == last.id
     assert photo.capture_context == {"direction": "front"}
-    assert revision.geometry["photo_walk_source"] == "test:floor:hall:20"
+    assert revision.geometry["photo_walk_source"] == f"test:floor:hall:{count}"
     assert revision.geometry["review"] == "agent-inspected"
 
 

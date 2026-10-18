@@ -1380,13 +1380,13 @@ describe('map authoring page', () => {
     expect(shown.photoPoints).toBeUndefined();
   });
 
-  it('defaults to a twenty-stop ceiling and accepts a smaller recommended count from the planner', async () => {
+  it('defaults to a thirty-stop ceiling and accepts a smaller recommended count from the planner', async () => {
     const s = withSpaces(
       regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),
     );
     const { page, fixture, el } = await startMapped(s);
     page.selectedRegions.set(['h1']);
-    for (const limit of [20, 6]) {
+    for (const limit of [30, 6]) {
       if (limit === 6) {
         const input = el.querySelector('[data-testid="photo-stop-limit"]') as HTMLInputElement;
         input.value = '6';
@@ -1405,17 +1405,17 @@ describe('map authoring page', () => {
         spacingPx: 10,
         maxPoints: limit,
         lines: [],
-        points: Array.from({ length: Math.min(limit, 14) }, (_, i) => ({
+        points: Array.from({ length: Math.min(limit, 18) }, (_, i) => ({
           x: i * 10,
           y: 0,
           order: i + 1,
           reason: 'spacing',
         })),
       });
-      expect((await renderOverlay()).photoPoints).toHaveLength(Math.min(limit, 14));
+      expect((await renderOverlay()).photoPoints).toHaveLength(Math.min(limit, 18));
       await planning;
       fixture.detectChanges();
-      expect(page.hallPlan()?.points).toHaveLength(Math.min(limit, 14));
+      expect(page.hallPlan()?.points).toHaveLength(Math.min(limit, 18));
     }
     page.photoStopLimit.set(1);
     fixture.detectChanges();

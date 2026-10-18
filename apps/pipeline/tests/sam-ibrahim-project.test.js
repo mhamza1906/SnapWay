@@ -22,11 +22,11 @@ test('sparse photo stops respect the budget on every hall without changing walki
   const before=JSON.stringify(building);
   for(const floor of building.floors) for(const hall of floor.geometry.spaces.filter(s=>['corridor','lobby'].includes(s.kind))) {
     const normal=planHallPoints(building,floor.id,hall.id);
-    assert(normal.points.length<=20);
+    assert(normal.points.length<=30);
     assert.equal(normal.points.length,normal.recommendedPoints);
     assert.equal(normal.selectionMode,'adaptive');
-    const previous=planHallPoints(building,floor.id,hall.id,{maxPoints:12,adaptive:false});
-    const ceiling=planHallPoints(building,floor.id,hall.id,{maxPoints:20,adaptive:false});
+    const previous=planHallPoints(building,floor.id,hall.id,{maxPoints:20,adaptive:false});
+    const ceiling=planHallPoints(building,floor.id,hall.id,{maxPoints:30,adaptive:false});
     for(const point of previous.points) assert(ceiling.points.some(p=>p.x===point.x&&p.y===point.y),'Reserved locations must preserve existing photo nodes');
     for(const maxPoints of [2,6,12,20,30]) {
       const plan=planHallPoints(building,floor.id,hall.id,{maxPoints});
@@ -48,12 +48,12 @@ test('sparse photo stops respect the budget on every hall without changing walki
   assert.equal(JSON.stringify(building),before);
 });
 
-test('hall-points API adapts below a twenty-stop ceiling and rejects invalid budgets',async()=>{
+test('hall-points API adapts below a thirty-stop ceiling and rejects invalid budgets',async()=>{
   const input={building,floorId:'L5',spaceId:'L5-project-circulation-1'};
-  for(const maxPoints of [undefined,6,12,20]) {
+  for(const maxPoints of [undefined,6,12,20,30]) {
     const {status,data}=await post('/hall-points',{...input,maxPoints});
     assert.equal(status,200,JSON.stringify(data));
-    assert.equal(data.points.length,Math.min(maxPoints??20,14));
+    assert.equal(data.points.length,Math.min(maxPoints??30,18));
     assert(data.points.some(p=>p.reason==='turn'||p.reason==='junction'));
   }
   for(const maxPoints of [0,1,31,2.5,'6']) {
@@ -63,10 +63,10 @@ test('hall-points API adapts below a twenty-stop ceiling and rejects invalid bud
 
 test('small and medium circulation areas get fewer stops than large floor networks',()=>{
   const count=(floor,id)=>planHallPoints(building,floor,`${floor}-project-circulation-${id}`).points.length;
-  assert.equal(count('LB',3),4);
-  assert.equal(count('L2',3),11);
-  assert.equal(count('L5',1),14);
-  assert.equal(count('L4',1),20);
+  assert.equal(count('LB',3),5);
+  assert.equal(count('L2',3),13);
+  assert.equal(count('L5',1),18);
+  assert.equal(count('L4',1),30);
 });
 
 test('built-in project is available in the normal building library with six original source frames',async()=>{

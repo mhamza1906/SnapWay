@@ -38,8 +38,8 @@ class Command(BaseCommand):
             ) from error
         result = []
         for walk in walks:
-            if not 1 <= walk["points"] <= 20:
-                raise CommandError("Each circulation must contain 1–20 photo stops.")
+            if not 1 <= walk["points"] <= 30:
+                raise CommandError("Each circulation must contain 1–30 photo stops.")
             existing = (
                 Contribution.objects.filter(
                     author=user, head_revision__geometry__photo_walk_source=walk["source"]
