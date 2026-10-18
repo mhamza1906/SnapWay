@@ -11,30 +11,48 @@ import { join } from "node:path";
 const ENDPOINT = "https://api.vectorizer.ai/api/v1/vectorize";
 const MODES = new Set(["production", "preview", "test", "test_preview"]);
 
-export class VectorizerError extends Error {}
+export class VectorizerError extends Error {
+  constructor(message, code) { super(message); this.code = code; }
+}
+
+/**
+ * Counts one vectorizer.ai request against VECTORIZER_MAX_CALLS before it is
+ * sent (so a crash can never exceed the cap) and refuses it in prod. Every
+ * caller goes through here: the scripts and the /api/vectorization/live route.
+ * `dir` holds usage.json; null skips counting (tests with their own env).
+ */
+export async function reserveVectorizerCall({ name = "plan.png", sha256: hash = "", mode = "production", env = process.env,
+  dir = env.VECTORIZER_USAGE_DIR || (env === process.env ? ".local/vectorizer" : null) } = {}) {
+  if (env.APP_ENV === "prod") throw new VectorizerError("vectorizer.ai is development-only; run with APP_ENV=dev.", "VECTORIZER_DEV_ONLY");
+  const limit = Number(env.VECTORIZER_MAX_CALLS || 50);
+  if (!dir) return { callsUsed: null, callsLimit: limit };
+  await mkdir(dir, { recursive: true });
+  const usageFile = join(dir, "usage.json"),
+    usage = JSON.parse(await readFile(usageFile, "utf8").catch(() => '{"calls":0,"log":[]}'));
+  if (usage.calls >= limit)
+    throw new VectorizerError(`vectorizer.ai limit reached (${usage.calls}/${limit} calls). Raise VECTORIZER_MAX_CALLS in .env.dev to allow more.`, "VECTORIZER_LIMIT_REACHED");
+  usage.calls += 1;
+  usage.log.push({ at: new Date().toISOString(), name, mode, sha256: hash });
+  await writeFile(usageFile, JSON.stringify(usage, null, 2));
+  return { callsUsed: usage.calls, callsLimit: limit };
+}
 
 /** Returns { svg, cached, credits, callsUsed, callsLimit } for one image buffer. */
 export async function vectorize(image, {
   name = "plan.png", mode = process.env.VECTORIZER_MODE || "production",
   dir = ".local/vectorizer", fetchImpl = fetch,
 } = {}) {
-  if (process.env.APP_ENV === "prod") throw new VectorizerError("vectorizer.ai is development-only; run with APP_ENV=dev.");
   if (!MODES.has(mode)) throw new VectorizerError(`VECTORIZER_MODE must be one of ${[...MODES].join(", ")}.`);
   const id = process.env.VECTORIZER_API_ID, secret = process.env.VECTORIZER_API_SECRET;
   if (!id || !secret) throw new VectorizerError("Set VECTORIZER_API_ID and VECTORIZER_API_SECRET in .env.dev.");
-  const limit = Number(process.env.VECTORIZER_MAX_CALLS || 50),
-    hash = createHash("sha256").update(image).digest("hex"),
-    cacheFile = join(dir, `${hash}-${mode}.svg`), usageFile = join(dir, "usage.json");
-  await mkdir(dir, { recursive: true });
-  const usage = JSON.parse(await readFile(usageFile, "utf8").catch(() => '{"calls":0,"log":[]}'));
+  if (process.env.APP_ENV === "prod") throw new VectorizerError("vectorizer.ai is development-only; run with APP_ENV=dev.", "VECTORIZER_DEV_ONLY");
+  const hash = createHash("sha256").update(image).digest("hex"), cacheFile = join(dir, `${hash}-${mode}.svg`);
   try {
-    return { svg: await readFile(cacheFile, "utf8"), cached: true, credits: 0, callsUsed: usage.calls, callsLimit: limit };
+    const usage = JSON.parse(await readFile(join(dir, "usage.json"), "utf8"));
+    return { svg: await readFile(cacheFile, "utf8"), cached: true, credits: 0, callsUsed: usage.calls, callsLimit: Number(process.env.VECTORIZER_MAX_CALLS || 50) };
   } catch { /* not cached */ }
-  if (usage.calls >= limit) throw new VectorizerError(`vectorizer.ai limit reached (${usage.calls}/${limit} calls). Raise VECTORIZER_MAX_CALLS in .env.dev to allow more.`);
-  // Count the call before sending it, so a crash can never exceed the limit.
-  usage.calls += 1;
-  usage.log.push({ at: new Date().toISOString(), name, mode, sha256: hash });
-  await writeFile(usageFile, JSON.stringify(usage, null, 2));
+  const { callsUsed, callsLimit: limit } = await reserveVectorizerCall({ name, sha256: hash, mode, dir });
+  const usage = { calls: callsUsed };
   const form = new FormData();
   form.append("image", new Blob([image]), name);
   form.append("mode", mode);

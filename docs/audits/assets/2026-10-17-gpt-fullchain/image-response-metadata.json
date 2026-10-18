@@ -1,0 +1,22 @@
+{
+  "created": 1792229214,
+  "background": "opaque",
+  "output_format": "png",
+  "quality": "high",
+  "safety_identifier": null,
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 1822,
+    "input_tokens_details": {
+      "image_tokens": 1456,
+      "text_tokens": 366
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3194
+  },
+  "imageCount": 1
+}

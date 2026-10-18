@@ -1,5 +1,28 @@
 # Map-authoring pipeline
 
+**Visitor photo localization (canonical):** MegaLoc image embeddings — see
+[localization-megaloc.md](../localization-megaloc.md) and
+[localization-visitor-match.md](../localization-visitor-match.md). Gemini is **not**
+the visitor place matcher.
+
+**Map-authoring / graph / raster plan:** [navigation-ai-workflow-plan.md](navigation-ai-workflow-plan.md)
+(feasibility for floor-plan AI and navigation UX). Visitor place match in that plan is
+MegaLoc; Gemini stays map-authoring only.
+
+**Current vectorization slice:** [Vectorizer.AI adapter and prebuilt demo assets](vectorizer-api-demo.md).
+Live calls are disabled with empty credentials. The mock is reserved for **IA floor 4**
+(asset pending); IA floor 1 belongs to the separate prebuilt navigation demo route.
+The Figma relay proposal is superseded; no relay/plugin automation is being built.
+
+**Acceptance status (October 17, 2026):** real IA-1 photo output failed acceptance.
+See the [phase audit, requirement gaps and screenshots](../audits/2026-10-17-map-authoring-pipeline.md).
+The workflow below describes the implementation; it does not establish faithful
+output for a real target or completion of the required GPT Image stage.
+
+For the next experiment, read the [web artifact review](../audits/2026-10-17-chatgpt-web-floorplan.md)
+and [redesign proposal](redesign-proposal.md). They describe proposed changes and
+bounded response examples; the runtime documented below has not been replaced.
+
 `apps/pipeline/` is a private Node service. It turns an uploaded floor plan
 (PDF, PNG or JPEG) into a draft indoor map: rooms and other spaces, doorways, and
 a walking graph that can be routed. Everything it produces is a draft for review.
@@ -41,7 +64,8 @@ breakdown, see [stages.md](stages.md).
   at port 5175: if you change `PORT`, update the proxy too. See
   [api.md](api.md) for the routes.
 - **Keys stay on the server.** Provider credentials are read from
-  `apps/pipeline/.env.*` files on the server only. They are never sent to
+  the single ignored `local/.env` locally and the protected process environment
+  on the server. They are never sent to
   Angular, Capacitor or any browser bundle.
 
 ### Relationship to the planned architecture
@@ -89,7 +113,9 @@ Requirements:
 ```sh
 cd apps/pipeline
 npm ci
-cp .env.prod.example .env.prod   # then fill in ANTHROPIC_API_KEY (and VERTEX_API_KEY / VERTEX_PROJECT for AI_PROVIDER=vertex)
+# First, from the repo root: python scripts/env_contract.py migrate (old checkout)
+# or: python scripts/env_contract.py init (fresh checkout).
+# Fill ANTHROPIC_API_KEY (or VERTEX_API_KEY and VERTEX_PROJECT with AI_PROVIDER=vertex) in repo-root local/.env.
 npm run prod                     # prints: SnapWay map-authoring pipeline (prod): http://127.0.0.1:5175
 ```
 
@@ -111,11 +137,11 @@ Open http://127.0.0.1:4200/authoring. In the sidebar it is
 needed for this screen. To work without Angular, use the HTTP API and CLI in
 [api.md](api.md).
 
-Use `.env.prod` and `npm run prod` (`npm start` is the same). If the provider
-settings are invalid, for example `AI_PROVIDER` is not `vertex`, the service
-exits at startup with `Pipeline provider settings are invalid for APP_ENV=prod: ...`.
-Do not create `.env.dev`; it is for Arjun
-only. [environments.md](environments.md) explains the rule and every variable.
+Use the single `local/.env` and `npm run prod` (`npm start` is the same).
+Prod still requires `AI_PROVIDER=vertex`; local provider experiments require
+explicit dev policy and provider selection. Do not create provider-specific env
+files. [environments.md](environments.md) and the
+[shared sync guide](../environment-sync.md) describe precedence and updates.
 
 Run the offline tests with `npm test`. They make no paid calls; one test starts
 the server on port 5174 with a fake key. [operations.md](operations.md) covers
@@ -137,7 +163,7 @@ the tests in more detail.
 | Document | Read it for |
 | --- | --- |
 | [README.md](README.md) (this file) | What the pipeline is, how it fits SnapWay, quick start |
-| [environments.md](environments.md) | Who uses `.env.prod` and who uses `.env.dev`, every variable, how to check the live provider, security |
+| [environments.md](environments.md) | Single-file configuration, provider policy, synchronization and health checks |
 | [stages.md](stages.md) | How the pipeline works internally, stage by stage |
 | [api.md](api.md) | HTTP endpoints (`/api/...`, `/api/authoring/...`) and the CLI scripts |
 | [operations.md](operations.md) | Limits, cost, caching, testing, trial results and troubleshooting |
@@ -145,6 +171,8 @@ the tests in more detail.
 
 Related SnapWay documents:
 
+- [Phase audit](../audits/2026-10-17-map-authoring-pipeline.md): model roles,
+  promised versus implemented flow, real IA-1 evidence and remaining acceptance.
 - [Development guide](../development.md): repository bootstrap and the Django
   and Angular toolchain.
 - [Architecture and dependency plan](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md):

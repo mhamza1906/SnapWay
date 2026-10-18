@@ -1,0 +1,254 @@
+:host {
+  display: block;
+}
+.discovery {
+  min-height: 100dvh;
+  background: #fafbf8;
+}
+.map-header {
+  height: 76px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  background: white;
+}
+.map-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -1.2px;
+}
+.map-brand app-icon {
+  color: var(--accent);
+}
+.map-header nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.account-link {
+  font-size: 13px;
+}
+.map-layout {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  height: calc(100dvh - 76px);
+}
+.building-panel {
+  padding: 32px 26px;
+  overflow-y: auto;
+}
+h1 {
+  font-size: 32px;
+  margin-bottom: 14px;
+}
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: var(--green);
+}
+.location-button {
+  width: 100%;
+  margin-top: 13px;
+}
+.location-note,
+.privacy-note {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.privacy-note {
+  margin-top: 28px;
+}
+.building-list {
+  margin-top: 26px;
+  display: grid;
+  gap: 12px;
+}
+.building-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 13px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.building-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.building-card.selected {
+  border-color: var(--green);
+  background: #f0f5ec;
+}
+.building-card strong,
+.building-card small {
+  display: block;
+}
+.building-card strong {
+  font-size: 13px;
+}
+.building-card small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.building-card > app-icon {
+  width: 15px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.building-symbol {
+  color: var(--green);
+  padding: 10px;
+  border-radius: 8px;
+  background: #f1f4ed;
+}
+.empty-buildings {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  padding: 28px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+.empty-buildings app-icon {
+  margin-bottom: 14px;
+  color: var(--green);
+}
+.empty-buildings strong {
+  font-size: 13px;
+}
+.empty-buildings p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+.destination {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  animation: page-in 0.2s ease-out;
+}
+.destination-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.destination h2 {
+  margin: 0;
+}
+.destination p,
+.destination li {
+  font-size: 12px;
+}
+.destination ul {
+  padding: 0;
+  list-style: none;
+}
+.destination li {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.destination li span {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.destination > small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 10px;
+}
+.map-stage {
+  position: relative;
+  min-height: 400px;
+  background: #e8eee4;
+}
+.google-map {
+  height: 100%;
+  width: 100%;
+}
+.map-status {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 12px 18px;
+  border-radius: 24px;
+  box-shadow: 0 3px 20px #223a2220;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.map-caption {
+  top: auto;
+  bottom: 36px;
+}
+.map-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: #f1f4ec;
+  text-align: center;
+}
+.map-error > app-icon {
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.map-error p {
+  max-width: 380px;
+  color: var(--muted);
+}
+@media (max-width: 760px) {
+  .map-header {
+    min-height: 64px;
+    height: auto;
+    padding: 12px 18px;
+    gap: 12px;
+  }
+  .map-layout {
+    height: auto;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .map-stage {
+    height: 48dvh;
+    min-height: 300px;
+  }
+  .building-panel {
+    padding: 26px 20px;
+    overflow: visible;
+  }
+  .map-header nav {
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .account-link {
+    max-width: 95px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

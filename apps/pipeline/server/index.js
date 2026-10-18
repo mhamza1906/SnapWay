@@ -19,6 +19,7 @@ import { startMapJob, getMapJob, resumeMapJob, cancelMapJob, applyMapJob } from 
 import { libraryEntries, libraryEntry, saveCopy } from "./building-library.js";
 import { authoringRouter } from "./authoring-routes.js";
 import { captureMapRouter } from "./capture-map-routes.js";
+import { vectorizationRouter } from "./vectorization/routes.js";
 const coverageJobs = new Map(),
   accessJobs = new Map();
 const app = express(),
@@ -42,6 +43,7 @@ app.use(express.json({ limit: "150mb" }));
 app.use("/api/authoring", authoringRouter());
 // Mobile photo capture: corridors, capture-point plans and snapping (docs/photo-capture.md).
 app.use("/api/capture-map", captureMapRouter());
+app.use("/api/vectorization", vectorizationRouter());
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 15 * 1024 * 1024 },

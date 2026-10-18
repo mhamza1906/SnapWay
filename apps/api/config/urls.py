@@ -1,19 +1,21 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from .views import liveness, readiness
+from .views import client_config, liveness, readiness
 
 urlpatterns = [
+    path("api/client-config/", client_config, name="client-config"),
     path("api/health/live/", liveness, name="liveness"),
     path("api/health/ready/", readiness, name="readiness"),
     path("api/capture/", include("capture.urls")),
-    # allauth is installed but not in INSTALLED_APPS; contributors use Django's auth views.
-    path(
-        "accounts/login/",
-        auth_views.LoginView.as_view(redirect_authenticated_user=True),
-        name="login",
-    ),
-    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("api/auth/", include("accounts.urls")),
+    path("api/maps/", include("maps.urls")),
+    path("api/navigation/", include("navigation.urls")),
+    path("accounts/", include("allauth.urls")),
     path("admin/", admin.site.urls),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -17,7 +17,19 @@ def main():
     npm = shutil.which("npm.cmd" if sys.platform == "win32" else "npm")
     if not uv or not npm:
         raise SystemExit("Run bootstrap first; uv and npm must be installed.")
-    prefix = [uv, "run", "--locked", "--extra", "ai", "--extra", "geometry", "--extra", "mcp"]
+    prefix = [
+        uv,
+        "run",
+        "--locked",
+        "--extra",
+        "ai",
+        "--extra",
+        "geometry",
+        "--extra",
+        "mcp",
+        "--extra",
+        "storage",
+    ]
     if target == "api":
         commands = [
             ([*prefix, "python", "apps/api/manage.py", "runserver", "127.0.0.1:8000"], ROOT)
@@ -29,6 +41,8 @@ def main():
     else:
         commands = [
             ([sys.executable, "scripts/check_docs.py"], ROOT),
+            ([sys.executable, "scripts/env_contract.py", "check"], ROOT),
+            ([sys.executable, "scripts/check_audit_evidence.py"], ROOT),
             ([*prefix, "ruff", "check", "."], ROOT),
             ([*prefix, "ruff", "format", "--check", "."], ROOT),
             ([*prefix, "python", "apps/api/manage.py", "check"], ROOT),

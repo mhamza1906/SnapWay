@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SnapWay · Google Maps connection test</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: #202b30;
+        background: #f4f5f1;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1100px;
+        margin: auto;
+        padding: 24px;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      p {
+        max-width: 80ch;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      button,
+      a {
+        font: inherit;
+      }
+      button {
+        padding: 10px 16px;
+        cursor: pointer;
+        background: white;
+        border: 1px solid #b8c1bd;
+        border-radius: 8px;
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+      :focus-visible {
+        outline: 3px solid #4975c9;
+        outline-offset: 3px;
+      }
+      #map {
+        width: 100%;
+        height: min(65vh, 600px);
+        min-height: 340px;
+        background: #e7ece8;
+        border-radius: 12px;
+      }
+      #status {
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>SNAPWAY · PROVIDER CONNECTION TEST</p>
+      <h1>Google Maps, before app integration.</h1>
+      <p>
+        This isolated test loads a real Google basemap and one test-coordinate
+        marker. It does not associate fictional prototype floor plans with real
+        buildings. Location is requested only when you click Use my location and
+        is not saved.
+      </p>
+      <div class="actions">
+        <button id="load" type="button">Load Google Map</button>
+        <button id="locate" type="button" disabled>Use my location</button>
+        <button id="reset" type="button" disabled>Show test coordinate</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">
+        Ready to test. No Google request has been made.
+      </p>
+      <div id="map" aria-label="Google Maps connection test"></div>
+      <p><a href="http://localhost:4200/">Return to the app</a></p>
+    </main>
+    <script>
+      const config = __MAP_CONFIG__;
+      const status = document.getElementById("status");
+      const load = document.getElementById("load");
+      const locate = document.getElementById("locate");
+      const reset = document.getElementById("reset");
+      const center = { lat: 43.6532, lng: -79.3832 };
+      let map, markerLibrary, userMarker, timer;
+      let failed = false;
+      function fail(message) {
+        failed = true;
+        clearTimeout(timer);
+        status.textContent = message;
+        locate.disabled = reset.disabled = true;
+        load.disabled = false;
+        load.textContent = "Reload test";
+        load.onclick = () => location.reload();
+      }
+      window.gm_authFailure = () =>
+        fail(
+          "Google rejected authentication. Check key restrictions, API enablement and billing; inspect the browser console for the Google error code.",
+        );
+      window.initGoogleMap = async () => {
+        try {
+          const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+          markerLibrary = await google.maps.importLibrary("marker");
+          if (failed) return;
+          map = new Map(document.getElementById("map"), {
+            center,
+            zoom: 16,
+            mapId: config.mapId,
+          });
+          const marker = new markerLibrary.AdvancedMarkerElement({
+            map,
+            position: center,
+            title: "Configured test coordinate (not a published building)",
+          });
+          const info = new InfoWindow({
+            content: "Test coordinate: provider connection only.",
+          });
+          marker.addListener("click", () => info.open({ map, anchor: marker }));
+          status.textContent = "SDK loaded. Waiting for map tiles…";
+          google.maps.event.addListenerOnce(map, "tilesloaded", () => {
+            if (failed) return;
+            clearTimeout(timer);
+            load.textContent = "Map loaded";
+            locate.disabled = reset.disabled = false;
+            status.textContent =
+              "Map tiles loaded. Click the marker, zoom/pan, then test location permission.";
+          });
+        } catch {
+          fail(
+            "Map initialization failed. Check the Map ID and browser console.",
+          );
+        }
+      };
+      load.onclick = () => {
+        if (!config.key) {
+          status.textContent =
+            "Missing PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY in local/.env. Fill it, then reload this page.";
+          return;
+        }
+        load.disabled = true;
+        status.textContent = "Loading Google Maps…";
+        timer = setTimeout(
+          () =>
+            fail(
+              "Map loading timed out. Check network access, key restrictions and the browser console.",
+            ),
+          20000,
+        );
+        const params = new URLSearchParams({
+          key: config.key,
+          v: "quarterly",
+          loading: "async",
+          callback: "initGoogleMap",
+        });
+        const script = document.createElement("script");
+        script.src = "https://maps.googleapis.com/maps/api/js?" + params;
+        script.async = true;
+        script.onerror = () =>
+          fail(
+            "Google Maps script could not load. Check network access and browser blocking.",
+          );
+        document.head.appendChild(script);
+      };
+      reset.onclick = () => {
+        map.setCenter(center);
+        map.setZoom(16);
+      };
+      locate.onclick = () => {
+        if (!window.isSecureContext || !navigator.geolocation) {
+          status.textContent =
+            "Location requires a supported browser on HTTPS or localhost.";
+          return;
+        }
+        locate.disabled = true;
+        status.textContent = "Waiting for browser location permission…";
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const point = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            if (userMarker) userMarker.map = null;
+            userMarker = new markerLibrary.AdvancedMarkerElement({
+              map,
+              position: point,
+              title: "Your reported device location",
+            });
+            map.setCenter(point);
+            map.setZoom(17);
+            status.textContent =
+              "Device location received; reported accuracy: " +
+              Math.round(position.coords.accuracy) +
+              " m. Not saved or used for indoor positioning.";
+            locate.disabled = false;
+          },
+          (error) => {
+            const messages = {
+              1: "Location permission denied. The map remains usable.",
+              2: "Device location is unavailable. The map remains usable.",
+              3: "Location request timed out. Try again or use the map manually.",
+            };
+            status.textContent =
+              messages[error.code] ||
+              "Location failed. The map remains usable.";
+            locate.disabled = false;
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+        );
+      };
+    </script>
+  </body>
+</html>

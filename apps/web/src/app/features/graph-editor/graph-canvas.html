@@ -1,0 +1,47 @@
+<svg
+  class="graph-svg"
+  [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
+  role="img"
+  aria-label="Map graph canvas"
+  (click)="onBackground($event)"
+>
+  @if (underlayUrl(); as url) {
+    <image [attr.href]="url" x="0" y="0" [attr.width]="width()" [attr.height]="height()" />
+  } @else {
+    <image
+      href="/demo/floor-plan.svg"
+      x="0"
+      y="0"
+      [attr.width]="width()"
+      [attr.height]="height()"
+    />
+  }
+
+  @for (path of paths(); track path.edge.id) {
+    @if (path.start && path.end) {
+      <line
+        class="edge"
+        [class.selected]="path.edge.id === selectedEdgeId()"
+        [attr.x1]="path.start.x"
+        [attr.y1]="path.start.y"
+        [attr.x2]="path.end.x"
+        [attr.y2]="path.end.y"
+        (click)="onEdge($event, path.edge.id)"
+      />
+    }
+  }
+
+  @for (node of nodes(); track node.id) {
+    <g
+      class="node"
+      [class.selected]="node.id === selectedNodeId()"
+      [class.connect-from]="node.id === connectFromId()"
+      (click)="onNode($event, node.id)"
+    >
+      <circle [attr.cx]="node.x" [attr.cy]="node.y" r="10" />
+      @if (node.label) {
+        <text [attr.x]="node.x" [attr.y]="node.y - 16">{{ node.label }}</text>
+      }
+    </g>
+  }
+</svg>

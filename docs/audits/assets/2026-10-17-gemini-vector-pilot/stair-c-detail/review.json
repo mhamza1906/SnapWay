@@ -1,0 +1,94 @@
+{
+  "name": "stair-c-detail",
+  "parentFrame": {
+    "parent": "candidate-8aaf2ca074bce958",
+    "crop_xyxy": [
+      500,
+      45,
+      710,
+      335
+    ],
+    "coordinate_conversion": "parent_x=left+local_x/1000*width; parent_y=top+local_y/1000*height"
+  },
+  "schema": "Validated by harness before geometric checks",
+  "basicPolygonValid": false,
+  "error": "Self-intersecting polygon: stair_c_landing",
+  "spaces": 8,
+  "openingCandidates": 3,
+  "geometryIssues": [
+    {
+      "code": "polygon",
+      "message": "stair_c_landing: polygon self-intersects",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "polygon",
+      "message": "stair_c_landing: polygon self-intersects",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "error"
+    },
+    {
+      "code": "polygon",
+      "message": "stair_c_landing: polygon self-intersects",
+      "target": {
+        "kind": "spaces",
+        "id": "stair_c_landing"
+      },
+      "severity": "error"
+    }
+  ],
+  "openingBoundaries": [
+    {
+      "id": "open_north_exit",
+      "adjacency": [
+        {
+          "id": "stair_c_landing",
+          "maxEndpointDistancePixels": 8.699999999999996
+        }
+      ]
+    },
+    {
+      "id": "open_west_door",
+      "adjacency": [
+        {
+          "id": "room_west",
+          "maxEndpointDistancePixels": 6.984972073317125
+        }
+      ]
+    },
+    {
+      "id": "open_east_door",
+      "adjacency": [
+        {
+          "id": "room_north_east",
+          "maxEndpointDistancePixels": 0
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    {
+      "target_ref": "stair_c_landing",
+      "code": "ambiguous_geometry",
+      "reason": "Internal doorway between Stair C landing and adjacent circulation spaces is not clearly depicted as a wall gap or door arc."
+    },
+    {
+      "target_ref": "room_north_east",
+      "code": "clipped",
+      "reason": "Space extends beyond the right edge of the crop."
+    },
+    {
+      "target_ref": "south_stairs_flight",
+      "code": "different_floor",
+      "reason": "Exterior/multi-level stair flights at the bottom transition across levels with ambiguous Level 1 boundary."
+    }
+  ],
+  "appliedToBaseline": false
+}

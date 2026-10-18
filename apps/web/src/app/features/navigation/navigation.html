@@ -142,6 +142,15 @@
           >
             <app-icon name="camera" /> Try photo localization
           </button>
+          @if (nativeCapture) {
+            <button
+              class="btn secondary capture-button"
+              (click)="liveOpen.set(true)"
+              [disabled]="device.background()"
+            >
+              <app-icon name="camera" /> Locate with camera
+            </button>
+          }
           <label class="accessibility-toggle"
             ><input
               type="checkbox"
@@ -284,5 +293,13 @@
     [(outcome)]="outcome"
     (closed)="cancelCapture()"
     (checkpoint)="acceptCheckpoint($event)"
+  />
+}
+
+@if (liveOpen()) {
+  <app-live-locate
+    [checkpoints]="map().nodes"
+    (closed)="liveOpen.set(false)"
+    (checkpoint)="acceptLiveCheckpoint($event)"
   />
 }

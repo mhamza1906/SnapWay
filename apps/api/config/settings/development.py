@@ -3,16 +3,23 @@ from urllib.parse import urlsplit
 
 from config.environment import ROOT, env
 
-env.read_env(ROOT / "local" / "env" / "api.env", overwrite=False)
+# Sole private env source for development; process environment takes precedence.
+env.read_env(ROOT / "local" / ".env", overwrite=False)
+# Until scripts/env_contract.py migrate consolidates it, the older
+# local/env/api.env still fills in values local/.env does not set.
+if (ROOT / "local" / "env" / "api.env").exists():
+    env.read_env(ROOT / "local" / "env" / "api.env", overwrite=False)
 
 from .base import *  # noqa: E402, F403
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG", default=True)
-# SQLite is only for onboarding/framework checks. Product acceptance uses PostgreSQL.
-DATABASES = {
-    "default": env.db("DATABASE_URL", default=f"sqlite:///{ROOT / 'local' / 'dev.sqlite3'}")
-}
+# Prefer DATABASE_URL (Tiger Data / Postgres). SQLite remains the offline fallback.
+_database_url = env("DATABASE_URL", default="").strip()
+if _database_url:
+    DATABASES = {"default": env.db_url_config(_database_url)}
+else:
+    DATABASES = {"default": env.db_url_config(f"sqlite:///{ROOT / 'local' / 'dev.sqlite3'}")}
 STATIC_ROOT = ROOT / "local" / "static"
 MEDIA_ROOT = ROOT / "local" / "media"
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -45,3 +52,8 @@ DEV_EXTRA_ORIGINS = env.list(
 CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, *DEV_EXTRA_ORIGINS]  # noqa: F405
 _phone_hosts = [urlsplit(origin).hostname for origin in DEV_EXTRA_ORIGINS]
 ALLOWED_HOSTS = list(dict.fromkeys([*ALLOWED_HOSTS, *filter(None, _phone_hosts)]))  # noqa: F405
+
+# Cloudflare R2 / S3-compatible media when S3_* (or R2_* aliases) are set in local/.env.
+from config.storage_backends import apply_storages  # noqa: E402
+
+apply_storages(globals())

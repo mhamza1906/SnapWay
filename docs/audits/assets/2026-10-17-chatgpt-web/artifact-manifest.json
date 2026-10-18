@@ -1,0 +1,134 @@
+{
+  "review_date": "2026-10-17",
+  "share_url": "https://chatgpt.com/share/6ad33093-9ac8-83ea-8ef7-542e6bf83306",
+  "files": [
+    {
+      "name": "Interactive_Map_Workflow_Notes.md",
+      "bytes": 10064,
+      "sha256": "8de9d23475563b062a8032954298b284e7815e942b7841138b65d509f4d827ad"
+    },
+    {
+      "name": "Level_1_Interactive_Floorplan.html",
+      "bytes": 86327,
+      "sha256": "e76347a5cdf7c1953852454fce0bc25ba772ee78528f7750a725743d26724eed",
+      "duplicate_ids": [],
+      "inline_scripts": 1
+    },
+    {
+      "name": "Level_1_Interactive_Floorplan_labels_preview.png",
+      "bytes": 302603,
+      "sha256": "c71526be8abb5b0aa7b4938b353f7fcc5353c817188386c0c354f404f385f072"
+    },
+    {
+      "name": "Level_1_Interactive_Floorplan_v2.html",
+      "bytes": 82665,
+      "sha256": "6a474d8be0c588391beaadc82346f8593d97ef663fcb8e63a3945d587c75422c",
+      "duplicate_ids": [],
+      "inline_scripts": 1
+    },
+    {
+      "name": "Level_1_Unlabeled_Vector_Floorplan.svg",
+      "bytes": 59287,
+      "sha256": "5a67103523861f1ae5370822e76b4216d07583276ea8667e7215816af60dfd0f",
+      "viewBox": "0 125 1448 690",
+      "elements": {
+        "svg": 1,
+        "title": 1,
+        "desc": 1,
+        "defs": 1,
+        "clipPath": 1,
+        "polygon": 36,
+        "g": 50,
+        "rect": 36,
+        "path": 281
+      }
+    },
+    {
+      "name": "Level_1_Unlabeled_Vector_Floorplan_v2.svg",
+      "bytes": 55554,
+      "sha256": "bfeb6fd1f47e1f774b1658dfdcf17936cafec692b28b45debd2c4c02720fa68f",
+      "viewBox": "0 125 1448 690",
+      "elements": {
+        "svg": 1,
+        "title": 1,
+        "desc": 1,
+        "defs": 1,
+        "clipPath": 4,
+        "polygon": 34,
+        "g": 53,
+        "rect": 40,
+        "path": 277
+      }
+    },
+    {
+      "name": "Level_1_Unlabeled_Vector_Floorplan_v2_preview.png",
+      "bytes": 208115,
+      "sha256": "c78cb6490f190dc152743cf1156a696d05f94ed7ebf72d4218f6fef95fdffea5"
+    }
+  ],
+  "evidence": [
+    {
+      "name": "v1-show-all.jpg",
+      "sha256": "196d0496b811d575fbfcfb31ea074ceffd2435782e652a3f9473e39a3e0610e5",
+      "bytes": 146767,
+      "format": "JPEG",
+      "width": 1707,
+      "height": 876
+    },
+    {
+      "name": "v2-show-all.jpg",
+      "sha256": "968b9b7e8efa23ccc7ef1b9ed1adc4ac76c57591edf54f4572f42278ef1a5c09",
+      "bytes": 139379,
+      "format": "JPEG",
+      "width": 1707,
+      "height": 876
+    },
+    {
+      "name": "v1-mobile.jpg",
+      "sha256": "77a54845f113f1d872c1f017170ce7a7eca8f13f0c44864086f872107a834e3a",
+      "bytes": 35876,
+      "format": "JPEG",
+      "width": 375,
+      "height": 812
+    },
+    {
+      "name": "v2-vector-preview.png",
+      "sha256": "c78cb6490f190dc152743cf1156a696d05f94ed7ebf72d4218f6fef95fdffea5",
+      "bytes": 208115,
+      "format": "PNG",
+      "width": 1448,
+      "height": 690
+    },
+    {
+      "name": "generated-raster.png",
+      "sha256": "7a7820808ae8484808363723d807ff33948e69fbeb00dbb71170e6d51ecd104d",
+      "bytes": 1663882,
+      "format": "PNG",
+      "width": 1448,
+      "height": 1086
+    }
+  ],
+  "browser_observations": {
+    "v1_floor_svg_labels": 10,
+    "v1_floor_svg_markers": 10,
+    "v2_floor_svg_labels": 0,
+    "v2_floor_svg_markers": 0,
+    "v2_logo_svg_labels": 10,
+    "v2_logo_svg_markers": 10,
+    "v2_show_all_counter": 10,
+    "v2_zoom_in_viewBox": "144.79999999999995 194 1158.4 552",
+    "v2_reset_viewBox": "0 125 1448 690",
+    "v1_pan_viewBox": "-67.72082428205988 91.13958785897006 1448 690",
+    "narrow_viewport_requested": [
+      390,
+      844
+    ],
+    "narrow_document_client_width": 375,
+    "narrow_document_scroll_width": 375
+  },
+  "limits": [
+    "No fresh paid inference",
+    "No original generator source or canonical geometry schema supplied",
+    "No measured web token usage or API model identity"
+  ]
+}

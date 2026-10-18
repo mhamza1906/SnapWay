@@ -20,30 +20,24 @@
   <div class="grid-2">
     <section class="panel" aria-labelledby="profile-title">
       <div class="panel-heading">
-        <h2 id="profile-title">Demo profile</h2>
-        <span class="badge orange">LOCAL PREVIEW</span>
+        <h2 id="profile-title">Your account</h2>
+        <span class="badge orange">GOOGLE SESSION</span>
       </div>
       <div class="panel-body">
         <div class="profile-summary">
-          <span class="avatar">EY</span>
+          <span class="avatar">{{ auth.initials() }}</span>
           <div>
-            <strong>{{ repository.profile().name }}</strong>
-            <p>SnapWay contributor workspace</p>
+            <strong>{{ auth.name() }}</strong>
+            <p>{{ auth.session()?.email }}</p>
           </div>
         </div>
-        <label class="field" for="demo-role"
-          >Preview as
-          <select id="demo-role" [value]="repository.profile().role" (change)="changeRole($event)">
-            <option value="admin">Administrator — manage and review</option>
-            <option value="volunteer">Volunteer — contribute and edit</option>
-          </select>
-          <small>Role switching previews permissions. It does not sign in to a real account.</small>
-        </label>
+        <p>{{ auth.role() }}</p>
+        <a class="btn secondary" routerLink="/welcome">Account options</a>
         <div class="role-description">
           <app-icon name="review" />
           <p>
-            Administrators manage targets and publish reviewed maps. Volunteers create drafts and
-            submit contributions.
+            Map access is assigned by the team. Signing in does not grant administrator permissions.
+            Local sample data below is separate from your account.
           </p>
         </div>
       </div>

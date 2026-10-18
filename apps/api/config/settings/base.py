@@ -17,6 +17,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "accounts.apps.AccountsConfig",
     "maps.apps.MapsConfig",
     "jobs.apps.JobsConfig",
@@ -32,11 +36,16 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+]
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "accounts" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -60,6 +69,36 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APP_RELEASE = env("APP_RELEASE", default="development")
+PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY = env("PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY", default="")
+GOOGLE_MAPS_MAP_ID = env("GOOGLE_MAPS_MAP_ID", default="DEMO_MAP_ID") or "DEMO_MAP_ID"
+
+# Google establishes identity; map roles stay in maps.Membership / staff (never from Google).
+LOGIN_REDIRECT_URL = env("LOGIN_REDIRECT_URL", default="/api/auth/me/")
+ACCOUNT_LOGOUT_REDIRECT_URL = env("ACCOUNT_LOGOUT_REDIRECT_URL", default="/api/auth/me/")
+ACCOUNT_ADAPTER = "accounts.adapters.AccountAdapter"
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ONLY = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_STORE_TOKENS = False
+
+_google_client_id = env("GOOGLE_OAUTH_CLIENT_ID", default="")
+_google_client_secret = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+_google_provider = {
+    "SCOPE": ["openid", "email", "profile"],
+    "AUTH_PARAMS": {"access_type": "online"},
+    "OAUTH_PKCE_ENABLED": True,
+}
+# Settings-based APP only when both values are present so boot works without secrets.
+if _google_client_id and _google_client_secret:
+    _google_provider["APP"] = {
+        "client_id": _google_client_id,
+        "secret": _google_client_secret,
+        "key": "",
+    }
+SOCIALACCOUNT_PROVIDERS = {"google": _google_provider}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
@@ -69,7 +108,11 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "300/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "300/min",
+        "localization": env("LOCALIZATION_RATE", default="60/min"),
+    },
 }
 SPECTACULAR_SETTINGS = {"TITLE": "SnapWay API", "VERSION": "0.1.0"}
 CSRF_COOKIE_NAME = "XSRF-TOKEN"
@@ -82,18 +125,19 @@ STATIC_URL = "/django-static/"
 MEDIA_URL = "/media/"  # never routed: capture images are served by authenticated views only
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
-# Contributor sign-in (Django auth views at /accounts/; allauth is installed but not enabled).
-LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/capture"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
+# Default filesystem; development/production may replace via storage_backends.apply_storages.
+S3_SIGNED_URL_TTL_SECONDS = 300
+MEDIA_STORAGE_BACKEND = "filesystem"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+# Phone photo capture (capture app). Photos are stored in Cloudflare R2 only,
+# never on disk (capture/photo_store.py), using the same S3_* / R2_* settings
+# as config.storage_backends; without them capture uploads return 503.
 CAPTURE_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
-# Capture photos are stored in Cloudflare R2 only (capture/photo_store.py); never on disk.
 CAPTURE_PHOTO_STORE = env("CAPTURE_PHOTO_STORE", default="r2")
-R2_ACCOUNT_ID = env("R2_ACCOUNT_ID", default="")
-R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
-R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
-R2_BUCKET_NAME = env("R2_BUCKET_NAME", default="")
-R2_PREFIX = env("R2_PREFIX", default="snapway")
+CAPTURE_R2_PREFIX = env("CAPTURE_R2_PREFIX", default="snapway")
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = None
@@ -103,3 +147,11 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_TIME_LIMIT = 300
 CELERY_TASK_SOFT_TIME_LIMIT = 280
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Visual place matching (apps/place-match mobile engine). The API forwards frames to the
+# engine on a private address; it never stores frames or holds Google credentials.
+PLACEMATCH_ENGINE_URL = env("PLACEMATCH_ENGINE_URL", default="")
+PLACEMATCH_ENGINE_TOKEN = env("PLACEMATCH_ENGINE_TOKEN", default="")
+PLACEMATCH_ENGINE_TIMEOUT_S = env.float("PLACEMATCH_ENGINE_TIMEOUT_S", default=30.0)
+# Development-only bearer token for the iOS debug build; ignored unless DEBUG is true.
+PLACEMATCH_DEV_TOKEN = env("PLACEMATCH_DEV_TOKEN", default="")

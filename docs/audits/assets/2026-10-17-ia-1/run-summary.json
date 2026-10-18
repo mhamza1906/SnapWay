@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-10-17",
+  "timezone": "America/Toronto",
+  "branch": "acceptance/map-authoring-pipeline",
+  "tested_commit": "3edd14e6681f56807d42df7da95939474c8cf2b7",
+  "input": {
+    "filename": "IA-1-floor-original.jpg",
+    "sha256": "d3f1726c7abdd467482ac36c70a8b305fd764e5214bd17416550d1c0da2b6b2b",
+    "width": 2048,
+    "height": 1536,
+    "bytes": 223829,
+    "original_asset_hash_verified": true
+  },
+  "job_id": "34dc6f6c-2021-454c-af02-dee9fad417d2",
+  "started_at_utc": "2026-10-17T07:33:21.494Z",
+  "finished_at_utc": "2026-10-17T07:41:11.337Z",
+  "provider": {
+    "name": "Vertex AI",
+    "model": "gemini-4-argon",
+    "effort": "high"
+  },
+  "options": {
+    "floorIds": [
+      "floor-1"
+    ],
+    "rebuild": false,
+    "concurrency": 2,
+    "maxCalls": 40,
+    "maxTokens": 500000,
+    "deadlineMs": 1200000,
+    "maxDetailTiles": 8,
+    "maxSemanticBatches": 4,
+    "maxRepairTiles": 2,
+    "maxDoorBatches": 50,
+    "maxAccessRegions": 8
+  },
+  "stats": {
+    "calls": 9,
+    "tokens": 98224,
+    "cacheHits": 0,
+    "localMs": 0
+  },
+  "pipeline_status": "needs-review",
+  "summary": {
+    "regions": 0,
+    "ready": 0,
+    "destinations": 0,
+    "reviewItems": 1,
+    "elapsedMs": 469836,
+    "validationErrors": 1
+  },
+  "retained_proposal": {
+    "regions": 24,
+    "doors": 8,
+    "applied": false,
+    "semantic_classifications": 8,
+    "opening_verification_records": 0,
+    "coverage_entries": 28,
+    "unmapped_coverage_entries": 17,
+    "overlap_diagnostics": 6,
+    "door_boundary_diagnostics": 4
+  },
+  "queue": [
+    {
+      "floorId": "floor-1",
+      "sourceId": "source-565f8b7a8fca",
+      "reason": "Vertex AI response did not complete (MAX_TOKENS). No map was changed.",
+      "type": "failure"
+    }
+  ],
+  "label_spot_checks": [
+    {
+      "label": "BRAINSTORM",
+      "matched": []
+    },
+    {
+      "label": "DARK MATTER",
+      "matched": [
+        {
+          "id": "coverage-24-18",
+          "label": "DARK MATTER 24 SEATS",
+          "kind": "room"
+        }
+      ]
+    },
+    {
+      "label": "THE CAVE",
+      "matched": []
+    },
+    {
+      "label": "STAIR A",
+      "matched": [
+        {
+          "id": "coverage-space-1",
+          "label": "STAIR A",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-2",
+          "label": "STAIR A",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-6",
+          "label": "Unlabelled elevator east of Stair A",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-12",
+          "label": "Unlabelled room east of Stair A",
+          "kind": "room"
+        },
+        {
+          "id": "coverage-space-16",
+          "label": "Unlabelled stair and shaft enclosure east of elevator",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-17",
+          "label": "Stair and Landing",
+          "kind": "lobby"
+        }
+      ]
+    },
+    {
+      "label": "STAIR B",
+      "matched": [
+        {
+          "id": "coverage-space-14",
+          "label": "STAIR B",
+          "kind": "room"
+        }
+      ]
+    },
+    {
+      "label": "STAIR C",
+      "matched": [
+        {
+          "id": "coverage-space-5",
+          "label": "STAIR C",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-8",
+          "label": "Unlabelled vestibule west of Stair J and Stair C",
+          "kind": "lobby"
+        }
+      ]
+    },
+    {
+      "label": "STAIR D",
+      "matched": []
+    },
+    {
+      "label": "STAIR J",
+      "matched": [
+        {
+          "id": "coverage-space-3",
+          "label": "STAIR J",
+          "kind": "lobby"
+        },
+        {
+          "id": "coverage-space-8",
+          "label": "Unlabelled vestibule west of Stair J and Stair C",
+          "kind": "lobby"
+        }
+      ]
+    },
+    {
+      "label": "THE HIVE",
+      "matched": []
+    },
+    {
+      "label": "MUFFLER",
+      "matched": [
+        {
+          "id": "coverage-space-11",
+          "label": "MUFFLER 36 SEATS",
+          "kind": "room"
+        }
+      ]
+    },
+    {
+      "label": "THE NOOK SHOP",
+      "matched": []
+    }
+  ],
+  "apply_response": {
+    "status": 400,
+    "error": "No checked proposal is ready. Resolve the review queue first."
+  },
+  "review_outcome": "Fail for this real fixture; no accepted map or navigation route",
+  "coordinate_frame_root_cause": "Suspected only; not established by this run",
+  "persistence": "Local pipeline files; no Django database, OAuth or R2 integration used",
+  "billing": "Provider-reported tokens only; monetary cost not measured",
+  "limitations": [
+    "Single cold fixture run; no three-run repeatability or ground-truth accuracy score",
+    "Raw proposal is unaccepted and uncorrected",
+    "Top-level queue contains one failure because later review queues were not populated",
+    "Model names are repository requirements/configuration, not a new provider-catalogue audit"
+  ],
+  "artifacts": [
+    {
+      "file": "comparison.jpg",
+      "sha256": "9a9449c66def9ea133f0a48c72e4707bdcca1bf195ced57655cd2f897133d99f",
+      "bytes": 157874
+    },
+    {
+      "file": "proposal-overlay.png",
+      "sha256": "1f46fc2ed8bbe4bc7f5dfb664c109cb4c45d7d4b54cf0961bb0bddde268a03db",
+      "bytes": 1989362
+    }
+  ]
+}

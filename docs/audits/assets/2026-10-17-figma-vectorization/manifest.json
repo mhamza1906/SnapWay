@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-17",
+  "source": "Member-supplied Figma Vectorize SVG; local deterministic analysis only. No new inference.",
+  "files": [
+    {
+      "name": ".gitattributes",
+      "bytes": 50,
+      "sha256": "3adf604ced772bbce5a1e91b4b606ae5d99e5d5c2cca14dc78acecd13c35f268"
+    },
+    {
+      "name": "analyze.py",
+      "bytes": 5468,
+      "sha256": "525e9e89a5485d3d6c29ebd041dd71d2be72ba773eb051e0858124fc32c05d8e"
+    },
+    {
+      "name": "api-public-surface.json",
+      "bytes": 2909,
+      "sha256": "f69bd85759e4de47fcac4a1ec4249ccbbb0568fe45531b0dab2db93b4bf8f480"
+    },
+    {
+      "name": "comparison.jpg",
+      "bytes": 275516,
+      "sha256": "b909d86a9385f84d83f0ff51330cda3512bf441ae1d472c9185ebbaa82c0fab6"
+    },
+    {
+      "name": "dark-paint-overlay.png",
+      "bytes": 72673,
+      "sha256": "d7c29222d9846c3e6c4e48b2a0670c2c78c3aa456e11f3199803d487976963d2"
+    },
+    {
+      "name": "details.jpg",
+      "bytes": 150535,
+      "sha256": "cf9cc9c7b6fef4b0cc31582dcf9ece385c9ac9d989fd2163500f2d1cfb35e925"
+    },
+    {
+      "name": "figma-vector.svg",
+      "bytes": 440127,
+      "sha256": "c7ec1165be27096017ab4f2a5b9aac9aaf5f0f1407845bd28c0aeeed0fc6f53e"
+    },
+    {
+      "name": "metrics.json",
+      "bytes": 4746,
+      "sha256": "de343aee8d9766c9a910303964388cee0937f02970f9ea3b59169697d1301ce5"
+    },
+    {
+      "name": "rendered-white.png",
+      "bytes": 361076,
+      "sha256": "48ab710d18c672d90f00bb14f9df05ee7e855d403b597e6d7a59eddbb0985b24"
+    },
+    {
+      "name": "rendered.png",
+      "bytes": 343106,
+      "sha256": "f2a12c1df883f58378c968497014c5328aa51a0947e7a34cb471115a705036f1"
+    }
+  ]
+}

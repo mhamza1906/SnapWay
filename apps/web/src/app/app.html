@@ -45,13 +45,19 @@
       >
     </nav>
     <div class="profile">
-      <span class="avatar">EY</span
+      <span class="avatar">{{ auth.initials() }}</span
       ><span
-        ><strong>{{ repo.profile().name }}</strong
-        ><small>{{ repo.profile().role === 'admin' ? 'Administrator' : 'Volunteer' }}</small></span
-      ><a routerLink="/welcome" title="Switch experience" aria-label="Switch experience"
-        ><app-icon name="logout"
-      /></a>
+        ><strong>{{ auth.name() }}</strong
+        ><small>{{ auth.role() }}</small></span
+      ><button
+        class="btn ghost icon-only"
+        (click)="signOut()"
+        [disabled]="auth.busy()"
+        title="Sign out"
+        aria-label="Sign out"
+      >
+        <app-icon name="logout" />
+      </button>
     </div>
   </aside>
   <div class="workspace-main">
@@ -74,16 +80,19 @@
           aria-label="Search mapping targets"
         >
           <app-icon name="search" /><span>Find a place</span></button
-        ><span class="demo-badge"><span class="status-dot"></span>Prototype</span
-        ><label class="role-select"
-          ><span class="sr-only">Demo role</span
-          ><select [value]="repo.profile().role" (change)="changeRole($event)">
-            <option value="admin">Admin view</option>
-            <option value="volunteer">Volunteer view</option>
-          </select></label
-        >
+        ><span class="demo-badge"><span class="status-dot"></span>{{ auth.role() }}</span>
       </div>
     </header>
+    @if (auth.error()) {
+      <div class="storage-warning" role="alert">{{ auth.error() }}</div>
+    }
+    @if (!url().startsWith('/settings')) {
+      <div class="storage-warning" role="status">
+        This workspace preview uses local sample data.
+        <a routerLink="/graph-editor">Open the connected graph editor</a> or
+        <a routerLink="/map">explore published buildings</a>.
+      </div>
+    }
     @if (repo.storageError()) {
       <div class="storage-warning" role="alert">
         {{ repo.storageError() }} <a routerLink="/settings">Manage data</a>

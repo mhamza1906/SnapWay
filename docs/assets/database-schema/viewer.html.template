@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SnapWay · live database schema snapshot</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f8fafc;color:#172554;font:14px/1.5 system-ui,sans-serif}header{padding:24px 28px 18px;border-bottom:1px solid #dbe4ee;background:#fff}h1{margin:0 0 6px;font-size:26px;letter-spacing:-.6px}p{margin:6px 0;color:#475569}.eyebrow{font-size:11px;font-weight:750;letter-spacing:2px;color:#2563eb;margin-bottom:6px}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.stats span{background:#eff6ff;border:1px solid #dbeafe;border-radius:6px;padding:5px 9px}.toolbar{padding:12px 28px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;background:#fff;border-bottom:1px solid #dbe4ee}button,input,select{font:inherit;border:1px solid #cbd5e1;border-radius:5px;background:#fff;color:#172554;padding:7px 10px}button{cursor:pointer}button:hover,button.active{background:#eff6ff;border-color:#2563eb}button:focus-visible,input:focus-visible,select:focus-visible,.node:focus-visible{outline:3px solid #60a5fa;outline-offset:3px}input{width:240px}a{color:#1d4ed8;text-decoration:underline}a:hover{color:#1e40af}main{display:grid;grid-template-columns:minmax(0,1fr) 410px;height:calc(100vh - 247px);min-height:520px}.canvas{overflow:auto;background:#f8fafc;padding:16px}.map{width:100%;min-width:600px}.map svg{display:block;width:100%;height:auto}.map[hidden]{display:none}aside{overflow:auto;border-left:1px solid #dbe4ee;background:#fff;padding:20px}.node{cursor:pointer;transition:opacity .12s}.node:hover polygon,.node.selected polygon{stroke:#2563eb;stroke-width:2}.dim{opacity:.12}.edge.related path{stroke:#2563eb;stroke-width:2}.edge.related polygon{fill:#2563eb;stroke:#2563eb}h2{font-size:18px;overflow-wrap:anywhere;margin:0 0 8px}h3{font-size:14px;margin:22px 0 8px}code{font:12px/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;font-size:12px}td,th{text-align:left;vertical-align:top;border-bottom:1px solid #e2e8f0;padding:7px 5px}th{color:#64748b}td:first-child{overflow-wrap:anywhere}small{color:#64748b}.tag{display:inline-block;border-radius:3px;padding:1px 4px;margin-right:3px;background:#e0e7ff;font-size:10px}.relation{padding:9px 0;border-bottom:1px solid #e2e8f0}.link{border:0;padding:0;text-decoration:underline;color:#1d4ed8;text-align:left;overflow-wrap:anywhere}.table-list{display:flex;flex-direction:column;gap:5px}.table-list button{text-align:left;font-size:12px}.hint{font-size:12px;color:#64748b}summary{cursor:pointer;font-weight:600;padding:9px 0}details code{display:block;padding:8px;background:#f8fafc;margin-bottom:5px;white-space:pre-wrap}.empty{padding:24px}.muted{color:#64748b}@media(max-width:900px){main{display:flex;flex-direction:column;height:auto}.canvas{height:60vh;min-height:350px}aside{border-left:0;border-top:1px solid #dbe4ee;max-height:650px}.toolbar,header{padding-left:16px;padding-right:16px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}@media print{.toolbar,aside{display:none}main{display:block;height:auto}.canvas{overflow:visible}.map{min-width:0}header{padding:12px}.stats{display:none}}
+</style>
+<header>
+<div class="eyebrow">SNAPWAY / DATA MODEL</div>
+<h1>Database relationship map</h1>
+<p id="source"></p>
+<div class="stats" id="stats"></div>
+</header>
+<div class="toolbar">
+<button id="overviewButton" class="active" aria-pressed="true">Domain overview</button>
+<button id="fullButton" aria-pressed="false">All tables & foreign keys</button>
+<label>Find <input id="search" type="search" placeholder="Table or column name" aria-label="Search tables and columns"></label>
+<label>Zoom <select id="zoom"><option value="fit">Fit width</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
+<button id="reset">Clear selection</button>
+<a href="2026-10-17-snapway-catalog.json" download>Catalog JSON</a>
+</div>
+<main>
+<div class="canvas" id="canvas" aria-label="Database relationship diagram">
+<div class="map" id="overview">__OVERVIEW__</div>
+<div class="map" id="full" hidden>__FULL__</div>
+</div>
+<aside id="details" aria-live="polite"></aside>
+</main>
+<script id="catalog" type="application/json">__SNAPSHOT__</script>
+<script id="edge-data" type="application/json">__EDGES__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('catalog').textContent);
+const edges=JSON.parse(document.getElementById('edge-data').textContent);
+const fks=data.constraints.filter(k=>k.kind==='f');
+const byName=Object.fromEntries(data.tables.map(t=>[t.name,t]));
+const panel=document.getElementById('details');
+const search=document.getElementById('search');
+let active='overview',selected=null;
+const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e};
+document.getElementById('source').textContent=`Tiger Data db-snap-way · ${data.database}.${data.schema} · PostgreSQL ${data.server_version.split(' ')[0]} · ${new Date(data.captured_at).toISOString().slice(0,16).replace('T',' ')} UTC`;
+for(const text of [`${data.tables.length} tables`,'24 domain tables',`${fks.length} foreign keys`,`${fks.filter(k=>k.columns.length>1).length} composite scope FKs`,`${data.tables.reduce((n,t)=>n+t.columns.length,0)} columns`,`${data.triggers.length} custom triggers`])document.getElementById('stats').append(el('span',text));
+function notes(){panel.append(el('p','Arrows point from a referencing child table to its referenced parent. Multiple foreign keys between the same tables share one line.','hint'));panel.append(el('p','The overview selects backbone relationships among 24 domain tables. All 39 tables and all 124 foreign-key constraints appear in the full view and table inspector. This is a catalog snapshot, not a live connection.','hint'));panel.append(el('p','Select a table to inspect every column, outgoing/incoming relationship, constraint and index. Key tags: PK = primary key; FK = foreign key; NULL = optional value.','hint'));}
+function list(){panel.replaceChildren(el('h2','Explore the schema'));notes();const query=search.value.trim().toLowerCase();const matches=data.tables.filter(t=>t.name.includes(query)||t.columns.some(c=>c.name.includes(query)));panel.append(el('h3',`${matches.length} matching tables`));const list=el('div',undefined,'table-list');for(const t of matches){const b=el('button',`${t.name} · ${t.columns.length} columns`);b.onclick=()=>select(t.name,true);list.append(b)}panel.append(list);}
+function highlight(){const near=new Set(selected?[selected]:[]);if(selected)for(const k of fks)if(k.table===selected||k.target_table===selected){near.add(k.table);near.add(k.target_table)}for(const node of document.querySelectorAll('.node')){const name=node.querySelector('title').textContent;node.classList.toggle('dim',!!selected&&!near.has(name));node.classList.toggle('selected',name===selected)}for(const [id,edge]of Object.entries(edges)){const g=document.getElementById(id);if(!g)continue;const related=selected&&(edge.child===selected||edge.parent===selected);g.classList.toggle('dim',!!selected&&!related);g.classList.toggle('related',!!related)}}
+function relationLink(name){const b=el('button',`snapway.${name}`,'link');b.onclick=()=>select(name,true);return b;}
+function showRelations(title,keys,incoming){panel.append(el('h3',`${title} (${keys.length})`));if(!keys.length){panel.append(el('p','None','muted'));return}for(const k of keys){const row=el('div',undefined,'relation');row.append(relationLink(incoming?k.table:k.target_table));row.append(el('div',`${k.columns.join(', ')} → ${k.target_columns.join(', ')}`));row.append(el('small',k.name));if(k.columns.length>1)row.append(el('div','Composite scope constraint','hint'));panel.append(row)}}
+function select(name,scroll=false){selected=name;const table=byName[name];if(!document.getElementById(`${active}-${name}`))setMode('full');panel.replaceChildren(el('h2',`snapway.${name}`));panel.append(el('p',`${table.columns.length} columns · RLS ${table.rls_enabled?'enabled':'disabled'}`,'hint'));const pk=new Set(data.constraints.filter(k=>k.table===name&&k.kind==='p').flatMap(k=>k.columns));const fk=new Set(fks.filter(k=>k.table===name).flatMap(k=>k.columns));const grid=el('table');const header=el('tr');for(const text of ['Column','Type','Keys / null'])header.append(el('th',text));grid.append(header);for(const c of table.columns){const row=el('tr');row.append(el('td',c.name),el('td',c.type));const flags=el('td');for(const label of [pk.has(c.name)&&'PK',fk.has(c.name)&&'FK',!c.not_null&&'NULL'].filter(Boolean))flags.append(el('span',label,'tag'));row.append(flags);grid.append(row)}panel.append(grid);showRelations('References',fks.filter(k=>k.table===name),false);showRelations('Referenced by',fks.filter(k=>k.target_table===name),true);for(const [label,items]of [['Keys and CHECK constraints',data.constraints.filter(k=>k.table===name)],['Indexes',data.indexes.filter(k=>k.table===name)],['Custom triggers',data.triggers.filter(k=>k.table===name)]]){const details=el('details');details.append(el('summary',`${label} (${items.length})`));for(const item of items)details.append(el('code',item.definition));panel.append(details)}highlight();if(scroll)document.getElementById(`${active}-${name}`).scrollIntoView({block:'center',inline:'center',behavior:'instant'});}
+function setMode(mode){active=mode;for(const id of ['overview','full']){document.getElementById(id).hidden=id!==mode;document.getElementById(id+'Button').classList.toggle('active',id===mode);document.getElementById(id+'Button').setAttribute('aria-pressed',String(id===mode))}applyZoom();highlight();}
+function applyZoom(){const map=document.getElementById(active),svg=map.querySelector('svg'),value=document.getElementById('zoom').value;map.style.width=value==='fit'?'100%':`${svg.viewBox.baseVal.width*Number(value)*96/72}px`;}
+document.getElementById('overviewButton').onclick=()=>setMode('overview');
+document.getElementById('fullButton').onclick=()=>setMode('full');
+document.getElementById('zoom').onchange=applyZoom;
+document.getElementById('reset').onclick=()=>{selected=null;search.value='';highlight();list();document.getElementById('canvas').scrollTo({top:0,left:0})};
+search.oninput=()=>{selected=null;highlight();list()};
+for(const node of document.querySelectorAll('.node')){const name=node.querySelector('title').textContent;node.setAttribute('tabindex','0');node.setAttribute('role','button');node.setAttribute('aria-label',`Inspect snapway.${name}`);node.onclick=()=>select(name);node.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(name)}}}
+list();
+</script>
+</html>

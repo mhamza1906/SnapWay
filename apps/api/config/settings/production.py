@@ -15,17 +15,28 @@ database = DATABASES["default"]
 if database["ENGINE"] != "django.db.backends.postgresql":
     raise ImproperlyConfigured("DATABASE_URL must select PostgreSQL in production")
 options = database.setdefault("OPTIONS", {})
-if (
-    env("PGSSLMODE", default="verify-full") != "verify-full"
-    or options.get("sslmode", "verify-full") != "verify-full"
-):
-    raise ImproperlyConfigured("PGSSLMODE and DATABASE_URL must require verify-full")
-root_certificate = env("PGSSLROOTCERT", default="system")
-if options.get("sslrootcert", root_certificate) != root_certificate:
-    raise ImproperlyConfigured("PGSSLROOTCERT conflicts with DATABASE_URL")
+ssl_mode = env("PGSSLMODE", default="verify-full")
+if ssl_mode not in {"verify-full", "require"}:
+    raise ImproperlyConfigured("PGSSLMODE must be verify-full or require (demo only)")
+if options.get("sslmode", ssl_mode) != ssl_mode:
+    raise ImproperlyConfigured("PGSSLMODE conflicts with DATABASE_URL sslmode")
+if ssl_mode == "verify-full":
+    root_certificate = env("PGSSLROOTCERT", default="system")
+    if not root_certificate:
+        raise ImproperlyConfigured("PGSSLROOTCERT must specify system or a trusted CA path")
+    if options.get("sslrootcert", root_certificate) != root_certificate:
+        raise ImproperlyConfigured("PGSSLROOTCERT conflicts with DATABASE_URL")
+    options["sslrootcert"] = root_certificate
+else:
+    # Approved Free-plan demo: encrypted transport without server identity verification.
+    # libpq rejects sslrootcert=system with require; other CA files can enable verification.
+    if env("PGSSLROOTCERT", default="") or options.get("sslrootcert"):
+        raise ImproperlyConfigured(
+            "Remove PGSSLROOTCERT and DATABASE_URL sslrootcert when PGSSLMODE=require"
+        )
+    options.pop("sslrootcert", None)
 options.update(
-    sslmode="verify-full",
-    sslrootcert=root_certificate,
+    sslmode=ssl_mode,
     connect_timeout=env.int("DATABASE_CONNECT_TIMEOUT", default=10),
 )
 database["CONN_MAX_AGE"] = 0
@@ -41,4 +52,9 @@ X_FRAME_OPTIONS = "DENY"
 if env.bool("DJANGO_TRUST_PROXY", default=False):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 STATIC_ROOT = env("STATIC_ROOT")
+STATIC_URL = env("STATIC_URL", default=STATIC_URL)  # noqa: F405
 MEDIA_ROOT = env("MEDIA_ROOT")
+
+from config.storage_backends import apply_storages  # noqa: E402
+
+apply_storages(globals())

@@ -1,25 +1,28 @@
 """Where capture photos live: Cloudflare R2, never the server's disk.
 
 Photos go to a private R2 bucket under
-``<R2_PREFIX>/capture/<target>/<session>/<photo>/<variant>.<ext>`` through R2's
+``<CAPTURE_R2_PREFIX>/capture/<target>/<session>/<photo>/<variant>.<ext>`` through R2's
 S3-compatible API (AWS Signature Version 4, signed here with httpx, so no SDK
 is needed). Django keeps only the object key (``Asset.storage_key = "r2:<key>"``)
 and serves images itself after the usual membership check; bucket URLs and
 credentials never reach the browser.
 
-Configuration (server env only): ``R2_ACCOUNT_ID``, ``R2_ACCESS_KEY_ID``,
-``R2_SECRET_ACCESS_KEY``, ``R2_BUCKET_NAME``, optional ``R2_PREFIX`` (default
-``snapway``). Without them, uploads fail with ``PhotoStoreUnavailable``
-(HTTP 503); there is no local fallback. Tests use ``MemoryPhotoStore``
+Configuration (server env only): the same bucket settings as the rest of the
+API (``config.storage_backends.resolve_s3_options``: ``S3_*``, or the ``R2_*``
+aliases ``R2_ACCOUNT_ID``, ``R2_ACCESS_KEY_ID``, ``R2_SECRET_ACCESS_KEY``,
+``R2_BUCKET_NAME``), plus optional ``CAPTURE_R2_PREFIX`` (default ``snapway``).
+Without them, uploads fail with ``PhotoStoreUnavailable`` (HTTP 503); there is
+no local fallback. Tests use ``MemoryPhotoStore``
 (``CAPTURE_PHOTO_STORE = "memory"``).
 """
 
 import datetime
 import hashlib
 import hmac
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
+from config.storage_backends import resolve_s3_options
 from django.conf import settings
 
 PREFIX = "r2:"
@@ -37,16 +40,14 @@ class PhotoMissing(LookupError):
 
 
 def _config():
-    values = {
-        name: (getattr(settings, name, "") or "").strip()
-        for name in ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME")
-    }
-    missing = [name for name, value in values.items() if not value]
-    if missing:
+    options = resolve_s3_options()
+    if options is None:
         raise PhotoStoreUnavailable(
-            f"Photo storage is not configured: set {', '.join(missing)} in the API's server env."
+            "Photo storage is not configured: set the R2 bucket settings "
+            "(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME or S3_*) "
+            "in the API's server env."
         )
-    return values
+    return options
 
 
 def signing_key(secret, date, region=REGION, service="s3"):
@@ -59,8 +60,9 @@ def signing_key(secret, date, region=REGION, service="s3"):
 
 def _request(method, object_key, body=b"", content_type=None):
     c = _config()
-    host = f"{c['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com"
-    path = "/" + quote(f"{c['R2_BUCKET_NAME']}/{object_key}", safe="/-_.~")
+    endpoint = urlsplit(c["endpoint_url"])
+    host, region = endpoint.netloc, c["region_name"] or REGION
+    path = endpoint.path.rstrip("/") + "/" + quote(f"{c['bucket_name']}/{object_key}", safe="/-_.~")
     now = datetime.datetime.now(datetime.UTC)
     stamp, date = now.strftime("%Y%m%dT%H%M%SZ"), now.strftime("%Y%m%d")
     payload = hashlib.sha256(body).hexdigest()
@@ -71,27 +73,31 @@ def _request(method, object_key, body=b"", content_type=None):
     canonical = "\n".join(
         [method, path, "", *(f"{n}:{headers[n]}" for n in names), "", ";".join(names), payload]
     )
-    scope = f"{date}/{REGION}/s3/aws4_request"
+    scope = f"{date}/{region}/s3/aws4_request"
     to_sign = "\n".join(
         ["AWS4-HMAC-SHA256", stamp, scope, hashlib.sha256(canonical.encode()).hexdigest()]
     )
     signature = hmac.new(
-        signing_key(c["R2_SECRET_ACCESS_KEY"], date), to_sign.encode(), hashlib.sha256
+        signing_key(c["secret_key"], date, region), to_sign.encode(), hashlib.sha256
     ).hexdigest()
     headers["authorization"] = (
-        f"AWS4-HMAC-SHA256 Credential={c['R2_ACCESS_KEY_ID']}/{scope}, "
+        f"AWS4-HMAC-SHA256 Credential={c['access_key']}/{scope}, "
         f"SignedHeaders={';'.join(names)}, Signature={signature}"
     )
     try:
         return httpx.request(
-            method, f"https://{host}{path}", content=body, headers=headers, timeout=TIMEOUT
+            method,
+            f"{endpoint.scheme}://{host}{path}",
+            content=body,
+            headers=headers,
+            timeout=TIMEOUT,
         )
     except httpx.HTTPError:
         raise PhotoStoreUnavailable("Could not reach Cloudflare R2.") from None
 
 
 def _object_key(name, content_type):
-    prefix = (getattr(settings, "R2_PREFIX", "snapway") or "").strip("/")
+    prefix = (getattr(settings, "CAPTURE_R2_PREFIX", "snapway") or "").strip("/")
     key = f"{name}.{EXTENSIONS.get(content_type, 'bin')}"
     return f"{prefix}/{key}" if prefix else key
 

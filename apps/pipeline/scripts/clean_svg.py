@@ -25,9 +25,18 @@ import numpy as np
 SCALE = 3
 WALL, CORRIDOR, WHITE, DROP = "#000000", "#d8d8d8", "#ffffff", None
 # Noise kinds whose shapes are removed outright (the rest are painted by colour).
-DROP_KINDS = {"leader-line", "fire-equipment", "text-glyphs", "glare-or-shadow", "other", "you-are-here", "legend"}
+DROP_KINDS = {
+    "leader-line",
+    "fire-equipment",
+    "text-glyphs",
+    "glare-or-shadow",
+    "other",
+    "you-are-here",
+    "legend",
+}
+# Free-standing dark blobs smaller than this (SVG units) are text or marks, not walls.
 GLYPH_MAX_UNITS = 30
-THIN_HALF_UNITS = 1.3  # lines thinner than 2.6 units are hairlines, not walls  # free-standing dark blobs smaller than this (SVG units) are text or marks, not walls
+THIN_HALF_UNITS = 1.3  # lines thinner than 2.6 units are hairlines, not walls
 HEX = re.compile(r"#[0-9a-fA-F]{6}")
 
 
@@ -57,7 +66,9 @@ def colour_classes(analysis):
                 cls = WALL
             elif any(k in text for k in ("fire", "leader", "arrow", "exit", "red ", "tag")):
                 cls = DROP
-            elif any(k in text for k in ("corridor", "circulation", "concourse")) and 80 <= lum < 170:
+            elif (
+                any(k in text for k in ("corridor", "circulation", "concourse")) and 80 <= lum < 170
+            ):
                 cls = CORRIDOR
             else:
                 cls = fallback_class(colour)
@@ -66,8 +77,9 @@ def colour_classes(analysis):
 
 
 def fallback_class(colour):
-    """A fill colour without a clear role: dark (charcoal or black) is wall, red is noise, else white.
-    Corridor mauve is about 115 and room floors about 175, so 90 separates them."""
+    """A fill colour without a clear role: dark (charcoal or black) is wall,
+    red is noise, else white. Corridor mauve is about 115 and room floors
+    about 175, so 90 separates them."""
     r, g, b = (int(colour[i : i + 2], 16) for i in (1, 3, 5))
     if r > g + 40 and r > b + 40:
         return DROP
@@ -97,9 +109,14 @@ def recolour(svg, analysis):
         keep.append(el)
     vb = re.search(r'viewBox="([^"]+)"', svg).group(1)
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" shape-rendering="crispEdges">'
-        f'<rect x="-10000" y="-10000" width="30000" height="30000" fill="#ffffff"/>{"".join(keep)}</svg>'
-    ), [float(v) for v in vb.split()], counts
+        (
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" shape-rendering="crispEdges">'
+            '<rect x="-10000" y="-10000" width="30000" height="30000" fill="#ffffff"/>'
+            f"{''.join(keep)}</svg>"
+        ),
+        [float(v) for v in vb.split()],
+        counts,
+    )
 
 
 def render(svg, width):
@@ -117,23 +134,29 @@ def remove_leader_lines(img):
     walls they cross."""
     walls = (img == 0).astype(np.uint8)
     k = 8 * SCALE
-    straight = cv2.morphologyEx(walls, cv2.MORPH_OPEN, np.ones((1, k), np.uint8)) | cv2.morphologyEx(
-        walls, cv2.MORPH_OPEN, np.ones((k, 1), np.uint8))
+    straight = cv2.morphologyEx(
+        walls, cv2.MORPH_OPEN, np.ones((1, k), np.uint8)
+    ) | cv2.morphologyEx(walls, cv2.MORPH_OPEN, np.ones((k, 1), np.uint8))
     angled = walls & (1 - straight)
-    found = cv2.HoughLinesP(angled * 255, 1, np.pi / 360, 40, minLineLength=25 * SCALE, maxLineGap=3 * SCALE)
+    found = cv2.HoughLinesP(
+        angled * 255, 1, np.pi / 360, 40, minLineLength=25 * SCALE, maxLineGap=3 * SCALE
+    )
     erase = np.zeros(walls.shape, np.uint8)
     h, w = walls.shape
     near = cv2.dilate(walls, np.ones((5, 5), np.uint8))
     half = cv2.dilate(cv2.distanceTransform(walls, cv2.DIST_L2, 3), np.ones((3, 3), np.uint8))
     leaders = 0
-    for ax, ay, bx, by in (found[:, 0] if found is not None else []):
+    for ax, ay, bx, by in found[:, 0] if found is not None else []:
         angle = abs(np.degrees(np.arctan2(by - ay, bx - ax))) % 90
         if min(angle, 90 - angle) < 10:
             continue
         # Thin: leader lines and the X marks across voids are hairlines; walls
         # are drawn thicker (half-thickness from the distance transform).
         n = max(2, int(np.hypot(bx - ax, by - ay)))
-        xs, ys = np.linspace(ax, bx, n).round().astype(int), np.linspace(ay, by, n).round().astype(int)
+        xs, ys = (
+            np.linspace(ax, bx, n).round().astype(int),
+            np.linspace(ay, by, n).round().astype(int),
+        )
         if np.median(half[ys.clip(0, h - 1), xs.clip(0, w - 1)]) > THIN_HALF_UNITS * SCALE:
             continue
         # Follow the line both ways while there is ink along it (gaps up to 4 units).
@@ -183,7 +206,10 @@ def clean_raster(gray, analysis):
     x, y, w, h = analysis["outline"]["bbox"]
     pad = 3
     x0, y0 = max(0, int((x - pad) * SCALE)), max(0, int((y - pad) * SCALE))
-    x1, y1 = min(img.shape[1], int((x + w + pad) * SCALE)), min(img.shape[0], int((y + h + pad) * SCALE))
+    x1, y1 = (
+        min(img.shape[1], int((x + w + pad) * SCALE)),
+        min(img.shape[0], int((y + h + pad) * SCALE)),
+    )
     img, leaders = remove_leader_lines(img)
     outside = np.ones(img.shape, bool)
     outside[y0:y1, x0:x1] = False
@@ -214,8 +240,18 @@ def main():
     gray = render(recoloured, int(round(vb[2] * SCALE)))
     img, glyphs, leaders = clean_raster(gray, analysis)
     cv2.imwrite(out_path, img)
-    print(json.dumps({"out": out_path, "scale": SCALE, "size": [img.shape[1], img.shape[0]],
-                      "shapes": counts, "glyphBlobsRemoved": glyphs, "leaderLinesRemoved": leaders}))
+    print(
+        json.dumps(
+            {
+                "out": out_path,
+                "scale": SCALE,
+                "size": [img.shape[1], img.shape[0]],
+                "shapes": counts,
+                "glyphBlobsRemoved": glyphs,
+                "leaderLinesRemoved": leaders,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

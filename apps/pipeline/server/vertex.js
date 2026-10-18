@@ -86,7 +86,7 @@ export function vertexEndpoint({ project, location, model }) {
 
 export async function vertexResponse(provider, body, { signal, timeout = 180000 } = {}) {
   if (!provider.configured)
-    throw new Error("AI requests need VERTEX_API_KEY and VERTEX_PROJECT in the server .env.prod file.");
+    throw new Error("AI requests need VERTEX_API_KEY and VERTEX_PROJECT in local/.env or the server environment.");
   const tools = (body.tools || []).map((tool) => {
     if (tool.type !== "function") throw new Error("Only declared local function tools are allowed.");
     return { name: tool.name, description: tool.description, parametersJsonSchema: vertexSchema(tool.parameters) };

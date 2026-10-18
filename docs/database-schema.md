@@ -1,7 +1,12 @@
 # PostgreSQL database schema
 
 Owner: Eric. Handoff: Hamza (authorized services/APIs), Arjun (job/provenance
-payloads), Erfang (editor/read models). October 16, 2026.
+payloads), Erfang (editor/read models). Updated October 17, 2026.
+
+**Initial deployment record:** migrated to the Tiger Cloud DEV database `db-snap-way`
+on October 17, 2026: **26 migrations applied, zero pending**, with **24 domain
+tables** in the `snapway` schema. See the [cloud migration record](#tiger-cloud-migration--completed-october-17-2026)
+for PostgreSQL version, role permissions, verification and the scoped TLS exception.
 
 This implements the relational schema described by the [initial index](initial/README.md),
 [architecture §§4–9](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md),
@@ -13,9 +18,77 @@ extensions or architecture choices are introduced.
 
 Read the generated [PostgreSQL DDL](../contracts/postgresql-schema.sql) alongside
 the models. Django migrations are the application schema authority; the export
-is a schema-only reference with no data or migration-history records.
+is a schema-only reference with no data or migration-history records. It was
+generated from local PostgreSQL 17.11 in `public`; the deployed PostgreSQL 18.6
+database uses the dedicated `snapway` schema. It is not a cloud database dump.
 
 ## Relationships
+
+### Live Tiger Data map — October 17, 2026
+
+Read-only inspection at **18:26 UTC (14:26 Toronto)** confirmed service
+`db-snap-way` (`DEV`/`READY`), database `tsdb`, schema `snapway`, PostgreSQL
+**18.6**, using `snapway_runtime`. The live namespace has **39 tables**, **329
+columns**, **124 foreign keys** (including **36 composite scope keys**), **196
+indexes**, **62 CHECK constraints**, and **20 custom triggers**. These are catalog
+object counts, not application row counts. No application records, migration
+history rows, or data-derived statistics were read.
+
+The original 34-table migration record below is historical. The live inventory
+also contains `account_emailaddress`, `account_emailconfirmation`,
+`socialaccount_socialaccount`, `socialaccount_socialapp`, and
+`socialaccount_socialtoken`: **24 domain tables and 15 identity/framework tables**
+in total. This inspection does not establish when those five tables were added
+or whether further Django migrations are pending.
+
+Open the [interactive schema map](assets/database-schema/snapway-schema-map.html)
+in a browser. Search by table or column, select a table for every physical column
+and incoming/outgoing foreign key, and switch from the domain overview to all
+39 tables. Primary-key, foreign-key and nullable-column tags are explicit;
+constraint, index and trigger definitions are available in the inspector.
+The map is self-contained and works offline; it is a dated snapshot, not a live
+database connection. Arrows point **from child to referenced parent**. Lines
+between the same pair of tables are combined; the inspector lists each physical
+constraint, including composite keys. No relationship cardinality is inferred
+from table names.
+
+![Live domain schema overview](assets/database-schema/snapway-overview.svg)
+
+The overview shows all 24 domain tables with selected backbone foreign keys;
+the [complete SVG](assets/database-schema/snapway-full.svg) includes every table
+and foreign-key relationship. Identity and framework tables are in the full view.
+
+Source and reproduction:
+
+- [Unmodified catalog snapshot](assets/database-schema/2026-10-17-snapway-catalog.json)
+  preserves returned column, constraint, index and trigger definitions without
+  application data or credentials.
+- [Read-only catalog query](assets/database-schema/catalog-query.sql) was executed
+  through Tiger MCP with `snapway_runtime`. It uses `BEGIN READ ONLY` and scopes
+  detailed metadata to `snapway`; provider-internal schemas are excluded.
+- [Renderer](assets/database-schema/render.py) and [source template](assets/database-schema/viewer.html.template)
+  regenerate the [interactive HTML](assets/database-schema/snapway-schema-map.html),
+  [overview SVG](assets/database-schema/snapway-overview.svg), and
+  [full SVG](assets/database-schema/snapway-full.svg) offline with Python's standard
+  library and an existing Graphviz `dot` installation. Run
+  `python docs/assets/database-schema/render.py` from the repository root.
+  [Overview DOT](assets/database-schema/snapway-overview.dot) and
+  [full DOT](assets/database-schema/snapway-full.dot) retain editable graph sources.
+  The legacy [viewer entry](assets/database-schema/viewer.html) redirects to the
+  generated map. The `.template` file is renderer input and is not a viewable map.
+
+This documentation task changes no application schema, architecture, dependencies,
+or environment settings. The local environment check could not run because
+`local/.env` is absent. Application work requires the team's private configuration
+for root template contract **2026-10-17.4**, obtained through the external private
+channel, retaining documented host exceptions and passing
+`python scripts/env_contract.py check`. The connected Tiger MCP session was used
+for this inspection independently of the application environment.
+
+### Conceptual relationship summary
+
+This earlier summary describes the core workflow; the live map above provides
+physical table and foreign-key definitions.
 
 ```mermaid
 erDiagram
@@ -53,6 +126,8 @@ support review inboxes, room lookup, job recovery/queues and audit/route history
 Each relation uses `Relation(attribute1, attribute2, ...)` notation. Primary keys
 are underlined; `_id` attributes are the physical foreign-key columns. Every
 attribute is listed, including inherited `id` and `created_at`.
+The unqualified relation names below belong to `snapway` in the cloud database;
+for example, `maps_building` is deployed as `snapway.maps_building`.
 
 | Relation (all attributes) | Purpose |
 | --- | --- |
@@ -176,17 +251,56 @@ between separately reviewed floors.
 
 The base profile uses versioned file/index artifacts and adds no PostGIS,
 TimescaleDB or pgvector extension. Embedding dimensions are recorded in the index
-profile, not frozen as database vector columns. Tiger Data version, TLS, account
-extension support and restore exercises still require service-specific validation.
+profile, not frozen as database vector columns. Initial migrations and role
+permissions are verified on Tiger Cloud PostgreSQL 18.6 below. Trusted production
+TLS, backup/restore exercises and activation of optional extensions remain open.
 
 ## Apply and verify
 
-Install the existing lockfile with the development guide. Configure the intended
-**development** PostgreSQL `DATABASE_URL` in ignored `local/env/api.env`, using the
-same major version as the selected Tiger Data service where possible, then run:
+Install the existing lockfile with the [development guide](development.md).
+Django development settings load ignored `local/.env`; process environment
+variables take precedence. The root `.env` is not loaded automatically.
+
+Use the `snapway_runtime` connection URL for normal API/worker operation. To run
+migrations, temporarily supply a `DATABASE_URL` using `snapway_migrator` instead;
+the runtime role cannot create or alter schema objects. Both role logins default
+to the `snapway,public` search path in this database.
+
+### Teammate migration handoff
+
+Teammates need the current repository, installed backend dependencies and the
+full migration-role connection URL. Tiger MCP and Tiger CLI are not required
+to run Django migrations. The maintainer can retrieve the locally saved URL with:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\TigerCLI\tiger.exe" db uri db-snap-way --role snapway_migrator --with-password
+```
+
+Share the full output through a secure credential-sharing channel. The generated
+URL is the value of `DATABASE_URL`; the command text is not the value. Installing
+Tiger MCP on another machine does not transfer the maintainer's saved credentials.
+Keep URLs/passwords out of this document, Git and `.env.example`.
+
+With the migration URL supplied through the process environment or temporarily
+in `local/.env`, inspect and apply pending migrations:
 
 ```sh
+uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate --plan
 uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate
+```
+
+For the migrated schema commit, Django should report no migrations to apply.
+Later checked-in migrations are applied normally. Restore the runtime URL before
+starting the API if the private environment file was changed. Password changes
+to `tsdbadmin` do not automatically change these separate role passwords.
+
+The current CLI URL includes `sslmode=require`. The exception recorded below
+covered this DEV migration only; teammate/application connections still need
+the required trusted TLS configuration or an explicitly approved exception.
+
+### Development and integration checks
+
+```sh
 uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py makemigrations --check --dry-run
 uv run --locked --extra ai --extra geometry --extra mcp pytest
 ```
@@ -218,17 +332,86 @@ Local verification (October 16, 2026):
   of `Indoor_Visual_Navigation_Detailed_Plan_EN.md` to `Outdated_Plan.md`.
   This schema task does not alter those documents or their inventory.
 
-The new GitHub job has not been executed remotely. Tiger Data integration and
-product acceptance cases remain open.
+The new GitHub job has not been verified remotely in this session. Cloud database
+initialization is recorded below; full product acceptance remains open.
+
+### Tiger Cloud migration — completed October 17, 2026
+
+Target: `db-snap-way`, service `mj6s3bdz74`, `DEV`/`READY`, database `tsdb`,
+PostgreSQL **18.6**. The preflight found only provider-internal tables and no
+application schema, migration history or SnapWay roles. The contributor reset
+the database password using Tiger CLI after earlier `28P01` failures; a fresh
+CLI connection then authenticated successfully. No password values were logged.
+
+Applied the actual Django migration graph from
+[schema commit `186448e`](https://github.com/mhamza1906/SnapWay/commit/186448e):
+
+- **26 migrations applied; zero pending.**
+- Dedicated `snapway` schema with **34 tables**, including **24 domain tables**
+  and Django's supporting tables, plus **36 composite scope foreign keys**
+  and **20 custom triggers**.
+- `snapway_migrator` owns all application tables and runs migrations.
+  `snapway_runtime` has application DML and sequence access, with default grants
+  for future migration-created tables/sequences. The migration-history table
+  is read-only to runtime. Neither role has superuser, database-creation or
+  role-creation attributes; runtime cannot assume the migration role.
+- No existing provider extensions or internal tables were changed. No source
+  migration was changed, no SQL reference dump was imported, and no application
+  user/demo data was seeded.
+
+Verification used real logins for both roles. Runtime SELECT and INSERT/sequence
+access succeeded; CREATE SCHEMA, application CREATE TABLE, role membership grant
+and SET ROLE to the migrator were denied. Future default table/sequence grants
+were checked in a rolled-back owner transaction. Runtime rollback-only smoke
+checks rejected a cross-revision graph edge, a frozen snapshot edit and a
+publication missing required artifacts. No smoke-test rows remain. A separate
+Tiger MCP read using `snapway_runtime` confirmed the schema, counts and encrypted
+connection.
+
+The [infrastructure TLS policy](initial/Indoor_Navigation_Infrastructure_Integration_EN.md#32-tls-and-certificate-verification)
+requires `verify-full`. The service currently presents an untrusted internal
+Timescale CA; the contributor approved encrypted **`sslmode=require` for this
+DEV migration only**. This exception was confined to migration/verification
+connections. Production settings and the default TLS policy were not changed;
+future verified application/deployment connections still need a trusted service
+CA/certificate profile.
+
+Role credentials are saved in the local Tiger credential store; private recovery
+state and sanitized preflight/result evidence remain under ignored `local/env/`
+and `local/artifacts/`. The one-off migration runner is under ignored `local/`.
+Use the runtime role for the API/worker and the migrator for migrations, as
+specified by the infrastructure plan. The root `.env` and application connection
+settings have not been switched automatically to the cloud database.
 
 ## Change record
 
+Live schema-map follow-up (October 17, 2026): inspected the cloud catalog in a
+read-only transaction, retained the source snapshot and query, generated the
+offline interactive map and SVG/DOT views linked above, and distinguished the
+39-table live inventory from the original 34-table migration record. Verified
+all 39 inspectors against saved column and incoming/outgoing FK counts in real
+Chromium, plus overview/full views, search, empty results/reset, zoom, keyboard
+selection, responsive mobile layout, and absence of page errors/network requests.
+Both SVGs parse and the snapshot records a read-only transaction with all 124
+FKs validated. Commit pending. Suggested commit:
+`docs(db): add verified Tiger Data schema maps`.
+Personal verification/history: ignored `local/ACTIONS.md`.
+
+Viewer-entry correction: renamed the unfilled source to `viewer.html.template`
+and made `viewer.html` redirect to the generated map, preventing a blank diagram
+when opening the former template path. Regeneration rejects unresolved template
+tokens. Verified the redirect and all 39 table inspectors in Chromium. Suggested
+commit: `fix(docs): open generated schema map from viewer entry`.
+
 Personal development history is maintained in ignored `local/ACTIONS.md`.
 This is the single shared feature record. Base scaffold commit: `e79a65b`.
-Schema changes are uncommitted; record the eventual commit here at handoff.
+Schema implementation: [commit `186448e`](https://github.com/mhamza1906/SnapWay/commit/186448e).
+The cloud migration record is pending a documentation commit.
 
 Documentation follow-up: expanded all 24 relation signatures to list every
 physical column, with primary keys underlined; checked against the SQL export.
+After deployment, refreshed the status/date, clarified the deployed namespace
+and SQL reference version, and added teammate credential/migration instructions.
 
 Changed files:
 

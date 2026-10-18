@@ -221,16 +221,12 @@ def test_writes_require_csrf_token(world):
     assert response.status_code == 201
 
 
-def test_login_with_username_and_password(world):
-    client = Client()
-    page = client.get("/accounts/login/?next=/capture")
-    assert page.status_code == 200
-    response = client.post(
-        "/accounts/login/",
-        {"username": "volunteer", "password": "pw-volunteer", "next": "/capture"},
-    )
-    assert response.status_code == 302 and response["Location"] == "/capture"
-    assert client.get(f"{API}/me").json()["authenticated"] is True
+def test_anonymous_me_points_to_the_shared_sign_in(world):
+    # Capture signs in through the app's allauth (Google) sign-in, not its own page.
+    body = Client().get(f"{API}/me?next=/capture").json()
+    assert body["authenticated"] is False
+    assert body["loginUrl"].startswith("/accounts/login/?next=")
+    assert "capture" in body["loginUrl"]
 
 
 @pytest.mark.parametrize("who", ["outsider", "revoked"])
@@ -424,13 +420,13 @@ def test_photos_are_never_written_to_local_disk(world, started, settings):
     assert not Path(settings.MEDIA_ROOT).exists() or not any(Path(settings.MEDIA_ROOT).rglob("*.*"))
 
 
-def test_upload_without_r2_config_is_refused(world, started, settings):
+def test_upload_without_r2_config_is_refused(world, started, settings, monkeypatch):
     settings.CAPTURE_PHOTO_STORE = "r2"
-    settings.R2_SECRET_ACCESS_KEY = ""
+    monkeypatch.setattr("capture.photo_store.resolve_s3_options", lambda: None)
     photo_id = uuid.uuid4()
     response = upload(started.client, started.point_id, photo_id, jpeg())
     assert response.status_code == 503
-    assert "R2_SECRET_ACCESS_KEY" in response.json()["detail"]
+    assert "R2_BUCKET_NAME" in response.json()["detail"]
     assert not CapturePhoto.objects.filter(id=photo_id).exists()
 
 

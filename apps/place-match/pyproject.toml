@@ -1,0 +1,52 @@
+[project]
+name = "placematch"
+version = "0.1.0"
+description = "Match recorded video frames to reference photographs of the same physical place"
+requires-python = ">=3.12,<3.13"
+# Self-contained: this app has its own environment and lock file so it never
+# changes the SnapWay root dependencies. Exact versions are pinned in ./uv.lock.
+dependencies = [
+  "numpy>=2.2,<2.3",
+  "pillow>=11,<12",
+  "opencv-python>=4.12,<4.13",
+  "pydantic>=2.11,<3",
+  "google-genai>=1.38,<3",
+  "httpx>=0.28,<1",
+  "torch>=2.8,<2.10",
+  "torchvision>=0.23,<0.25",
+  "lightglue @ git+https://github.com/cvg/LightGlue.git@eb42fee2d71449efb0aa5c10549752b5d75384d8",
+  "scipy>=1.15,<2",
+  "h5py>=3.13,<4",
+  "tqdm>=4.67,<5",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
+  "python-multipart>=0.0.20,<0.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<9", "ruff>=0.12,<1"]
+
+[project.scripts]
+placematch = "placematch.cli:main"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]  # independent of the editable .pth (macOS may hide it)
+addopts = "-ra"

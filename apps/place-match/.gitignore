@@ -1,0 +1,7 @@
+# Large or machine-local artefacts: datasets, embedding caches, model weights, run outputs.
+data/
+runs/
+.venv/
+*.npy
+*.npz
+.env

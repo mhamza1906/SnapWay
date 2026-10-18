@@ -1,0 +1,165 @@
+{
+  "date": "2026-10-17",
+  "scope": "Gemini-only live vectorization; frozen image-generation result; no OpenAI/Opus call",
+  "input_frame": "candidate-8aaf2ca074bce958",
+  "floor_crop_xywh": [
+    20,
+    160,
+    1405,
+    625
+  ],
+  "generated_source_sha256": "7a7820808ae8484808363723d807ff33948e69fbeb00dbb71170e6d51ecd104d",
+  "files": [
+    {
+      "name": "frozen-floor.png",
+      "bytes": 999973,
+      "sha256": "8aaf2ca074bce958a545d8f357b8e7f06e03660d7862f0cc799dc75de12f7b08",
+      "width": 1405,
+      "height": 625,
+      "format": "PNG"
+    },
+    {
+      "name": "vector.png",
+      "bytes": 123325,
+      "sha256": "0a891f54187c868414fb089179ef9ef2321e27b19ef31f4fea56708c089e7252",
+      "width": 1405,
+      "height": 625,
+      "format": "PNG"
+    },
+    {
+      "name": "vector.svg",
+      "bytes": 28966,
+      "sha256": "f3600b7dac7c0e5687f3c8261c1d30b9b837cc01531477a2616717ea1f16fce4"
+    },
+    {
+      "name": "browser-all-labels.jpg",
+      "bytes": 119094,
+      "sha256": "7dfa34e9b7239abf01efcc6fdb6b11093b24efe035563258b491b61f5af97abe",
+      "width": 1692,
+      "height": 924,
+      "format": "JPEG"
+    },
+    {
+      "name": "trace.json",
+      "bytes": 18329,
+      "sha256": "adf8cb4c0f0ca9b12065f72adecf933dcf067b3c7e2ae4fdf89736a72dc30a88"
+    },
+    {
+      "name": "structure.json",
+      "bytes": 17476,
+      "sha256": "a534666b07033146682c8ad03ebaf9a403d2afa32c46a40573df62ca1e43f715"
+    },
+    {
+      "name": "validation.json",
+      "bytes": 10502,
+      "sha256": "6083706d2f624c068a43e51f84e31a6cd4fa49bd15c39cd52b17e2506148ba9a"
+    },
+    {
+      "name": "pilot-summary.json",
+      "bytes": 12695,
+      "sha256": "e75c098ac76c51674d74651c83bd7ad2583fcbdb904cdf88096247f43c8cef43"
+    },
+    {
+      "name": "trace-prompt.txt",
+      "bytes": 1405,
+      "sha256": "b4924173f10420ec1684be125bf8f2b40606ef1d79aa1324e0ee478cf6781e78"
+    },
+    {
+      "name": "structure-prompt.txt",
+      "bytes": 8734,
+      "sha256": "b72af917e2e762f07b3230b80ea2c8cdd8771f333b6600075abe6477c308ec5e"
+    },
+    {
+      "name": "trace-schema.json",
+      "bytes": 4453,
+      "sha256": "b450258d8dc6509fcb1fd5ca871ebab4b777479dcec24404b6776ca17b184c26"
+    },
+    {
+      "name": "structure-schema.json",
+      "bytes": 5515,
+      "sha256": "53b6e2e1f2a7b882329ebb889dce179251b36319c9599574ad0a9d5e39c118a8"
+    },
+    {
+      "name": "stair-c-detail/web-floor.png",
+      "bytes": 88162,
+      "sha256": "d1542c73969761c5644345dd58763514531901cd1bcc83b036bf595a8bd4c33e",
+      "width": 210,
+      "height": 290,
+      "format": "PNG"
+    },
+    {
+      "name": "stair-c-detail/overlay.png",
+      "bytes": 101661,
+      "sha256": "f0d9a3a05bcdc99e235f4a3ee1f1bf98a8eccb94e0fc1ad83ddb7230872dcd99",
+      "width": 210,
+      "height": 290,
+      "format": "PNG"
+    },
+    {
+      "name": "stair-c-detail/trace.json",
+      "bytes": 6483,
+      "sha256": "cc46af2f9f235ec3dc8f2789f768f2316517a19b21c14e673719c99c209cc4e8"
+    },
+    {
+      "name": "stair-c-detail/review.json",
+      "bytes": 2309,
+      "sha256": "b991c90cfbeeca1282e564100d4a72e2c87ef723fa156650540298dd495823f0"
+    },
+    {
+      "name": "stair-c-detail/parent-frame.json",
+      "bytes": 198,
+      "sha256": "8a733c9e8217d00c32467b1b57a6e75e5c9859f2a0d90f6a593deb66802b03f0"
+    },
+    {
+      "name": "stair-c-detail/trace-prompt.txt",
+      "bytes": 1565,
+      "sha256": "250ed81d8f78430b2d7fbaaf1a90430135cb6e7655d2f986f336bd3dadbe4855"
+    },
+    {
+      "name": "stair-c-detail/trace-schema.json",
+      "bytes": 4453,
+      "sha256": "b450258d8dc6509fcb1fd5ca871ebab4b777479dcec24404b6776ca17b184c26"
+    },
+    {
+      "name": "door-detail/web-floor.png",
+      "bytes": 105353,
+      "sha256": "71a4013b353db9b27d731d582a4479ec819c90f39241e0ae1fb68d9266e204a5",
+      "width": 250,
+      "height": 315,
+      "format": "PNG"
+    },
+    {
+      "name": "door-detail/overlay.png",
+      "bytes": 122002,
+      "sha256": "fcb5cb7f533f64104f9e569d0c21746b1fc99bf75ede34857847018ac1cff2ee",
+      "width": 250,
+      "height": 315,
+      "format": "PNG"
+    },
+    {
+      "name": "door-detail/trace.json",
+      "bytes": 9985,
+      "sha256": "719f4cccc1e3c1967974061f8e555e8695a636dce4133729099ec7d0cea196c4"
+    },
+    {
+      "name": "door-detail/review.json",
+      "bytes": 2477,
+      "sha256": "e121876c63cd1ac4eaf98bf175cc5336fa8ab68a43898dd1383028f5905d84e6"
+    },
+    {
+      "name": "door-detail/parent-frame.json",
+      "bytes": 199,
+      "sha256": "946c213faf45c9848ec4eb759ab0bd85aa75e5fc37aad5e02a2551cecc30e013"
+    },
+    {
+      "name": "door-detail/trace-prompt.txt",
+      "bytes": 1775,
+      "sha256": "b201e97dc46ca7b3c27eacf56e75d1f710a5db726841bb00f13bb392ac7a4218"
+    },
+    {
+      "name": "door-detail/trace-schema.json",
+      "bytes": 4453,
+      "sha256": "b450258d8dc6509fcb1fd5ca871ebab4b777479dcec24404b6776ca17b184c26"
+    }
+  ]
+}

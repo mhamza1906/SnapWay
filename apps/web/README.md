@@ -5,6 +5,26 @@ Start with the [root setup instructions](../../README.md) and
 [development guide](../../docs/development.md). Run bootstrap from the root before
 the npm commands below.
 
+Backend configuration follows the [single-env sync guide](../../docs/environment-sync.md).
+Do not copy server/provider secrets from `local/.env` into Angular or Capacitor
+build configuration; the browser uses backend APIs and receives no private env.
+
+Google service setup and exact Console callbacks are maintained in the
+[frontend iteration guide](../../docs/frontend-iteration.md). The isolated Maps
+probe reads only its restricted browser key and map ID from `local/.env`; it never
+exports the whole file. Start it from the root with
+`python scripts/google_maps_smoke.py`, then open `http://127.0.0.1:4201/`.
+Google OAuth uses the existing Django session flow, not a client-side secret.
+
+The real application starts at `/map`. Start Django with `python scripts/dev.py api`
+from the repository root, then run the frontend command below. `/welcome` starts
+Google sign-in and restores the requested route after callback; the account menu
+supports server logout. Public discovery reads current publications and real
+Building coordinates from Django, not local prototype targets. The visitor bundle
+also starts at the map, retaining `/navigate` as a labeled sample preview.
+See the iteration guide for acceptance results and native/production setup still
+requiring validation. No Maps/OAuth dependency or secret is bundled into Angular.
+
 ## Development server
 
 To start a local development server, run:
@@ -65,6 +85,19 @@ Capacitor bundles the visitor assets. Android Studio, a compatible JDK/SDK and
 a physical phone are still needed for build/device acceptance. No APK or
 native camera acceptance is claimed. Trivial upstream sample tests were removed;
 meaningful native tests accompany device features when implemented.
+
+## iOS synchronization
+
+On macOS with Xcode 26+:
+
+```bash
+npm run ios:sync
+npx cap open ios
+```
+
+The iOS app ships the same visitor build as Android, with the phone layout from
+`src/styles.visitor.scss`. Signing and physical-device acceptance are not
+claimed; see [iOS visitor app](../../docs/mobile-ios.md).
 
 ## Additional Resources
 

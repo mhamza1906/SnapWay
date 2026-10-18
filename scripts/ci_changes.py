@@ -42,7 +42,7 @@ def is_documentation(path):
 
 def classify_changes(paths):
     paths = [p for p in paths if not is_documentation(p) and not p.startswith("local/")]
-    shared = any(p.startswith(("scripts/", ".github/", "contracts/")) for p in paths)
+    shared = any(p.startswith(("scripts/", ".github/", "contracts/", "infra/")) for p in paths)
     backend = shared or any(
         p.startswith(("apps/api/", "apps/mcp/", "packages/"))
         or p in {"pyproject.toml", "uv.lock", ".python-version", ".env.example"}
@@ -52,7 +52,7 @@ def classify_changes(paths):
         p.startswith("apps/web/") or p in {".node-version", ".editorconfig"} for p in paths
     )
     pipeline = shared or any(
-        p.startswith("apps/pipeline/") or p in {".node-version"} for p in paths
+        p.startswith("apps/pipeline/") or p in {".node-version", ".env.example"} for p in paths
     )
     return backend, web, pipeline
 

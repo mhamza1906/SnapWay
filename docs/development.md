@@ -5,6 +5,11 @@ architecture are indexed in [initial/README.md](initial/README.md). This guide
 describes implemented setup behavior; the initial files retain their original
 planning status and content.
 
+Maintain all authored documentation under `docs/` in English, including plans,
+feature records, audits, diagram labels and explanatory examples. Preserve original
+source artifacts and historical input bytes; describe their meaning in English
+instead of modifying evidence. The shared rule is recorded in [AGENTS.md](../AGENTS.md).
+
 For the interactive frontend, use the [prototype walkthrough](frontend-prototype.md).
 Its Local Storage service and simulated AI/device flows run without the API; this
 guide remains the initialization and backend/toolchain reference.
@@ -61,18 +66,20 @@ packages are resolved by the package managers.
 Run `python scripts/bootstrap.py` from a fresh checkout. It checks Node/npm,
 creates ignored `local/` directories, installs the locked profiles and runs
 migrations/checks. uv obtains the pinned Python if necessary. A development key
-is generated only when `local/env/api.env` does not exist. Repeating bootstrap
+is generated only when `local/.env` does not exist. Repeating bootstrap
 preserves existing settings and data; an invalid existing configuration is
 reported instead of overwritten.
 
-`config.settings.development` alone loads that private file. Process environment
-variables take precedence. The root `.env.example` contains only implemented
-development setup settings and inactive provider placeholders. The full future
-configuration inventory remains intact at `docs/initial/.env.example`.
+Django development settings and the Node service load the single ignored
+`local/.env`, with process environment taking precedence. The root `.env.example`
+is the sole active shared contract; no per-service private env or template is
+maintained. Follow [environment synchronization](environment-sync.md) for the
+one-time legacy migration, external updates, allowed local exceptions and checks.
+The file under `docs/initial/` is historical evidence only.
 
 | Settings profile | Database | Secret source |
 | --- | --- | --- |
-| `config.settings.development` | `DATABASE_URL` or ignored `local/dev.sqlite3` | Process environment / `local/env/api.env`; required |
+| `config.settings.development` | `DATABASE_URL` or ignored `local/dev.sqlite3` | Process environment / `local/.env`; required |
 | `config.settings.test` | Isolated in-memory SQLite | Explicit non-deployment test key |
 | `config.settings.production` | Required PostgreSQL URL, verified TLS | Process environment; no local file loaded |
 
@@ -92,10 +99,17 @@ inspection, create a local administrator yourself:
 uv run --locked python apps/api/manage.py createsuperuser
 ```
 
-Google allauth is installed but no Google OAuth route or provider is enabled.
-Provider SDKs likewise remain inactive. No application authoring job, paid API
-call or server-backed guest-navigation capability is implemented. The separate
-frontend prototype exercises these workflows locally with explicit simulations.
+Google OAuth for developers is wired through django-allauth on branch
+`feature/backend-oauth`. See the shared feature record
+[backend-oauth.md](backend-oauth.md): `/accounts/google/login/`, session
+`GET /api/auth/me/` and `POST /api/auth/logout/`, and env placeholders for
+`GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`. Private development
+settings live **only** in ignored `local/.env` (never a repo-root `.env`).
+Development prefers Tiger Data PostgreSQL via `DATABASE_URL` there; SQLite
+remains the offline fallback. Map roles are never granted by Google. AI provider
+SDKs remain inactive. No application authoring job or server-backed
+guest-navigation capability is implemented. The separate frontend prototype still
+simulates contributor roles locally until an Angular login UI is added.
 
 ## Development commands and health
 
@@ -148,6 +162,14 @@ build/install/test an APK. App ID `org.snapway.app` is an initial candidate; agr
 the release identity and signing custody before distribution. No APK, camera
 plugin behavior, device permission flow or native acceptance is claimed.
 
+On branch `feature/mobile-ios`, the same visitor build also runs on iOS (macOS
+with Xcode 26+ only). See [iOS visitor app](mobile-ios.md):
+
+```sh
+npm run ios:sync
+npx cap open ios
+```
+
 ## Checks and CI
 
 Run `python scripts/dev.py check` after bootstrap. It verifies initial-document
@@ -183,6 +205,12 @@ files and two archive references) were copied byte-for-byte into `docs/initial`.
 line endings so verification works on a fresh clone. Relative document links
 retain the original directory relationships. `scripts/check_docs.py` verifies
 the snapshot independently of the original source directory.
+
+Upstream later renamed one archive file and updated two baseline files for the
+approved demo TLS exception. The original migration manifest remains unchanged;
+[initial-approved-updates.json](initial-approved-updates.json) records the exact
+upstream commits, original hashes and current paths/hashes. The checker applies
+only these explicit transitions and still rejects unrecorded content changes.
 
 Keep new implementation guidance and decisions under `docs/`; link back to
 the initial requirement where useful. Personal scripts, original research source

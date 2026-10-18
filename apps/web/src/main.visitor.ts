@@ -1,6 +1,8 @@
 import { Component, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, RouterOutlet } from '@angular/router';
+import { nativeApiInterceptor } from './app/core/native-api.interceptor';
 
 @Component({ selector: 'app-root', imports: [RouterOutlet], template: '<router-outlet />' })
 class VisitorApp {}
@@ -8,12 +10,15 @@ class VisitorApp {}
 bootstrapApplication(VisitorApp, {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(withInterceptors([nativeApiInterceptor])),
     provideRouter([
       {
         path: '',
-        loadComponent: () =>
-          import('./app/features/navigation/navigation').then((m) => m.Navigation),
+        data: { contributor: false },
+        loadComponent: () => import('./app/features/visitor/visitor').then((m) => m.VisitorJourney),
       },
+      { path: 'map', redirectTo: '', pathMatch: 'full' },
+      { path: 'navigate', redirectTo: '', pathMatch: 'full' },
       { path: '**', redirectTo: '' },
     ]),
   ],

@@ -93,7 +93,13 @@ AI, editing, Maps, and experimental navigation dependencies belong in their resp
 
 **Deployment policy:** use `PGSSLMODE=verify-full`, the exact service DNS hostname, and a trusted root source. For a libpq 16+ client, Tiger documents `sslrootcert=system`; for other client builds, use a vetted CA bundle at a protected host path readable by the API, worker, and migration service identities. Test permissions under the actual service user.
 
-Tiger states that a newly created service can initially use a self-signed certificate, with a signed certificate normally replacing it after roughly 30 minutes, and that free services do not provide SSL certificates. Verify the selected service's certificate capability rather than treating every account as equivalent. A failed hostname/CA check is a readiness blocker; do not change to `disable` or `require` merely to get a green result. [Tiger strict TLS instructions](https://www.tigerdata.com/docs/deploy/tiger-cloud/tiger-cloud-aws/security/strict-ssl)
+**Approved demo exception, October 17, 2026:** the requesting contributor explicitly
+approved encrypted `require` connections without server identity verification for
+the current Free-plan demo. The [deployment record](../deployment.md#free-plan-demo-tls)
+contains the runtime/migration configuration and restoration steps. This exception
+does not replace the verified-TLS gate before storing production data.
+
+Tiger states that a newly created service can initially use a self-signed certificate, with a signed certificate normally replacing it after roughly 30 minutes, and that free services do not provide SSL certificates. Verify the selected service's certificate capability rather than treating every account as equivalent. Outside the approved demo exception above, a failed hostname/CA check is a readiness blocker; do not change to `disable` or `require` merely to get a green result. [Tiger strict TLS instructions](https://www.tigerdata.com/docs/deploy/tiger-cloud/tiger-cloud-aws/security/strict-ssl)
 
 PostgreSQL distinguishes encrypted transport from verified identity: `verify-full` checks the trusted chain and hostname. Record the libpq version bundled with the installed Psycopg build, and test the same configuration in the deployed Linux virtual environment. [PostgreSQL TLS verification](https://www.postgresql.org/docs/current/libpq-ssl.html)
 

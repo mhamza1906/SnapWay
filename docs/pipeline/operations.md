@@ -5,7 +5,7 @@ How to run the map-authoring pipeline (`apps/pipeline/`) safely: its limits, cac
 Related pages:
 
 - [README.md](README.md): overview.
-- [environments.md](environments.md): `.env.prod` (everyone: Claude Sonnet 5.5 for mapping by default, Gemini on Vertex selectable) and `.env.dev` (Arjun's development file).
+- [environments.md](environments.md): single `local/.env` (Claude Sonnet 5.5 for mapping by default, Gemini on Vertex selectable), provider policy and team synchronization.
 - [stages.md](stages.md): what each stage does internally.
 - [api.md](api.md): HTTP endpoints.
 
@@ -256,8 +256,8 @@ That path is not git-ignored. Do not commit the file, and remove it after the ru
 | Rooms listed under "Needs attention" in the Doorways panel | These are walkable regions with no usable doorway. Use **Place assumed doorways**, **Make it a room** or **Not a room**, or add a doorway. |
 | A disconnected wing or cluster | A real link was never detected (for example 1155 ↔ 1157 on 003E3). Check the original PDF, then use **Add a doorway to any room**, choose the edge and add it. The pipeline never bridges a wall or glazing verdict. |
 | `403 {"error":"Only local app requests are accepted."}` | The browser origin is not allowed. Allowed origins are `localhost` and `127.0.0.1` on `PORT` (5175), plus `PIPELINE_ALLOWED_ORIGINS`. Setting that variable **replaces** its default (`http://localhost:4200,http://127.0.0.1:4200`), so list every origin you need. Restart after editing. |
-| The service exits at startup with "Pipeline provider settings are invalid for APP_ENV=…" | The provider settings failed validation before the server listened. For example, "APP_ENV=prod requires AI_PROVIDER=anthropic or vertex", an unknown `AI_PROVIDER`, or `VERTEX_EFFORT` or `ANTHROPIC_EFFORT` out of range. `APP_ENV` defaults to `prod`, and prod never reads `.env.dev`. Fix `.env.prod`, or use `npm run dev` with `.env.dev` (Arjun only). There is no automatic fallback. See [environments.md](environments.md). |
-| "AI requests need VERTEX_API_KEY and VERTEX_PROJECT…" | The provider is selected but has no credential. Add the credential to `.env.prod`, which is server-only and never printed. |
+| The service exits at startup with "Pipeline provider settings are invalid for APP_ENV=…" | The provider settings failed validation before the server listened. For example, "APP_ENV=prod requires AI_PROVIDER=vertex", an unknown `AI_PROVIDER`, or `VERTEX_EFFORT` or `ANTHROPIC_EFFORT` out of range. `APP_ENV` defaults to `prod`, and both policies read the same `local/.env`. Fix that file or use explicit authorized process overrides with dev policy. There is no automatic fallback. See [environments.md](environments.md). |
+| "AI requests need VERTEX_API_KEY and VERTEX_PROJECT…" | The provider is selected but has no credential. Add the credential to `local/.env`, which is server-only and never printed. |
 | Job status `limited` | A call, token or deadline limit was reached. Resume the job (optionally with larger options). Completed stages are reused. |
 | "A mapping job is already running" | Only one job runs at a time. Wait for it, or cancel it. |
 
