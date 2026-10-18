@@ -510,6 +510,8 @@ R2 credentials were supplied in existing private local configuration during this
 
 ### Preparing Sam Ibrahim's saved walks
 
+Signed-in contributors can now open their own saved maps directly from `/map`: choose a floor/circulation under **Your saved indoor maps**, then select **Open photo walk**. The picker loads independently of the optional outdoor Google Maps SDK; its failure cannot hide or disable indoor collection. On phones the saved-map controls appear before the outdoor map. The list uses the existing owner-scoped draft API, updates after sign-in, clears after sign-out and offers retry on failure; it does not publish drafts as reviewed visitor maps. Implementation: [map.ts](../apps/web/src/app/features/map/map.ts), [template](../apps/web/src/app/features/map/map.html), [styles](../apps/web/src/app/features/map/map.scss), [tests](../apps/web/src/app/features/map/map.spec.ts). Four discovery tests and the production web build passed for this access change, including an unavailable SDK, selection of a specific saved walk, retry and sign-out during a pending request. Physical-phone testing remains with the user.
+
 The [offline exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs) uses the same original-SVG project, 12-stop planner and source-polyline graph conversion as authoring. It does not call an AI provider. The [import command](../apps/api/maps/management/commands/import_photo_walks.py) creates only the named existing contributor's own new drafts, stores source underlays through the existing adapter, and skips already-imported source identities rather than overwriting their graphs/photos:
 
 ```sh
@@ -524,3 +526,4 @@ Phone-workflow verification on 2026-10-18: 11 editor/queue/graph-conversion test
 The user subsequently confirmed the preview opens after a transient connection timeout. Local/public frontend and public session API checks returned 200; no browser/network security settings were changed. Phone camera/upload behavior remains for the user's physical-device test.
 
 Mobile collection implementation: [3de9a9a](https://github.com/mhamza1906/SnapWay/commit/3de9a9a).
+Home-page saved-map access: [8d734c1](https://github.com/mhamza1906/SnapWay/commit/8d734c1).
