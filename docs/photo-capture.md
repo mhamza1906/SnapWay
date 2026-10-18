@@ -464,20 +464,20 @@ a real phone.
 
 In `/authoring`, open a building and floor, select one corridor/lobby under **Regions**, then choose **Photo points for …**. The **Photo points** tab lists the numbered positions and supports selecting on the map, hiding/showing markers, removing points and relabelling. These plans are temporary UI state. Changing floors or reloading edited building data clears them, selected points and stale exported-draft links; a late planning response from the old floor is discarded.
 
-The default is now an **adaptive count with a ceiling of 20 photo stops per circulation area**, requested by the user on 2026-10-18 after the earlier 12-stop default. Change **Photo-stop ceiling per circulation** (2–30) and press **Update photo stops** to regenerate. The count uses walking-network length divided by six candidate-spacing intervals, plus one endpoint allowance and up to four additional stops for turns/junctions; it is bounded by available candidates and the chosen ceiling. Weighted farthest-point selection distributes those stops along the paths. Small and simple areas get fewer stops; longer networks reach 20. This is a geometry-based starting heuristic, not a measured optimum for visual localization. With no verified scale, the spacing is relative to the plan rather than a claimed distance in metres. Walking paths, door openings and cross-floor routing are unchanged.
+The default is now an **adaptive count with a ceiling of 30 photo stops per circulation area**, requested by the user on 2026-10-18 after the earlier 12/20-stop defaults. Change **Photo-stop ceiling per circulation** (2–30) and press **Update photo stops** to regenerate. The denser count uses walking-network length divided by four candidate-spacing intervals (previously six), plus one endpoint allowance and up to four additional stops for turns/junctions; it is bounded by available candidates and the chosen ceiling. Weighted farthest-point selection distributes those stops along the paths. Small and simple areas get fewer stops; longer networks reach 30. This is a geometry-based starting heuristic, not a measured optimum for visual localization. With no verified scale, the spacing is relative to the plan rather than a claimed distance in metres. Walking paths, door openings and cross-floor routing are unchanged.
 
 Current Sam Ibrahim collection counts (each stop has four directional photos):
 
 | Floor | Stops per saved circulation |
 | --- | --- |
-| Level B | 20, 4, 1 |
-| Level 1 | 20 |
-| Level 2 | 13, 11, 20 |
-| Level 3 | 20 |
-| Level 4 | 20 |
-| Level 5 | 14, 20 |
+| Level B | 30, 5, 1 |
+| Level 1 | 30 |
+| Level 2 | 16, 13, 30 |
+| Level 3 | 30 |
+| Level 4 | 30 |
+| Level 5 | 18, 30 |
 
-There are 163 recommended stops across 11 saved walks (652 possible directional photos). Regions with no traced corridor path are not given invented photo locations.
+There are 233 recommended stops across 11 saved walks (932 possible directional photos), up from 163. Regions with no traced corridor path are not given invented photo locations.
 
 Sparse planning: [planner](../apps/pipeline/shared/building/capture-points.js), [HTTP endpoint](../apps/pipeline/server/authoring-routes.js), [API client](../apps/web/src/app/features/authoring/pipeline.service.ts), [controls](../apps/web/src/app/features/authoring/authoring.html), [planner/API regressions](../apps/pipeline/tests/sam-ibrahim-project.test.js). The existing per-corridor mobile capture planner is unchanged.
 
@@ -525,14 +525,14 @@ R2 credentials were supplied in existing private local configuration during this
 
 Signed-in contributors can now open their own saved maps directly from `/map`: choose a floor/circulation under **Your saved indoor maps**, then select **Open photo walk**. The picker loads independently of the optional outdoor Google Maps SDK; its failure cannot hide or disable indoor collection. On phones the saved-map controls appear before the outdoor map. The list uses the existing owner-scoped draft API, updates after sign-in, clears after sign-out and offers retry on failure; it does not publish drafts as reviewed visitor maps. Implementation: [map.ts](../apps/web/src/app/features/map/map.ts), [template](../apps/web/src/app/features/map/map.html), [styles](../apps/web/src/app/features/map/map.scss), [tests](../apps/web/src/app/features/map/map.spec.ts). Four discovery tests and the production web build passed for this access change, including an unavailable SDK, selection of a specific saved walk, retry and sign-out during a pending request. Physical-phone testing remains with the user.
 
-The [offline exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs) uses the same original-SVG project, adaptive 20-stop ceiling and source-polyline graph conversion as authoring. It does not call an AI provider. The [import command](../apps/api/maps/management/commands/import_photo_walks.py) creates only the named existing contributor's own new drafts and skips already-imported source identities. `--upgrade-existing` explicitly updates a matching previous source plan in place. It preserves the target, revision, underlay, every existing node ID/coordinate and all photo references; it refuses a changed frame or an export that drops an old node. Previous photo locations that are not recommended now remain as path vertices. The phone view also includes retained locations with uploaded or locally queued photos, so these remain accessible. Numbering may change to follow the current itinerary; no photograph moves to another physical location.
+The [offline exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs) uses the same original-SVG project, adaptive 30-stop ceiling and source-polyline graph conversion as authoring. It does not call an AI provider. The [import command](../apps/api/maps/management/commands/import_photo_walks.py) creates only the named existing contributor's own new drafts and skips already-imported source identities. `--upgrade-existing` explicitly updates a matching previous source plan in place. It preserves the target, revision, underlay, every existing node ID/coordinate and all photo references; it refuses a changed frame or an export that drops an old node. Previous photo locations that are not recommended now remain as path vertices. The phone view also includes retained locations with uploaded or locally queued photos, so these remain accessible. Numbering may change to follow the current itinerary; no photograph moves to another physical location.
 
 ```sh
 node --experimental-strip-types experiments/sam-ibrahim-hardcoded/phone-walks.mjs local/phone-walks.json
 DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python apps/api/manage.py import_photo_walks --username YOUR_EXISTING_USERNAME --file local/phone-walks.json --upgrade-existing
 ```
 
-The local database was backed up before import and again before the adaptive update. The initial 11 walks contained 121 stops; those same walks now contain 163 recommended stops, including both Level 5 areas (34 stops / 136 possible directional photos). All existing targets, revision IDs, node IDs/coordinates and source underlays were verified unchanged. No global staff role or other user's membership was changed. The export is single-floor collection data; it does not alter the project's cross-floor routes.
+The local database was backed up before import and again before each density update. The initial 11 walks contained 121 stops, the first adaptive version 163, and the same walks now contain 233, including both Level 5 areas (48 stops / 192 possible directional photos). All existing targets, revision IDs, node IDs/coordinates and source underlays were verified unchanged. No global staff role or other user's membership was changed. The export is single-floor collection data; it does not alter the project's cross-floor routes.
 
 Phone-workflow verification on 2026-10-18: 11 editor/queue/graph-conversion tests and 18 related Django tests passed; the production web build passed without style-budget warnings. Django system checks and migration checks passed (no schema changes), and source/diff checks passed. Re-importing the saved walks preserved existing drafts. Public page and session API returned 200; the CSRF-protected OAuth start generated the exact public HTTPS callback, accepted by Google after the user updated it. R2 and OAuth credentials were never printed or committed.
 
@@ -545,4 +545,10 @@ Adaptive-update verification: 47 authoring/graph-conversion/phone-editor tests, 
 
 Adaptive planning and preserved saved-walk updates: [b9ffb2b](https://github.com/mhamza1906/SnapWay/commit/b9ffb2b).
 
-Local image handoff (2026-10-18): exported `Hack_The_valley/Sam-Ibrahim-Circulation-Maps/` beside this checkout. Open `index.html` there for the offline gallery. It contains 11 full-floor PNGs with the saved numbered stops, 11 zoomed PNGs, six floor overviews and 11 SVGs. `manifest.json` records all 163 point coordinates and counts. Images use the original SVG source frame and the same planner/renderer as the app; every point was checked against the saved adaptive export. All 28 PNGs and 11 SVGs were verified, and representative full-floor/zoomed images were visually inspected. This handoff exports plan images, not captured camera photographs; it changes no app data or configuration.
+Local image handoff (2026-10-18): exported `Hack_The_valley/Sam-Ibrahim-Circulation-Maps/` beside this checkout, then replaced it with the denser 30-stop-ceiling version. Open `index.html` there for the offline gallery. It contains 11 full-floor PNGs with the saved numbered stops, 11 zoomed PNGs, six floor overviews and 11 SVGs. `manifest.json` records all 233 point coordinates and counts. Images use the original SVG source frame and the same planner/renderer as the app; every point was checked against the saved adaptive export. All 28 PNGs and 11 SVGs were verified, and representative images were visually inspected. The previous 20-stop-ceiling export was preserved in `Hack_The_valley/output/backups/`. These exports are plan images rather than captured camera photographs.
+
+The user requested clearing the uploaded Level 1 Point 13 views before rebuilding. A read-only check found exactly four front/right/back/left attachments there and none on Point 3. After a database backup, the four attachments were removed using [remove_node_photo](../apps/api/maps/services/references.py); all other references were preserved. The original physical location is now **Point 19** after renumbering and has no attached photos. As in the existing removal API, append-only Asset rows and R2 bytes remain retained; this clears active map attachments rather than purging storage. No camera photo was downloaded or re-uploaded.
+
+Denser-plan verification: 47 focused frontend tests, 17 planner/project tests and 14 node-media/import tests passed, including expansion to 30 with existing photos and node identity preserved. The production build, lint and source checks passed. Local image files match the same 233 website stop locations. The live planner was restarted with the same provider settings; no model calls or computer-use tools were used.
+
+Thirty-stop ceiling and increased density: [4fbcadc](https://github.com/mhamza1906/SnapWay/commit/4fbcadc).
