@@ -4,6 +4,7 @@ import {
   DestroyRef,
   ElementRef,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -12,6 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { GraphApiService } from '../../core/graph-api.service';
 import {
   GoogleMapsService,
   MapHandle,
@@ -46,6 +48,7 @@ export class PublicMapPage implements AfterViewInit {
   readonly auth = inject(AuthService);
   readonly sdk = inject(GoogleMapsService);
   private readonly http = inject(HttpClient);
+  private readonly graphApi = inject(GraphApiService);
   private readonly destroyRef = inject(DestroyRef);
   readonly canvas = viewChild.required<ElementRef<HTMLElement>>('canvas');
   readonly buildings = signal<PublicBuilding[]>([]);
@@ -54,6 +57,11 @@ export class PublicMapPage implements AfterViewInit {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly buildingsError = signal('');
+  readonly savedMaps = signal<{ target_id: string; title: string; floor: string }[]>([]);
+  readonly selectedWalk = signal('');
+  readonly walksLoading = signal(false);
+  readonly walksError = signal('');
+  private readonly walkReload = signal(0);
   readonly locationMessage = signal('Use your location to find nearby buildings.');
   readonly locating = signal(false);
   readonly location = signal<{ lat: number; lng: number; accuracy: number } | null>(null);
@@ -69,6 +77,35 @@ export class PublicMapPage implements AfterViewInit {
   private attempt = 0;
 
   constructor() {
+    effect((onCleanup) => {
+      const session = this.auth.session();
+      this.walkReload();
+      this.savedMaps.set([]);
+      this.selectedWalk.set('');
+      this.walksError.set('');
+      this.walksLoading.set(false);
+      if (!this.contributorEnabled || !session?.authenticated) return;
+      let active = true;
+      onCleanup(() => (active = false));
+      this.walksLoading.set(true);
+      // Draft access is independent of the optional outdoor Google Maps SDK.
+      void this.graphApi
+        .listDrafts()
+        .then(({ drafts }) => {
+          if (!active) return;
+          this.savedMaps.set(drafts);
+          this.selectedWalk.set(
+            (drafts.find((draft) => draft.title.startsWith('Sam Ibrahim')) ?? drafts[0])
+              ?.target_id ?? '',
+          );
+        })
+        .catch(() => {
+          if (active) this.walksError.set('Your saved maps could not be loaded. Please retry.');
+        })
+        .finally(() => {
+          if (active) this.walksLoading.set(false);
+        });
+    });
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.clearMarkers();
@@ -79,6 +116,10 @@ export class PublicMapPage implements AfterViewInit {
 
   ngAfterViewInit() {
     void this.initialize();
+  }
+
+  retryWalks() {
+    this.walkReload.update((value) => value + 1);
   }
 
   retryMap() {

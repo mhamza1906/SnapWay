@@ -25,6 +25,42 @@
       <p class="eyebrow">FROM THE STREET TO YOUR DESTINATION</p>
       <h1 id="map-heading">Find your way inside.</h1>
       <p class="muted">Explore buildings with available indoor maps.</p>
+      @if (contributorEnabled && auth.signedIn()) {
+        <section class="saved-maps" aria-labelledby="saved-maps-heading">
+          <h2 id="saved-maps-heading">Your saved indoor maps</h2>
+          <p>Open a saved map to collect photos. These maps work without the outdoor Google map.</p>
+          @if (walksLoading()) {
+            <p role="status">Loading your saved maps…</p>
+          } @else if (walksError()) {
+            <p role="alert">{{ walksError() }}</p>
+            <button class="btn secondary" (click)="retryWalks()">Retry saved maps</button>
+          } @else if (savedMaps().length) {
+            <label class="field">
+              <span>Floor and circulation · {{ savedMaps().length }} saved maps</span>
+              <select
+                [value]="selectedWalk()"
+                (change)="selectedWalk.set($any($event.target).value)"
+              >
+                @for (walk of savedMaps(); track walk.target_id) {
+                  <option [value]="walk.target_id">{{ walk.title }}</option>
+                }
+              </select>
+            </label>
+            <a
+              class="btn primary"
+              routerLink="/graph-editor"
+              [queryParams]="{ mode: 'photos', target: selectedWalk() }"
+            >
+              Open photo walk <app-icon name="arrow-right" />
+            </a>
+          } @else {
+            <p>No saved maps for this account yet.</p>
+            <a class="btn secondary" routerLink="/graph-editor" [queryParams]="{ mode: 'photos' }"
+              >Open photo collection</a
+            >
+          }
+        </section>
+      }
       <label class="field"
         ><span>Find a building</span>
         <input

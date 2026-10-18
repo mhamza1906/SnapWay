@@ -10,6 +10,7 @@ import { AuthService } from '../../core/auth.service';
 describe('Public building discovery', () => {
   const originalGeolocation = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
   afterEach(() => {
+    vi.restoreAllMocks();
     if (originalGeolocation) Object.defineProperty(navigator, 'geolocation', originalGeolocation);
     else Reflect.deleteProperty(navigator, 'geolocation');
   });
@@ -77,6 +78,7 @@ describe('Public building discovery', () => {
       ],
     };
     http.expectOne('/api/maps/public/buildings/').flush({ buildings: [building] });
+    http.expectOne('/api/maps/drafts/ensure/').flush({ drafts: [] });
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
     fixture.detectChanges();
     expect(markers[0].title).toBe('Real building');
@@ -116,6 +118,7 @@ describe('Public building discovery', () => {
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No published buildings yet');
+    expect(fixture.nativeElement.querySelector('.saved-maps')).toBeNull();
     Object.defineProperty(navigator, 'geolocation', {
       configurable: true,
       value: {
@@ -126,6 +129,70 @@ describe('Public building discovery', () => {
     fixture.componentInstance.locate();
     expect(fixture.componentInstance.locationMessage()).toContain('permission was denied');
     expect(fixture.componentInstance.location()).toBeNull();
+    http.verify();
+  });
+
+  it('opens the selected saved Sam Ibrahim walk when Google Maps fails, including after late sign-in', async () => {
+    vi.spyOn(sdk, 'load').mockRejectedValueOnce(new Error('Google Maps is not configured yet.'));
+    const fixture = TestBed.createComponent(PublicMapPage);
+    fixture.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/maps/public/buildings/').flush({ buildings: [] });
+    await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
+    const auth = TestBed.inject(AuthService);
+    auth.session.set({ authenticated: true, username: 'arjun' });
+    fixture.detectChanges();
+    http.expectOne('/api/maps/drafts/ensure/').flush({
+      drafts: [
+        { target_id: 'level-2', title: 'Sam Ibrahim · Level 2 circulation 2', floor: 'Level 2' },
+        { target_id: 'level-5', title: 'Sam Ibrahim · Level 5 circulation 1', floor: 'Level 5' },
+      ],
+    });
+    await vi.waitFor(() => expect(fixture.componentInstance.walksLoading()).toBe(false));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Google Maps is not configured yet.');
+    expect(fixture.nativeElement.textContent).toContain('2 saved maps');
+    expect(fixture.nativeElement.textContent).toContain('Sam Ibrahim · Level 5');
+    const picker = fixture.nativeElement.querySelector('.saved-maps select') as HTMLSelectElement;
+    picker.value = 'level-5';
+    picker.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('.saved-maps a') as HTMLAnchorElement;
+    const url = new URL(link.href);
+    expect(url.pathname).toBe('/graph-editor');
+    expect(url.searchParams.get('mode')).toBe('photos');
+    expect(url.searchParams.get('target')).toBe('level-5');
+    expect(fixture.componentInstance.buildings()).toEqual([]);
+    auth.session.set({ authenticated: false });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.saved-maps')).toBeNull();
+    expect(fixture.componentInstance.savedMaps()).toEqual([]);
+    http.verify();
+  });
+
+  it('retries a failed saved-map request and discards its response after sign-out', async () => {
+    const auth = TestBed.inject(AuthService);
+    auth.session.set({ authenticated: true, username: 'arjun' });
+    const fixture = TestBed.createComponent(PublicMapPage);
+    fixture.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/maps/public/buildings/').flush({ buildings: [] });
+    http
+      .expectOne('/api/maps/drafts/ensure/')
+      .flush({}, { status: 503, statusText: 'Unavailable' });
+    await vi.waitFor(() => expect(fixture.componentInstance.walksLoading()).toBe(false));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Your saved maps could not be loaded.');
+    fixture.nativeElement.querySelector('.saved-maps button').click();
+    fixture.detectChanges();
+    const retry = http.expectOne('/api/maps/drafts/ensure/');
+    auth.session.set({ authenticated: false });
+    fixture.detectChanges();
+    retry.flush({ drafts: [{ target_id: 'private', title: 'Private walk', floor: '1' }] });
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.savedMaps()).toEqual([]);
+    expect(fixture.nativeElement.querySelector('.saved-maps')).toBeNull();
     http.verify();
   });
 });

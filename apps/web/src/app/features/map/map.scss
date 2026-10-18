@@ -51,6 +51,29 @@ h1 {
   letter-spacing: 1.6px;
   color: var(--green);
 }
+.saved-maps {
+  margin: 22px 0;
+  padding: 18px;
+  border: 1px solid var(--green);
+  border-radius: 14px;
+  background: white;
+}
+.saved-maps h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.saved-maps p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.saved-maps select,
+.saved-maps .btn {
+  width: 100%;
+  min-height: 48px;
+}
+.saved-maps .btn {
+  margin-top: 12px;
+}
 .location-button {
   width: 100%;
   margin-top: 13px;
@@ -231,7 +254,7 @@ h1 {
   .map-layout {
     height: auto;
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
   .map-stage {
     height: 48dvh;
