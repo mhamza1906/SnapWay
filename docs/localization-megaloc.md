@@ -9,6 +9,10 @@ Visitor half: [localization-visitor-match.md](localization-visitor-match.md).
 Engine benches: [visual-place-matching.md](visual-place-matching.md), [place-match-production.md](place-match-production.md).  
 Related: [mobile-ios.md](mobile-ios.md), [map-node-media.md](map-node-media.md).
 
+Offline case study: [Sam Ibrahim Level 1 video test](sam-ibrahim-video-localization.md)
+— local photo descriptors, independent checks and diagnostic tracking video;
+exact-point tracking remains unverified and this does not activate a phone localizer.
+
 ## Supersedes (read this instead of initial plans)
 
 Hash-locked files under [`docs/initial/`](initial/README.md) still describe an older Gemini /
