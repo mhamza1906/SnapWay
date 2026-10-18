@@ -14,14 +14,10 @@ bootstrapApplication(VisitorApp, {
       {
         path: '',
         data: { contributor: false },
-        loadComponent: () => import('./app/features/map/map').then((m) => m.PublicMapPage),
+        loadComponent: () => import('./app/features/visitor/visitor').then((m) => m.VisitorJourney),
       },
       { path: 'map', redirectTo: '', pathMatch: 'full' },
-      {
-        path: 'navigate',
-        loadComponent: () =>
-          import('./app/features/navigation/navigation').then((m) => m.NavigationPage),
-      },
+      { path: 'navigate', redirectTo: '', pathMatch: 'full' },
       { path: '**', redirectTo: '' },
     ]),
   ],
