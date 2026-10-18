@@ -36,8 +36,8 @@ Photo-point planning was also checked in the live app. See [the photo-point veri
 | --- | ---: |
 | Floors | 6: B, 1, 2, 3, 4, 5 |
 | Traced destination rooms | 50 |
-| Rooms currently connected | 46 |
-| Routing nodes / edges | 228 / 247 |
+| Rooms currently connected | 50 |
+| Routing nodes / edges | 250 / 269 |
 | Named cores | 4 stairs (A–D), 2 elevators (B/C) |
 | Floor-side landings | 36 |
 | Adjacent-floor inferred links | 30 |
@@ -49,7 +49,11 @@ Every ordered pair of floors has an exercised stairs route and an elevator route
 
 The four unresolved horizontal approaches are Stair A on B, 1 and 2, and Stair D on B. Their floor-side positions and inferred vertical core continuity are recorded, but there is no floor-corridor attachment at those landings. Other attached cores provide routes across all six floors. Floor service, re-entry, elevator operation and landing elevations remain assumptions.
 
-Four Level 2 rooms remain unavailable: Corner Shop (`L2-R01`), Spot (`L2-R02`), Cloud (`L2-R06`) and Keystone (`L2-R07`). Their thresholds remain candidates. Most small upper-floor rooms, several tiered rooms and lower service areas are still untraced. The 366 preserved PDF regions are an inventory, not 366 navigable rooms. Unknown scale, empty photo collections and no localization result are retained.
+The four formerly unavailable Level 2 rooms now have assumed doorway connections: Corner Shop (`L2-R01`), Spot (`L2-R02`), Cloud (`L2-R06`) and Keystone (`L2-R07`). After the user identified visible source openings, [project-only corrections](../experiments/sam-ibrahim-hardcoded/data/project-level2-openings.mjs) retraced Spot's southeast threshold, Cloud's sloping east wall and both east openings, and Keystone's north vestibule and curved south rim. Keystone's earlier misplaced southeast threshold was moved to the visible swing near x307–317 in the original SVG frame; a separate north entrance was added. Cloud and Keystone entrances remain separate terminals, with no graph edge through seating. [Project assembly](../experiments/sam-ibrahim-hardcoded/project.mjs) sends these geometry/opening changes through the existing `applyAccessDecisions` adapter; shared automation and the strict offline experiment are unchanged.
+
+The [installed project](../apps/pipeline/public/buildings/sam-ibrahim.json) was backed up before replacement. [Project regressions](../experiments/sam-ibrahim-hardcoded/project.test.mjs) check all four rooms with same-floor and cross-floor stairs/elevator routes, separate entrance nodes, source evidence and agent-only review. Verification: 35 experiment tests and 232 pipeline tests pass (18 optional-fixture skips); live API and Chrome show Level 2 **11/11 rooms ready** and all four selectable. The user is testing the route previews. Threshold widths and physical access remain unverified.
+
+Most small upper-floor rooms, several tiered rooms and lower service areas are still untraced. The 366 preserved PDF regions are an inventory, not 366 navigable rooms. Unknown scale, empty photo collections and no localization result are retained.
 
 ## Manual construction and pipeline reuse
 

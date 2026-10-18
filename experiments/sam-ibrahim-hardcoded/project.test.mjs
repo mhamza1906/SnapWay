@@ -40,8 +40,37 @@ test('all six floors route in both directions with stairs and stairs-free elevat
 });
 test('all available traced rooms reach the basement; unknown access and projection stay unavailable',()=>{
   for(const r of roomAvailability(project.building).filter(r=>r.ready&&r.id!=='LB-R02'))assert(routeSamIbrahimProject(project,r.id,'LB-R02'),r.id);
-  for(const id of ['L2-R01','L2-R02','L2-R06','L2-R07','L3-R07'])assert.equal(routeSamIbrahimProject(project,id,'L5-R22'),null,id);
+  assert.equal(routeSamIbrahimProject(project,'L3-R07','L5-R22'),null);
   assert.equal(routeSamIbrahimProject(project,'LB-R02','L5-R22',{verifiedAccessible:true}),null);
+});
+test('source-corrected Level 2 openings enable four rooms through distinct terminal doorways',()=>{
+  const b=project.building,f=b.floors.find(f=>f.id==='L2');
+  assert.equal(roomAvailability(b).filter(r=>r.ready).length,50);
+  for(const id of ['L2-R01','L2-R02','L2-R06','L2-R07']) {
+    for(const options of [{elevatorPenalty:1000},{excludeStairs:true}]) {
+      assert(routeSamIbrahimProject(project,id,'L5-R22',options),id);
+      assert(routeSamIbrahimProject(project,'LB-R02',id,options),id);
+    }
+    assert(routeSamIbrahimProject(project,id,'L2-R11'),id);
+  }
+  for(const id of ['L2:P01','L2:P02','L2:P06','L2:P07','L2:P08','L2:P09']) {
+    const door=f.geometry.doors.find(d=>d.id===id);
+    assert(door,id);
+    const record=f.access.records.find(r=>r.doorId===id);
+    assert.equal(record.review.status,'agent-inspected');
+    assert.equal(record.evidence.method,'assumed');
+    assert(record.evidence.description.includes('SVG'));
+  }
+  const spot=f.geometry.doors.find(d=>d.id==='L2:P02');
+  assert(Math.abs(spot.a.y-79)<0.01&&Math.abs(spot.b.y-79)<0.01);
+  const keystone=f.geometry.doors.find(d=>d.id==='L2:P09');
+  assert(keystone.a.x>=307-0.01&&keystone.b.x<=317+0.01);
+  // No automatic edge through tiered seating between these two entrances.
+  for(const pair of [['L2:P06','L2:P07'],['L2:P08','L2:P09']]) {
+    const ids=b.nodes.filter(n=>pair.includes(n.doorId)).map(n=>n.id);
+    assert.equal(ids.length,2);
+    assert(!b.edges.some(e=>ids.includes(e.from)&&ids.includes(e.to)));
+  }
 });
 test('project export passes unchanged schema/geometry checks and strict experiment stays separate',()=>{
   const b=parseBuilding(JSON.parse(JSON.stringify(project.building)));

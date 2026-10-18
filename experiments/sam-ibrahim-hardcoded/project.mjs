@@ -3,6 +3,7 @@
 import { floors, inventory, reviewQuestions } from './model.mjs';
 import { createRequire } from 'node:module';
 import { projectConnectorFloors } from './data/project-connectors.mjs';
+import { refineLevel2Openings } from './data/project-level2-openings.mjs';
 import { buildPipelineArtifact } from './pipeline-adapter.mjs';
 import { createReviewGraph } from './review-graph.mjs';
 import { verifySvgEvidence } from './svg-tools.mjs';
@@ -48,7 +49,7 @@ function simpleCirculation(polygons,rooms,doorSegments=[]) {
 }
 
 function projectFloor(original,extra) {
-  const f=structuredClone(original),oldCirculation=f.regions.filter(circulation),rooms=f.regions.filter(r=>!circulation(r));
+  const f=refineLevel2Openings(structuredClone(original)),oldCirculation=f.regions.filter(circulation),rooms=f.regions.filter(r=>!circulation(r));
   const units=region=>region.polygon.map(q=>[q[0]*f.width,q[1]*f.height]);
   const overrides=new Map((extra.regionOverrides||[]).map(r=>[r.id,r]));
   const polygons=[...oldCirculation.map(r=>overrides.get(r.id)?.polygon||units(r)),...(extra.corridors||[]).map(r=>r.polygon)];
