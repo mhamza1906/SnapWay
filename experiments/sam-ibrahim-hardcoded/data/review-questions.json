@@ -1,0 +1,581 @@
+{
+  "schemaVersion": 1,
+  "sourceDocumentId": "sam-ibrahim-review-pdf",
+  "questions": [
+    {
+      "id": "Q01",
+      "priority": 1,
+      "question": "At the Level 3 Cloud boundary, is there a door or only a continuous wall/guard edge?",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L3-R07"
+      ]
+    },
+    {
+      "id": "Q02",
+      "priority": 2,
+      "question": "Trace both landings of the open stair immediately east of the Cloud on Level 3. Does it reach Level 2 circulation?",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L3-OS01"
+      ]
+    },
+    {
+      "id": "Q03",
+      "priority": 3,
+      "question": "For each Conveyor entrance, record the floor label and whether it reaches a room landing or through route.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L2-R08",
+        "L3-R08"
+      ]
+    },
+    {
+      "id": "Q04",
+      "priority": 4,
+      "question": "Verify the endpoints of central open stairs and the Level 4 diagonal band independently.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L2-OS01",
+        "L2-OS02",
+        "L3-OS02",
+        "L3-OS03",
+        "L4-ST-DIAG"
+      ]
+    },
+    {
+      "id": "Q05",
+      "priority": 5,
+      "question": "Confirm the exact elevator door/lobby position beside cores B and C on each floor.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": []
+    },
+    {
+      "id": "Q06",
+      "priority": 6,
+      "question": "Confirm stair A-D served floors, entrance doors and re-entry restrictions.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": []
+    },
+    {
+      "id": "Q07",
+      "priority": 7,
+      "question": "Identify the extra yellow stair above C on B and Level 1.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L1-SEXTRA",
+        "LB-SEXTRA"
+      ]
+    },
+    {
+      "id": "Q08",
+      "priority": 8,
+      "question": "Match upper-floor synthetic enclosure IDs to room signs and check each small doorway.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": []
+    },
+    {
+      "id": "Q09",
+      "priority": 9,
+      "question": "Confirm both Level 4 roof-garden entrances; do not inherit them on Level 5.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": [
+        "L4-RG-W",
+        "L4-RG-E"
+      ]
+    },
+    {
+      "id": "Q10",
+      "priority": 10,
+      "question": "Measure two independent distances per floor and doorway clear widths where needed.",
+      "status": "unresolved",
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 11,
+        "kind": "review-priority"
+      },
+      "affectedRegionIds": []
+    }
+  ],
+  "discrepancies": [
+    {
+      "id": "D01",
+      "title": "Cloud depiction and access",
+      "regionIds": [
+        "L2-R06",
+        "L3-R07",
+        "L3-OS01"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 1,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 2,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 5,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 31,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 34,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 35,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "Level 2 has P06 and P07; the Level 3 Cloud footprint has no resolved portal. Its continuous east boundary and adjacent external stair support a possible lower-room projection, not a Level 3 doorway. A void is not established either.",
+      "requiredHandling": "Keep the Cloud physical identity distinct from its Level 3 depiction. Never copy L2 portals upward or join the adjacent stair directly to the room.",
+      "status": "unresolved"
+    },
+    {
+      "id": "D02",
+      "title": "Conveyor name, suffix, and doorway reconciliation",
+      "regionIds": [
+        "L2-R08",
+        "L3-R08"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 1,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 5,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 6,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 10,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 31,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 35,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 45,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "The report corrects Connector to Conveyor. Its cited naming source uses IA2150 while the classroom inventory uses IA2150A. L2 has two portal candidates and L3 three; five observations do not establish five physical entrances. The cited inventory lists three entrances/exits.",
+      "requiredHandling": "Retain each observed threshold separately with unresolved physical doorway identity and elevation until matched; preserve the suffix discrepancy.",
+      "status": "unresolved"
+    },
+    {
+      "id": "D03",
+      "title": "Arrow Innovation Hall door totals",
+      "regionIds": [
+        "LB-R01"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 8,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 10,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 42,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 45,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "LB-R01 has four printed portal candidates P01-P04, while the cited IA-B1050 classroom entry lists two entrances/exits. Arrow Group Innovation Hall and Arrow Innovation Hall name variants refer to the report's proposed same room identity.",
+      "requiredHandling": "Do not silently discard or accept candidate doors to make counts agree; reconcile against actual entrances.",
+      "status": "unresolved"
+    },
+    {
+      "id": "D04",
+      "title": "Level 2 central stair evidence wording",
+      "regionIds": [
+        "L2-OS01",
+        "L2-OS02"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 6,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 38,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "Page 6 describes both central stair features as user-identified, while page 38 labels only L2-OS01 open stair user confirmed; L2-OS02 remains open stair candidate.",
+      "requiredHandling": "Preserve both source statements; no human review or landing connection is inferred by this extraction.",
+      "status": "unresolved"
+    },
+    {
+      "id": "D05",
+      "title": "Level 5 exclusion count",
+      "regionIds": [
+        "L5-X1",
+        "L5-X2",
+        "L5-X3",
+        "L5-X4",
+        "L5-X5"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 3,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 20,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "The overview mentions four large crossed regions; the table contains five exclusion records including the smaller southwest-central L5-X5.",
+      "requiredHandling": "Preserve all five table records; never inherit Level 4 roof-garden walkability into the Level 5 crossed side regions.",
+      "status": "unresolved"
+    },
+    {
+      "id": "D06",
+      "title": "Ground-floor exit observation count",
+      "regionIds": [
+        "L1-C01",
+        "L1-C03",
+        "L1-C04",
+        "L1-SA",
+        "L1-SB",
+        "L1-SD",
+        "L1-SEXTRA",
+        "L1-R11"
+      ],
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 7,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 39,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 40,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 41,
+          "kind": "report-discussion"
+        }
+      ],
+      "finding": "The twelve X01-X12 observations include arrows and threshold groups; the report does not verify twelve independent physical doors.",
+      "requiredHandling": "Keep exit observations as candidates until thresholds, vestibules, and exterior destinations are established.",
+      "status": "unresolved"
+    }
+  ],
+  "officialDoorCountsAsQuotedByReport": [
+    {
+      "roomId": "IA-B1010",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA-B1050",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA-B1100",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA1120",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA1150",
+      "entrancesExits": 3,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA1160",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2010",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2021",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2040",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2050",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2060",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2100",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2110",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2120",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2150A",
+      "entrancesExits": 3,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2160",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA2170",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA3050",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA3060",
+      "entrancesExits": 1,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    },
+    {
+      "roomId": "IA3120",
+      "entrancesExits": 2,
+      "evidence": {
+        "documentId": "sam-ibrahim-review-pdf",
+        "page": 10,
+        "kind": "quoted-external-inventory"
+      }
+    }
+  ],
+  "officialDoorCountTotal": 34,
+  "officialDoorCountLimitations": "Quoted from PDF, not freshly checked online; a completeness check, not doorway location, elevation, current access, or a building-wide count.",
+  "otherUnresolvedRelationships": [
+    {
+      "regionIds": [
+        "L1-R03",
+        "LB-R04"
+      ],
+      "status": "unresolved",
+      "issue": "Right-hand tiered room may be depicted across different elevations; exact physical identity and entrance relationship not established.",
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 8,
+          "kind": "report-discussion"
+        }
+      ]
+    },
+    {
+      "regionIds": [
+        "L1-U01",
+        "L1-U02",
+        "L1-U03"
+      ],
+      "status": "unresolved",
+      "issue": "White regions are not established walkable Level 1 lobby surface.",
+      "evidence": [
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 7,
+          "kind": "report-discussion"
+        },
+        {
+          "documentId": "sam-ibrahim-review-pdf",
+          "page": 40,
+          "kind": "printed-inventory"
+        }
+      ]
+    }
+  ]
+}

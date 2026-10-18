@@ -1,0 +1,917 @@
+{
+  "schemaVersion": 1,
+  "externalSourceRoot": {
+    "label": "Hack_The_valley",
+    "resolution": "Resolve source relativePath against a caller-supplied source root. The PDF, photographic rasters, and earlier cleaned SVG derivatives remain external; six unchanged original SVGs are frozen locally through frozenGeometrySources."
+  },
+  "frozenGeometrySources": [
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-1-original.svg",
+      "floorId": "L1",
+      "relativePath": "source/Level-1-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "0271da1d143146df4c27c72b711d8a4678a8c88e0003ca0de9b5da4b97aa8403",
+      "byteLength": 725540,
+      "viewBox": [
+        0.0,
+        0.0,
+        843.0,
+        367.0
+      ],
+      "coordinateFrameId": "L1:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    },
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-2-original.svg",
+      "floorId": "L2",
+      "relativePath": "source/Level-2-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "68252148c8980178b054a775e10743d745308502603921e691db19c6316ee91c",
+      "byteLength": 650090,
+      "viewBox": [
+        0.0,
+        0.0,
+        781.0,
+        333.0
+      ],
+      "coordinateFrameId": "L2:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    },
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-3-original.svg",
+      "floorId": "L3",
+      "relativePath": "source/Level-3-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "f5f600f3b58c58fc8cf8c86d6609f22327b5201e33921f58aa94883f53df841d",
+      "byteLength": 420706,
+      "viewBox": [
+        0.0,
+        0.0,
+        735.0,
+        344.0
+      ],
+      "coordinateFrameId": "L3:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    },
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-4-original.svg",
+      "floorId": "L4",
+      "relativePath": "source/Level-4-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "1411ce09b906c28885381681b87a6e2c7599b58115bb225544d31095446d9161",
+      "byteLength": 528850,
+      "viewBox": [
+        0.0,
+        0.0,
+        755.0,
+        344.0
+      ],
+      "coordinateFrameId": "L4:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    },
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-5-original.svg",
+      "floorId": "L5",
+      "relativePath": "source/Level-5-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "f526d2132a13f47fdc7bbfbf2211e2a715a635c0ef6d523e03bc89f13d1d76f7",
+      "byteLength": 437327,
+      "viewBox": [
+        0.0,
+        0.0,
+        702.0,
+        335.0
+      ],
+      "coordinateFrameId": "L5:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    },
+    {
+      "sourceManifestId": "sam-ibrahim-plans/svg/Level-B-original.svg",
+      "floorId": "LB",
+      "relativePath": "source/Level-B-original.svg",
+      "relativeTo": "experiment-root",
+      "sha256": "c1bee6ce30b9d5fde74e3badce3d148b1b910dd0485da4fd4e8511acfcf46a44",
+      "byteLength": 614939,
+      "viewBox": [
+        0.0,
+        0.0,
+        839.0,
+        356.0
+      ],
+      "coordinateFrameId": "LB:original-svg-viewbox",
+      "disposition": "Byte-for-byte frozen copy of the source vectorized original, used for offline geometry and shape-reference audits."
+    }
+  ],
+  "sources": [
+    {
+      "id": "sam-ibrahim-review-pdf",
+      "relativePath": "Sam_Ibrahim_Indoor_Navigation_Review.pdf",
+      "sha256": "7891a1bc9bc7e43d4726fbd4bc76b6126040f85d0d1e8d89e6ba6c980a0187fa",
+      "byteLength": 12419871,
+      "pageCount": 45,
+      "role": "primary-review-evidence",
+      "attachmentNames": []
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-1-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-1-original.png",
+      "sha256": "34b172a4aa4345e846c192b035edc1b6eda2dfbec2fdbaf1e6e202ded0e60e82",
+      "byteLength": 493492,
+      "pixelWidth": 843,
+      "pixelHeight": 367,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-2-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-2-original.png",
+      "sha256": "00fea30d5180f9c10a054d6a85988fa11f66a40f47f6dfdb0445e720f2b12182",
+      "byteLength": 415168,
+      "pixelWidth": 781,
+      "pixelHeight": 333,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-3-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-3-original.png",
+      "sha256": "75b2637c6c960cd7f87214d6c9b280a50bce76e6018362a29b8d706dce7320cb",
+      "byteLength": 354458,
+      "pixelWidth": 735,
+      "pixelHeight": 344,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-4-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-4-original.png",
+      "sha256": "1a4e8137bd29af894bdf30fc0c6bfacbde95ba5d1e9d60ca98e2575c3adaad7d",
+      "byteLength": 425517,
+      "pixelWidth": 755,
+      "pixelHeight": 344,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-5-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-5-original.png",
+      "sha256": "8fc5539af1b40d095977e3ad8af2f31a0265ee1e29df021e01cb6898b8941bde",
+      "byteLength": 373639,
+      "pixelWidth": 702,
+      "pixelHeight": 335,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/Level-B-original.png",
+      "relativePath": "sam-ibrahim-plans/original/Level-B-original.png",
+      "sha256": "bdf7795a86706d2c40d683fab2627fd3afd4e101f8e8ccaf86fff28de23f58c3",
+      "byteLength": 485325,
+      "pixelWidth": 839,
+      "pixelHeight": 356,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/original/board-photo.jpg",
+      "relativePath": "sam-ibrahim-plans/original/board-photo.jpg",
+      "sha256": "4cc43bc06fe8decbdee5cb33eace0100d6f2816092793f53409c9d34f6ffd7c6",
+      "byteLength": 421552,
+      "pixelWidth": 1960,
+      "pixelHeight": 1889,
+      "role": "original-source-photo"
+    },
+    {
+      "id": "input/sam-ibrahim/board-photo.jpg",
+      "relativePath": "input/sam-ibrahim/board-photo.jpg",
+      "sha256": "4cc43bc06fe8decbdee5cb33eace0100d6f2816092793f53409c9d34f6ffd7c6",
+      "byteLength": 421552,
+      "pixelWidth": 1960,
+      "pixelHeight": 1889,
+      "role": "original-source-photo"
+    },
+    {
+      "id": "input/sam-ibrahim/level-1.png",
+      "relativePath": "input/sam-ibrahim/level-1.png",
+      "sha256": "88fc26e8e908e49cb478aeb54f2ccf4ffd0e25eeec0662d86bf93850e30fd256",
+      "byteLength": 1734932,
+      "pixelWidth": 1700,
+      "pixelHeight": 760,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "input/sam-ibrahim/level-2.png",
+      "relativePath": "input/sam-ibrahim/level-2.png",
+      "sha256": "9d63d09e386ee7aefb2d35d0168e9aa330a87be43660c9608570681b8bfcc864",
+      "byteLength": 1430186,
+      "pixelWidth": 1550,
+      "pixelHeight": 690,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "input/sam-ibrahim/level-3.png",
+      "relativePath": "input/sam-ibrahim/level-3.png",
+      "sha256": "a22b5db8c1f3ff7d6ea7042882f0df6add11dc9dbc77001a1a8a0ea85c3eea0f",
+      "byteLength": 1137363,
+      "pixelWidth": 1500,
+      "pixelHeight": 640,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "input/sam-ibrahim/level-4.png",
+      "relativePath": "input/sam-ibrahim/level-4.png",
+      "sha256": "dc39d6c171a894f03b0af6830ab7b5cda3ae3ffd4de9c28922f2d82be8af4bf8",
+      "byteLength": 1410378,
+      "pixelWidth": 1500,
+      "pixelHeight": 640,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "input/sam-ibrahim/level-5.png",
+      "relativePath": "input/sam-ibrahim/level-5.png",
+      "sha256": "2fc6808c4f9578dfe5119ad1b198901059ade1f7f1235610013cd3dc6e88ed3b",
+      "byteLength": 1288241,
+      "pixelWidth": 1440,
+      "pixelHeight": 640,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "input/sam-ibrahim/level-b.png",
+      "relativePath": "input/sam-ibrahim/level-b.png",
+      "sha256": "ac009640c36ec11d36141a5771d3261791d5c1c4e03aaa3c4f18c585b9934184",
+      "byteLength": 1686361,
+      "pixelWidth": 1650,
+      "pixelHeight": 740,
+      "role": "original-photo-crop"
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-1-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-1-original.svg",
+      "sha256": "0271da1d143146df4c27c72b711d8a4678a8c88e0003ca0de9b5da4b97aa8403",
+      "byteLength": 725540,
+      "floorId": "L1",
+      "viewBox": [
+        0.0,
+        0.0,
+        843.0,
+        367.0
+      ],
+      "coordinateFrameId": "L1:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-1-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-2-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-2-original.svg",
+      "sha256": "68252148c8980178b054a775e10743d745308502603921e691db19c6316ee91c",
+      "byteLength": 650090,
+      "floorId": "L2",
+      "viewBox": [
+        0.0,
+        0.0,
+        781.0,
+        333.0
+      ],
+      "coordinateFrameId": "L2:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-2-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-3-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-3-original.svg",
+      "sha256": "f5f600f3b58c58fc8cf8c86d6609f22327b5201e33921f58aa94883f53df841d",
+      "byteLength": 420706,
+      "floorId": "L3",
+      "viewBox": [
+        0.0,
+        0.0,
+        735.0,
+        344.0
+      ],
+      "coordinateFrameId": "L3:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-3-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-4-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-4-original.svg",
+      "sha256": "1411ce09b906c28885381681b87a6e2c7599b58115bb225544d31095446d9161",
+      "byteLength": 528850,
+      "floorId": "L4",
+      "viewBox": [
+        0.0,
+        0.0,
+        755.0,
+        344.0
+      ],
+      "coordinateFrameId": "L4:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-4-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-5-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-5-original.svg",
+      "sha256": "f526d2132a13f47fdc7bbfbf2211e2a715a635c0ef6d523e03bc89f13d1d76f7",
+      "byteLength": 437327,
+      "floorId": "L5",
+      "viewBox": [
+        0.0,
+        0.0,
+        702.0,
+        335.0
+      ],
+      "coordinateFrameId": "L5:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-5-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/svg/Level-B-original.svg",
+      "relativePath": "sam-ibrahim-plans/svg/Level-B-original.svg",
+      "sha256": "c1bee6ce30b9d5fde74e3badce3d148b1b910dd0485da4fd4e8511acfcf46a44",
+      "byteLength": 614939,
+      "floorId": "LB",
+      "viewBox": [
+        0.0,
+        0.0,
+        839.0,
+        356.0
+      ],
+      "coordinateFrameId": "LB:original-svg-viewbox",
+      "role": "source-vectorized-original",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-B-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-1-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-1-clean.svg",
+      "sha256": "22ba7ff7993289c8e1c8bbe5f732a32f4c452f5fe5203f8959a8bca508c6ce86",
+      "byteLength": 36965,
+      "floorId": "L1",
+      "viewBox": [
+        0.0,
+        0.0,
+        843.0,
+        367.0
+      ],
+      "coordinateFrameId": "L1:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-1-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-2-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-2-clean.svg",
+      "sha256": "60ba4c45318782692810ff63941d9d06ccc641c341dbe7f6716fcf19bfbaf725",
+      "byteLength": 37238,
+      "floorId": "L2",
+      "viewBox": [
+        0.0,
+        0.0,
+        781.0,
+        333.0
+      ],
+      "coordinateFrameId": "L2:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-2-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-3-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-3-clean.svg",
+      "sha256": "83c22c2412a1db7576588aab7b1d45f8d3b6a6bdcfa7811e9715d38e1f0c9b30",
+      "byteLength": 37030,
+      "floorId": "L3",
+      "viewBox": [
+        0.0,
+        0.0,
+        735.0,
+        344.0
+      ],
+      "coordinateFrameId": "L3:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-3-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-4-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-4-clean.svg",
+      "sha256": "8d4b2ba865b00c38b5ee9c867921e14cff972e2a15199bb59352f61613ed7887",
+      "byteLength": 64402,
+      "floorId": "L4",
+      "viewBox": [
+        0.0,
+        0.0,
+        755.0,
+        344.0
+      ],
+      "coordinateFrameId": "L4:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-4-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-5-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-5-clean.svg",
+      "sha256": "1d6c5f8479e298c75809ecdef0b10ca6a2d9873a0e31fe78e2cf935ef2484171",
+      "byteLength": 68378,
+      "floorId": "L5",
+      "viewBox": [
+        0.0,
+        0.0,
+        702.0,
+        335.0
+      ],
+      "coordinateFrameId": "L5:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-5-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    },
+    {
+      "id": "sam-ibrahim-plans/clean-svg/Level-B-clean.svg",
+      "relativePath": "sam-ibrahim-plans/clean-svg/Level-B-clean.svg",
+      "sha256": "8c1c64cc2aebb70cb40c2eed96f5a6a7c99e942c0392a7f350f8222b833ab881",
+      "byteLength": 35374,
+      "floorId": "LB",
+      "viewBox": [
+        0.0,
+        0.0,
+        839.0,
+        356.0
+      ],
+      "coordinateFrameId": "LB:clean-svg-viewbox",
+      "role": "earlier-cleaned-vector-derivative",
+      "originalPhotoCropId": "sam-ibrahim-plans/original/Level-B-original.png",
+      "evidenceLimitation": "SVG is a vectorized derivative; geometry identity and access must be checked against original photograph and PDF review."
+    }
+  ],
+  "coordinateFrames": [
+    {
+      "id": "L1:original-svg-viewbox",
+      "floorId": "L1",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        843.0,
+        367.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-1-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L2:original-svg-viewbox",
+      "floorId": "L2",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        781.0,
+        333.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-2-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L3:original-svg-viewbox",
+      "floorId": "L3",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        735.0,
+        344.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-3-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L4:original-svg-viewbox",
+      "floorId": "L4",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        755.0,
+        344.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-4-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L5:original-svg-viewbox",
+      "floorId": "L5",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        702.0,
+        335.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-5-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "LB:original-svg-viewbox",
+      "floorId": "LB",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        839.0,
+        356.0
+      ],
+      "sourceId": "sam-ibrahim-plans/svg/Level-B-original.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L1:clean-svg-viewbox",
+      "floorId": "L1",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        843.0,
+        367.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-1-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L2:clean-svg-viewbox",
+      "floorId": "L2",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        781.0,
+        333.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-2-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L3:clean-svg-viewbox",
+      "floorId": "L3",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        735.0,
+        344.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-3-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L4:clean-svg-viewbox",
+      "floorId": "L4",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        755.0,
+        344.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-4-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L5:clean-svg-viewbox",
+      "floorId": "L5",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        702.0,
+        335.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-5-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "LB:clean-svg-viewbox",
+      "floorId": "LB",
+      "units": "svg-user-unit",
+      "origin": "viewBox-origin",
+      "xDirection": "right",
+      "yDirection": "down",
+      "viewBox": [
+        0.0,
+        0.0,
+        839.0,
+        356.0
+      ],
+      "sourceId": "sam-ibrahim-plans/clean-svg/Level-B-clean.svg",
+      "metricScale": null,
+      "reportCropTransform": null,
+      "transformStatus": "unregistered-to-report-crop"
+    },
+    {
+      "id": "L5:report-crop-normalized",
+      "floorId": "L5",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "L5:report-overlay-raster",
+      "reportOverlayPixelWidth": 1472,
+      "reportOverlayPixelHeight": 666,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    },
+    {
+      "id": "L4:report-crop-normalized",
+      "floorId": "L4",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "L4:report-overlay-raster",
+      "reportOverlayPixelWidth": 1574,
+      "reportOverlayPixelHeight": 704,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    },
+    {
+      "id": "L3:report-crop-normalized",
+      "floorId": "L3",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "L3:report-overlay-raster",
+      "reportOverlayPixelWidth": 1536,
+      "reportOverlayPixelHeight": 674,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    },
+    {
+      "id": "L2:report-crop-normalized",
+      "floorId": "L2",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "L2:report-overlay-raster",
+      "reportOverlayPixelWidth": 1626,
+      "reportOverlayPixelHeight": 698,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    },
+    {
+      "id": "L1:report-crop-normalized",
+      "floorId": "L1",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "L1:report-overlay-raster",
+      "reportOverlayPixelWidth": 1792,
+      "reportOverlayPixelHeight": 780,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    },
+    {
+      "id": "LB:report-crop-normalized",
+      "floorId": "LB",
+      "units": "fraction",
+      "origin": "top-left",
+      "xDirection": "right",
+      "yDirection": "down",
+      "bounds": {
+        "xMin": 0,
+        "yMin": 0,
+        "xMax": 1,
+        "yMax": 1
+      },
+      "sourceDefinition": "Inventory heading: Coordinates are crop-relative fractions.",
+      "reportOverlayRasterId": "LB:report-overlay-raster",
+      "reportOverlayPixelWidth": 1690,
+      "reportOverlayPixelHeight": 742,
+      "metricScale": null,
+      "sourceCropTransform": null,
+      "transformStatus": "unregistered",
+      "warning": "The companion JSON containing original-pixel references was not located. Report raster dimensions are recorded for inspection; direct scaling to either local crop set or board photo is not validated."
+    }
+  ],
+  "embeddedRasters": [
+    {
+      "id": "L5:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 3,
+      "pdfImageName": "FormXob.92d9951f9eb2d19a38abb220504a2789.png",
+      "pixelWidth": 1472,
+      "pixelHeight": 666,
+      "extractedPngSha256": "cdda4620e2d2dd26f5ccac0328453ad5ecfa0b0ba3b810a05fa1201cedca4a6b",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    },
+    {
+      "id": "L4:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 4,
+      "pdfImageName": "FormXob.9917f2378684bdb9e5ab5848f070f544.png",
+      "pixelWidth": 1574,
+      "pixelHeight": 704,
+      "extractedPngSha256": "130fc08e60df77cf952e4009bc2c4ed868ca069b77e7ef1823676e50ad1e6c18",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    },
+    {
+      "id": "L3:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 5,
+      "pdfImageName": "FormXob.d0f266d3d359974c8df62973b9ab6e5b.png",
+      "pixelWidth": 1536,
+      "pixelHeight": 674,
+      "extractedPngSha256": "3f8d9029ed5d5cf3992cd12af332353039bdbc1dd5cdf789cbaadf123c2ba9ce",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    },
+    {
+      "id": "L2:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 6,
+      "pdfImageName": "FormXob.8d9980e4dc72993549a735b94ab04569.png",
+      "pixelWidth": 1626,
+      "pixelHeight": 698,
+      "extractedPngSha256": "ced992db57466bfd4a3751172ebebe054b30816de3592144880fc8643a678d6a",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    },
+    {
+      "id": "L1:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 7,
+      "pdfImageName": "FormXob.190e50f45bc732e7cf65f4729ec21518.png",
+      "pixelWidth": 1792,
+      "pixelHeight": 780,
+      "extractedPngSha256": "08ff172241d5a386ea008cf224261c7127b2a6c4005b10b3d2dc1fd1a9a50e77",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    },
+    {
+      "id": "LB:report-overlay-raster",
+      "documentId": "sam-ibrahim-review-pdf",
+      "page": 8,
+      "pdfImageName": "FormXob.ba65b42b2a3cf283e285b3bf3ca2ef2a.png",
+      "pixelWidth": 1690,
+      "pixelHeight": 742,
+      "extractedPngSha256": "009c1cebe41c84e1a8a3a3d04a9411563c0ff2c6d420a9bf08c27e4807c59d9b",
+      "annotationObjectCount": 0,
+      "content": "Original photo crop with burned-in colored boxes, labels, and portal dots."
+    }
+  ],
+  "pdfResourceInspection": {
+    "embeddedCompanionJsonFound": false,
+    "floorOverlayPages": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "floorOverlayFormat": "single embedded raster per floor; no PDF annotation objects",
+    "geometricOverlayVectorsAvailable": false,
+    "recoverableWithoutGuessing": [
+      "all printed region IDs, labels, feature types, center fractions, and related portal IDs",
+      "embedded annotated raster pixels"
+    ],
+    "notSuppliedByPrintedTables": [
+      "portal coordinates",
+      "region bounding boxes or boundary polygons",
+      "original-photo crop transforms",
+      "walkable surfaces",
+      "stair landing elevations",
+      "verified cross-floor edges"
+    ]
+  },
+  "companionSearch": {
+    "result": "not-found-in-scoped-local-search",
+    "scope": [
+      "PDF attachment names",
+      "Hack_The_valley Sam-Ibrahim-related paths",
+      "nearby hackathon paths with Sam Ibrahim, indoor review, or companion in their filename"
+    ],
+    "olderAnalysisFilesFound": [
+      "sam-ibrahim-plans/analysis/Level-1-original.analysis.json",
+      "sam-ibrahim-plans/analysis/Level-2-original.analysis.json",
+      "sam-ibrahim-plans/analysis/Level-3-original.analysis.json",
+      "sam-ibrahim-plans/analysis/Level-4-original.analysis.json",
+      "sam-ibrahim-plans/analysis/Level-5-original.analysis.json",
+      "sam-ibrahim-plans/analysis/Level-B-original.analysis.json"
+    ],
+    "olderAnalysisDisposition": "Earlier model analyses of SVGs have different IDs and coordinate frames; they are not the missing PDF companion and are not imported as report geometry.",
+    "reportReferencedOriginalPath": "source/original_poster.jpg",
+    "reportReferencedOriginalPathLocated": false,
+    "limit": "This is a scoped local discovery result, not proof that no companion exists elsewhere."
+  },
+  "reproduction": {
+    "tool": "tools/extract-review.py",
+    "dependencies": [
+      "pypdf",
+      "Pillow"
+    ],
+    "runtimeRequirement": "Only needed for optional re-extraction; checked-in JSON and standalone navigation modules do not require Python or these packages."
+  }
+}
