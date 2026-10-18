@@ -40,11 +40,7 @@ describe('Developer Explore', () => {
           title: string;
           icon?: { url: string };
           click?: () => void;
-          constructor(options: {
-            map: unknown;
-            title: string;
-            icon?: { url: string };
-          }) {
+          constructor(options: { map: unknown; title: string; icon?: { url: string } }) {
             this.map = options.map;
             this.title = options.title;
             this.icon = options.icon;

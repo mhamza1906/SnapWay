@@ -80,11 +80,7 @@ export class GraphEditorPage implements OnInit, OnDestroy {
   readonly syncing = signal(false);
   private syncChain: Promise<void> = Promise.resolve();
   readonly busy = computed(
-    () =>
-      this.working() ||
-      this.submitting() ||
-      this.uploading().length > 0 ||
-      this.syncing(),
+    () => this.working() || this.submitting() || this.uploading().length > 0 || this.syncing(),
   );
   readonly undoStack = signal<HistoryEntry[]>([]);
   readonly redoStack = signal<HistoryEntry[]>([]);
@@ -362,11 +358,10 @@ export class GraphEditorPage implements OnInit, OnDestroy {
     }
     const both = this.bothDirections();
     const connect = [{ from, to: id, both }];
-    void this.command(
-      { connect },
-      both ? 'Two-way connection saved' : 'One-way connection saved',
-      { undo: { delete_edges: [] }, redo: { connect } },
-    );
+    void this.command({ connect }, both ? 'Two-way connection saved' : 'One-way connection saved', {
+      undo: { delete_edges: [] },
+      redo: { connect },
+    });
     this.connectFromId.set(null);
   }
   async onEdgeClick(id: string) {
@@ -400,11 +395,10 @@ export class GraphEditorPage implements OnInit, OnDestroy {
       })
     )
       return;
-    void this.command(
-      { nodes: after },
-      `Saved positions of ${after.length} waypoint(s)`,
-      { undo: { nodes: before }, redo: { nodes: after } },
-    );
+    void this.command({ nodes: after }, `Saved positions of ${after.length} waypoint(s)`, {
+      undo: { nodes: before },
+      redo: { nodes: after },
+    });
   }
   private connectionIds(id: string): string[] {
     const edge = this.edges().find((e) => e.id === id);

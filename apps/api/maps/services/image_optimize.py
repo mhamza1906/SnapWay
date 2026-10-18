@@ -163,7 +163,8 @@ def optimize_status(revision: Revision) -> dict:
     return {
         "revision_id": str(revision.id),
         "target_id": str(revision.target_id),
-        "stage": authoring.get("stage") or ("image_optimize" if optimized_id(revision) else "empty"),
+        "stage": authoring.get("stage")
+        or ("image_optimize" if optimized_id(revision) else "empty"),
         "model": authoring.get("model") or _model(),
         # User upload is discarded after first optimize; both URLs point at the SoT raster.
         "source_url": url,
@@ -259,9 +260,7 @@ def start_optimize(revision: Revision, *, uploaded_file, actor, prompt: str | No
 
 
 @transaction.atomic
-def regenerate_optimize(
-    revision: Revision, *, actor, prompt: str | None = None
-) -> dict:
+def regenerate_optimize(revision: Revision, *, actor, prompt: str | None = None) -> dict:
     """Re-run Image 2.5 using the current SoT raster as the template."""
     _require_writable(actor, revision)
     template = revision.standardized_asset or revision.source_asset

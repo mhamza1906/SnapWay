@@ -6,7 +6,12 @@
         <span class="account-mode">Public User</span>
       </p>
       <div class="account-actions">
-        <button type="button" class="text-button" (click)="switchToDeveloper()" [disabled]="auth.busy()">
+        <button
+          type="button"
+          class="text-button"
+          (click)="switchToDeveloper()"
+          [disabled]="auth.busy()"
+        >
           Switch to Developer
         </button>
         <button type="button" class="text-button" (click)="signOut()" [disabled]="auth.busy()">

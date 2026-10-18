@@ -122,9 +122,7 @@ def edit_graph(revision, *, data, actor):
     for row in _rows(data, "connect"):
         if not isinstance(row, dict) or type(row.get("both", False)) is not bool:
             raise GraphError("A connection needs endpoints and a boolean both flag.")
-        add_edge(
-            revision, from_id=row.get("from"), to_id=row.get("to"), actor=actor, lock=False
-        )
+        add_edge(revision, from_id=row.get("from"), to_id=row.get("to"), actor=actor, lock=False)
         if row.get("both"):
             add_edge(
                 revision, from_id=row.get("to"), to_id=row.get("from"), actor=actor, lock=False

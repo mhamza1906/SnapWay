@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from accounts.modes import IsDeveloperMode
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.modes import IsDeveloperMode
 from maps.services import image_optimize as optimize_svc
 from maps.services import vectorize_demo as vector_svc
 from maps.services import workspace as workspace_svc
