@@ -22,13 +22,13 @@ test('sparse photo stops respect the budget on every hall without changing walki
   const before=JSON.stringify(building);
   for(const floor of building.floors) for(const hall of floor.geometry.spaces.filter(s=>['corridor','lobby'].includes(s.kind))) {
     const normal=planHallPoints(building,floor.id,hall.id);
-    assert(normal.points.length<=30);
+    assert(normal.points.length<=40);
     assert.equal(normal.points.length,normal.recommendedPoints);
     assert.equal(normal.selectionMode,'adaptive');
     const previous=planHallPoints(building,floor.id,hall.id,{maxPoints:20,adaptive:false});
     const ceiling=planHallPoints(building,floor.id,hall.id,{maxPoints:30,adaptive:false});
     for(const point of previous.points) assert(ceiling.points.some(p=>p.x===point.x&&p.y===point.y),'Reserved locations must preserve existing photo nodes');
-    for(const maxPoints of [2,6,12,20,30]) {
+    for(const maxPoints of [2,6,12,20,30,40]) {
       const plan=planHallPoints(building,floor.id,hall.id,{maxPoints});
       assert.equal(plan.points.length,plan.recommendedPoints);
       assert(plan.points.length<=Math.min(maxPoints,plan.candidateCount));
@@ -48,15 +48,15 @@ test('sparse photo stops respect the budget on every hall without changing walki
   assert.equal(JSON.stringify(building),before);
 });
 
-test('hall-points API adapts below a thirty-stop ceiling and rejects invalid budgets',async()=>{
+test('hall-points API adapts below a forty-stop ceiling and rejects invalid budgets',async()=>{
   const input={building,floorId:'L5',spaceId:'L5-project-circulation-1'};
-  for(const maxPoints of [undefined,6,12,20,30]) {
+  for(const maxPoints of [undefined,6,12,20,30,40]) {
     const {status,data}=await post('/hall-points',{...input,maxPoints});
     assert.equal(status,200,JSON.stringify(data));
-    assert.equal(data.points.length,Math.min(maxPoints??30,18));
+    assert.equal(data.points.length,Math.min(maxPoints??40,18));
     assert(data.points.some(p=>p.reason==='turn'||p.reason==='junction'));
   }
-  for(const maxPoints of [0,1,31,2.5,'6']) {
+  for(const maxPoints of [0,1,41,2.5,'6']) {
     const {status}=await post('/hall-points',{...input,maxPoints});assert.equal(status,400);
   }
 });
@@ -66,7 +66,7 @@ test('small and medium circulation areas get fewer stops than large floor networ
   assert.equal(count('LB',3),5);
   assert.equal(count('L2',3),13);
   assert.equal(count('L5',1),18);
-  assert.equal(count('L4',1),30);
+  assert.equal(count('L4',1),40);
 });
 
 test('built-in project is available in the normal building library with six original source frames',async()=>{

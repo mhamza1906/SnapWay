@@ -109,11 +109,19 @@
       </button>
       <a
         class="btn secondary"
-        href="/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf"
+        href="/api/maps/public/documents/sam-ibrahim-review/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <app-icon name="download" />View Sam Ibrahim PDF
+      </a>
+      <a
+        class="btn secondary"
+        href="/api/maps/public/documents/sam-ibrahim-points/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <app-icon name="download" />Photo points PDF
       </a>
       <label class="field"
         >Building name
@@ -416,7 +424,7 @@
                     <input
                       type="number"
                       min="2"
-                      max="30"
+                      max="40"
                       step="1"
                       [value]="photoStopLimit()"
                       [disabled]="busy()"
@@ -436,7 +444,7 @@
                   }
                 </div>
                 @if (!validPhotoStopLimit()) {
-                  <p class="hint warn">Choose a whole number from 2 to 30.</p>
+                  <p class="hint warn">Choose a whole number from 2 to 40.</p>
                 }
                 @if (hallPlan(); as plan) {
                   <p class="hint">

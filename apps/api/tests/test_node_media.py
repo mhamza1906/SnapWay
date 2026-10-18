@@ -411,7 +411,7 @@ def walk_expansion(actors, draft, tmp_path):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("count", [20, 30])
+@pytest.mark.parametrize("count", [20, 30, 40])
 def test_expand_saved_walk_preserves_node_ids_and_photos(walk_expansion, count):
     import io
     import json

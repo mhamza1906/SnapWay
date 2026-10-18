@@ -1386,7 +1386,7 @@ describe('map authoring page', () => {
     );
     const { page, fixture, el } = await startMapped(s);
     page.selectedRegions.set(['h1']);
-    for (const limit of [30, 6]) {
+    for (const limit of [40, 6]) {
       if (limit === 6) {
         const input = el.querySelector('[data-testid="photo-stop-limit"]') as HTMLInputElement;
         input.value = '6';

@@ -396,13 +396,13 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
 // pixels (default 2.2% of the floor's larger side) and metres are null.
 // This spacing generates candidates, not a required photo at every interval.
 // A sparse, distributed subset is selected; graph lines are never thinned.
-export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 30, adaptive = true } = {}) {
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 40, adaptive = true } = {}) {
   const floor = floorOf(building, floorId),
     pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
     hall = pieces.find((s) => s.id === spaceId);
   if (!hall) throw new CaptureError("Unknown region.", 404);
   if (!Number.isFinite(spacingM) || spacingM < 0.5 || spacingM > 50) throw new CaptureError("spacingM must be between 0.5 and 50.");
-  if (!Number.isInteger(maxPoints) || maxPoints < 2 || maxPoints > 30) throw new CaptureError("maxPoints must be a whole number between 2 and 30.");
+  if (!Number.isInteger(maxPoints) || maxPoints < 2 || maxPoints > 40) throw new CaptureError("maxPoints must be a whole number between 2 and 40.");
   const ppm = scaleOf(floor), all = floor.geometry.spaces.flatMap((s) => s.polygon),
     side = Math.max(Math.max(...all.map((p) => p.x)) - Math.min(...all.map((p) => p.x)), Math.max(...all.map((p) => p.y)) - Math.min(...all.map((p) => p.y))),
     step = ppm ? spacingM * ppm : Number.isFinite(spacingPx) && spacingPx > 0 ? spacingPx : Math.round(0.022 * side),

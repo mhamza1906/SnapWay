@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "documents": {
+    "sam-ibrahim-review": {
+      "title": "Sam Ibrahim indoor navigation review",
+      "filename": "Sam_Ibrahim_Indoor_Navigation_Review.pdf",
+      "sha256": "7891a1bc9bc7e43d4726fbd4bc76b6126040f85d0d1e8d89e6ba6c980a0187fa",
+      "bytes": 12419871,
+      "pages": 45,
+      "storage_key": "shared/documents/sam-ibrahim/7891a1bc9bc7e43d4726fbd4bc76b6126040f85d0d1e8d89e6ba6c980a0187fa/Sam_Ibrahim_Indoor_Navigation_Review.pdf"
+    },
+    "sam-ibrahim-points": {
+      "title": "Sam Ibrahim photo points - 40-stop cap",
+      "filename": "Sam_Ibrahim_Photo_Points_40.pdf",
+      "sha256": "ed7971fa7e894a0cd86799052ffb152d65b51e0909189449b9914a84907d600a",
+      "bytes": 4618239,
+      "pages": 12,
+      "storage_key": "shared/documents/sam-ibrahim/ed7971fa7e894a0cd86799052ffb152d65b51e0909189449b9914a84907d600a/Sam_Ibrahim_Photo_Points_40.pdf",
+      "ceiling": 40,
+      "points": 302,
+      "added": 73,
+      "walks": 11
+    }
+  }
+}

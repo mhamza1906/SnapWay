@@ -410,12 +410,12 @@ export class AuthoringPage implements OnInit {
   readonly merges = computed(() => this.floor()?.merges ?? []);
   /** The photo point plan drawn on the map, if any. */
   readonly hallPlan = signal<HallPlan | null>(null);
-  readonly photoStopLimit = signal(30);
+  readonly photoStopLimit = signal(40);
   readonly validPhotoStopLimit = computed(
     () =>
       Number.isInteger(this.photoStopLimit()) &&
       this.photoStopLimit() >= 2 &&
-      this.photoStopLimit() <= 30,
+      this.photoStopLimit() <= 40,
   );
   /** The one selected region, when it is a hall (corridor or lobby). */
   readonly selectedHall = computed(() => {

@@ -91,11 +91,12 @@ The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
 creating another env file. See [docs/pipeline](docs/pipeline/README.md) and the
 [feature record](docs/map-authoring-pipeline.md).
 
-Sam Ibrahim's [45-page review PDF](apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf)
-is included locally on this branch and served publicly at
-`/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf`. It is linked from every
-workspace's navigation, the authoring screen and the public map page; no sign-in
-is needed to read or download it. See the [project evidence notes](docs/sam-ibrahim-hardcoded-navigation.md#pdf-and-svg-evidence).
+Sam Ibrahim's review PDF and the **40-cap photo-point PDF** are stored in
+Cloudflare R2. The workspace, authoring screen and public map link to
+`/api/maps/public/documents/sam-ibrahim-points/` and
+`/api/maps/public/documents/sam-ibrahim-review/`, without sign-in. Each access gets
+a fresh R2 download URL. The [unchanged original review](apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf)
+also remains as a local reference copy. See the [cloud PDF and current point-plan notes](docs/photo-capture.md#current-40-stop-plan-and-shared-r2-pdfs).
 
 **IA-1 real-photo acceptance failed.** Read the
 [phase audit, model/pipeline gaps and committed screenshots](docs/audits/2026-10-17-map-authoring-pipeline.md)

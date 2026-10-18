@@ -242,3 +242,6 @@ __marimo__/
 
 # Local database/data safety copies.
 /output/backups/
+# Generated cloud PDF builds and visual QA; source scripts and R2 registry are tracked.
+/output/pdf/
+/tmp/pdfs/
