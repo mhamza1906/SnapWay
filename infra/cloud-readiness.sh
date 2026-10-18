@@ -38,6 +38,13 @@ printf '\nSnapWay services (unit / active / substate):\n'
 if command -v systemctl >/dev/null 2>&1; then
     systemctl list-units --type=service --all --plain --no-pager --no-legend 'snapway-*' \
         2>/dev/null | awk '{print $1, $3, $4}' || printf '%s\n' 'unit query unavailable'
+    printf '\nOptional service state and exit codes only:\n'
+    for unit in snapway-pipeline.service snapway-placematch.service; do
+        printf '%s\n' "$unit"
+        systemctl show "$unit" --no-pager \
+            --property=LoadState,ActiveState,SubState,Result,ExecMainCode,ExecMainStatus \
+            2>/dev/null || printf '%s\n' 'status unavailable'
+    done
 else
     printf '%s\n' 'systemd unavailable'
 fi
