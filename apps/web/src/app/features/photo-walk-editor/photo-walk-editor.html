@@ -64,8 +64,27 @@
       </label>
       <details class="walk-map" open>
         <summary>Find this stop on the map</summary>
+        <div class="walk-map-tools" aria-label="Photo point map controls">
+          <button type="button" (click)="photoMap.zoomBy(1.5)" aria-label="Zoom in on photo points">
+            +
+          </button>
+          <button
+            type="button"
+            (click)="photoMap.zoomBy(1 / 1.5)"
+            aria-label="Zoom out on photo points"
+          >
+            −
+          </button>
+          <button type="button" (click)="photoMap.fit()">Fit map</button>
+          <p class="walk-help">
+            Tap a number to open its four photos. Drag the map to move around.
+          </p>
+        </div>
         <div class="walk-map-stage">
           <app-graph-canvas
+            #photoMap
+            [selectionOnly]="true"
+            [disabled]="photoUploading()"
             [width]="width()"
             [height]="height()"
             [underlayUrl]="underlayUrl()"
@@ -74,6 +93,7 @@
             [selectedIds]="selectedNodeId() ? [selectedNodeId()!] : []"
             [tool]="'select'"
             (nodeClicked)="onNodeClick($event)"
+            (selectionChanged)="onCanvasSelection($event)"
           />
         </div>
       </details>
@@ -245,6 +265,7 @@
           [tool]="tool()"
           (canvasClicked)="onCanvasClick($event)"
           (nodeClicked)="onNodeClick($event)"
+          (selectionChanged)="onCanvasSelection($event)"
           (edgeClicked)="onEdgeClick($event)"
         />
       </div>

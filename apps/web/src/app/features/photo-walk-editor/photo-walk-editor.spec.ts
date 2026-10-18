@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { GraphApiService, NodePhoto } from '../../core/graph-api.service';
 import { vi } from 'vitest';
 import { PhotoWalkEditorPage } from './photo-walk-editor';
+import { GraphCanvas } from '../graph-editor/graph-canvas';
 
 @Component({ selector: 'app-visitor-camera', template: '' })
 class PreviewCamera {
@@ -107,6 +108,38 @@ describe('PhotoWalkEditorPage', () => {
     expect(page.photosLoading()).toBe(false);
     return page;
   }
+
+  it.each([false, true])(
+    'opens the clicked point photos from canvas selection (photo mode %s)',
+    async (capture) => {
+      const page = await selectPoint();
+      page.nodes.set([
+        { id: 'n1', x: 1, y: 2, label: 'Point 1', kind: 'checkpoint' },
+        { id: 'n2', x: 20, y: 20, label: 'Point 2', kind: 'checkpoint' },
+      ]);
+      if (capture) await page.setPhotoMode(true);
+      fixture.detectChanges();
+      api.listNodePhotos.mockResolvedValueOnce({ photos: [photo('front', 'second-stop-view')] });
+      const canvas = fixture.debugElement.query(By.directive(GraphCanvas))
+        .componentInstance as GraphCanvas;
+      canvas.selectionChanged.emit(['n2']);
+      await vi.waitFor(() => {
+        expect(page.selectedNodeId()).toBe('n2');
+        expect(page.photoFor('front')?.id).toBe('second-stop-view');
+      });
+      expect(api.listNodePhotos).toHaveBeenLastCalledWith('r1', 'n2');
+      expect(page.nodes().map((node) => [node.id, node.x, node.y])).toEqual([
+        ['n1', 1, 2],
+        ['n2', 20, 20],
+      ]);
+      if (capture) {
+        expect(canvas.selectionOnly()).toBe(true);
+        expect(
+          fixture.nativeElement.querySelector('[aria-label="Photo point map controls"]'),
+        ).not.toBeNull();
+      }
+    },
+  );
 
   it('uploads four named views, counts completion and replaces just one direction', async () => {
     const page = await selectPoint();

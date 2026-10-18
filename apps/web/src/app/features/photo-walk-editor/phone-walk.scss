@@ -46,6 +46,7 @@
   border-radius: 12px;
 }
 .phone-walk button {
+  min-width: 48px;
   padding: 10px 16px;
   border: 1px solid #c9d7ce;
   background: white;
@@ -128,7 +129,7 @@
   font-size: 14px;
 }
 .walk-map-stage {
-  height: clamp(180px, 34vh, 300px);
+  height: clamp(240px, 45vh, 440px);
   overflow: hidden;
 }
 .walk-current p {
@@ -250,7 +251,8 @@
   font-size: 13px;
   line-height: 1.5;
 }
-.walk-localize-actions {
+.walk-localize-actions,
+.walk-map-tools {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -272,4 +274,9 @@
 .walk-match-result {
   font-weight: 650;
   color: #1e6652;
+}
+
+.walk-map-tools {
+  align-items: center;
+  padding: 0 12px 12px;
 }

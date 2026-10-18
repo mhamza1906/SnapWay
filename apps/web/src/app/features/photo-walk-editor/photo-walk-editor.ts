@@ -376,6 +376,11 @@ export class PhotoWalkEditorPage implements OnInit {
     }
   }
 
+  async onCanvasSelection(ids: string[]): Promise<void> {
+    if (ids.length) await this.onNodeClick(ids[ids.length - 1]);
+    else if (!this.captureMode()) this.clearSelection();
+  }
+
   async onNodeClick(id: string): Promise<void> {
     const revisionId = this.revisionId();
     if (!revisionId) return;

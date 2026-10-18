@@ -1,4 +1,6 @@
 <svg
+  #canvas
+  [class.selection-only]="selectionOnly()"
   class="graph-svg"
   [class.panning]="tool() === 'pan' || spacePan()"
   [class.adding]="tool() === 'add' || tool() === 'connect'"
@@ -79,9 +81,8 @@
       tabindex="0"
       [attr.aria-label]="'Waypoint: ' + (node.label || 'Unlabeled')"
       [attr.aria-pressed]="selectedIds().includes(node.id)"
-      (keydown.enter)="
-        tool() === 'select' ? selectionChanged.emit([node.id]) : nodeClicked.emit(node.id)
-      "
+      (keydown.enter)="activateNode(node.id); $event.preventDefault()"
+      (keydown.space)="activateNode(node.id); $event.preventDefault()"
       [class.selected]="selectedIds().includes(node.id)"
       [class.connect-from]="node.id === connectFromId()"
     >
@@ -89,16 +90,21 @@
         class="node-hit"
         [attr.cx]="node.x"
         [attr.cy]="node.y"
-        [attr.r]="(15 * view().w) / width()"
+        [attr.r]="(selectionOnly() ? 22 : 15) * unitsPerPixel()"
       />
-      <circle [attr.cx]="node.x" [attr.cy]="node.y" [attr.r]="(6 * view().w) / width()" />
+      <circle
+        [attr.cx]="node.x"
+        [attr.cy]="node.y"
+        [attr.r]="(selectionOnly() ? 12 : 6) * unitsPerPixel()"
+      />
       @if (labels() && node.label) {
         <text
           [attr.x]="node.x"
-          [attr.y]="node.y - (12 * view().w) / width()"
-          [attr.font-size]="(12 * view().w) / width()"
+          [attr.y]="selectionOnly() ? node.y : node.y - 12 * unitsPerPixel()"
+          [attr.dominant-baseline]="selectionOnly() ? 'central' : null"
+          [attr.font-size]="(selectionOnly() ? 11 : 12) * unitsPerPixel()"
         >
-          {{ node.label }}
+          {{ selectionOnly() ? pointLabel(node.label) : node.label }}
         </text>
       }
     </g>

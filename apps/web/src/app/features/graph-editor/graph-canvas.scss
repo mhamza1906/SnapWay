@@ -90,3 +90,12 @@ g:focus-visible circle:not(.node-hit) {
   stroke: #da6c16;
   stroke-width: 4;
 }
+
+.selection-only .node {
+  cursor: pointer;
+}
+.selection-only .node text {
+  fill: #164d3f;
+  stroke: none;
+  font-weight: 750;
+}

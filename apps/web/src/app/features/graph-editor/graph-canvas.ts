@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  OnDestroy,
+  output,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { GraphEdge, GraphNode } from '../../core/graph-api.service';
 
 export type GraphTool = 'select' | 'add' | 'connect' | 'cut' | 'pan';
@@ -47,7 +58,11 @@ export function boundedMove(
   styleUrl: './graph-canvas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GraphCanvas {
+export class GraphCanvas implements AfterViewInit, OnDestroy {
+  @ViewChild('canvas') private svg?: ElementRef<SVGSVGElement>;
+  private observer?: ResizeObserver;
+  private readonly viewport = signal({ width: 0, height: 0 });
+  readonly selectionOnly = input(false);
   readonly width = input(1000);
   readonly height = input(640);
   readonly underlayUrl = input<string | null>(null);
@@ -70,6 +85,33 @@ export class GraphCanvas {
     () => this.camera() ?? { x: 0, y: 0, w: this.width(), h: this.height() },
   );
   readonly zoom = computed(() => Math.round((this.width() / this.view().w) * 100));
+  readonly unitsPerPixel = computed(() => {
+    const size = this.viewport(),
+      view = this.view();
+    return size.width > 0 && size.height > 0
+      ? Math.max(view.w / size.width, view.h / size.height)
+      : view.w / this.width();
+  });
+  ngAfterViewInit(): void {
+    if (!this.svg || typeof ResizeObserver === 'undefined') return;
+    this.observer = new ResizeObserver(([entry]) => {
+      if (entry)
+        this.viewport.set({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    this.observer.observe(this.svg.nativeElement);
+  }
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
+  pointLabel(label: string): string {
+    return label.replace(/^Point\s+/i, '');
+  }
+  activateNode(id: string): void {
+    if (this.disabled()) return;
+    if (this.selectionOnly() || this.tool() === 'select') this.selectionChanged.emit([id]);
+    else this.nodeClicked.emit(id);
+  }
+
   readonly viewBox = computed(() => {
     const v = this.view();
     return `${v.x} ${v.y} ${v.w} ${v.h}`;
@@ -125,11 +167,28 @@ export class GraphCanvas {
     if (!matrix) return;
     const target = event.target as Element;
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix);
-    const id = target.closest('[data-node]')?.getAttribute('data-node');
+    let id = target.closest('[data-node]')?.getAttribute('data-node');
     const edge = target.closest('[data-edge]')?.getAttribute('data-edge');
     const pan = this.tool() === 'pan' || this.spacePan() || event.button === 1;
+    if (this.selectionOnly() && !pan) {
+      // Resolve overlapping touch targets to the stop nearest the actual tap.
+      const closest = this.nodes()
+        .map((node) => ({
+          node,
+          distance: Math.hypot(node.x - point.x, node.y - point.y) / this.unitsPerPixel(),
+        }))
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (closest && closest.distance <= 22) id = closest.node.id;
+      if (id) {
+        event.preventDefault();
+        svg.focus();
+        this.activateNode(id);
+        return;
+      }
+    }
+
     let selected = this.selectedIds().slice();
-    let mode: Gesture['mode'] = pan ? 'pan' : 'click';
+    let mode: Gesture['mode'] = pan || this.selectionOnly() ? 'pan' : 'click';
     if (!pan && id) {
       if (this.tool() !== 'select') {
         this.nodeClicked.emit(id);
@@ -147,7 +206,7 @@ export class GraphCanvas {
     } else if (!pan && edge) {
       this.edgeClicked.emit(edge);
       return;
-    } else if (!pan && this.tool() === 'select') {
+    } else if (!pan && !this.selectionOnly() && this.tool() === 'select') {
       mode = 'marquee';
       if (!event.shiftKey) {
         selected = [];
