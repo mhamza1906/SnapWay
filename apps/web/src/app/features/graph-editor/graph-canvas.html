@@ -1,26 +1,33 @@
 <svg
   class="graph-svg"
   [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
-  role="img"
+  role="group"
   aria-label="Map graph canvas"
   (click)="onBackground($event)"
 >
   @if (underlayUrl(); as url) {
     <image [attr.href]="url" x="0" y="0" [attr.width]="width()" [attr.height]="height()" />
   } @else {
-    <image
-      href="/demo/floor-plan.svg"
-      x="0"
-      y="0"
-      [attr.width]="width()"
-      [attr.height]="height()"
-    />
+    <rect [attr.width]="width()" [attr.height]="height()" fill="#f5f6ef" />
+    <text
+      [attr.x]="width() / 2"
+      [attr.y]="height() / 2"
+      text-anchor="middle"
+      fill="#8c9d89"
+      font-size="22"
+    >
+      Upload a floor plan to start
+    </text>
   }
 
   @for (path of paths(); track path.edge.id) {
     @if (path.start && path.end) {
       <line
         class="edge"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="'Connection weight ' + path.edge.cost"
+        (keydown.enter)="edgeClicked.emit(path.edge.id)"
         [class.selected]="path.edge.id === selectedEdgeId()"
         [attr.x1]="path.start.x"
         [attr.y1]="path.start.y"
@@ -34,6 +41,10 @@
   @for (node of nodes(); track node.id) {
     <g
       class="node"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Waypoint: ' + (node.label || 'Unlabeled')"
+      (keydown.enter)="nodeClicked.emit(node.id)"
       [class.selected]="node.id === selectedNodeId()"
       [class.connect-from]="node.id === connectFromId()"
       (click)="onNode($event, node.id)"

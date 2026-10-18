@@ -1,6 +1,7 @@
 """REST surfaces for draft bootstrap and graph Node/Edge editing."""
 
 from accounts.modes import IsDeveloperMode
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -20,6 +21,7 @@ from maps.services.graph import (
     list_graph,
     remove_edge,
     remove_node,
+    update_edge,
     update_node,
 )
 from maps.services.membership import get_active_membership
@@ -28,8 +30,10 @@ from maps.services.underlay import store_underlay_file
 
 
 def _error_response(exc: Exception):
-    if isinstance(exc, GraphPermissionError | PermissionError):
+    if isinstance(exc, GraphPermissionError | PermissionError | PermissionDenied):
         return Response({"detail": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+    if isinstance(exc, ValidationError):
+        return Response({"detail": " ".join(exc.messages)}, status=400)
     if isinstance(exc, GraphError | ValueError):
         return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     if isinstance(exc, MapTarget.DoesNotExist | Revision.DoesNotExist):
@@ -76,10 +80,21 @@ class RevisionGraphMixin:
     permission_classes = [IsAuthenticatedMapMember]
 
     def get_revision(self):
-        return get_object_or_404(
-            Revision.objects.select_related("target", "source_asset"),
+        revision = get_object_or_404(
+            Revision.objects.select_related("target", "source_asset", "contribution"),
             pk=self.kwargs["revision_id"],
         )
+        from rest_framework.exceptions import PermissionDenied
+
+        from maps.services.workspace import is_admin
+
+        if not (
+            revision.contribution.author_id == self.request.user.pk
+            or is_admin(self.request.user, revision.target)
+            or revision.target.publications.filter(revision=revision).exists()
+        ):
+            raise PermissionDenied("Another author's private editing snapshot is not available.")
+        return revision
 
     def get_map_target(self):
         return self.get_revision().target
@@ -271,6 +286,30 @@ class EdgeCollectionView(RevisionGraphMixin, APIView):
 
 
 class EdgeDetailView(RevisionGraphMixin, APIView):
+    @extend_schema(
+        summary="Update a connection weight",
+        request=inline_serializer(
+            "UpdateEdgeWeight", {"cost": serializers.FloatField(min_value=0)}
+        ),
+        responses={200: OpenApiTypes.OBJECT},
+    )
+    def patch(self, request, revision_id, edge_id):
+        revision = self.get_revision()
+        try:
+            edge = update_edge(
+                revision, edge_id=edge_id, cost=request.data.get("cost"), actor=request.user
+            )
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(exc)
+        return Response(
+            {
+                "id": str(edge.pk),
+                "from_node_id": str(edge.from_node_id),
+                "to_node_id": str(edge.to_node_id),
+                "cost": float(edge.cost),
+            }
+        )
+
     @extend_schema(
         summary="Remove an edge",
         responses={204: OpenApiTypes.NONE},

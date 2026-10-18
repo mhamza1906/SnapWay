@@ -2,6 +2,8 @@ import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GraphApiService, GraphEdge, GraphNode, NodePhoto } from '../../core/graph-api.service';
 import { GraphCanvas, GraphTool } from './graph-canvas';
+import { WorkspaceApi, workspaceError } from '../../core/workspace-api.service';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-graph-editor',
@@ -10,7 +12,9 @@ import { GraphCanvas, GraphTool } from './graph-canvas';
   styleUrl: './graph-editor.scss',
 })
 export class GraphEditorPage implements OnInit {
-  private readonly api = inject(GraphApiService);
+  readonly api = inject(GraphApiService);
+  readonly auth = inject(AuthService);
+  private readonly workspace = inject(WorkspaceApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -19,6 +23,9 @@ export class GraphEditorPage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly revisionId = signal<string | null>(null);
   readonly targetId = signal<string | null>(null);
+  readonly contributionId = signal<string | null>(null);
+  readonly submitting = signal(false);
+  readonly canPublish = signal(false);
   readonly underlayUrl = signal<string | null>(null);
   readonly width = signal(1000);
   readonly height = signal(640);
@@ -26,6 +33,7 @@ export class GraphEditorPage implements OnInit {
   readonly edges = signal<GraphEdge[]>([]);
   readonly selectedNodeId = signal<string | null>(null);
   readonly selectedEdgeId = signal<string | null>(null);
+  readonly edgeWeight = signal(0);
   readonly connectFromId = signal<string | null>(null);
   readonly labelDraft = signal('');
   readonly editLabel = signal('');
@@ -45,7 +53,13 @@ export class GraphEditorPage implements OnInit {
         return;
       }
       const targetHint = this.route.snapshot.queryParamMap.get('target') ?? undefined;
-      const draft = await this.api.ensureDraft(targetHint);
+      if (!targetHint) {
+        await this.router.navigateByUrl('/my-maps');
+        return;
+      }
+      const draft = await this.workspace.edit(targetHint);
+      this.contributionId.set(draft.contribution_id);
+      this.canPublish.set(draft.can_admin);
       this.revisionId.set(draft.revision_id);
       this.targetId.set(draft.target_id);
       this.applyFrame(draft.coordinate_frame);
@@ -70,28 +84,25 @@ export class GraphEditorPage implements OnInit {
 
   /** Start a brand-new empty map (does not delete the previous draft). */
   async startNewMap(): Promise<void> {
-    this.clearSelection();
-    this.nodes.set([]);
-    this.edges.set([]);
-    this.status.set('Creating new map…');
+    await this.router.navigateByUrl('/authoring');
+  }
+
+  async finishEditing(): Promise<void> {
+    if (!this.contributionId() || this.submitting() || this.api.pending()) return;
+    this.submitting.set(true);
+    this.error.set(null);
     try {
-      // Bypass resume by omitting target; force create via dedicated ensure with new flag.
-      const draft = await this.api.ensureDraft(undefined, true);
-      this.revisionId.set(draft.revision_id);
-      this.targetId.set(draft.target_id);
-      this.applyFrame(draft.coordinate_frame);
-      this.underlayUrl.set(draft.underlay_url);
-      await this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { target: draft.target_id },
-        replaceUrl: true,
-      });
-      await this.refresh();
-      this.status.set('New map ready — edits auto-save to the server');
-      this.error.set(null);
+      const result = await this.workspace.submit(this.contributionId()!);
+      this.status.set(
+        result.status === 'merged'
+          ? 'Approved and published.'
+          : 'Submitted for administrator review.',
+      );
+      await this.router.navigateByUrl('/my-maps');
     } catch (err) {
-      this.error.set(this.message(err));
-      this.status.set('Could not create map');
+      this.error.set(workspaceError(err));
+    } finally {
+      this.submitting.set(false);
     }
   }
 
@@ -177,6 +188,7 @@ export class GraphEditorPage implements OnInit {
       return;
     }
     this.selectedEdgeId.set(id);
+    this.edgeWeight.set(this.edges().find((edge) => edge.id === id)?.cost || 0);
     this.selectedNodeId.set(null);
     this.photos.set([]);
     this.tool.set('select');
@@ -193,6 +205,22 @@ export class GraphEditorPage implements OnInit {
       this.error.set(null);
     } catch (err) {
       this.error.set(this.message(err));
+    }
+  }
+
+  async saveWeight(): Promise<void> {
+    if (!this.revisionId() || !this.selectedEdgeId()) return;
+    try {
+      const edge = await this.api.updateEdge(
+        this.revisionId()!,
+        this.selectedEdgeId()!,
+        this.edgeWeight(),
+      );
+      this.edges.update((rows) => rows.map((row) => (row.id === edge.id ? edge : row)));
+      this.status.set('Connection weight saved');
+      this.error.set(null);
+    } catch (e) {
+      this.error.set(this.message(e));
     }
   }
 

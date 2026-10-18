@@ -12,8 +12,28 @@ from maps.views_graph import (
     PhotoDetailView,
     UnderlayUploadView,
 )
+from maps.views_workspace import (
+    ContributionDetailView,
+    ContributionListView,
+    EditMapView,
+    MapExportView,
+    PipelineImportView,
+    SubmissionView,
+    TargetLifecycleView,
+    WorkspaceActivityView,
+    WorkspaceMapsView,
+)
 
 urlpatterns = [
+    path("workspace/", WorkspaceMapsView.as_view()),
+    path("workspace/activity/", WorkspaceActivityView.as_view()),
+    path("workspace/contributions/", ContributionListView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/", ContributionDetailView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/submit/", SubmissionView.as_view()),
+    path("workspace/contributions/<uuid:contribution_id>/pipeline/", PipelineImportView.as_view()),
+    path("workspace/targets/<uuid:target_id>/edit/", EditMapView.as_view()),
+    path("workspace/targets/<uuid:target_id>/archive/", TargetLifecycleView.as_view()),
+    path("workspace/targets/<uuid:target_id>/export/", MapExportView.as_view()),
     path("public/buildings/", PublicBuildingListView.as_view(), name="public-buildings"),
     path(
         "targets/<uuid:target_id>/access/",

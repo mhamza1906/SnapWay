@@ -1,5 +1,58 @@
-<a class="skip-link" href="#main-content">Skip to content</a>
+<a class="skip-link" [href]="skipLink()">Skip to content</a>
 @if (!fullScreen()) {
+  <header class="workspace-header">
+    <button
+      class="mobile-toggle btn ghost icon-only"
+      aria-label="Open navigation"
+      (click)="mobileOpen.set(true)"
+    >
+      <app-icon name="menu" />
+    </button>
+    <a routerLink="/explore" class="brand" aria-label="Snapway home"><app-snapway-brand /></a>
+    <div class="breadcrumb">
+      <span>Mapping workspace</span><strong>{{ title() }}</strong>
+    </div>
+    <div class="account">
+      <button
+        class="avatar"
+        aria-label="Google account menu"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="profileOpen()"
+        (click)="profileOpen.set(!profileOpen())"
+      >
+        @if (auth.session()?.picture && !avatarFailed()) {
+          <img
+            [src]="auth.session()?.picture"
+            alt=""
+            referrerpolicy="no-referrer"
+            (error)="avatarFailed.set(true)"
+          />
+        } @else {
+          <span>{{ auth.initials() }}</span>
+        }
+      </button>
+      @if (profileOpen()) {
+        <button
+          class="menu-dismiss"
+          aria-label="Close account menu"
+          (click)="profileOpen.set(false)"
+        ></button>
+        <div class="account-menu" role="menu">
+          <strong>{{ auth.name() }}</strong
+          ><small>{{ auth.session()?.email }}</small>
+          <span class="account-role">{{
+            auth.canAdmin() ? 'Administrator · Developer workspace' : 'Developer workspace'
+          }}</span>
+          <button role="menuitem" (click)="switchToPublic()" [disabled]="auth.busy()">
+            <app-icon name="eye" />Switch to Public User
+          </button>
+          <button role="menuitem" (click)="signOut()" [disabled]="auth.busy()">
+            <app-icon name="logout" />Sign out
+          </button>
+        </div>
+      }
+    </div>
+  </header>
   @if (mobileOpen()) {
     <button
       class="sidebar-scrim"
@@ -8,140 +61,59 @@
     ></button>
   }
   <aside class="sidebar" [class.open]="mobileOpen()">
-    <a routerLink="/overview" class="brand" (click)="mobileOpen.set(false)"
-      ><span class="brand-mark"><app-icon name="route" /></span>snapway<span class="brand-dot"
-        >.</span
-      ></a
-    >
     <div class="workspace-name">
-      <span class="workspace-monogram">N</span
-      ><span>North Campus<small>Mapping workspace</small></span
-      ><app-icon name="chevron-down" />
+      <span class="workspace-monogram"><app-icon name="building" /></span
+      ><span
+        >Your workspace<small>{{
+          auth.canAdmin() ? 'Publish and curate' : 'Build places together'
+        }}</small></span
+      >
     </div>
     <p class="nav-label">WORKSPACE</p>
     <nav aria-label="Main navigation">
       @for (item of links(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" (click)="mobileOpen.set(false)"
-          ><app-icon [name]="item.icon" />{{ item.label }}
-          @if (item.path === '/review' && pending()) {
-            <span class="nav-count">{{ pending() }}</span>
-          }
-        </a>
+          ><app-icon [name]="item.icon" />{{ item.label }}</a
+        >
       }
     </nav>
-    <div class="visitor-card">
-      <span class="visitor-icon"><app-icon name="compass" /></span
-      ><strong>A fresh perspective</strong>
-      <p>Walk through your published maps as a visitor.</p>
-      <button class="btn secondary small" (click)="switchToPublic()" [disabled]="auth.busy()">
-        Switch to Public User<app-icon name="arrow" />
+    <div class="sidebar-note">
+      <app-icon name="route" />
+      <h2>A clearer way forward.</h2>
+      <p>Turn floor plans into places people can navigate.</p>
+      <button class="btn secondary" (click)="switchToPublic()" [disabled]="auth.busy()">
+        Open Public User <app-icon name="arrow" />
       </button>
     </div>
-    <nav class="bottom-nav" aria-label="Workspace tools">
-      <a routerLink="/help" routerLinkActive="active" (click)="mobileOpen.set(false)"
-        ><app-icon name="help" />Getting started</a
-      ><a routerLink="/settings" routerLinkActive="active" (click)="mobileOpen.set(false)"
-        ><app-icon name="settings" />Settings</a
+    <nav class="sidebar-bottom" aria-label="Workspace support">
+      <a routerLink="/help" routerLinkActive="active"><app-icon name="help" />Getting started</a
+      ><a routerLink="/settings" routerLinkActive="active"
+        ><app-icon name="settings" />Settings & exports</a
       >
     </nav>
-    <div class="profile">
-      <span class="avatar">{{ auth.initials() }}</span
-      ><span
-        ><strong>{{ auth.name() }}</strong
-        ><small>{{ auth.role() }}</small></span
-      ><button
-        class="btn ghost icon-only"
-        (click)="signOut()"
-        [disabled]="auth.busy()"
-        title="Sign out"
-        aria-label="Sign out"
-      >
-        <app-icon name="logout" />
-      </button>
-    </div>
   </aside>
-  <div class="workspace-main">
-    <header class="topbar">
-      <div class="actions">
-        <button
-          class="btn ghost icon-only mobile-menu"
-          aria-label="Open navigation"
-          (click)="mobileOpen.set(true)"
-        >
-          <app-icon name="menu" /></button
-        ><span class="breadcrumb"
-          >Workspace <span>/</span> <strong>{{ title() }}</strong></span
-        >
-      </div>
-      <div class="actions">
-        <button
-          class="search-trigger"
-          (click)="search.showModal()"
-          aria-label="Search mapping targets"
-        >
-          <app-icon name="search" /><span>Find a place</span></button
-        ><span class="demo-badge"><span class="status-dot"></span>{{ auth.role() }}</span>
-      </div>
-    </header>
-    @if (auth.error()) {
-      <div class="storage-warning" role="alert">{{ auth.error() }}</div>
-    }
-    @if (!url().startsWith('/settings')) {
-      <div class="storage-warning" role="status">
-        This workspace preview uses local sample data.
-        <a routerLink="/graph-editor">Open the connected graph editor</a> or
-        <a routerLink="/map">explore published buildings</a>.
-      </div>
-    }
-    @if (repo.storageError()) {
-      <div class="storage-warning" role="alert">
-        {{ repo.storageError() }} <a routerLink="/settings">Manage data</a>
-      </div>
-    }
-    <main id="main-content"><router-outlet /></main>
-  </div>
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="workspace-content"
+    [class.explore-content]="url() === '/explore'"
+  >
+    <router-outlet />
+  </main>
 } @else {
   @if (url().startsWith('/navigate')) {
-    <div class="visitor-return">
-      <a routerLink="/overview"><app-icon name="arrow-left" />Back to workspace</a
-      ><span>snapway.</span>
-    </div>
+    <div class="visitor-return"><a routerLink="/my-maps">Back to workspace</a></div>
   }
-  <main id="main-content"><router-outlet /></main>
+  <main id="main-content" tabindex="-1"><router-outlet /></main>
 }
-<div class="toast" [class.visible]="ui.toast()" role="status" aria-live="polite">
-  @if (ui.toast()) {
-    <span>{{ ui.toast() }}</span
-    ><button aria-label="Dismiss notification" (click)="ui.toast.set('')">
-      <app-icon name="close" />
-    </button>
-  }
-</div>
-<dialog #search class="modal search-dialog">
-  <div class="modal-header">
-    <h2>Find your next place</h2>
-    <button class="btn ghost icon-only" aria-label="Close search" (click)="search.close()">
+@if (ui.toast()) {
+  <div class="toast" role="status">
+    {{ ui.toast()
+    }}<button aria-label="Dismiss notification" (click)="ui.toast.set('')">
       <app-icon name="close" />
     </button>
   </div>
-  <label class="field"
-    ><span>Search mapping targets</span
-    ><input
-      type="search"
-      placeholder="Building, floor or target…"
-      [value]="query()"
-      (input)="query.set($any($event.target).value)"
-  /></label>
-  <div class="search-results">
-    @for (target of searchResults(); track target.id) {
-      <a [routerLink]="['/targets', target.id]" (click)="search.close()"
-        ><app-icon name="building" /><span
-          ><strong>{{ target.name }}</strong
-          ><small>{{ target.building }} · {{ target.floor }}</small></span
-        ><app-icon name="arrow-right"
-      /></a>
-    } @empty {
-      <p class="empty">No places match this search.</p>
-    }
-  </div>
-</dialog>
+}
+@if (auth.error()) {
+  <div class="auth-error" role="alert">{{ auth.error() }}</div>
+}

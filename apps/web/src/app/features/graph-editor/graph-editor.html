@@ -1,10 +1,9 @@
 <div class="graph-page">
   <header class="graph-bar">
     <div class="brand-block">
-      <a class="brand" routerLink="/map">SnapWay</a>
-      <a class="workspace-return" routerLink="/overview">← Back to workspace</a>
-      <h1>Graph editor</h1>
-      <p class="lede">Place waypoints and connections on the floor plan.</p>
+      <a class="workspace-return" routerLink="/my-maps">← My maps</a>
+      <h1>Edit your snapshot</h1>
+      <p class="lede">Your edits stay separate from published updates until you submit.</p>
     </div>
     <div class="tools" role="toolbar" aria-label="Graph tools">
       <button
@@ -47,6 +46,14 @@
         Remove
       </button>
       <button type="button" class="tool" (click)="startNewMap()">New map</button>
+      <button
+        type="button"
+        class="tool active"
+        [disabled]="!contributionId() || submitting() || !!api.pending()"
+        (click)="finishEditing()"
+      >
+        {{ submitting() ? 'Finishing…' : canPublish() ? 'Approve & publish' : 'Submit for review' }}
+      </button>
     </div>
   </header>
 
@@ -82,6 +89,24 @@
         (edgeClicked)="onEdgeClick($event)"
       />
     </div>
+
+    @if (tool() === 'select' && selectedEdgeId()) {
+      <aside class="inspector" aria-label="Selected connection">
+        <h2>Connection</h2>
+        <label
+          >Routing weight<input
+            aria-label="Connection weight"
+            type="number"
+            min="0"
+            step="0.1"
+            [value]="edgeWeight()"
+            (input)="edgeWeight.set(+$any($event.target).value)" /></label
+        ><button class="tool active save" [disabled]="!!api.pending()" (click)="saveWeight()">
+          Save weight
+        </button>
+        <p class="muted">Lower weights are preferred when calculating a route.</p>
+      </aside>
+    }
 
     @if (tool() === 'select' && selectedNodeId(); as nodeId) {
       <aside class="inspector" aria-label="Selected waypoint">

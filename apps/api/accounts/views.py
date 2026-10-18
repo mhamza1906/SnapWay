@@ -17,6 +17,18 @@ from .serializers import ExperienceModeSerializer, SessionIdentitySerializer
 
 def _user_payload(request):
     user = request.user
+    from urllib.parse import urlsplit
+
+    from allauth.socialaccount.models import SocialAccount
+
+    account = SocialAccount.objects.filter(user=user, provider="google").first()
+    picture = str(account.extra_data.get("picture", "")) if account else ""
+    parsed = urlsplit(picture)
+    if parsed.scheme != "https" or not (
+        parsed.hostname == "googleusercontent.com"
+        or (parsed.hostname or "").endswith(".googleusercontent.com")
+    ):
+        picture = ""
     developer = current_mode(request) == "developer"
     memberships = (
         [{"target_id": row.target_id, "role": row.role} for row in list_active_memberships(user)]
@@ -28,6 +40,7 @@ def _user_payload(request):
         "id": user.pk,
         "username": user.get_username(),
         "email": user.email or "",
+        "picture": picture,
         "is_staff": developer and user.is_staff,
         "is_superuser": developer and user.is_superuser,
         "memberships": memberships,

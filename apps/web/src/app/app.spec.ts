@@ -25,6 +25,7 @@ describe('Workspace shell routing', () => {
             refresh: async () => ({ authenticated: true }),
             initials: () => 'TS',
             name: () => 'Test',
+            session: () => ({ email: 'test@example.com' }),
             role: () => 'No map membership',
             isDeveloper: () => true,
             canAdmin: () => false,
@@ -47,9 +48,10 @@ describe('Workspace shell routing', () => {
     expect(fixture.nativeElement.textContent).toContain('Back to workspace');
     await router.navigateByUrl('/targets?status=open#capture');
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.breadcrumb strong').textContent).toBe(
-      'Mapping targets',
+    expect(fixture.nativeElement.querySelector('.skip-link').getAttribute('href')).toBe(
+      '/targets?status=open#main-content',
     );
+    expect(fixture.nativeElement.querySelector('.sidebar')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.breadcrumb strong').textContent).toBe('My maps');
   });
 });

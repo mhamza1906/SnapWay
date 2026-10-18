@@ -1,0 +1,93 @@
+.map-legend {
+  position: absolute;
+  bottom: 32px;
+  left: 25px;
+  padding: 12px 16px;
+  border-radius: 9px;
+  background: #fffffff0;
+  box-shadow: 0 2px 15px #203d3710;
+  font-size: 11px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #536a5d;
+  max-width: calc(100% - 50px);
+}
+.yellow-dot {
+  width: 10px;
+  height: 10px;
+  background: #eabc2d;
+  border: 1px solid #d4a923;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-hint {
+  padding-left: 12px;
+  border-left: 1px solid #dce4db;
+  color: #8a968e;
+}
+.map-message {
+  position: absolute;
+  left: 24px;
+  top: 88px;
+  padding: 18px;
+  background: white;
+  border-radius: 12px;
+  max-width: calc(100% - 48px);
+  box-shadow: 0 8px 30px #21382d20;
+  font-size: 12px;
+}
+.map-message.error {
+  color: #a24f3f;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+.map-note {
+  position: absolute;
+  left: 24px;
+  bottom: 90px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 9px;
+  max-width: calc(100% - 48px);
+  font-size: 11px;
+  box-shadow: 0 3px 12px #23362720;
+}
+.available {
+  position: absolute;
+  left: 24px;
+  top: 90px;
+  font-size: 11px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px #203a3218;
+  max-width: calc(100% - 48px);
+}
+.available summary {
+  padding: 13px 18px;
+  cursor: pointer;
+  color: #687f6d;
+}
+.available > div {
+  max-height: 220px;
+  overflow: auto;
+  padding: 0 10px 10px;
+}
+.available button {
+  display: block;
+  width: 100%;
+  padding: 12px 10px;
+  background: #fff;
+  border: 0;
+  text-align: left;
+  border-radius: 6px;
+}
+.available button:hover {
+  background: #f2f6ee;
+}
+.available small {
+  display: block;
+  color: #8b9889;
+  margin-top: 4px;
+}

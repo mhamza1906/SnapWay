@@ -7,9 +7,15 @@ export interface Coordinates {
   lng: number;
 }
 export interface MapHandle {
+  addListener(event: string, callback: (event: MapClick) => void): { remove(): void };
   panTo(position: Coordinates): void;
   setZoom(zoom: number): void;
   fitBounds(bounds: BoundsHandle, padding?: number): void;
+}
+export interface MapClick {
+  placeId?: string;
+  latLng?: { lat(): number; lng(): number };
+  stop?(): void;
 }
 export interface BoundsHandle {
   extend(position: Coordinates): void;

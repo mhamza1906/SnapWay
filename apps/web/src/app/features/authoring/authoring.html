@@ -1,8 +1,8 @@
-<main class="page authoring-page" id="main-content">
+<section class="page authoring-page">
   <header class="page-heading">
     <div>
       <p class="eyebrow">MAP AUTHORING · AI PIPELINE</p>
-      <h1>Build a map from a floor plan</h1>
+      <h1>{{ auth.canAdmin() ? 'Initialize new map' : 'Request new map' }}</h1>
       <p>
         Upload a PDF or image, let the AI map rooms and doorways, then fix doorways by hand. Every
         result is a draft: agent-inspected, not human reviewed.
@@ -20,6 +20,64 @@
       </span>
     }
   </header>
+
+  <section class="panel floor-identity">
+    <div class="panel-heading">
+      <h2>Choose the place</h2>
+      <span class="hint">{{
+        auth.canAdmin()
+          ? 'Your completed map is approved and published immediately.'
+          : 'Your completed map is submitted for administrator review.'
+      }}</span>
+    </div>
+    <div class="panel-body button-row">
+      <label class="field"
+        >Building name<input
+          aria-label="Building name"
+          [value]="buildingName()"
+          (input)="buildingName.set(value($event))"
+          maxlength="200"
+          placeholder="e.g. Instructional Centre"
+      /></label>
+      <label class="field"
+        >Floor code<input
+          aria-label="Floor code"
+          [value]="floorCode()"
+          (input)="floorCode.set(value($event))"
+          maxlength="50"
+          placeholder="e.g. 4"
+      /></label>
+      <button
+        class="btn secondary"
+        [disabled]="busy() || !buildingName().trim() || !floorCode().trim()"
+        (click)="createManual()"
+      >
+        Open manual editor
+      </button>
+      <label class="field"
+        >Building latitude<input
+          aria-label="Building latitude"
+          type="number"
+          min="-90"
+          max="90"
+          step="0.000001"
+          [value]="latitude()"
+          (input)="latitude.set(value($event))"
+          placeholder="Select on Explore or enter latitude"
+      /></label>
+      <label class="field"
+        >Building longitude<input
+          aria-label="Building longitude"
+          type="number"
+          min="-180"
+          max="180"
+          step="0.000001"
+          [value]="longitude()"
+          (input)="longitude.set(value($event))"
+          placeholder="Select on Explore or enter longitude"
+      /></label>
+    </div>
+  </section>
 
   @if (offline()) {
     <p class="notice error" role="alert">{{ offline() }}</p>
@@ -141,7 +199,13 @@
               >
             </div>
             <div class="panel-body">
-              <div class="map-svg" [innerHTML]="svg()" data-testid="map"></div>
+              <div class="map-svg" data-testid="map">
+                <img
+                  [src]="svg()"
+                  alt="AI-generated floor plan preview"
+                  style="width: 100%; height: 100%; object-fit: contain"
+                />
+              </div>
               <div class="route-row">
                 <select aria-label="Route start" (change)="routeFrom.set(value($event))">
                   <option value="">Start room</option>
@@ -307,13 +371,13 @@
       <div class="panel-heading"><h2 id="save-title">4. Keep it</h2></div>
       <div class="panel-body button-row">
         <button class="btn secondary" [disabled]="busy() || !building()" (click)="saveCopy()">
-          Save a copy in the pipeline
+          Continue in My maps editor
         </button>
         <span class="hint">
-          {{ s.validationErrors }} validation error(s). Importing into the SnapWay editor and Django
-          storage is a later step.
+          {{ s.validationErrors }} validation error(s). The selected floor is saved as your private
+          editing snapshot before submission.
         </span>
       </div>
     </section>
   }
-</main>
+</section>

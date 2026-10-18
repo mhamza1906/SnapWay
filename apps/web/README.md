@@ -19,12 +19,12 @@ Google OAuth uses the existing Django session flow, not a client-side secret.
 The web application starts at `/sign-in`. Start Django with `python scripts/dev.py api`
 from the repository root, then run the frontend command below. `/sign-in` offers
 Developer and Public User cards that start Google login. The verified callback goes
-directly to the existing `/overview` workspace or the temporary `/public` placeholder.
+directly to My maps (through the compatible `/overview` redirect) or the temporary `/public` placeholder.
 `/welcome` remains an authenticated account page for switching and logout.
 See [authentication modes](../../docs/authentication-modes.md) for the API and
 administrator provisioning and Public User merge handoff. During this web iteration,
 Public User requests for old `/map` or `/navigate` routes go to the placeholder;
-developers can still preview those screens. Discovery reads publications and real
+Developers use the integrated `/explore` map. Discovery reads publications and real
 Building coordinates from Django, not local prototype targets. The separate visitor bundle
 also starts at the map, retaining `/navigate` as a labeled sample preview.
 See the iteration guide for acceptance results and native/production setup still
@@ -66,7 +66,9 @@ npm run build:visitor
 
 Outputs: `dist/snapway/browser` for the web workspace and
 `dist/snapway-visitor/browser` for the visitor. The visitor entry excludes the
-workspace route. Both are scaffolds; map editing and navigation follow later.
+workspace routes. The web workspace now uses Django snapshots, review/publication,
+AI-floor import and exports; see [Developer workspace](../../docs/developer-workspace.md)
+for routes, database migration and acceptance details. The native visitor work is separate.
 
 ## Running unit tests
 

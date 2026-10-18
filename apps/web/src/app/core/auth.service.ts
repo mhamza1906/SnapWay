@@ -8,6 +8,7 @@ export interface SessionIdentity {
   authenticated: boolean;
   username?: string;
   email?: string;
+  picture?: string;
   is_staff?: boolean;
   is_superuser?: boolean;
   memberships?: { target_id: string; role: 'admin' | 'volunteer' }[];
@@ -20,7 +21,7 @@ export type ExperienceMode = 'developer' | 'public';
 
 export function safeReturnPath(value: string | null): string {
   return value &&
-    /^\/(map|public|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
+    /^\/(explore|my-maps|developer-contribution|map|public|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
       value,
     ) &&
     !/[\\\r\n]/.test(value)

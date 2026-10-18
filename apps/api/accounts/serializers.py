@@ -11,6 +11,7 @@ class SessionIdentitySerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     username = serializers.CharField(required=False)
     email = serializers.EmailField(required=False, allow_blank=True)
+    picture = serializers.URLField(required=False, allow_blank=True)
     is_staff = serializers.BooleanField(required=False)
     is_superuser = serializers.BooleanField(required=False)
     memberships = MembershipSummarySerializer(many=True, required=False)

@@ -7,7 +7,7 @@ import uuid
 
 from django.db import transaction
 
-from maps.models import Asset, Node, ReferencePhoto, Revision
+from maps.models import Asset, Node, ReferencePhoto, Revision, SceneRelationship
 from maps.services import graph as graph_svc
 from maps.services.graph import GraphError
 from maps.services.media_store import put_bytes, signed_url
@@ -21,7 +21,11 @@ ALLOWED = {
 
 
 def list_node_photos(revision: Revision, *, node_id, actor) -> list[dict]:
-    graph_svc._require_writable(actor, revision)
+    # Reading photos does not mutate edit timestamps or require a write lock.
+    from maps.services.membership import get_active_membership
+
+    if get_active_membership(actor, revision.target) is None:
+        raise PermissionError("Map membership is required.")
     try:
         node = revision.nodes.get(pk=node_id)
     except Node.DoesNotExist as exc:
@@ -120,4 +124,5 @@ def remove_node_photo(revision: Revision, *, reference_id, actor) -> None:
         ref = ReferencePhoto.objects.get(pk=reference_id, revision=revision)
     except ReferencePhoto.DoesNotExist as exc:
         raise GraphError("Reference photo not found on this revision.") from exc
+    SceneRelationship.objects.filter(reference=ref).delete()
     ref.delete()

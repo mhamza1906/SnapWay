@@ -24,6 +24,19 @@ def ensure_demo_draft(user, target_id=None, *, force_new: bool = False) -> dict:
         raise PermissionError("Authentication required.")
 
     if target_id and not force_new:
+        from maps.services.workspace import start_edit
+
+        contribution = start_edit(user, target_id)
+        revision = contribution.head_revision
+        return {
+            "target_id": contribution.target_id,
+            "contribution_id": contribution.pk,
+            "revision_id": revision.pk,
+            "coordinate_frame": revision.coordinate_frame,
+            "underlay_url": _underlay_url(revision),
+        }
+
+    if target_id and not force_new:
         target = MapTarget.objects.select_related("floor").get(pk=target_id)
         if target.status == MapTarget.Status.ARCHIVED:
             raise ValueError("Archived targets cannot be edited.")

@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { WorkspaceApi } from '../../core/workspace-api.service';
 import { provideRouter } from '@angular/router';
 import { GraphApiService } from '../../core/graph-api.service';
 import { GraphEditorPage } from './graph-editor';
@@ -6,6 +9,7 @@ import { GraphEditorPage } from './graph-editor';
 describe('GraphEditorPage', () => {
   let fixture: ComponentFixture<GraphEditorPage>;
   const api = {
+    pending: () => 0,
     me: async () => ({ authenticated: true, email: 'a@b.c' }),
     ensureDraft: async () => ({
       target_id: 't1',
@@ -34,7 +38,16 @@ describe('GraphEditorPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GraphEditorPage],
-      providers: [provideRouter([]), { provide: GraphApiService, useValue: api }],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ target: 't1' }) } },
+        },
+        { provide: WorkspaceApi, useValue: { edit: api.ensureDraft } },
+        { provide: GraphApiService, useValue: api },
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(GraphEditorPage);
   });
@@ -43,7 +56,7 @@ describe('GraphEditorPage', () => {
     await fixture.componentInstance.ngOnInit();
     fixture.detectChanges();
     expect(fixture.componentInstance.revisionId()).toBe('r1');
-    expect(fixture.nativeElement.textContent).toContain('Graph editor');
+    expect(fixture.nativeElement.textContent).toContain('Edit your snapshot');
     expect(fixture.nativeElement.textContent).toContain('Auto-saves');
   });
 });

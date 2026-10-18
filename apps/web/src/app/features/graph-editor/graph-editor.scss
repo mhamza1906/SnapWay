@@ -5,7 +5,7 @@
   --blue: #4975c9;
   --paper: #f7f3ea;
   --line: #d9ddd6;
-  min-height: 100vh;
+  min-height: calc(100dvh - 78px);
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   background:

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { firstValueFrom, Observable } from 'rxjs';
 
 export type GraphNode = {
   id: string;
@@ -44,31 +44,35 @@ export type NodePhoto = {
 
 @Injectable({ providedIn: 'root' })
 export class GraphApiService {
+  readonly pending = signal(0);
+  private track<T>(request: Observable<T>): Promise<T> {
+    this.pending.update((n) => n + 1);
+    return firstValueFrom(request).finally(() => this.pending.update((n) => n - 1));
+  }
+
   private readonly http = inject(HttpClient);
 
   me() {
-    return firstValueFrom(this.http.get<{ authenticated: boolean }>('/api/auth/me/'));
+    return this.track(this.http.get<{ authenticated: boolean }>('/api/auth/me/'));
   }
 
   ensureDraft(targetId?: string, forceNew = false) {
     const body: { target_id?: string; force_new?: boolean } = {};
     if (targetId) body.target_id = targetId;
     if (forceNew) body.force_new = true;
-    return firstValueFrom(this.http.post<DraftEnsure>('/api/maps/drafts/ensure/', body));
+    return this.track(this.http.post<DraftEnsure>('/api/maps/drafts/ensure/', body));
   }
 
   getGraph(revisionId: string) {
-    return firstValueFrom(this.http.get<GraphPayload>(`/api/maps/revisions/${revisionId}/graph/`));
+    return this.track(this.http.get<GraphPayload>(`/api/maps/revisions/${revisionId}/graph/`));
   }
 
   addNode(revisionId: string, body: { x: number; y: number; label?: string; kind?: string }) {
-    return firstValueFrom(
-      this.http.post<GraphNode>(`/api/maps/revisions/${revisionId}/nodes/`, body),
-    );
+    return this.track(this.http.post<GraphNode>(`/api/maps/revisions/${revisionId}/nodes/`, body));
   }
 
   updateNode(revisionId: string, nodeId: string, label: string) {
-    return firstValueFrom(
+    return this.track(
       this.http.patch<GraphNode>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/`, {
         label,
       }),
@@ -76,13 +80,11 @@ export class GraphApiService {
   }
 
   removeNode(revisionId: string, nodeId: string) {
-    return firstValueFrom(
-      this.http.delete<void>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/`),
-    );
+    return this.track(this.http.delete<void>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/`));
   }
 
   addEdge(revisionId: string, fromNodeId: string, toNodeId: string) {
-    return firstValueFrom(
+    return this.track(
       this.http.post<GraphEdge>(`/api/maps/revisions/${revisionId}/edges/`, {
         from_node_id: fromNodeId,
         to_node_id: toNodeId,
@@ -91,13 +93,17 @@ export class GraphApiService {
   }
 
   removeEdge(revisionId: string, edgeId: string) {
-    return firstValueFrom(
-      this.http.delete<void>(`/api/maps/revisions/${revisionId}/edges/${edgeId}/`),
+    return this.track(this.http.delete<void>(`/api/maps/revisions/${revisionId}/edges/${edgeId}/`));
+  }
+
+  updateEdge(revisionId: string, edgeId: string, cost: number) {
+    return this.track(
+      this.http.patch<GraphEdge>(`/api/maps/revisions/${revisionId}/edges/${edgeId}/`, { cost }),
     );
   }
 
   listNodePhotos(revisionId: string, nodeId: string) {
-    return firstValueFrom(
+    return this.track(
       this.http.get<{ photos: NodePhoto[] }>(
         `/api/maps/revisions/${revisionId}/nodes/${nodeId}/photos/`,
       ),
@@ -107,13 +113,13 @@ export class GraphApiService {
   uploadNodePhoto(revisionId: string, nodeId: string, file: File) {
     const form = new FormData();
     form.append('file', file);
-    return firstValueFrom(
+    return this.track(
       this.http.post<NodePhoto>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/photos/`, form),
     );
   }
 
   deleteNodePhoto(revisionId: string, photoId: string) {
-    return firstValueFrom(
+    return this.track(
       this.http.delete<void>(`/api/maps/revisions/${revisionId}/photos/${photoId}/`),
     );
   }
@@ -121,7 +127,7 @@ export class GraphApiService {
   uploadUnderlay(revisionId: string, file: File) {
     const form = new FormData();
     form.append('file', file);
-    return firstValueFrom(
+    return this.track(
       this.http.post<{ underlay_url: string; coordinate_frame: GraphPayload['coordinate_frame'] }>(
         `/api/maps/revisions/${revisionId}/underlay/`,
         form,

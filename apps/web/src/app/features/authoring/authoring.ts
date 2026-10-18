@@ -7,7 +7,9 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
+import { WorkspaceApi, workspaceError } from '../../core/workspace-api.service';
 import { Icon } from '../../shared/icon';
 import {
   AssumedDoor,
@@ -40,7 +42,10 @@ interface DoorEdit {
 })
 export class AuthoringPage implements OnInit {
   private readonly pipeline = inject(PipelineService);
-  private readonly sanitizer = inject(DomSanitizer);
+  readonly auth = inject(AuthService);
+  private readonly workspace = inject(WorkspaceApi);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly health = signal<Health | null>(null);
@@ -49,7 +54,12 @@ export class AuthoringPage implements OnInit {
   readonly building = signal<PipelineBuilding | null>(null);
   readonly summary = signal<BuildingSummary | null>(null);
   readonly floorId = signal('');
-  readonly svg = signal<SafeHtml | null>(null);
+  readonly svg = signal<string | null>(null);
+  readonly buildingName = signal(this.route.snapshot.queryParamMap.get('building') || '');
+  readonly floorCode = signal('');
+  readonly latitude = signal(this.route.snapshot.queryParamMap.get('lat') || '');
+  readonly longitude = signal(this.route.snapshot.queryParamMap.get('lng') || '');
+  private draftTarget?: string;
   readonly job = signal<MapJob | null>(null);
   readonly busy = signal(false);
   readonly message = signal('');
@@ -71,12 +81,16 @@ export class AuthoringPage implements OnInit {
   readonly jobRunning = computed(() => this.job()?.status === 'running');
 
   async ngOnInit(): Promise<void> {
+    this.destroyRef.onDestroy(() => {
+      const url = this.svg();
+      if (url) URL.revokeObjectURL(url);
+    });
     try {
       this.health.set(await this.pipeline.health());
       this.library.set((await this.pipeline.library()).buildings);
     } catch {
       this.offline.set(
-        'The map-authoring pipeline is not running. Start it with `npm run prod` in apps/pipeline (see docs/pipeline/README.md).',
+        'AI authoring is temporarily unavailable. You can still create a floor and edit it manually.',
       );
     }
   }
@@ -132,7 +146,11 @@ export class AuthoringPage implements OnInit {
       return;
     }
     const { svg } = await this.pipeline.render(building, this.floorId(), this.overlay);
-    if (!this.destroyRef.destroyed) this.svg.set(this.sanitizer.bypassSecurityTrustHtml(svg));
+    if (!this.destroyRef.destroyed) {
+      const previous = this.svg();
+      this.svg.set(URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })));
+      if (previous) URL.revokeObjectURL(previous);
+    }
   }
 
   // --- AI mapping ------------------------------------------------------------
@@ -289,11 +307,71 @@ export class AuthoringPage implements OnInit {
     const building = this.building();
     if (!building) return;
     await this.run(async () => {
-      const r = await this.pipeline.saveCopy(building);
-      this.library.set((await this.pipeline.library()).buildings);
-      this.say(
-        `${building.name} ${r.updated ? 'updated in' : 'added to'} the pipeline's saved copies.`,
+      const target = await this.ensureTarget();
+      const draft = await this.workspace.edit(target);
+      const rendered = await this.pipeline.render(building, this.floorId());
+      // Transfer only the selected floor; embedded source images already live in
+      // the rendered SVG and must not be duplicated in the JSON request.
+      const floor = building.floors.find((f) => f.id === this.floorId()) as Record<string, unknown>;
+      const geometry = floor['geometry'] as Record<string, unknown>;
+      const cleanGeometry = Object.fromEntries(
+        ['spaces', 'walls', 'doors', 'pois', 'scale', 'review', 'extraction'].map((key) => [
+          key,
+          geometry?.[key],
+        ]),
       );
+      const nodes = ((building['nodes'] || []) as { id: string; floorId: string }[]).filter(
+        (n) => n.floorId === this.floorId(),
+      );
+      const ids = new Set(nodes.map((n) => n.id));
+      const edges = ((building['edges'] || []) as { from: string; to: string }[]).filter(
+        (e) => ids.has(e.from) && ids.has(e.to),
+      );
+      await this.workspace.importPipeline(draft.contribution_id!, {
+        building: {
+          floors: [
+            {
+              id: this.floorId(),
+              width: floor['width'],
+              height: floor['height'],
+              geometry: cleanGeometry,
+            },
+          ],
+          nodes,
+          edges,
+        },
+        floor_id: this.floorId(),
+        svg: rendered.svg,
+      });
+      await this.router.navigate(['/graph-editor'], { queryParams: { target } });
+    });
+  }
+
+  private async ensureTarget(): Promise<string> {
+    if (this.draftTarget) return this.draftTarget;
+    if (!this.buildingName().trim() || !this.floorCode().trim())
+      throw new Error('Enter a building name and floor code first.');
+    const params = this.route.snapshot.queryParamMap;
+    const result = await this.workspace.create({
+      building_name: this.buildingName().trim(),
+      floor_code: this.floorCode().trim(),
+      floor_name: `Floor ${this.floorCode().trim()}`,
+      building_id: params.get('buildingId') || undefined,
+      place_id: params.get('placeId') || undefined,
+      address: params.get('address') || '',
+      ...(this.latitude().trim() && this.longitude().trim()
+        ? {
+            latitude: Number(Number(this.latitude()).toFixed(6)),
+            longitude: Number(Number(this.longitude()).toFixed(6)),
+          }
+        : {}),
+    });
+    return (this.draftTarget = result.target_id);
+  }
+  async createManual(): Promise<void> {
+    await this.run(async () => {
+      const target = await this.ensureTarget();
+      await this.router.navigate(['/graph-editor'], { queryParams: { target } });
     });
   }
 
@@ -307,8 +385,13 @@ export class AuthoringPage implements OnInit {
     try {
       await task();
     } catch (e) {
-      const err = e as { error?: { error?: string }; message?: string };
-      this.error.set(err.error?.error ?? err.message ?? 'Request failed.');
+      const err = e as { error?: { error?: string; detail?: string }; message?: string };
+      this.error.set(
+        err.error?.detail ??
+          err.error?.error ??
+          (err.error ? workspaceError(e) : err.message) ??
+          'Request failed.',
+      );
     } finally {
       this.busy.set(false);
     }
