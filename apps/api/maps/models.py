@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
+from django.db.models.functions import Now
 
 
 class Record(models.Model):
@@ -64,7 +65,7 @@ class Floor(Record):
 
 
 class MapTarget(Record):
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
@@ -109,7 +110,7 @@ class Membership(Record):
 
 
 class Contribution(Record):
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"

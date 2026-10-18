@@ -66,7 +66,9 @@ still works. Geolocation uses browser permission; GPS is not a cookie permission
    references are retained. Draft database IDs are new. Resuming returns the
    same draft, even after another publication changes. Requested changes resume
    from the author's declined content in a new draft. An unpublished proposal can
-   likewise be used as the author's next snapshot.
+   likewise be used as the author's next snapshot. Unpublished content is copied
+   without a parent foreign key, so a later approved copy cannot prevent destruction
+   of its still-pending predecessor; published ancestry remains linked.
 2. Only its author can mutate an active draft. Other target members cannot read
    another author's private draft or edit it. Administrators can inspect submitted
    content; Developer/Public mode remains a separate session permission boundary.
@@ -151,8 +153,9 @@ optional `place_id`; draft geometry remains private. `/api/auth/me/` adds `pictu
 
 ## Migration and environment handoff
 
-Apply maps migrations `0004` (building place identity/edit timestamps) and `0005`
-(publication/purge guards) using the existing migration credential. They were
+Apply maps migrations `0004` (building place identity/edit timestamps), `0005`
+(publication/purge guards) and `0006` (database timestamp defaults for previous-release
+writers) using the existing migration credential. They were
 successfully applied to the configured development PostgreSQL database after the
 member supplied `DATABASE_MIGRATOR`. The runtime account remains a non-owner.
 No env names, shared defaults or dependencies changed; the existing
@@ -179,5 +182,98 @@ stale-base acceptance, archive purge and hard deletion. Browser acceptance uses
 clearly named temporary QA floors; those fixtures and their memberships/assets
 are removed after acceptance. No paid AI model calls are needed for these checks.
 
-Final check counts, screenshots and implementation links are recorded below when
-the acceptance pass finishes.
+Validation: **116 backend/MCP tests passed** in the SQLite profile, with 17
+PostgreSQL-only cases skipped there; **all 16 existing PostgreSQL integrity test
+bodies** passed separately on rolled-back fixtures, along with the real lifecycle
+smoke, published-copy/pending-predecessor regression and actual SQL inserts omitting
+the new timestamp fields to simulate the previous release. **80 frontend tests
+passed** across 18 files. Final targeted App/graph tests, Web/Visitor production
+builds, Prettier, repository Ruff/format, env contract and migration-drift checks
+passed. No new dependency or env-template field was introduced.
+
+Chrome acceptance verified real Google Places building lookup/prefill, persistent
+yellow markers, bounded floor panels, centered three-column/partial-row grids,
+server-saved connection weights, linked comparison zoom, historical selection,
+administrator approval/publication, archive destruction of pending work, permanent
+deletion through its confirmation, audit activity, exports and Google profile menu.
+No physical Android/iOS device acceptance or paid provider inference is claimed.
+
+Implementation commit: `75cb5d7` (local), followed by timestamp compatibility and
+final acceptance documentation. Remote publication is a separate handoff.
+
+All temporary browser QA targets, test accounts, memberships and checked storage
+objects were removed after acceptance; original account/map records were retained.
+The screenshots below show those explicitly labeled, temporary QA maps:
+
+- [Explore and bounded floor panel](assets/2026-10-17-developer-workspace/explore.png)
+- [My maps: three columns and centered final row](assets/2026-10-17-developer-workspace/my-maps.png)
+- [Latest publication / submitted version comparison](assets/2026-10-17-developer-workspace/comparison.png)
+- [Server-owned snapshot and weight editing](assets/2026-10-17-developer-workspace/graph-editor.png)
+- [Export-only settings](assets/2026-10-17-developer-workspace/exports.png)
+
+## Implementation files
+
+### API and database
+
+- [apps/api/README.md](../apps/api/README.md)
+- [apps/api/accounts/serializers.py](../apps/api/accounts/serializers.py)
+- [apps/api/accounts/views.py](../apps/api/accounts/views.py)
+- [apps/api/maps/migrations/0004_building_google_place_id_contribution_updated_at_and_more.py](../apps/api/maps/migrations/0004_building_google_place_id_contribution_updated_at_and_more.py)
+- [apps/api/maps/migrations/0005_workspace_lifecycle_guards.py](../apps/api/maps/migrations/0005_workspace_lifecycle_guards.py)
+- [apps/api/maps/migrations/0006_alter_contribution_updated_at_and_more.py](../apps/api/maps/migrations/0006_alter_contribution_updated_at_and_more.py)
+- [apps/api/maps/models.py](../apps/api/maps/models.py)
+- [apps/api/maps/services/draft.py](../apps/api/maps/services/draft.py)
+- [apps/api/maps/services/graph.py](../apps/api/maps/services/graph.py)
+- [apps/api/maps/services/references.py](../apps/api/maps/services/references.py)
+- [apps/api/maps/services/retention.py](../apps/api/maps/services/retention.py)
+- [apps/api/maps/services/underlay.py](../apps/api/maps/services/underlay.py)
+- [apps/api/maps/services/workspace.py](../apps/api/maps/services/workspace.py)
+- [apps/api/maps/urls.py](../apps/api/maps/urls.py)
+- [apps/api/maps/views.py](../apps/api/maps/views.py)
+- [apps/api/maps/views_graph.py](../apps/api/maps/views_graph.py)
+- [apps/api/maps/views_workspace.py](../apps/api/maps/views_workspace.py)
+- [apps/api/tests/test_database_schema.py](../apps/api/tests/test_database_schema.py)
+- [apps/api/tests/test_workspace_lifecycle.py](../apps/api/tests/test_workspace_lifecycle.py)
+
+### Web workspace
+
+- [apps/web/README.md](../apps/web/README.md)
+- [apps/web/src/app/app-account.scss](../apps/web/src/app/app-account.scss)
+- [apps/web/src/app/app.html](../apps/web/src/app/app.html)
+- [apps/web/src/app/app.routes.ts](../apps/web/src/app/app.routes.ts)
+- [apps/web/src/app/app.scss](../apps/web/src/app/app.scss)
+- [apps/web/src/app/app.spec.ts](../apps/web/src/app/app.spec.ts)
+- [apps/web/src/app/app.ts](../apps/web/src/app/app.ts)
+- [apps/web/src/app/core/auth.service.ts](../apps/web/src/app/core/auth.service.ts)
+- [apps/web/src/app/core/google-maps.service.ts](../apps/web/src/app/core/google-maps.service.ts)
+- [apps/web/src/app/core/graph-api.service.ts](../apps/web/src/app/core/graph-api.service.ts)
+- [apps/web/src/app/core/workspace-api.service.ts](../apps/web/src/app/core/workspace-api.service.ts)
+- [apps/web/src/app/features/authoring/authoring.html](../apps/web/src/app/features/authoring/authoring.html)
+- [apps/web/src/app/features/authoring/authoring.spec.ts](../apps/web/src/app/features/authoring/authoring.spec.ts)
+- [apps/web/src/app/features/authoring/authoring.ts](../apps/web/src/app/features/authoring/authoring.ts)
+- [apps/web/src/app/features/developer/activity.ts](../apps/web/src/app/features/developer/activity.ts)
+- [apps/web/src/app/features/developer/comparison.scss](../apps/web/src/app/features/developer/comparison.scss)
+- [apps/web/src/app/features/developer/comparison.ts](../apps/web/src/app/features/developer/comparison.ts)
+- [apps/web/src/app/features/developer/contributions.ts](../apps/web/src/app/features/developer/contributions.ts)
+- [apps/web/src/app/features/developer/explore-overlays.scss](../apps/web/src/app/features/developer/explore-overlays.scss)
+- [apps/web/src/app/features/developer/explore.scss](../apps/web/src/app/features/developer/explore.scss)
+- [apps/web/src/app/features/developer/explore.spec.ts](../apps/web/src/app/features/developer/explore.spec.ts)
+- [apps/web/src/app/features/developer/explore.ts](../apps/web/src/app/features/developer/explore.ts)
+- [apps/web/src/app/features/developer/exports.scss](../apps/web/src/app/features/developer/exports.scss)
+- [apps/web/src/app/features/developer/exports.ts](../apps/web/src/app/features/developer/exports.ts)
+- [apps/web/src/app/features/developer/help.ts](../apps/web/src/app/features/developer/help.ts)
+- [apps/web/src/app/features/developer/my-maps.ts](../apps/web/src/app/features/developer/my-maps.ts)
+- [apps/web/src/app/features/developer/revision-preview.ts](../apps/web/src/app/features/developer/revision-preview.ts)
+- [apps/web/src/app/features/developer/workspace.scss](../apps/web/src/app/features/developer/workspace.scss)
+- [apps/web/src/app/features/graph-editor/graph-canvas.html](../apps/web/src/app/features/graph-editor/graph-canvas.html)
+- [apps/web/src/app/features/graph-editor/graph-editor.html](../apps/web/src/app/features/graph-editor/graph-editor.html)
+- [apps/web/src/app/features/graph-editor/graph-editor.scss](../apps/web/src/app/features/graph-editor/graph-editor.scss)
+- [apps/web/src/app/features/graph-editor/graph-editor.spec.ts](../apps/web/src/app/features/graph-editor/graph-editor.spec.ts)
+- [apps/web/src/app/features/graph-editor/graph-editor.ts](../apps/web/src/app/features/graph-editor/graph-editor.ts)
+- [apps/web/src/app/shared/snapway-brand.ts](../apps/web/src/app/shared/snapway-brand.ts)
+
+### Related documentation
+
+- [docs/backend-permissions.md](../docs/backend-permissions.md)
+- [docs/database-schema.md](../docs/database-schema.md)
+- [docs/frontend-iteration.md](../docs/frontend-iteration.md)

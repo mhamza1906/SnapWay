@@ -1,6 +1,7 @@
 """Behavioral acceptance of workspace ownership, pinned snapshots and last approval wins."""
 
 import io
+import uuid
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -332,6 +333,7 @@ def test_create_api_requires_position_and_cannot_self_grant_admin(people):
         ).status_code
         == 400
     )
+
     response = client.post(
         "/api/maps/workspace/",
         {
@@ -350,6 +352,63 @@ def test_create_api_requires_position_and_cannot_self_grant_admin(people):
         Membership.objects.get(target_id=response.json()["target_id"], user=alice).role
         == "volunteer"
     )
+
+
+def test_database_timestamps_accept_inserts_from_the_previous_release(people):
+    from django.utils import timezone
+    from maps.models import Floor
+
+    admin, _, _ = people
+    original = new_map(admin)
+    floor = Floor.objects.create(
+        building=original.target.floor.building, code="old", name="Old writer"
+    )
+
+    def insert(model, values):
+        fields = [model._meta.get_field(name) for name in values]
+        columns = ",".join(connection.ops.quote_name(field.column) for field in fields)
+        placeholders = ",".join(["%s"] * len(fields))
+        prepared = [
+            field.get_db_prep_save(value, connection)
+            for field, value in zip(fields, values.values(), strict=True)
+        ]
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"INSERT INTO {connection.ops.quote_name(model._meta.db_table)} "
+                f"({columns}) VALUES ({placeholders})",
+                prepared,
+            )
+        return model.objects.get(pk=values["id"])
+
+    target = insert(
+        MapTarget,
+        {
+            "id": uuid.uuid4(),
+            "created_at": timezone.now(),
+            "floor": floor.pk,
+            "title": "Previous release target",
+            "instructions": "",
+            "status": "open",
+            "created_by": admin.pk,
+            "archived_at": None,
+        },
+    )
+    contribution = insert(
+        Contribution,
+        {
+            "id": uuid.uuid4(),
+            "created_at": timezone.now(),
+            "target": target.pk,
+            "author": admin.pk,
+            "title": "Previous release contribution",
+            "status": "draft",
+            "base_revision": None,
+            "head_revision": None,
+            "lock_version": 0,
+            "submitted_at": None,
+        },
+    )
+    assert target.updated_at is not None and contribution.updated_at is not None
 
 
 @pytest.mark.skipif(connection.vendor != "postgresql", reason="PostgreSQL-only immutability guards")
