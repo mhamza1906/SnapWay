@@ -217,6 +217,29 @@ def test_pipeline_import_is_private_until_explicit_submission(people):
     review(admin, draft.pk, "approved")
 
 
+def test_developers_share_unpublished_maps_but_keep_private_drafts(people):
+    """Peer developers see the shared catalog; each still gets their own draft clone."""
+    _, alice, bob = people
+    alice_map = new_map(alice)
+    plan(alice_map)
+    # Bob can see Alice's unpublished floor on My maps and Explore buildings.
+    bob_maps = client_for(bob).get("/api/maps/workspace/").json()["maps"]
+    assert any(row["target_id"] == str(alice_map.target_id) for row in bob_maps)
+    buildings = client_for(bob).get("/api/maps/workspace/buildings/").json()["buildings"]
+    assert any(
+        floor["target_id"] == str(alice_map.target_id)
+        for building in buildings
+        for floor in building["floors"]
+    )
+    # Joining clones Alice's SoT into Bob's own contribution; Alice's draft stays private.
+    bob_draft = start_edit(bob, alice_map.target_id)
+    assert bob_draft.author_id == bob.pk
+    assert bob_draft.head_revision_id != alice_map.head_revision_id
+    assert bob_draft.head_revision.nodes.count() == alice_map.head_revision.nodes.count()
+    with pytest.raises(GraphPermissionError):
+        add_node(alice_map.head_revision, x=99, y=99, actor=bob)
+
+
 def test_exports_and_building_markers_only_expose_published_floors(people):
     admin, alice, _ = people
     draft = new_map(alice)
