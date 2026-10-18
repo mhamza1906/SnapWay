@@ -1,8 +1,13 @@
 # Map-authoring pipeline
 
-**Latest future workflow:** [Developer image editing, semantic graph, four-direction
-references and public photo/camera navigation](navigation-ai-workflow-plan.md).
-This is a feasibility/implementation plan, not a completed runtime replacement.
+**Visitor photo localization (canonical):** MegaLoc image embeddings — see
+[localization-megaloc.md](../localization-megaloc.md) and
+[localization-visitor-match.md](../localization-visitor-match.md). Gemini is **not**
+the visitor place matcher.
+
+**Map-authoring / graph / raster plan:** [navigation-ai-workflow-plan.md](navigation-ai-workflow-plan.md)
+(feasibility for floor-plan AI and navigation UX). Visitor place match in that plan is
+MegaLoc; Gemini stays map-authoring only.
 
 **Current vectorization slice:** [Vectorizer.AI adapter and prebuilt demo assets](vectorizer-api-demo.md).
 Live calls are disabled with empty credentials. The mock is reserved for **IA floor 4**

@@ -13,6 +13,7 @@ import json
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
+from maps.services.index_catalog import eligible_index_entries, enrich_target_context
 from PIL import Image, UnidentifiedImageError
 from rest_framework import serializers, status
 from rest_framework.authentication import SessionAuthentication
@@ -108,12 +109,13 @@ class LocalizeView(LocalizationView):
     parser_classes = [MultiPartParser]
 
     @extend_schema(
-        summary="Match one camera frame to reference photos",
+        summary="Match one camera frame across all ready floor MegaLoc indexes",
         description=(
-            "Multipart `image` (JPEG, at most 3 MB and 4096 px) and `meta` JSON. Query "
-            "`backend=auto|megaloc|vertex`, `verify`, `second_opinion`. Returns the engine's "
-            "MegaLoc-first decision, raw cosine candidates (never percentages), backend_used, "
-            "fallback_used, thresholds_id and timings. Frames are not stored."
+            "Multipart `image` (JPEG, at most 3 MB and 4096 px) and `meta` JSON. Searches the "
+            "union of published (and DEBUG draft) revision index zips — no floor prompt. "
+            "Optional debug query `revision_id` or `target_id` narrows the catalog. "
+            "Legacy single-set engine match is available with `mode=legacy` plus "
+            "`backend` / `verify` / `second_opinion`. Frames are not stored."
         ),
         request={
             "multipart/form-data": inline_serializer(
@@ -137,23 +139,55 @@ class LocalizeView(LocalizationView):
             return Response({"meta": "Must be JSON."}, status=status.HTTP_400_BAD_REQUEST)
         meta = FrameMetaSerializer(data=meta_raw if isinstance(meta_raw, dict) else {})
         meta.is_valid(raise_exception=True)
-        backend = request.query_params.get("backend", "auto")
-        if backend not in {"auto", "megaloc", "vertex"}:
-            return Response({"backend": "Use auto, megaloc or vertex."}, status=400)
-        flags = {
-            name: request.query_params.get(name, "false").lower() == "true"
-            for name in ("verify", "second_opinion")
-        }
-        try:
-            body = placematch.match(
-                image,
-                {k: v for k, v in meta.validated_data.items() if v is not None},
-                backend=backend,
-                **flags,
+        frame_meta = {k: v for k, v in meta.validated_data.items() if v is not None}
+
+        if request.query_params.get("mode", "global") == "legacy":
+            backend = request.query_params.get("backend", "auto")
+            if backend not in {"auto", "megaloc", "vertex"}:
+                return Response({"backend": "Use auto, megaloc or vertex."}, status=400)
+            flags = {
+                name: request.query_params.get(name, "false").lower() == "true"
+                for name in ("verify", "second_opinion")
+            }
+            try:
+                body = placematch.match(image, frame_meta, backend=backend, **flags)
+            except EngineError as exc:
+                return _engine_error(exc)
+            return Response({**body, "caller": caller_kind(request)})
+
+        revision_id = request.query_params.get("revision_id") or None
+        target_id = request.query_params.get("target_id") or None
+        if revision_id and target_id:
+            return Response(
+                {"detail": "Pass at most one of revision_id or target_id."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
+        entries = eligible_index_entries(revision_id=revision_id, target_id=target_id)
+        if not entries:
+            return Response(
+                {
+                    "error": "index_not_ready",
+                    "detail": "No ready MegaLoc indexes in the localization catalog.",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        try:
+            placematch.ensure_catalog_synced(entries)
+            body = placematch.match_global(image, frame_meta)
         except EngineError as exc:
             return _engine_error(exc)
-        return Response({**body, "caller": caller_kind(request)})
+
+        decision = body.get("decision") or {}
+        ctx = enrich_target_context(decision.get("target_id"))
+        return Response(
+            {
+                **body,
+                **ctx,
+                "node_id": decision.get("node_id") or decision.get("location_id"),
+                "revision_id": decision.get("revision_id") or ctx.get("revision_id"),
+                "caller": caller_kind(request),
+            }
+        )
 
 
 class ReferenceThumbnailView(LocalizationView):

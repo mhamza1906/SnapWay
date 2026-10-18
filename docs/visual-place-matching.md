@@ -1,12 +1,15 @@
 # Visual place matching (video frames ↔ reference photos)
 
-**Scope.** Experimental, self-contained app in [`apps/place-match/`](../apps/place-match/)
-that matches frames of a recorded video (or a frame sequence) to reference photographs
-of the same place, and the reverse. It has its own `pyproject.toml`, `uv.lock` and
-`.venv`, so the root dependencies are unchanged. Originally developed on `feature/mobile-ios`, merged into main and now synchronized
-into the acceptance branch. The iOS app reaches it through the mobile API (`serve-mobile`, port 8790)
-directly or via the SnapWay API (`/api/navigation/localize/`); see
-[mobile-ios.md](mobile-ios.md) and the [production plan](place-match-production.md).
+**Product use:** MegaLoc in this app is the **canonical visitor photograph matcher** —
+[localization-megaloc.md](localization-megaloc.md),
+[localization-visitor-match.md](localization-visitor-match.md)
+(`RevisionArtifact` indexes + `/v1/match-global`).
+
+**Scope.** Also an experimental, self-contained bench/UI in [`apps/place-match/`](../apps/place-match/)
+for video↔reference evaluation. Own `pyproject.toml` / `uv.lock` / `.venv`. Originally
+`feature/mobile-ios`, now on main. Clients reach the engine via `serve-mobile` (8790) or
+SnapWay `/api/navigation/localize/` — [mobile-ios.md](mobile-ios.md),
+[place-match-production.md](place-match-production.md).
 
 **How to run.** See [`apps/place-match/README.md`](../apps/place-match/README.md):
 `uv sync`, then `uv run placematch match|run|calibrate|evaluate|serve` from
