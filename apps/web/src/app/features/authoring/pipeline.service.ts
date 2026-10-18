@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 // Client for the map-authoring pipeline service (apps/pipeline). The Angular dev
 // server proxies /pipeline/** to it; provider keys never reach the browser.
-export const PIPELINE_BASE = '/pipeline/api';
+export const PIPELINE_BASE = '/api/maps/authoring-compute';
 
 /** The pipeline's building JSON. Kept opaque here; the service owns its schema. */
 export type PipelineBuilding = {
@@ -170,6 +170,8 @@ export interface BuildingSummary {
   validationErrors: number;
 }
 export interface Health {
+  authoringJobs?: boolean;
+  savedProject?: boolean;
   ok: boolean;
   provider: string;
   configured: boolean;

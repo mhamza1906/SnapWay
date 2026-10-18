@@ -477,7 +477,7 @@ export class AuthoringPage implements OnInit {
       this.library.set((await this.pipeline.library()).buildings);
     } catch {
       this.offline.set(
-        'The map-authoring pipeline is not running. Start it with `npm run prod` in apps/pipeline (see docs/pipeline/README.md).',
+        'The map computation service is unavailable. You can still download the Sam Ibrahim project, open its PDFs or explore the saved 3D map.',
       );
     }
   }

@@ -101,12 +101,26 @@
     <div class="panel-body source-row">
       <button
         class="btn secondary"
-        [disabled]="busy() || !!offline()"
+        [disabled]="busy()"
         (click)="open('sam-ibrahim')"
         data-testid="open-sam-project"
       >
         Open Sam Ibrahim project
       </button>
+      <a
+        class="btn secondary"
+        href="/api/maps/authoring-compute/buildings/sam-ibrahim?download=1"
+        data-testid="download-sam-project"
+      >
+        <app-icon name="download" />Download Sam Ibrahim project
+      </a>
+      <a
+        class="btn secondary"
+        href="/map3d/sam-ibrahim-level1/3d/index.html"
+        target="_blank"
+        rel="noopener"
+        >Open Level 1 in 3D</a
+      >
       <a
         class="btn secondary"
         href="/api/maps/public/documents/sam-ibrahim-review/"
@@ -183,10 +197,16 @@
           minutes). All floors run as separate pipelines at the same time. Re-running an unchanged
           plan reuses cached answers.
         </p>
+        @if (health()?.authoringJobs === false) {
+          <p class="hint">
+            Saved-project editing, doorways, photo points and routing are available. New cloud AI
+            builds are not enabled here yet.
+          </p>
+        }
         <div class="button-row">
           <button
             class="btn primary"
-            [disabled]="busy() || !!offline()"
+            [disabled]="busy() || !!offline() || health()?.authoringJobs === false"
             (click)="buildWithAi(false)"
           >
             Build this floor
@@ -194,7 +214,7 @@
           @if (s.floors.length > 1) {
             <button
               class="btn secondary"
-              [disabled]="busy() || !!offline()"
+              [disabled]="busy() || !!offline() || health()?.authoringJobs === false"
               (click)="buildWithAi(true)"
             >
               Build all {{ s.floors.length }} floors

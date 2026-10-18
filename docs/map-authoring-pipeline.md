@@ -268,3 +268,29 @@ walking order (skipping jumps longer than 1.6 spacings). Photos for each node ar
 then added in the graph editor and stored in R2 by main's media store. It needs a
 signed-in session (Google sign-in); the authoring screen is behind main's
 session guard. Not yet tried end to end with a signed-in account.
+
+## Hosted saved-project/manual authoring boundary (2026-10-18)
+
+The web client uses `/api/maps/authoring-compute/` rather than the local-only
+`/pipeline/api/` proxy. Django requires a Developer session and CSRF for POSTs.
+`GET buildings/sam-ibrahim` returns the bundled six-floor project; `?download=1`
+downloads `Sam_Ibrahim_Project.json`. The authoring screen also links the existing
+R2 source/point PDFs and the standalone Level 1 3D scene. These links are not
+conditioned on the private compute health check.
+
+The fixed loopback Node adapter allowlists only health and stateless preparation,
+summary/rendering, route, doorway, region and hall-point operations. Browser
+cookies, provider credentials, arbitrary paths, other users' catalogues and Node
+saved-file operations are not forwarded. Publication still uses existing Django
+map permission checks. No provider call is made just to open the saved project.
+
+Cloud paid AI jobs and shared-file Save Copy remain disabled at this interim
+boundary; they require the durable authorized job/storage implementation in
+[the selected deployment plan](deployment-update-plan.md). The UI reports this
+limit and disables new AI builds. Download the project for a portable copy, and
+send graphs through the existing authorized graph-import workflow.
+
+Implementation: `apps/api/maps/views_authoring.py`, `maps/urls.py`,
+`tests/test_authoring_compute.py`, and the authoring component/PipelineService in
+`apps/web/src/app/features/authoring/`. No dependency or environment-key changes.
+The private Node service must remain available on loopback port 5175 for compute.

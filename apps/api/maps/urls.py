@@ -1,6 +1,7 @@
 from django.urls import path
 
 from maps.views import PublicBuildingDirectoryView, PublicBuildingListView, TargetAccessView
+from maps.views_authoring import AuthoringComputeView
 from maps.views_documents import SharedDocumentDownloadView, SharedDocumentListView
 from maps.views_graph import (
     EdgeCollectionView,
@@ -36,6 +37,7 @@ from maps.views_workspace import (
 )
 
 urlpatterns = [
+    path("authoring-compute/<path:operation>", AuthoringComputeView.as_view()),
     path("public/mobile-map/", mobile_map, name="mobile-walking-map"),
     path("public/documents/", SharedDocumentListView.as_view(), name="shared-documents"),
     path(
