@@ -169,32 +169,26 @@ Implementation checkpoint: [f65ac91](https://github.com/mhamza1906/SnapWay/commi
 
 ## Future authoring and visual navigation workflow
 
-The member's seven-step update is assessed in the new
+**Visitor photograph localization (canonical):** MegaLoc embed + global catalog match —
+[localization-megaloc.md](localization-megaloc.md),
+[localization-visitor-match.md](localization-visitor-match.md). No floor prompt;
+Gemini is not the place matcher.
+
+Map-authoring AI (raster/graph) remains assessed in
 [navigation/AI workflow plan](pipeline/navigation-ai-workflow-plan.md): Image 2.5
-optimization and developer edits; Gemini 4 semantic graph and asynchronous
-four-direction scene understanding; Flash-assisted graph editing; manual SVG
-prebuilds with the IA-4-only mock; and public static/photo or periodic-camera
-guidance without an indoor map UI. The plan defines frame/revision binding,
-deterministic wall checks, calibrated distances, interference exclusions,
-durable uploads, capture backpressure, review gates and proposed acceptance.
-Continuous world-registered AR requires its own measured acceptance.
-This update changes documentation only; existing APIs/schema/dependencies and
-paid-call settings remain unchanged.
+optimization and developer edits; Gemini 4 semantic graph proposals; Flash-assisted
+editing; four-direction capture as authoring; IA-4 mock. Visitor place match is
+MegaLoc only (see links above). Continuous world-registered AR requires its own
+measured acceptance.
 
 The [Indoor Live View research note](pipeline/indoor-live-view-research.md)
 separates Google disclosures from inference about its private indoor product.
-It explains server visual localization plus local visual-inertial pose tracking,
-compares open-source reconstruction/localization/tracking components, and proposes
-isolated alignment and markerless-location experiments without changing runtime
-architecture, model choices or demo boundaries.
+Tracking/AR experiments must plug into **MegaLoc localize** as the cloud slow path
+for place identity, not Gemini scene matching.
 
-The member subsequently authorized continuous geometric tracking and device
-sensor access as planned dynamic-navigation work. The [plan's sections 9.4–9.7](pipeline/navigation-ai-workflow-plan.md#94-dual-rate-estimation-tracking-states-and-delayed-corrections)
-now define local camera/accelerometer/gyroscope tracking alongside Gemini's
-periodic queries, Android/Capacitor boundaries, clock/coordinate/epoch handling,
-native camera ownership, fallback states, source-code references and real-device
-acceptance. No sensor reading or new SDK installation is claimed by this
-documentation update; existing API contracts and paid-call settings are unchanged.
+The member authorized continuous geometric tracking (plan sections 9.4–9.7): local
+camera/IMU plus periodic **MegaLoc** re-localization. No sensor reading or new SDK
+installation is claimed by this documentation update.
 
 ## Latest main integration and gap audit
 

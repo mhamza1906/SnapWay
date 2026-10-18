@@ -32,6 +32,11 @@ def _upload(client, data=None, ctype="image/jpeg", meta=None, query=""):
     from django.core.files.uploadedfile import SimpleUploadedFile
 
     meta = {"client_frame_id": 3, "timestamp_s": 1.0} if meta is None else meta
+    # Existing engine-forward tests use the legacy single-set match path.
+    if query and not query.startswith("?"):
+        query = "?" + query
+    if "mode=" not in query:
+        query = "?mode=legacy" if not query else query + "&mode=legacy"
     return client.post(
         "/api/navigation/localize/" + query,
         {

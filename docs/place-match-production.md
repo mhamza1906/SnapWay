@@ -6,14 +6,19 @@ API, quota or billing change has been made.** Every price below is a planning es
 from public list prices as remembered on 2026-10-17; check the live pricing pages before
 deciding. Measured numbers come from `apps/place-match/REPORT-v2.md` (Apple M3).
 
+**Product architecture:** MegaLoc global catalog match — [localization-megaloc.md](localization-megaloc.md).
+Django owns revision index zips (`RevisionArtifact`) and syncs them to the engine via
+`/v1/catalog/sync`; visitors call `/api/navigation/localize/` without a floor prompt.
+
 ## Target shape
 
 ```text
-iPhone ──HTTPS──► SnapWay API (Vultr, Django)  /api/navigation/localize/
+iPhone ──HTTPS──► SnapWay API (Vultr, Django)  /api/navigation/localize/  (mode=global)
                     auth: visitor NavigationSession or signed-in user; throttle; no frame storage
+                    reads ready index zips from object storage / MEDIA
                     └──HTTPS + service identity──► placematch engine (Cloud Run)
-                                                   MegaLoc in-process; Vertex AI via workload identity
-                                                   reference indexes from Cloud Storage
+                                                   MegaLoc; /v1/catalog/sync + /v1/match-global
+                                                   (Vertex optional later — not required for v1)
 ```
 
 The phone never holds Google credentials or a shared token: it authenticates to SnapWay
@@ -38,9 +43,11 @@ demos (accepting cold starts), revisit L4 GPU if measured phone traffic needs < 
 
 ## Data
 
-- Reference photos and per-backend indexes (`vectors.npy`, `index.txt`, `meta.json`) in a
-  private Cloud Storage bucket, one prefix per reference set and backend key; loaded at
-  startup and pinned by object generation.
+- Reference photos and **revision index zips** (`vectors.npy`, `index.txt`, `meta.json`,
+  `locations.json`) as SnapWay `Asset` / `RevisionArtifact` objects (R2 or equivalent).
+  Django syncs eligible zips into the engine catalog at localize time (content-hash keyed).
+- Legacy folder `build-references` / `MOBILE_REFERENCE_SET` remains for engine benches and
+  `mode=legacy` only — not the product global path.
 - MegaLoc weights either baked into the image (simplest, reproducible) or pulled from the
   same bucket by checksum (`WEIGHTS_SHA256`).
 - Thresholds file (`current.json`) versioned with the image; `thresholds_id` (content

@@ -94,7 +94,10 @@ creating another env file. See [docs/pipeline](docs/pipeline/README.md) and the
 [phase audit, model/pipeline gaps and committed screenshots](docs/audits/2026-10-17-map-authoring-pipeline.md)
 before using this result as evidence of a completed authoring workflow. Real
 Vertex access succeeded, but the generated proposal was not accepted as a map.
-iOS visitor app and photo localization: [docs/mobile-ios.md](docs/mobile-ios.md)
+Visitor photo localization (canonical MegaLoc path):
+[docs/localization-megaloc.md](docs/localization-megaloc.md),
+[docs/localization-visitor-match.md](docs/localization-visitor-match.md).
+iOS camera app notes: [docs/mobile-ios.md](docs/mobile-ios.md)
 (API reference: [docs/mobile-ios-api.md](docs/mobile-ios-api.md)).
 
 ## Dependencies and collaboration
