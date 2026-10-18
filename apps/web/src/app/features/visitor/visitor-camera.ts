@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import type { PluginListenerHandle } from '@capacitor/core';
 import {
@@ -164,8 +164,7 @@ export const VISITOR_CAPTURE_DEVICE = new InjectionToken<{
 })
 export class VisitorCamera implements AfterViewInit {
   private readonly device = inject(VISITOR_CAPTURE_DEVICE);
-  readonly demo = input(false);
-  readonly captured = output<void>();
+  readonly publicationId = input('');
   readonly closed = output<void>();
   readonly matched = output<MatchResult>();
   readonly native = this.device.native;
@@ -328,12 +327,8 @@ export class VisitorCamera implements AfterViewInit {
     try {
       let result: MatchResult;
       if (this.native) {
-        const frame = await this.nativeFrame(!this.demo());
+        const frame = await this.nativeFrame();
         if (this.destroyed) return;
-        if (this.demo()) {
-          this.captured.emit();
-          return;
-        }
         const http = await this.device.frames.uploadFrame({
           clientFrameId: frame.client_frame_id,
           backend: 'auto',
@@ -355,10 +350,6 @@ export class VisitorCamera implements AfterViewInit {
           canvas.toBlob(resolve, 'image/jpeg', 0.85),
         );
         if (!blob || this.destroyed) return;
-        if (this.demo()) {
-          this.captured.emit();
-          return;
-        }
         const form = new FormData();
         form.append('image', blob, 'location.jpg');
         form.append(
@@ -371,8 +362,22 @@ export class VisitorCamera implements AfterViewInit {
           }),
         );
         // Existing session/capability permissions remain authoritative.
+        let headers: Record<string, string> = {};
+        if (this.publicationId()) {
+          const session = await firstValueFrom(
+            this.http
+              .post<{ token: string }>('/api/navigation/sessions/', {
+                publication_id: this.publicationId(),
+              })
+              .pipe(timeout(10000)),
+          );
+          if (this.destroyed) return;
+          headers = { Authorization: `Navigation ${session.token}` };
+        }
         const body = await firstValueFrom(
-          this.http.post<unknown>('/api/navigation/localize/', form).pipe(timeout(30000)),
+          this.http
+            .post<unknown>('/api/navigation/localize/', form, { headers })
+            .pipe(timeout(30000)),
         );
         const outcome = parseMatchResponse(
           { status: 200, body: JSON.stringify(body), roundTripMs: 0 },
@@ -387,12 +392,21 @@ export class VisitorCamera implements AfterViewInit {
         else this.matched.emit(result);
       }
     } catch (error) {
-      if (!this.destroyed)
-        this.error.set(
-          error instanceof Error
-            ? error.message
-            : 'Photo matching is unavailable. Please try again later.',
-        );
+      if (!this.destroyed) {
+        if (error instanceof HttpErrorResponse) {
+          const outcome = parseMatchResponse(
+            { status: error.status, body: JSON.stringify(error.error), roundTripMs: 0 },
+            1,
+          );
+          if (outcome.kind === 'error') this.error.set(outcome.message);
+        } else {
+          this.error.set(
+            error instanceof Error
+              ? error.message
+              : 'Photo matching is unavailable. Please try again later.',
+          );
+        }
+      }
     } finally {
       if (!this.destroyed) {
         this.busy.set(false);

@@ -1,7 +1,18 @@
 # PostgreSQL database schema
 
 Owner: Eric. Handoff: Hamza (authorized services/APIs), Arjun (job/provenance
-payloads), Erfang (editor/read models). Updated October 17, 2026.
+payloads), Erfang (editor/read models). Updated October 18, 2026.
+
+**Pending deployment extension:** [maps migration 0004](../apps/api/maps/migrations/0004_floor_connections.py)
+adds `maps_floorconnection(id, created_at, cost, is_open, is_verified, created_by_id,
+from_node_id, to_node_id)` for explicit directed stair/lift transfers between
+floors in one building. Node kinds already distinguish `stairs` and `lift`.
+PostgreSQL enforces matching kinds and distinct floors in the same building;
+the authoring service requires administrator membership on both targets. This
+approved architecture extension and its rollout are tracked in the single
+[visitor feature record](mobile-visitor-ui.md#published-photo-route-walkthrough).
+The October 17 cloud catalogue, diagrams, counts and DDL export below remain
+historical evidence; they do not include this undeployed migration.
 
 **Workspace update:** maps migrations `0004`–`0006` have been applied to the
 configured development database. They add `Building.google_place_id`,

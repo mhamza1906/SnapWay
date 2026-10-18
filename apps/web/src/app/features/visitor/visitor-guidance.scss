@@ -151,3 +151,31 @@
     scroll-behavior: auto;
   }
 }
+.route-preference {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fffef5ef;
+  color: #233d30;
+  font-size: 12px;
+  select {
+    max-width: 65%;
+    min-height: 44px;
+    border: 1px solid #59715d;
+    border-radius: 8px;
+    background: #fffef5;
+    color: #233d30;
+  }
+  select:focus-visible {
+    outline: 3px solid #315b46;
+    outline-offset: 2px;
+  }
+}

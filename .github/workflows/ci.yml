@@ -199,6 +199,9 @@ jobs:
 
   deploy:
     needs: [package]
-    if: vars.PRODUCTION_DEPLOY_ENABLED == 'true'
+    if: >-
+      always() && needs.package.result == 'success' &&
+      github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
+      vars.PRODUCTION_DEPLOY_ENABLED == 'true'
     uses: ./.github/workflows/deploy.yml
     secrets: inherit

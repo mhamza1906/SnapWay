@@ -6,8 +6,13 @@ from navigation.views import (
     MegaLocIndexView,
     ReferenceThumbnailView,
 )
+from navigation.views_connections import FloorConnectionView
+from navigation.views_routing import PhotoRouteView, VisitorSessionView
 
 urlpatterns = [
+    path("floor-connections/", FloorConnectionView.as_view(), name="floor-connections"),
+    path("sessions/", VisitorSessionView.as_view(), name="visitor-session"),
+    path("photo-route/", PhotoRouteView.as_view(), name="photo-route"),
     path("localize/health/", LocalizationHealthView.as_view(), name="localize-health"),
     path("localize/", LocalizeView.as_view(), name="localize"),
     path(

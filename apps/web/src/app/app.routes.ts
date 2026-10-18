@@ -8,6 +8,7 @@ import {
 } from './core/auth.service';
 
 export const routes: Routes = [
+  { path: 'app-review', pathMatch: 'full', redirectTo: 'app-preview' },
   { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
   {
     path: 'app-preview',

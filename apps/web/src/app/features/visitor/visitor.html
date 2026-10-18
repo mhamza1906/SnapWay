@@ -43,13 +43,22 @@
         <app-destination-search
           fieldId="destination-room"
           label="Room"
-          [placeholder]="building() && !options().length ? 'No rooms available' : 'Room number'"
+          [placeholder]="building() && !options().length ? 'Rooms not ready' : 'Room number'"
           [options]="roomSuggestions()"
           [disabled]="!building() || !options().length"
           [selectedKey]="destination()?.key ?? ''"
           (selected)="selectRoom($event)"
         />
       </div>
+      @if (loading()) {
+        <p class="catalog-status" role="status">Loading buildings…</p>
+      } @else if (!error() && !buildings().length) {
+        <p class="catalog-status" role="status">No buildings are available yet.</p>
+      } @else if (building() && !options().length) {
+        <p class="catalog-status" role="status">
+          Indoor destinations are not available for this building yet.
+        </p>
+      }
       @if (error()) {
         <button class="retry" (click)="load()">{{ error() }} Retry</button>
       }
@@ -106,8 +115,29 @@
         </section>
       }
     } @else {
+      <label class="route-preference">
+        Route preference
+        <select [value]="preference()" (change)="setPreference($any($event.target).value)">
+          <option value="any">Shortest available route</option>
+          <option value="avoid_stairs">Avoid stairs</option>
+          <option value="avoid_elevators">Avoid elevators</option>
+        </select>
+      </label>
       @if (guidancePhoto(); as photo) {
-        <app-guidance-photo [photo]="photo" />
+        <app-guidance-photo [photo]="photo" (next)="moveFrame(1)" (previous)="moveFrame(-1)" />
+      } @else if (suggestedLocation()) {
+        <section class="photo-placeholder match-confirmation" aria-label="Detected checkpoint">
+          <span class="photo-symbol"><app-icon name="pin" /></span>
+          <h2>Are you near {{ suggestedLocation() }}?</h2>
+          @if (suggestedNode(); as node) {
+            <p>{{ node.floor_name }} · {{ node.building_name }}</p>
+          }
+          <p>Check the sign against your surroundings.</p>
+          <button class="primary" (click)="confirmMatch()">
+            Yes, use this location<app-icon name="check" />
+          </button>
+          <button class="text-button" (click)="recenter()">Take another photo</button>
+        </section>
       } @else {
         <span class="view-tag"><span class="dot"></span>INDOOR GUIDANCE</span>
         <div class="photo-placeholder">
@@ -119,7 +149,9 @@
               !destination()
                 ? 'Choose your room above.'
                 : confirmedLocation()
-                  ? 'Your next steps, in pictures.'
+                  ? routeLoading()
+                    ? 'Finding your route…'
+                    : 'Your next steps, in pictures.'
                   : 'Let’s find you inside.'
             }}
           </h2>
@@ -128,7 +160,7 @@
               !destination()
                 ? 'Then take one photo to find your indoor starting point.'
                 : confirmedLocation()
-                  ? 'Reference photos and direction arrows will appear here once this route is available.'
+                  ? 'Choose your route preference, then load the photos for your route.'
                   : 'One photo of a door sign or landmark helps us find your starting point.'
             }}
           </p>
@@ -136,6 +168,9 @@
             <button class="primary capture" (click)="recenter()">
               <app-icon name="camera" />Take a photo
             </button>
+          }
+          @if (confirmedLocation() && !routeLoading()) {
+            <button class="primary capture" (click)="loadRoute()">Retry route</button>
           }
         </div>
       }
@@ -167,14 +202,6 @@
           Location options<app-icon name="settings" />
         </button>
       </div>
-    } @else if (active() && indoor() && suggestedLocation()) {
-      <div class="match-confirmation">
-        <strong>Are you near {{ suggestedLocation() }}?</strong>
-        <p>Check the sign against your surroundings.</p>
-        <button class="primary" (click)="confirmMatch()">
-          Yes, use this location<app-icon name="check" /></button
-        ><button class="text-button" (click)="recenter()">Take another photo</button>
-      </div>
     } @else if (indoor()) {
       <button class="text-button" (click)="showOutdoor()">
         Back to outdoor map<app-icon name="map" />
@@ -184,8 +211,7 @@
 </main>
 @if (cameraOpen()) {
   <app-visitor-camera
-    [demo]="building()?.demo ?? false"
-    (captured)="demoPhotoCaptured()"
+    [publicationId]="destination()?.floor?.publication_id ?? ''"
     (closed)="cameraOpen.set(false)"
     (matched)="acceptMatch($event)"
   />

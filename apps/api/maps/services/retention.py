@@ -9,6 +9,7 @@ import logging
 
 from django.apps import apps
 from django.db import connection, transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from maps.models import AuditEvent, Contribution, Floor, MapTarget, Publication, Revision
@@ -42,6 +43,13 @@ def _purge(target, contributions=None):
             jobs = jobs.filter(revision_id__in=ids)
         _raw(apps.get_model("jobs", "JobAttempt").objects.filter(job__in=jobs))
         _raw(jobs)
+        # Transfers pin exact nodes on either floor; remove them before purging
+        # an endpoint revision, while retaining the other floor's own graph.
+        _raw(
+            apps.get_model("maps", "FloorConnection").objects.filter(
+                Q(from_node__revision_id__in=ids) | Q(to_node__revision_id__in=ids)
+            )
+        )
         for name in [
             "SceneRelationship",
             "ReferencePhoto",

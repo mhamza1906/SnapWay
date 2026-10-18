@@ -8,7 +8,7 @@ import json
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from maps.models import Asset, Revision, RevisionArtifact
+from maps.models import Asset, Node, Revision, RevisionArtifact
 from maps.services.draft import ensure_demo_draft
 from maps.services.index_catalog import eligible_index_entries, set_key_for_revision
 from navigation.services import placematch
@@ -37,6 +37,7 @@ def draft_with_index(member, settings, tmp_path):
     settings.DEBUG = True
     draft = ensure_demo_draft(member)
     revision = Revision.objects.select_related("target").get(pk=draft["revision_id"])
+    Node.objects.create(revision=revision, kind="checkpoint", x=10, y=20, label="East corridor")
     import hashlib
 
     from maps.services.media_store import put_bytes
@@ -107,8 +108,8 @@ def global_engine(monkeypatch, settings):
                 "decision": {
                     "outcome": "likely_match",
                     "reference_id": "reference:n/a.jpg",
-                    "location_id": "node-1",
-                    "node_id": "node-1",
+                    "location_id": state.get("node_id", "node-1"),
+                    "node_id": state.get("node_id", "node-1"),
                     "revision_id": state.get("revision_id", "rev"),
                     "target_id": state.get("target_id", "tgt"),
                     "reasons": ["ok"],
@@ -140,6 +141,7 @@ def test_global_localize_enriches_floor(draft_with_index, global_engine, member)
     draft, revision = draft_with_index
     global_engine["revision_id"] = str(revision.id)
     global_engine["target_id"] = str(revision.target_id)
+    global_engine["node_id"] = str(revision.nodes.get().id)
     # After sync, force match-global to use real ids from decision override in fixture —
     # patch ensure to set catalog hashes equal so sync may still upload once.
     client = APIClient()
@@ -159,6 +161,10 @@ def test_global_localize_enriches_floor(draft_with_index, global_engine, member)
     assert body["floor_id"]
     assert body["building_id"]
     assert body["caller"] == "user"
+    assert body["matched_node"]["node_id"] == global_engine["node_id"]
+    assert body["matched_node"]["stable_id"] == str(revision.nodes.get().stable_id)
+    assert body["matched_node"]["label"] == "East corridor"
+    assert body["localization_token"]
 
 
 @pytest.mark.django_db

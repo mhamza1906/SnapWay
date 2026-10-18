@@ -138,6 +138,17 @@ Use relational records for users, targets, memberships, submissions, revisions, 
 
 Keep the navigation graph distinct from wall geometry. A wall segment is not a walking edge; a room centroid is not proof of a doorway connection. Global geographic coordinates identify buildings/entrances. Local plan coordinates and reference-image/3D frames require explicit transforms and independent validation.
 
+**Approved visitor-routing extension, October 18, 2026:** the requesting contributor
+approved explicit weighted cross-floor connections. `maps_floorconnection` joins
+exact revision-local stair nodes to stair nodes, or lift nodes to lift nodes, on
+different floors of the same building. Existing `maps_edge` revision-scope constraints
+remain intact. A reverse journey requires an explicit reverse connection. Routing
+uses active published endpoint revisions, open/verified connections and one of
+`any`, `avoid_stairs`, or `avoid_elevators`; `maps_node.kind` already identifies
+stairs/lifts, so duplicate boolean attributes are unnecessary. See the
+[visitor feature record](../mobile-visitor-ui.md#published-photo-route-walkthrough)
+for APIs, photo headings, migration and validation. No dependency change is needed.
+
 ### Publication transaction
 
 1. Freeze the proposed contribution content and its starting revision for review.

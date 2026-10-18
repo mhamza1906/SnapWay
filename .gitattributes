@@ -5,6 +5,9 @@
 *.yml text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.ts text eol=lf
+*.html text eol=lf
+*.scss text eol=lf
 *.toml text eol=lf
 *.lock text eol=lf
 /docs/initial/** -text

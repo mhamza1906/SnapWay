@@ -304,6 +304,14 @@
       }
       @if (tool() === 'add') {
         <div class="tool-options">
+          <label>
+            Waypoint type
+            <select [value]="nodeKind()" (change)="nodeKind.set($any($event.target).value)">
+              @for (kind of kinds; track kind) {
+                <option [value]="kind">{{ kind === 'lift' ? 'Elevator' : kind }}</option>
+              }
+            </select>
+          </label>
           <label
             >New waypoint label<input
               placeholder="Optional label"
