@@ -7,6 +7,8 @@ unit, proxy route or paid model call was created or enabled. The existing
 API-only default remain unchanged. Contributor execution history is in ignored
 `local/ACTIONS.md`.
 
+Implementation: [ab0c726](https://github.com/mhamza1906/SnapWay/commit/ab0c726).
+
 ## What the option includes
 
 Run the existing packager after committing and validating the intended source:

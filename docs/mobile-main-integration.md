@@ -1,6 +1,7 @@
 # Main integration and shared mobile live matching
 
 Updated October 18, 2026. Work remains on `feature/map-authoring-pipeline`.
+Implementation: [ab0c726](https://github.com/mhamza1906/SnapWay/commit/ab0c726).
 Merged main at [db168a3](https://github.com/mhamza1906/SnapWay/commit/db168a3)
 into the existing feature work; Git main is unchanged. The local recovery branch
 is `backup/map-authoring-before-mobile-main-20261018`. Personal execution history

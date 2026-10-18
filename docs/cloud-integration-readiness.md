@@ -8,6 +8,8 @@ uses the existing [Vultr release process](deployment.md) and
 [single environment contract](environment-sync.md). Execution details and private
 backup paths remain in ignored `local/ACTIONS.md`.
 
+Implementation: [ab0c726](https://github.com/mhamza1906/SnapWay/commit/ab0c726).
+
 ## Checked services and storage
 
 | Component | Observed state |
