@@ -1,215 +1,106 @@
-# Optional cloud runtime package
+# Cloud runtime package and Vultr setup
 
-Updated October 18, 2026. This is a reviewable package of the existing services,
-not a deployed production configuration. No cloud resource, machine, credential,
-unit, proxy route or paid model call was created or enabled. The existing
-[deployment controller](../infra/deploy.py), installer, CI deployment policy and
-API-only default remain unchanged. Contributor execution history is in ignored
-`local/ACTIONS.md`.
+Updated October 18, 2026. Implementation: [initial package](https://github.com/mhamza1906/SnapWay/commit/ab0c726), [Windows source-byte preservation](https://github.com/mhamza1906/SnapWay/commit/8b8d382), [runtime preparation and operator installer](https://github.com/mhamza1906/SnapWay/commit/bf2359c). Contributor execution history is in ignored `local/ACTIONS.md`.
 
-Implementation: [ab0c726](https://github.com/mhamza1906/SnapWay/commit/ab0c726).
+## Current state
 
-## What the option includes
+The user authorized installing Node and MegaLoc on the existing Vultr machine. The [CI capability probe](https://github.com/mhamza1906/SnapWay/actions/runs/39116081959) authenticated with the existing GitHub Actions identity, without a local SSH key. It confirmed that `incoming`, `venvs` and `python` under `/srv/indoor-nav` are writable, while `releases`, `shared`, systemd configuration and the protected env file are not. The identity has no general administrator permission. No account or sudo policy was changed.
 
-Run the existing packager after committing and validating the intended source:
+The [runtime preparation job](https://github.com/mhamza1906/SnapWay/actions/runs/39116341870) stages dependencies and weights without starting a listener or changing API/web releases. It completed successfully: Node 24.15.0, Python 3.12.14, Torch 2.9.1 and 914,577,436-byte MegaLoc weights are installed. One finite 8,448-value CPU descriptor took 906.3 ms; cold-load/forward peak RSS was 3,435,655,168 bytes (about 3.2 GiB). This single synthetic check is not a sustained latency or location-accuracy benchmark. No calibration or catalog was synchronized. Permanent system services still require an administrator to run the prepared installer. This boundary comes from the server's actual permissions.
 
-```sh
-python3 scripts/package_release.py <40-character-commit>-<run-id>-<attempt> \
-  --with-mobile-services \
-  --web apps/web/dist/snapway/browser \
-  --output local/release-with-mobile-services.tar.gz
-```
+## CI preparation
 
-The release ID must name the checked-out commit. Packaging uses `git archive HEAD`,
-so uncommitted edits and ignored local files never become release source. The
-archive command disables `core.autocrlf` conversion to preserve committed source
-bytes even when packaging from a Windows checkout. The flag
-requires the optional sources and lock files to be committed. Run without the flag
-for the existing API/MCP/browser archive and original manifest shape.
-
-| Component | Source in the optional archive | Dependency authority |
-| --- | --- | --- |
-| Django API and MCP | `source/apps/api`, `source/apps/mcp`, `source/packages` | Root `source/pyproject.toml` and `source/uv.lock` |
-| Browser application | `web/` | Already validated Angular browser build |
-| Authoring pipeline | `source/apps/pipeline` | Its committed `package.json` and `package-lock.json`; root `.node-version` |
-| MegaLoc engine | `source/apps/place-match` | Its separate `pyproject.toml` and `uv.lock` |
-| Sam Ibrahim project | `source/experiments/sam-ibrahim-hardcoded` | Existing project code, metadata and original SVG evidence |
-| Operator templates | `source/infra/units/snapway-{pipeline,placematch}.service` | Reviewed existing executable entry points |
-
-The optional manifest adds `components` and `service_templates` metadata. It does
-not mark any service active or ready. SHA-256 packaging output remains unchanged.
-The Sam source SVGs are required by the pipeline renderer through its existing
-relative source path; they must travel with the pipeline code. This archive is a
-runtime package, not a complete frontend development checkout: experiment tools
-that import web TypeScript still require a full checkout when rebuilding exports.
-
-The optional source filter excludes known private/runtime artifacts even if
-accidentally committed: private `.env*` files (public `*.example` templates remain),
-local state, installed dependencies, virtual environments, model/weight folders,
-model binaries, embedding arrays, private key formats, video recordings, Python
-cache files, engine `data/` and `runs/`, and generated outputs. A Git commit must
-still undergo credential review: an arbitrary secret hidden in an ordinary source
-file cannot be recognized safely by filename filtering. No model weights, reference
-photos, generated embeddings, local database, or private env is supplied by this
-package. Empty runtime mount directories are added deliberately; they contain no
-local state.
-
-## Reviewed service boundaries
-
-The two files are **templates**. They contain unresolved placeholders and must not
-be copied verbatim into active systemd configuration. Use only values selected
-and reviewed by the deployment owner:
-
-- `@RELEASE_ID@`: an immutable directory under `/srv/indoor-nav/releases/` that
-  contains the optional package. Pin both services to this release. `/current`
-  can later point at an API-only release and is unsuitable for these units.
-- `@NODE_BINARY@`: the absolute executable path for the already approved Node
-  runtime matching `.node-version`, installed outside a protected home folder.
-- `@PLACEMATCH_VENV@`: the absolute, separately prepared Python 3.12 virtual
-  environment path under `/srv/indoor-nav/venvs/`, populated from the engine's
-  committed lock. The API virtual environment does not contain the engine stack.
-
-Both run as the existing `snapway` service user. systemd reads the existing
-root-only `/etc/indoor-nav/api.env`; the service user does not need permission to
-read that file. `DATABASE_MIGRATOR` is removed from each runtime environment.
-Neither template puts credentials in command lines or JavaScript. This packaging
-change adds no private-env key or contract version. Missing existing credentials
-must come from the responsible owner through the team's private channel; never
-substitute shared credentials in an application bundle.
-
-The pipeline's existing listener binds `127.0.0.1:5175`. Its launcher preserves
-`APP_ENV=prod` and existing provider policy/settings from the protected env. Its
-Node/libuv and OpenMP worker limits are two. The engine uses its existing
-`serve-mobile --host 127.0.0.1 --port 8790` command with one process, two
-OMP/MKL/OpenBLAS/NumExpr threads, and CPU-only visibility. This is a conservative
-starting configuration for a two-vCPU host, not a measured cloud speed claim.
-The template disables optional Vertex fallback and frame retention explicitly;
-live requests use MegaLoc and ephemeral query cache. Engine matching state and
-signed request authorization stay in the existing application services.
-
-Both units harden the filesystem with `ProtectSystem=strict`, `ProtectHome=yes`,
-private temporary storage and `NoNewPrivileges`. Mutable paths are bind-mounted
-from protected, persistent shared storage into empty destinations in the release:
-
-| Shared path | Release destination | Access |
-| --- | --- | --- |
-| `/srv/indoor-nav/shared/pipeline-node_modules` | `source/apps/pipeline/node_modules` | Read only; locked Linux dependency installation |
-| `/srv/indoor-nav/shared/pipeline-local` | `source/apps/pipeline/.local` | Read/write runtime state |
-| `/srv/indoor-nav/shared/pipeline-output` | `source/apps/pipeline/output` | Read/write exports |
-| `/srv/indoor-nav/shared/placematch-data` | `source/apps/place-match/data` | Read/write indexes/catalog and provisioned model/calibration |
-| `/srv/indoor-nav/shared/placematch-runs` | `source/apps/place-match/runs` | Read/write runtime directory; frame retention remains off |
-
-Provision writable shared directories for `snapway:snapway` with mode 0700. Keep
-code, virtual environments and prepared dependency installation read only to the
-service. The host installer does not create these optional paths. The operator
-must prepare them before verifying or activating rendered units. Do not install
-npm packages or download Python wheels on service startup.
-
-## Activation gates for the deployment owner
-
-1. Build/test the committed browser/API/pipeline/engine versions and inspect the
-   optional archive and manifest. Retain its SHA-256 sidecar and release identity.
-2. Confirm an existing compatible Linux Node runtime, Python 3.12, engine native
-   dependencies and two separate lock-resolved environments are available. The
-   CUDA/PyTorch packages selected by the engine's existing lock may require a
-   substantial disk download. This task did not install, change or purchase them.
-   Review any needed OS package/runtime change before proceeding.
-3. Prepare shared paths and existing pinned MegaLoc code/weights using the
-   documented hashes, calibration and authorized reference indexes. Reference
-   photos/indexes remain in their existing private R2 storage and are loaded or
-   synchronized through the authorized API/engine flow. Do not make the bucket
-   public. The existing `PLACEMATCH_ENGINE_TOKEN` must agree between API and engine;
-   the API's `PLACEMATCH_ENGINE_URL` must point at the reviewed loopback endpoint.
-4. Measure **on the actual host**, under simultaneous API load: cold startup peak
-   RSS, warmed inference RSS, request latency, CPU pressure and disk usage. The
-   prior local eight-thread CPU run peaked near 2.13 GB process footprint and
-   suggested roughly 3 GB per serial worker ([measurement](sam-ibrahim-video-localization.md)).
-   This does not validate a two-thread Linux/Vultr configuration. Do not activate
-   MegaLoc where measured headroom cannot cover it plus the API, OS, and optional
-   authoring work. Suspend authoring during matching if the combined budget fails;
-   no automatic instance resize or GPU purchase is authorized by this package.
-5. Render unit placeholders against the selected release, inspect the resulting
-   files, and run `systemd-analyze verify` on the deployment host. No systemd syntax
-   validator is available on the author's macOS machine; repository tests check
-   the template boundaries, not Linux activation. Only the owner should install
-   or enable units after the earlier gates pass.
-6. Probe both private services and then the authorized API flow. A running process
-   or a successful `/v1/health` response does not establish ready weights, indexed
-   floors, calibrated confidence or accurate localization. Confirm cold/warm
-   loading, uncertain/unmapped responses and real-phone permission/lifecycle flows.
-
-The default Caddy configuration routes `/api/*` to Django and does **not** forward
-the pipeline authoring endpoints. Never expose the unauthenticated standalone
-pipeline server directly on the public internet. A reviewed, authenticated gateway
-is required before cloud authoring is enabled. The matching engine likewise stays
-private; phones call the authenticated or session-scoped Django gateway rather than
-port 8790. This change does not alter proxy rules or claim cloud authoring is live.
-
-The existing controller does not install, start, probe, roll back or rotate these
-optional units. Their pinned release must be retained while they run. A production
-activation/rollback plan must cover them separately before enabling them. CI still
-packages/deploys through its existing default main-branch policy; this flag is not
-silently enabled in CI and pushing a feature branch does not deploy a server.
-
-## Changed files and verification
-
-- [Release packager](../scripts/package_release.py)
-- [Packaging and boundary tests](../infra/tests/test_package_release.py)
-- [Pipeline unit template](../infra/units/snapway-pipeline.service)
-- [MegaLoc unit template](../infra/units/snapway-placematch.service)
-
-**Validation:** packaging and existing deployment-controller suites pass together
-and cloud-audit checks (**38 tests**); changed Python lint/format and Git whitespace
-checks pass. Windows regressions exercise Git Bash selection and committed source
-byte preservation with `core.autocrlf=true`.
-Focused packaging tests use disposable Git repositories and synthetic secrets;
-they cover default archive compatibility, opt-in committed code/locks/SVGs,
-manifest components, uncommitted changes, artifact exclusions, and template
-permission/thread/listener boundaries. Existing controller tests remain unchanged.
-Commit links will be added after the reviewed integration is committed.
-
-## Read-only cloud audit through existing GitHub Actions credentials
-
-The existing CI workflow now has a separate, independent `cloud-readiness` job.
-It runs only on an explicit workflow dispatch with `cloud_audit=true`; both
-`cloud_audit` and the existing `deploy` input default to false. It uses the five
-already configured Vultr SSH secrets through the existing CI identity. Secret
-values are never displayed. Temporary identity and pinned known-host files use
-mode 0600 under a mode 0700 runner directory, with cleanup on exit. SSH host-key
-verification is mandatory; raw connection diagnostics are suppressed.
-
-After the reviewed branch is committed and pushed, the authorized repository
-operator can request the audit without a local SSH key:
+The existing [CI workflow](../.github/workflows/ci.yml) has a default-off `mobile_runtime` choice. `probe` checks capabilities without server writes. `prepare` uploads filtered committed source and runs [prepare-mobile-runtime.sh](../infra/prepare-mobile-runtime.sh) as the existing deployment account. [mobile-runtime-ci.sh](../infra/mobile-runtime-ci.sh) uses the existing CI secrets, strict pinned host-key checks, a private temporary identity and cleanup on exit. Secret values and connection diagnostics are not printed.
 
 ```sh
 gh workflow run ci.yml --ref feature/map-authoring-pipeline \
-  -f cloud_audit=true -f deploy=false
+  -f mobile_runtime=prepare -f deploy=false -f cloud_audit=false
 ```
 
-Read the **Read-only cloud readiness** job summary in that run. The job checks SSH
-authentication, operating system/CPU, available memory, disk capacity, SnapWay unit
-names/states, existing executable presence and HTTP status codes. It probes only
-loopback ports 5175/8790 and public liveness, readiness and native map routes; it
-uses no authorization header and discards all HTTP response bodies. A protected
-engine may appropriately return 401/403; an absent service reports unreachable.
-A public native map status of 200 establishes HTML availability, not successful
-Google rendering or a valid provider allowlist.
+Source is stored under `/srv/indoor-nav/incoming/<commit>-<run>-<attempt>/source`. The runtime is `/srv/indoor-nav/venvs/mobile-<commit>/`:
 
-The remote script reads no env file, process environment, private key, application
-record, image, embedding or database content. It performs no remote writes, sudo,
-package installation, migration, deployment or service activation/restart. The job
-is independent of the test/deployment dependency graph and leaves the existing
-main-only packaging/deployment expressions unchanged. A feature-branch audit
-cannot activate that branch through this option. Existing tests may also run in
-the dispatched workflow; their results do not turn `deploy=false` into consent to
-deploy. If GitHub rejects dispatch inputs until the workflow is available on the
-default branch, report that platform limitation and do not bypass production gates.
+| Path below runtime | Contents |
+| --- | --- |
+| `node/` | Official Node 24.15.0 Linux x64 archive, verified against its pinned SHA-256 |
+| `pipeline/node_modules/` | Existing production npm lock, installed without lifecycle scripts |
+| `placematch/` | Python 3.12.14 environment, existing frozen lock, non-editable installation and copied package files |
+| `placematch-data/models/megaloc/` | Existing pinned upstream model code and weights, both fully SHA-256 verified |
+| `placematch-runs/` | Empty private runtime destination; frame retention stays off |
+| `prepared.json` | Runtime versions, lock/model hashes and basic CPU smoke-check results |
 
-Implementation: [CI workflow](../.github/workflows/ci.yml),
-[read-only audit script](../infra/cloud-readiness.sh), and
-[offline boundary tests](../infra/tests/test_cloud_readiness.py). The tests assert
-explicit default-off invocation, strict host-key checking, read-only remote
-commands and exact preservation of the existing production gate expressions.
-The combined audit, packaging and existing deployment-controller suite passes
-**37 tests**; Bash syntax, changed Python lint/format and Git whitespace checks pass.
-No remote audit was executed while authoring these files.
+Dependency subprocesses receive a filtered environment without database/provider/deployment credentials. Preparation does not read the protected API env. It checks Node imports, OpenCV/PyTorch imports and one synthetic `(1, 3, 322, 322)` CPU inference. The descriptor must be finite and have shape `(1, 8448)`. No camera image, full video, paid provider call, reference embedding cache or accuracy evaluation is involved.
+
+The existing Linux PyPI PyTorch lock includes CUDA wheels even though this service uses CPU. The script preserves that lock and requires at least 12 GiB free for dependencies, cache and weights; it does not choose a different wheel source or purchase a GPU. Two threads and CPU visibility are enforced. The model's existing pinned constructor performs no additional pretrained download.
+
+## Administrator activation
+
+The [operator installer](../infra/install-mobile-services.sh) requires root and must be reviewed and invoked by an authorized server administrator. It is not granted to the upload account through sudo. After a successful preparation, the command shape is:
+
+```sh
+sudo bash /srv/indoor-nav/incoming/RELEASE_ID/source/infra/install-mobile-services.sh \
+  --stage RELEASE_ID \
+  /srv/indoor-nav/venvs/mobile-COMMIT/node/bin/node \
+  /srv/indoor-nav/venvs/mobile-COMMIT/placematch
+```
+
+The completed preparation is release `bf2359c5e8b1b710601e008e14bbc3cecce5bfa3-39116341870-1`. For this installed runtime, paste:
+
+```sh
+runtime=/srv/indoor-nav/venvs/mobile-bf2359c5e8b1b710601e008e14bbc3cecce5bfa3
+release=bf2359c5e8b1b710601e008e14bbc3cecce5bfa3-39116341870-1
+sudo bash /srv/indoor-nav/incoming/"$release"/source/infra/install-mobile-services.sh --stage "$release" "$runtime/node/bin/node" "$runtime/placematch"
+```
+
+Open the existing instance in [Vultr Console](https://console.vultr.com/), locate its administrator credentials in Overview, then use **View Console**. Sign in with the current administrator account. Vultr documents **Send Clipboard** for pasting through the console toolbar; no local SSH key is needed. See [Vultr's console guide](https://docs.vultr.com/products/compute/instances/cloud-compute/connection/vultr-console). Do not share credentials or credential-bearing screenshots. If the installer names a missing existing setting, report its name only and obtain the value through the private configuration channel.
+
+Use the exact prepared release and commit recorded by CI. The installer copies source as the unprivileged upload identity, rejects links/special files, freezes the source under the selected immutable release and creates empty mount destinations. It verifies the prepared lock identities, existing token/provider configuration and runtime executability as the service account. Credential values are never printed or overwritten. Missing existing `PLACEMATCH_ENGINE_TOKEN`, `AI_PROVIDER` or the selected provider's credentials must be supplied by the configuration owner through the existing private channel. No new env key or schema version is introduced.
+
+The installer renders the [pipeline](../infra/units/snapway-pipeline.service) and [MegaLoc](../infra/units/snapway-placematch.service) templates, runs `systemd-analyze verify`, and starts/enables only those two optional units. It retains previous unit files and enabled/active states and restores them on startup failure. It does not run the API deployment controller, migrations, Caddy changes, API restarts or sudo-policy changes. Source/runtime/data are retained on rollback.
+
+Both services run as `snapway`, read the existing root-only `/etc/indoor-nav/api.env` through systemd, drop `DATABASE_MIGRATOR`, and enforce final execution flags after env-file loading. This matters because [systemd env files override `Environment=` assignments](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html#EnvironmentFile=).
+
+| Service | Private listener | Enforced execution bounds |
+| --- | --- | --- |
+| Pipeline | `127.0.0.1:5175` | Production provider policy, two libuv/OpenMP threads |
+| MegaLoc | `127.0.0.1:8790` | One process, two CPU threads, Vertex off, frame retention off |
+
+Read-only bind mounts supply `runtime/pipeline/node_modules`; writable binds supply `shared/pipeline-local`, `shared/pipeline-output`, `runtime/placematch-data` and `runtime/placematch-runs`. Model/catalog data remain private to `snapway`. Code and environments are frozen separately. The interpreter provisioned in the existing Python directory remains managed by the server's established deployment identity.
+
+Service checks establish process availability and rejection of unauthenticated engine requests. They do not establish calibrated confidence, loaded floor indexes, accurate location or a working phone flow. The source files remain pinned to their release; the API-only controller does not manage their lifecycle or retention.
+
+## Remaining integration boundaries
+
+The API's existing `PLACEMATCH_ENGINE_TOKEN` must match the engine and `PLACEMATCH_ENGINE_URL` must select the loopback service. Its protected server configuration can be changed only by the configuration owner. Sam's reference artifacts are already in private R2, but its local metadata has not been transferred into Tiger Data. An identity-preserving backed-up transfer and authorized catalog synchronization remain required. Calibration and legitimate publication/connection review are separate from installing a runtime; no draft is silently published.
+
+The default Caddy configuration routes `/api/*` to Django and does not forward standalone pipeline endpoints. Keep both optional services private. Cloud authoring still requires a reviewed authenticated gateway; exposing `/pipeline/**` directly would expose unauthenticated server operations. This setup does not alter that boundary or claim cloud authoring is live.
+
+Physical phone permissions, Maps display, camera lifecycle, cellular transport and independent matching accuracy remain device checks. No cloud instance resize, new resource or paid model call is part of this setup.
+
+## What the optional release includes
+
+The existing packager also supports a reviewable archive, separately from CI runtime preparation:
+
+```sh
+python3 scripts/package_release.py <40-character-commit>-<run-id>-<attempt> \
+  --with-mobile-services --web apps/web/dist/snapway/browser \
+  --output local/release-with-mobile-services.tar.gz
+```
+
+[package_release.py](../scripts/package_release.py) packages committed API/MCP/web sources plus optional pipeline, MegaLoc, original Sam SVG/project sources, locks, unit templates and the preparation/operator scripts. Default API-only packaging and main-only production deployment gates remain unchanged. The release ID must match HEAD. Git archive disables newline conversion and excludes uncommitted files. Additional optional-source filtering excludes private envs, installed dependencies, local state, weights, vectors, private keys and recordings even if accidentally tracked. Code still needs ordinary credential review; filenames alone cannot detect a secret hidden in a source file.
+
+## Checks and references
+
+Basic local checks passed: **50 infrastructure tests** in about two seconds, Bash syntax, changed Python lint/format and Git whitespace checks. Tests exercise unsafe-argument rejection, Windows Git Bash selection, archive source-byte preservation, private artifact filtering, explicit CI gates, unit bounds and installer/rollback boundaries. They do not run a root installation on the developer machine.
+
+- [Preparation tests](../infra/tests/test_prepare_mobile_runtime.py)
+- [Operator installer tests](../infra/tests/test_mobile_service_installer.py)
+- [Packaging tests](../infra/tests/test_package_release.py)
+- [Existing deployment-controller tests](../infra/tests/test_deploy.py)
+- [Environment contract](environment-sync.md)
+- [Matching/index readiness](cloud-integration-readiness.md)
+- [Official Node checksums](https://nodejs.org/dist/v24.15.0/SHASUMS256.txt)
+- [uv non-editable installation guidance](https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs)
+
+## Read-only cloud audit through existing GitHub Actions credentials
+
+The separate default-off `cloud_audit=true` job remains read-only. Its [script](../infra/cloud-readiness.sh) checks machine capacity, existing executables, unit states and HTTP statuses; it reads no private env, application record or response body and performs no remote writes, package installation, sudo command or service restart. [Audit boundary tests](../infra/tests/test_cloud_readiness.py) keep it separate from the new explicit preparation action. Earlier [audit results](https://github.com/mhamza1906/SnapWay/actions/runs/39115318153) measured three CPU threads and about eight GiB RAM; the current capability probe also confirmed the existing OpenCV system library and approximately 200 GiB free disk.

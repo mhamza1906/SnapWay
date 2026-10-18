@@ -124,6 +124,8 @@ restricted to published maps and cannot use these unpublished walks.
 
 ## Deployment work still required
 
+The [follow-up Vultr runtime preparation](cloud-runtime-packaging.md#current-state) installed pinned Node, locked Python dependencies and verified MegaLoc weights successfully. One synthetic CPU inference passed. The CI identity cannot install permanent systemd services; the prepared administrator command is documented there. Protected API configuration, calibration/catalog synchronization and Sam metadata transfer remain separate.
+
 The [read-only CI audit](https://github.com/mhamza1906/SnapWay/actions/runs/39115318153)
 successfully authenticated using the existing GitHub Actions Vultr identity,
 without the contributor's local SSH key. On October 18 it observed 3 CPU threads,
