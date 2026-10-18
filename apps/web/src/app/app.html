@@ -132,7 +132,7 @@
     <router-outlet />
   </main>
 } @else {
-  @if (url().startsWith('/navigate')) {
+  @if (url().startsWith('/app-preview')) {
     <div class="visitor-return"><a routerLink="/my-maps">Back to workspace</a></div>
   }
   <main id="main-content" tabindex="-1"><router-outlet /></main>

@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  DetachedRouteHandle,
-  RouteReuseStrategy,
-} from '@angular/router';
+import { ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy } from '@angular/router';
 
 /**
  * Keeps the graph editor component tree alive across navigations (hide/reattach

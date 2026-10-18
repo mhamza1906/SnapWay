@@ -101,7 +101,11 @@ def test_regenerate_and_vectorize_demo(user):
         ).status_code
         == 201
     )
-    regen = client.post(f"/api/maps/workspace/targets/{target}/optimize/regenerate/", {}, format="json")
+    regen = client.post(
+        f"/api/maps/workspace/targets/{target}/optimize/regenerate/",
+        {},
+        format="json",
+    )
     assert regen.status_code == 200
     assert regen.json()["stage"] == "image_optimize"
     assert FIGMA_SVG.is_file()

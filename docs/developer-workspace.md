@@ -19,12 +19,12 @@ Personal execution details remain in the contributor's ignored `local/ACTIONS.md
 | `/developer-contribution/activity` | Administrator audit activity, most recent 200 events. |
 | `/settings` | Download map JSON, navigation graph JSON or an SVG display map; no browser backup or restore. |
 
-Old `/overview`, `/targets` and `/editor/:id` URLs redirect to My maps; `/map`
-redirects to Explore. Old contribution/review/activity routes redirect to their
-replacement. `/public` remains the guarded teammate-integration placeholder;
-the web `/navigate` legacy link leads there. The separate native visitor entry
-is preserved. The verified Developer login landing still passes through the
-compatible `/overview` redirect before reaching My maps.
+Old `/overview`, `/targets` and `/editor/:id` URLs redirect to My maps. Anonymous
+`/map` remains public discovery; signed-in Public Users are sent to `/public`
+(visitor journey). `/navigate` redirects to `/public`. Developers preview the
+visitor journey at `/app-preview`. The separate native visitor entry is preserved.
+The verified Developer login landing still passes through the compatible
+`/overview` redirect before reaching My maps.
 
 The workspace header uses the existing navy/blue camera/road/arrow wordmark and
 a centered title (or, on Explore, the search field + locate control). Page bodies

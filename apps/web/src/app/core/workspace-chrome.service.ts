@@ -8,10 +8,7 @@ export class WorkspaceChrome {
   private searchHandler: ((query: string) => void | Promise<void>) | null = null;
   private locateHandler: (() => void) | null = null;
 
-  bindExplore(handlers: {
-    search: (query: string) => void | Promise<void>;
-    locate: () => void;
-  }) {
+  bindExplore(handlers: { search: (query: string) => void | Promise<void>; locate: () => void }) {
     this.searchHandler = handlers.search;
     this.locateHandler = handlers.locate;
   }

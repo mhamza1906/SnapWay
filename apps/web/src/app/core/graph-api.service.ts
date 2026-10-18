@@ -157,4 +157,26 @@ export class GraphApiService {
       ),
     );
   }
+
+  getIndexStatus(revisionId: string) {
+    return this.track(
+      this.http.get<{
+        state: string | null;
+        asset_id?: string;
+        profile?: Record<string, unknown>;
+        skipped?: boolean;
+      }>(`/api/maps/revisions/${revisionId}/index/`),
+    );
+  }
+
+  rebuildIndex(revisionId: string) {
+    return this.track(
+      this.http.post<{
+        state: string | null;
+        asset_id?: string;
+        profile?: Record<string, unknown>;
+        skipped?: boolean;
+      }>(`/api/maps/revisions/${revisionId}/index/`, {}),
+    );
+  }
 }

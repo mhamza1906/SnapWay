@@ -101,9 +101,7 @@ def workspace_buildings(user):
         .prefetch_related(
             Prefetch(
                 "publications",
-                queryset=Publication.objects.filter(
-                    is_current=True, invalidated_at__isnull=True
-                ),
+                queryset=Publication.objects.filter(is_current=True, invalidated_at__isnull=True),
                 to_attr="current_pubs",
             )
         )
@@ -188,11 +186,7 @@ def plan_display_asset(revision):
     """
     if not revision:
         return None, None
-    artifact = (
-        revision.artifacts.filter(kind="svg", state="ready")
-        .select_related("asset")
-        .first()
-    )
+    artifact = revision.artifacts.filter(kind="svg", state="ready").select_related("asset").first()
     if artifact and artifact.asset_id:
         return artifact.asset, "vector"
     source = revision.source_asset
@@ -237,9 +231,7 @@ def card(target, contribution=None, *, include_preview=True, shared_revision=Non
         stage = "vectorized"
     # Image 2.5 / demo-vector review stays off the graph editor until that step finishes.
     edit_path = (
-        "/map-optimize"
-        if stage in {"image_optimize", "vectorized_demo"}
-        else "/graph-editor"
+        "/map-optimize" if stage in {"image_optimize", "vectorized_demo"} else "/graph-editor"
     )
     return {
         "id": str(contribution.id if contribution else target.id),

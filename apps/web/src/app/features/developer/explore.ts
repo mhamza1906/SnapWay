@@ -65,9 +65,7 @@ interface PlacesLibrary {
           <div>
             <p class="eyebrow">{{ building.published ? 'MAPPED PLACE' : 'DRAFT PLACE' }}</p>
             <h1>{{ building.name }}</h1>
-            <p>
-              {{ building.floors.length }} floor{{ building.floors.length === 1 ? '' : 's' }}
-            </p>
+            <p>{{ building.floors.length }} floor{{ building.floors.length === 1 ? '' : 's' }}</p>
           </div>
           <button
             class="btn ghost icon-only"
@@ -84,7 +82,9 @@ interface PlacesLibrary {
             </div>
             <div>
               <h2>{{ floor.name }}</h2>
-              <p>{{ floor.published ? 'Published · Version ' + floor.sequence : 'Editing snapshot' }}</p>
+              <p>
+                {{ floor.published ? 'Published · Version ' + floor.sequence : 'Editing snapshot' }}
+              </p>
               <a
                 class="btn secondary"
                 routerLink="/graph-editor"
@@ -155,8 +155,7 @@ interface PlacesLibrary {
       </aside>
     }
     <div class="map-legend">
-      <span class="yellow-dot"></span>Published
-      <span class="red-dot"></span>Draft
+      <span class="yellow-dot"></span>Published <span class="red-dot"></span>Draft
       <span class="legend-hint">Select any building to map a new floor</span>
     </div>
     @if (buildings().length && !selected() && !candidate()) {

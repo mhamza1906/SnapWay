@@ -1,6 +1,8 @@
 <section class="page authoring-page setup-page">
   <header class="page-heading page-heading-compact">
-    <p>Find a building or create one, set coordinates, then upload a floor plan and open the editor.</p>
+    <p>
+      Find a building or create one, set coordinates, then upload a floor plan and open the editor.
+    </p>
   </header>
 
   @if (offline()) {
@@ -54,7 +56,9 @@
             (change)="selectLibrary(value($event))"
             data-testid="library"
           >
-            <option value="">{{ library().length ? 'Choose a building' : 'No buildings yet' }}</option>
+            <option value="">
+              {{ library().length ? 'Choose a building' : 'No buildings yet' }}
+            </option>
             @for (entry of library(); track entry.target_id) {
               <option [value]="entry.target_id" [selected]="selectedTarget() === entry.target_id">
                 {{ entry.building }} · {{ entry.floor }}

@@ -31,7 +31,7 @@ sentence. Existing buildings load from `GET /api/maps/workspace/`. Create uses
 
 - Top row of square icon tools with hover tips (select/drag/box-select, add,
   connect, cut, pan, upload underlay, undo/redo, select-all, delete, labels,
-  fit/zoom, Build with AI, submit/publish).
+  fit/zoom, Build with AI, **Rebuild MegaLoc index**, submit/publish).
 - Left workspace sidebar toggles with the sandwich (menu) control in the app
   chrome (`WorkspaceLayout`).
 - Build with AI opens a right panel with a close control. When sidebar width +
@@ -103,20 +103,30 @@ After human correction, this draft is intended as the Level 1 source of truth fo
 AI authoring accuracy tests. Do not invent missing rooms (e.g. Muffler/Hive) on
 this floor without underlay evidence.
 
+## MegaLoc index rebuild
+
+Toolbar **Rebuild MegaLoc index** calls `POST /api/maps/revisions/<id>/index/`
+(Developer mode + map membership). Requires node-linked reference photos.
+CLI alternative: `manage.py build_reference_index <revision_id> --email …`.
+See [localization-megaloc.md](localization-megaloc.md).
+
 ## Non-goals
 
 - Live AI agent / tool execution
-- Embedding / place-match indexing of photos
+- Auto-rebuild index on every photo change (manual toolbar / manage.py for now)
 - Replacing reviewed publication workflow
 - Auto-tracing walls from SVG paths
 - Offline-first / service-worker graph cache
+- Rewiring older map-graph-only tools (WorkspaceApi + GraphApi already cover this)
+- Merging visitor text route guidance in this pass
 
 ## Changed files
 
 | Path | Role |
 | --- | --- |
 | [apps/web/.../authoring/](../apps/web/src/app/features/authoring/) | Compact map setup UI |
-| [apps/web/.../graph-editor/](../apps/web/src/app/features/graph-editor/) | Toolbar, inspector, AI shell, optimistic gestures |
+| [apps/web/.../graph-editor/](../apps/web/src/app/features/graph-editor/) | Toolbar, inspector, AI shell, optimistic gestures, MegaLoc rebuild |
+| [apps/web/.../graph-api.service.ts](../apps/web/src/app/core/graph-api.service.ts) | Graph + `rebuildIndex` / `getIndexStatus` |
 | [apps/web/.../editor-route-reuse.ts](../apps/web/src/app/core/editor-route-reuse.ts) | Hide/reattach graph editor |
 | [apps/web/src/app/app.config.ts](../apps/web/src/app/app.config.ts) | Registers keep-alive strategy |
 | [apps/api/maps/services/editor.py](../apps/api/maps/services/editor.py) | Atomic editor gestures |
@@ -129,3 +139,4 @@ this floor without underlay evidence.
 2. Optimistic local graph updates with serialized server sync.
 3. Route reuse keep-alive for `/graph-editor` hot return to the same target.
 4. Frontend suite: 86 passed.
+5. Graph editor MegaLoc index rebuild action (`GraphApiService.rebuildIndex`).

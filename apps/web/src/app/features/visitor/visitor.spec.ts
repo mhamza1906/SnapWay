@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { searchDestinations, type VisitorBuilding } from './visitor.models';
 import { VisitorJourney } from './visitor';
 import type { MatchResult } from '../../core/place-match';
 import { GuidancePhotoView } from './guidance-photo';
 import { WalkingMap } from './walking-map';
 import { GoogleMapsService } from '../../core/google-maps.service';
+import { AuthService } from '../../core/auth.service';
 import { signal } from '@angular/core';
 
 const building: VisitorBuilding = {
@@ -50,6 +52,20 @@ describe('Installed visitor journey', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: {
+            signedIn: signal(false),
+            name: signal('Guest'),
+            busy: signal(false),
+            error: signal(''),
+            landingPath: signal('/public'),
+            refresh: async () => ({ authenticated: false }),
+            switchMode: async () => false,
+            signOut: async () => false,
+          },
+        },
         {
           provide: GoogleMapsService,
           useValue: {

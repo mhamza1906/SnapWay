@@ -2,7 +2,7 @@
 
 Current integration: `/sign-in` starts Google authentication with a selected
 Developer or Public User experience, and `/auth/complete` checks the server session
-before opening `/overview` or the temporary `/public` placeholder directly.
+before opening `/overview` or the authenticated `/public` visitor journey directly.
 The retained `/welcome` is now an account page. See [authentication modes](authentication-modes.md)
 for session switching, API permissions, controlled administrator provisioning and
 current verification. `/api/auth/me/` sets the CSRF cookie and is uncached.

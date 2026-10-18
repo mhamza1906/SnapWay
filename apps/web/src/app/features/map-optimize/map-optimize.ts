@@ -57,9 +57,7 @@ export class MapOptimizePage implements OnInit {
     this.error.set('');
     try {
       await this.ui.runBusy(async () => {
-        this.review.set(
-          await this.api.optimizeRegenerate(this.targetId(), this.prompt().trim()),
-        );
+        this.review.set(await this.api.optimizeRegenerate(this.targetId(), this.prompt().trim()));
       }, 'Running Image 2.5…');
     } catch (e) {
       this.error.set(workspaceError(e));

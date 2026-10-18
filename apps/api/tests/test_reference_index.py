@@ -31,11 +31,13 @@ def draft(actors):
 
 
 def _tiny_png() -> bytes:
-    return (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-        b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f"
-        b"\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
+    import io
+
+    from PIL import Image
+
+    raw = io.BytesIO()
+    Image.new("RGB", (1, 1), "white").save(raw, format="PNG")
+    return raw.getvalue()
 
 
 def _fake_run_build(*, references_dir: Path, work_root: Path, set_name: str) -> dict:
@@ -60,6 +62,15 @@ def _fake_run_build(*, references_dir: Path, work_root: Path, set_name: str) -> 
     }
     (index_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     return {"built": True, "index": str(index_dir), **meta, "backend": "megaloc"}
+
+
+def _developer_client(user) -> APIClient:
+    client = APIClient()
+    client.force_login(user)
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
+    return client
 
 
 def _attach_photo(client, revision_id, node_id):
@@ -94,8 +105,7 @@ def test_build_index_ready_and_skip(actors, draft, settings, tmp_path, monkeypat
     revision = Revision.objects.get(pk=draft["revision_id"])
     n1 = add_node(revision, x=1, y=1, label="A", actor=actors["member"])
     n2 = add_node(revision, x=2, y=2, label="B", actor=actors["member"])
-    client = APIClient()
-    client.force_login(actors["member"])
+    client = _developer_client(actors["member"])
     _attach_photo(client, draft["revision_id"], n1.id)
     _attach_photo(client, draft["revision_id"], n2.id)
 
@@ -126,8 +136,7 @@ def test_build_index_api(actors, draft, settings, tmp_path, monkeypatch):
     )
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=3, y=4, actor=actors["member"])
-    client = APIClient()
-    client.force_login(actors["member"])
+    client = _developer_client(actors["member"])
     _attach_photo(client, draft["revision_id"], node.id)
 
     url = reverse("map-revision-index", kwargs={"revision_id": draft["revision_id"]})
@@ -155,12 +164,10 @@ def test_stranger_cannot_build_index(actors, draft, settings, tmp_path, monkeypa
     )
     revision = Revision.objects.get(pk=draft["revision_id"])
     node = add_node(revision, x=1, y=1, actor=actors["member"])
-    member = APIClient()
-    member.force_login(actors["member"])
+    member = _developer_client(actors["member"])
     _attach_photo(member, draft["revision_id"], node.id)
 
-    stranger = APIClient()
-    stranger.force_login(actors["stranger"])
+    stranger = _developer_client(actors["stranger"])
     response = stranger.post(
         reverse("map-revision-index", kwargs={"revision_id": draft["revision_id"]})
     )
@@ -169,8 +176,7 @@ def test_stranger_cannot_build_index(actors, draft, settings, tmp_path, monkeypa
 
 @pytest.mark.django_db
 def test_build_index_fails_without_photos(actors, draft):
-    client = APIClient()
-    client.force_login(actors["member"])
+    client = _developer_client(actors["member"])
     response = client.post(
         reverse("map-revision-index", kwargs={"revision_id": draft["revision_id"]})
     )

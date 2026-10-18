@@ -67,9 +67,7 @@ def test_create_nodes_supports_restoring_a_known_id(scene):
     before = list_graph(revision)["lock_version"]
     graph = commit(
         scene,
-        create_nodes=[
-            {"id": node_id, "x": 12, "y": 18, "label": "Restored", "kind": "checkpoint"}
-        ],
+        create_nodes=[{"id": node_id, "x": 12, "y": 18, "label": "Restored", "kind": "checkpoint"}],
     )
     assert any(n["id"] == node_id and n["label"] == "Restored" for n in graph["nodes"])
     # One writable lock for the whole gesture, not one per helper call.
