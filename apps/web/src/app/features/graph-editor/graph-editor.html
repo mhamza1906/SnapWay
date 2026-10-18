@@ -79,6 +79,14 @@
       <app-icon name="sparkles" /><span class="tip">Build with AI</span>
     </button>
     <button
+      class="tool"
+      aria-label="Rebuild MegaLoc index"
+      (click)="rebuildIndex()"
+      [disabled]="busy() || !revisionId()"
+    >
+      <app-icon name="layers" /><span class="tip">Rebuild MegaLoc index</span>
+    </button>
+    <button
       class="tool publish-tool"
       [attr.aria-label]="canPublish() ? 'Approve and publish map' : 'Submit map for review'"
       (click)="finishEditing()"

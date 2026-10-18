@@ -578,6 +578,21 @@ export class GraphEditorPage implements OnInit, OnDestroy {
       input.value = '';
     }
   }
+  async rebuildIndex() {
+    if (this.busy() || !this.revisionId()) return;
+    this.working.set(true);
+    this.error.set(null);
+    try {
+      const result = await this.api.rebuildIndex(this.revisionId()!);
+      const state = result.state ?? 'unknown';
+      const skipped = result.skipped ? ' (unchanged)' : '';
+      this.status.set(`MegaLoc index ${state}${skipped}`);
+    } catch (e) {
+      this.error.set(workspaceError(e));
+    } finally {
+      this.working.set(false);
+    }
+  }
   async finishEditing() {
     if (!this.contributionId() || this.busy()) return;
     this.submitting.set(true);
