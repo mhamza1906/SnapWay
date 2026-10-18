@@ -41,13 +41,20 @@ export function findRoute(
     const origin = nodes.get(current)!;
     for (const edge of map.edges) {
       if (edge.blocked || (accessible && !edge.accessible)) continue;
-      const next = edge.from === current ? edge.to : edge.to === current ? edge.from : undefined;
+      const next =
+        edge.from === current
+          ? edge.to
+          : edge.to === current && !edge.directed
+            ? edge.from
+            : undefined;
       if (!next || !remaining.has(next)) continue;
       const point = nodes.get(next);
       if (!point) continue;
       if (accessible && map.rooms.some((room) => room.id === point.roomId && !room.accessible))
         continue;
-      const candidate = best + Math.hypot(point.x - origin.x, point.y - origin.y);
+      const weight = edge.cost ?? Math.hypot(point.x - origin.x, point.y - origin.y);
+      if (!Number.isFinite(weight) || weight < 0) continue;
+      const candidate = best + weight;
       if (candidate < (distance.get(next) ?? Infinity)) {
         distance.set(next, candidate);
         previous.set(next, current);

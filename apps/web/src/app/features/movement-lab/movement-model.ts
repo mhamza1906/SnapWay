@@ -4,11 +4,18 @@ export interface Position {
   y: number;
 }
 export interface LabNode extends Position {
+  floorId?: string;
+  connectorId?: string | null;
   id: string;
   label: string;
   kind: string;
 }
 export interface LabEdge {
+  cost?: number;
+  directed?: boolean;
+  floorId?: string | null;
+  traversal?: string;
+  connectorLabel?: string;
   from: string;
   to: string;
 }

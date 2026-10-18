@@ -25,6 +25,41 @@ const ready = () =>
 afterEach(() => vi.resetAllMocks());
 
 describe('iOS visual correction transport', () => {
+  it('handles text JSON while preventing the native bridge from parsing an HTML/tunnel error', async () => {
+    vi.mocked(CapacitorHttp.get).mockResolvedValue({
+      ...response,
+      data: JSON.stringify({ sessionId: 'k'.repeat(32) }),
+    });
+    vi.mocked(CapacitorHttp.post).mockResolvedValue({
+      ...response,
+      data: JSON.stringify(response.data),
+    });
+    const matcher = new IOSVisualMatcher('https://test.example');
+    await matcher.start();
+    expect((await matcher.match(frame)).nodeId).toBe('old-node');
+    expect(CapacitorHttp.get).toHaveBeenCalledWith(
+      expect.objectContaining({ responseType: 'text' }),
+    );
+    expect(CapacitorHttp.post).toHaveBeenCalledWith(
+      expect.objectContaining({ responseType: 'text' }),
+    );
+  });
+  it('explains a plain-text response beginning The instead of exposing a JSON parse exception', async () => {
+    vi.mocked(CapacitorHttp.get).mockResolvedValue({
+      ...response,
+      status: 502,
+      data: 'The upstream server did not respond.',
+    });
+    const matcher = new IOSVisualMatcher('https://test.example');
+    await expect(matcher.start()).rejects.toThrow(/non-JSON response.*502/);
+    ready();
+    await matcher.start();
+    vi.mocked(CapacitorHttp.post).mockResolvedValue({
+      ...response,
+      data: 'The service is unavailable',
+    });
+    await expect(matcher.match(frame)).rejects.toThrow(/non-JSON response/);
+  });
   it('sends one JSON JPEG with original AR capture time and an ephemeral session', async () => {
     ready();
     const post = vi.mocked(CapacitorHttp.post).mockResolvedValue(response);

@@ -67,6 +67,13 @@ function registered(): IOSPoseModel {
 }
 
 describe('iOS ARKit to SVG registration and corridor constraints', () => {
+  it('offers only compatible straight connected second anchors', () => {
+    const candidates = new IOSPoseModel(plan).calibrationCandidates('a').map((node) => node.id);
+    expect(candidates).toContain('b');
+    expect(candidates).not.toContain('a');
+    expect(candidates).not.toContain('c');
+    expect(candidates).not.toContain('isolated2');
+  });
   it('registers arbitrary world rotation and metre scale, then follows a connected turn', () => {
     const model = new IOSPoseModel(plan);
     model.firstAnchor('a', pose(10, 10, 10), 10000);

@@ -6,6 +6,6 @@ class SnapWayViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(FrameCapturePlugin())
         bridge?.registerPluginInstance(NavigationSensorsPlugin())
-        bridge?.registerPluginInstance(IndoorPosePlugin())
+        // Photo navigation does not register or start the ARKit plugin.
     }
 }

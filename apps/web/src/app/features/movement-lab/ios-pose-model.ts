@@ -5,6 +5,7 @@ export interface IOSPose {
   x: number;
   y: number;
   z: number;
+  yawRadians?: number;
   timestamp: number;
   monotonicSeconds: number;
   epoch: string;
@@ -74,6 +75,18 @@ export class IOSPoseModel {
       this.adjacency.set(a.id, [...(this.adjacency.get(a.id) ?? []), { id: b.id, length }]);
       this.adjacency.set(b.id, [...(this.adjacency.get(b.id) ?? []), { id: a.id, length }]);
     }
+  }
+
+  /** Graph-compatible calibration targets; proximity alone does not imply connectivity. */
+  calibrationCandidates(firstId: string): LabNode[] {
+    const first = this.nodes.get(firstId);
+    if (!first) return [];
+    const distances = this.distances(firstId);
+    return [...this.nodes.values()].filter((node) => {
+      const direct = gap(first, node),
+        path = distances.get(node.id);
+      return direct > 0.001 && path !== undefined && path / direct <= 1.15;
+    });
   }
 
   get registered(): boolean {

@@ -6,7 +6,7 @@ export interface IOSCapturedPoseFrame {
   timestamp: number;
   monotonicSeconds: number;
   epoch: string;
-  pose: { x: number; y: number; z: number };
+  pose: { x: number; y: number; z: number; yawRadians?: number };
 }
 export interface IOSPoseStatus {
   message: string;

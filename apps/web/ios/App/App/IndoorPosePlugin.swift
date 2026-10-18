@@ -168,7 +168,9 @@ public class IndoorPosePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
 
     private func pose(_ frame: ARFrame) -> [String: Any] {
         let translation = frame.camera.transform.columns.3
-        return ["x": Double(translation.x), "y": Double(translation.y), "z": Double(translation.z)]
+        let backward = frame.camera.transform.columns.2
+        return ["x": Double(translation.x), "y": Double(translation.y), "z": Double(translation.z),
+                "yawRadians": atan2(Double(-backward.x), Double(-backward.z))]
     }
 
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
@@ -210,10 +212,9 @@ public class IndoorPosePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate {
             guard let self, self.active, self.foreground else { call.reject("AR session is not active."); return }
             guard !self.encoding else { call.reject("A frame is already being encoded.", "BUSY"); return }
             guard let frame = self.session.currentFrame,
-                  case .normal = frame.camera.trackingState,
                   CACurrentMediaTime() - frame.timestamp >= 0,
                   CACurrentMediaTime() - frame.timestamp < 0.5 else {
-                call.reject("A fresh, normally tracked AR frame is required.", "TRACKING")
+                call.reject("A fresh camera frame is required.", "TRACKING")
                 return
             }
             self.encoding = true

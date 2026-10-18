@@ -20,6 +20,9 @@ export interface Waypoint {
   roomId?: string;
 }
 export interface MapEdge {
+  /** Optional source-graph weights/direction; omitted for existing prototype maps. */
+  cost?: number;
+  directed?: boolean;
   id: string;
   from: string;
   to: string;

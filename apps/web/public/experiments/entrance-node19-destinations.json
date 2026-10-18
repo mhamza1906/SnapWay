@@ -1,0 +1,471 @@
+{
+  "floorId": "L1",
+  "floorLabel": "Level 1",
+  "sourceBuildingId": "sam-ibrahim-hardcoded",
+  "coordinateJoinTolerance": 0.75,
+  "destinations": [
+    {
+      "id": "L1-R01",
+      "label": "Brainstorm",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "doorway",
+      "x": 631.5,
+      "y": 101,
+      "terminalNodeId": "L1:P01:nav",
+      "available": true,
+      "doorId": "L1:P01",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1:P01:L1-project-circulation-2:branch",
+      "arrivalAnchorNodeId": "4bc64f34-8fe8-4e9b-9071-939f019fe12e"
+    },
+    {
+      "id": "L1-R02",
+      "label": "Dark Matter",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "doorway",
+      "x": 509.00000000000006,
+      "y": 166.5,
+      "terminalNodeId": "L1:P02:nav",
+      "available": true,
+      "doorId": "L1:P02",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1:P02:L1-project-circulation-2:branch",
+      "arrivalAnchorNodeId": "667863e2-6cf9-4497-867b-3b935abc5dfe"
+    },
+    {
+      "id": "L1-project-stair-A",
+      "label": "Stair A \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "stair",
+      "x": 110,
+      "y": 260,
+      "terminalNodeId": "L1-project-stair-A",
+      "available": false,
+      "doorId": "",
+      "accessNote": "No saved connection from this photo circulation. A route is not available."
+    },
+    {
+      "id": "L1-project-stair-B",
+      "label": "Stair B \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "stair",
+      "x": 452,
+      "y": 254,
+      "terminalNodeId": "L1-project-stair-B",
+      "available": true,
+      "doorId": "",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1-project-stair-B:approach",
+      "arrivalAnchorNodeId": "91949835-12f4-49ad-8eea-5db551190bef"
+    },
+    {
+      "id": "L1-project-stair-C",
+      "label": "Stair C \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "stair",
+      "x": 329,
+      "y": 116,
+      "terminalNodeId": "L1-project-stair-C",
+      "available": true,
+      "doorId": "",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1-project-stair-C:approach",
+      "arrivalAnchorNodeId": "ca01b901-9057-403a-b46b-9de9370f69fd"
+    },
+    {
+      "id": "L1-project-stair-D",
+      "label": "Stair D \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "stair",
+      "x": 686,
+      "y": 122,
+      "terminalNodeId": "L1-project-stair-D",
+      "available": true,
+      "doorId": "",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1-project-stair-D:approach",
+      "arrivalAnchorNodeId": "baa9a867-a028-4083-af0f-8ea7fcc93be2"
+    },
+    {
+      "id": "L1-project-elevator-B",
+      "label": "Elevator B \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "elevator",
+      "x": 424,
+      "y": 271,
+      "terminalNodeId": "L1-project-elevator-B",
+      "available": true,
+      "doorId": "",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1-project-elevator-B:approach",
+      "arrivalAnchorNodeId": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d"
+    },
+    {
+      "id": "L1-project-elevator-C",
+      "label": "Elevator C \u00b7 Level 1",
+      "floorId": "L1",
+      "floorLabel": "Level 1",
+      "kind": "elevator",
+      "x": 439,
+      "y": 95,
+      "terminalNodeId": "L1-project-elevator-C",
+      "available": true,
+      "doorId": "",
+      "accessNote": "Saved access is agent-inspected and physically unverified.",
+      "sourceEdgeId": "L1-project-elevator-C:approach",
+      "arrivalAnchorNodeId": "1cff6ebe-87bb-4451-9357-3069ad73e4e5"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "L1:P01:nav",
+      "label": "Brainstorm entrance",
+      "kind": "doorway",
+      "x": 631.5,
+      "y": 101
+    },
+    {
+      "id": "L1-R01:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 627.6119457145122,
+      "y": 114.55187728233494
+    },
+    {
+      "id": "L1:P02:nav",
+      "label": "Dark Matter entrance",
+      "kind": "doorway",
+      "x": 509.00000000000006,
+      "y": 166.5
+    },
+    {
+      "id": "L1-R02:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 517.5663900414938,
+      "y": 168.25103734439833
+    },
+    {
+      "id": "L1-project-stair-B",
+      "label": "Stair B \u00b7 Level 1 entrance",
+      "kind": "stair",
+      "x": 452,
+      "y": 254
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 452,
+      "y": 249
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:2",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 506,
+      "y": 249
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:3",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 512,
+      "y": 241
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:4",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 516,
+      "y": 226
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:5",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 518,
+      "y": 204
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:6",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 519,
+      "y": 168
+    },
+    {
+      "id": "L1-project-stair-B:saved-access:7",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 517.7240663900416,
+      "y": 167.65975103734442
+    },
+    {
+      "id": "L1-project-stair-C",
+      "label": "Stair C \u00b7 Level 1 entrance",
+      "kind": "stair",
+      "x": 329,
+      "y": 116
+    },
+    {
+      "id": "L1-project-stair-C:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 320,
+      "y": 117
+    },
+    {
+      "id": "L1-project-stair-C:saved-access:2",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 306,
+      "y": 122
+    },
+    {
+      "id": "L1-project-stair-C:saved-access:3",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 301.2532690984171,
+      "y": 122.37474191328286
+    },
+    {
+      "id": "L1-project-stair-D",
+      "label": "Stair D \u00b7 Level 1 entrance",
+      "kind": "stair",
+      "x": 686,
+      "y": 122
+    },
+    {
+      "id": "L1-project-stair-D:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 704,
+      "y": 133
+    },
+    {
+      "id": "L1-project-stair-D:saved-access:2",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 713,
+      "y": 142
+    },
+    {
+      "id": "L1-project-stair-D:saved-access:3",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 713.5538461538462,
+      "y": 139.96923076923076
+    },
+    {
+      "id": "L1-project-elevator-B",
+      "label": "Elevator B \u00b7 Level 1 entrance",
+      "kind": "elevator",
+      "x": 424,
+      "y": 271
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 424,
+      "y": 263
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:2",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 421,
+      "y": 249
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:3",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 396,
+      "y": 249
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:4",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 390,
+      "y": 242
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:5",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 386,
+      "y": 230
+    },
+    {
+      "id": "L1-project-elevator-B:saved-access:6",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 384,
+      "y": 232
+    },
+    {
+      "id": "L1-project-elevator-C",
+      "label": "Elevator C \u00b7 Level 1 entrance",
+      "kind": "elevator",
+      "x": 439,
+      "y": 95
+    },
+    {
+      "id": "L1-project-elevator-C:saved-access:1",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 446,
+      "y": 110
+    },
+    {
+      "id": "L1-project-elevator-C:saved-access:2",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 441,
+      "y": 117
+    },
+    {
+      "id": "L1-project-elevator-C:saved-access:3",
+      "label": "Saved access approach",
+      "kind": "junction",
+      "x": 444,
+      "y": 120
+    }
+  ],
+  "edges": [
+    {
+      "from": "L1:P01:nav",
+      "to": "L1-R01:saved-access:1"
+    },
+    {
+      "from": "L1-R01:saved-access:1",
+      "to": "4bc64f34-8fe8-4e9b-9071-939f019fe12e"
+    },
+    {
+      "from": "L1:P02:nav",
+      "to": "L1-R02:saved-access:1"
+    },
+    {
+      "from": "L1-R02:saved-access:1",
+      "to": "667863e2-6cf9-4497-867b-3b935abc5dfe"
+    },
+    {
+      "from": "L1-project-stair-B",
+      "to": "L1-project-stair-B:saved-access:1"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:1",
+      "to": "L1-project-stair-B:saved-access:2"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:2",
+      "to": "L1-project-stair-B:saved-access:3"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:3",
+      "to": "L1-project-stair-B:saved-access:4"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:4",
+      "to": "L1-project-stair-B:saved-access:5"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:5",
+      "to": "L1-project-stair-B:saved-access:6"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:6",
+      "to": "L1-project-stair-B:saved-access:7"
+    },
+    {
+      "from": "L1-project-stair-B:saved-access:7",
+      "to": "91949835-12f4-49ad-8eea-5db551190bef"
+    },
+    {
+      "from": "L1-project-stair-C",
+      "to": "L1-project-stair-C:saved-access:1"
+    },
+    {
+      "from": "L1-project-stair-C:saved-access:1",
+      "to": "L1-project-stair-C:saved-access:2"
+    },
+    {
+      "from": "L1-project-stair-C:saved-access:2",
+      "to": "L1-project-stair-C:saved-access:3"
+    },
+    {
+      "from": "L1-project-stair-C:saved-access:3",
+      "to": "ca01b901-9057-403a-b46b-9de9370f69fd"
+    },
+    {
+      "from": "L1-project-stair-D",
+      "to": "L1-project-stair-D:saved-access:1"
+    },
+    {
+      "from": "L1-project-stair-D:saved-access:1",
+      "to": "L1-project-stair-D:saved-access:2"
+    },
+    {
+      "from": "L1-project-stair-D:saved-access:2",
+      "to": "L1-project-stair-D:saved-access:3"
+    },
+    {
+      "from": "L1-project-stair-D:saved-access:3",
+      "to": "baa9a867-a028-4083-af0f-8ea7fcc93be2"
+    },
+    {
+      "from": "L1-project-elevator-B",
+      "to": "L1-project-elevator-B:saved-access:1"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:1",
+      "to": "L1-project-elevator-B:saved-access:2"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:2",
+      "to": "L1-project-elevator-B:saved-access:3"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:3",
+      "to": "L1-project-elevator-B:saved-access:4"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:4",
+      "to": "L1-project-elevator-B:saved-access:5"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:5",
+      "to": "L1-project-elevator-B:saved-access:6"
+    },
+    {
+      "from": "L1-project-elevator-B:saved-access:6",
+      "to": "95ec8759-8f39-4e53-aed4-a47bc51a3e6d"
+    },
+    {
+      "from": "L1-project-elevator-C",
+      "to": "L1-project-elevator-C:saved-access:1"
+    },
+    {
+      "from": "L1-project-elevator-C:saved-access:1",
+      "to": "L1-project-elevator-C:saved-access:2"
+    },
+    {
+      "from": "L1-project-elevator-C:saved-access:2",
+      "to": "L1-project-elevator-C:saved-access:3"
+    },
+    {
+      "from": "L1-project-elevator-C:saved-access:3",
+      "to": "1cff6ebe-87bb-4451-9357-3069ad73e4e5"
+    }
+  ]
+}

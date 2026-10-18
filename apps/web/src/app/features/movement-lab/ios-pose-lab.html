@@ -1,177 +1,285 @@
 <main>
   <header>
-    <a href="/movement-lab">← GPS / browser test</a>
-    <p class="eyebrow">Isolated iPhone experiment</p>
-    <h1>Camera + motion tracking</h1>
+    <a href="/movement-lab">← Other experiments</a>
+    <p class="eyebrow">Sam Ibrahim · six floors · photo checkpoints</p>
+    <h1>Photo → destination → route</h1>
     <p>
-      Level 1 circulation 2 · original stored points. ARKit estimates relative motion; the SVG
-      constrains movement to connected corridors.
+      Find your Level 1 starting point with one photo, choose a named destination on any saved
+      floor, and follow the route through stairs or elevators. No video or ARKit tracking.
     </p>
   </header>
-  @if (!sensors.available) {
-    <section>
-      <h2>Open the native iPhone test app</h2>
-      <p>
-        Safari cannot run ARKit. This screen is available in the separate SnapWay Motion Lab iOS
-        build. Android stays on its existing workflow.
-      </p>
-    </section>
-  }
-  <section>
-    <h2>1. Start the iPhone camera</h2>
-    <p>
-      Keep the rear camera facing visible corridor features. Hold the phone steadily. No full video
-      is recorded.
-    </p>
-    <div class="actions">
-      <button (click)="start()" [disabled]="!sensors.available || active() || !plan()">
-        Allow camera & start ARKit</button
-      ><button (click)="stop()" [disabled]="!active()">Stop camera</button>
-    </div>
-    <p role="status" aria-live="polite">{{ message() }}</p>
-    <p class="small">
-      Camera tracking: {{ pose()?.tracking || 'off' }}. Backgrounding the app stops tracking and
-      clears calibration.
-    </p>
-  </section>
-  <section>
-    <h2>2. Register two known points</h2>
-    <p>
-      Stand at the first saved point, then walk straight to a second saved point at least 2 metres
-      away. Use the same floor and one corridor without a turn. Point 19 is your designated building
-      entry; it is not the fifth-floor clinic doorway.
-    </p>
-    <div class="fields">
-      <label
-        >First known point<select [(ngModel)]="firstId" (ngModelChange)="resetRegistration()">
-          @for (node of stops(); track node.id) {
-            <option [value]="node.id">{{ node.label }}</option>
-          }
-        </select></label
-      ><button (click)="saveFirst()" [disabled]="!active() || pose()?.tracking !== 'normal'">
-        I am here · save first</button
-      ><label
-        >Second known point<select [(ngModel)]="secondId">
-          <option value="">Choose a different point</option>
-          @for (node of stops(); track node.id) {
-            <option [value]="node.id">{{ node.label }}</option>
-          }
-        </select></label
-      ><button
-        (click)="saveSecond()"
-        [disabled]="!active() || !firstSaved() || !secondId || pose()?.tracking !== 'normal'"
-      >
-        I arrived · register map
-      </button>
-    </div>
+  <section class="level-browser">
+    <h2>Browse levels and destinations</h2>
+    <nav class="level-buttons" aria-label="Building levels">
+      @for (floor of floors(); track floor.id) {
+        <button (click)="browseFloor(floor.id)" [attr.aria-pressed]="visibleFloorId() === floor.id">
+          {{ floor.label }}
+        </button>
+      }
+    </nav>
+    <button class="all-destinations" (click)="filterFloor('all')">
+      Show destinations on all levels
+    </button>
     <p role="status">
-      {{
-        result()?.reason ||
-          'Choose your physical starting point. No location is guessed before registration.'
-      }}
+      Viewing <strong>{{ floorLabel(visibleFloorId()) }}</strong
+      >.
+      @if (currentNode()) {
+        Your confirmed location remains <strong>{{ currentFloor() }}</strong
+        >.
+      }
+    </p>
+    <p class="small">
+      Choose a level to filter destinations and view its map. Selecting a destination opens that
+      floor automatically.
     </p>
   </section>
-  @if (plan(); as map) {
+  <section>
+    <h2>1. Where are you?</h2>
+    <label
+      >Known starting point (optional)<select
+        [ngModel]="startId()"
+        (ngModelChange)="chooseStart($event)"
+        [disabled]="busy()"
+      >
+        <option value="">Identify by photo or choose your known landing</option>
+        @for (node of startOptions(); track node.id) {
+          <option [value]="node.id">{{ floorLabel(node.floorId) }} · {{ node.label }}</option>
+        }
+      </select></label
+    >
+    <label
+      >HTTPS photo matching service<input
+        type="url"
+        [(ngModel)]="origin"
+        [disabled]="busy()"
+        autocomplete="off"
+        spellcheck="false"
+    /></label>
+    <label class="photo-button" [class.disabled]="busy() || !plan() || !canMatchPhoto()">
+      {{
+        busy()
+          ? 'Matching photo…'
+          : currentNode()
+            ? 'Take a checkpoint photo'
+            : 'Take my starting photo'
+      }}
+      <input
+        class="photo-input"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        (change)="takePhoto($event)"
+        [disabled]="busy() || !plan() || !canMatchPhoto()"
+      />
+    </label>
+    <p role="status" aria-live="polite">{{ message() }}</p>
+    @if (currentNode(); as node) {
+      <p>
+        <strong>{{ currentFloor() }} · {{ node.label }}</strong> ·
+        {{ startSource() === 'photo' ? 'photo match' : 'manually confirmed' }}.
+      </p>
+    }
+    <p class="small">
+      Photo references currently cover Level 1. Other floors have saved routes and manual landing
+      confirmation; a Level 1 photo never confirms arrival upstairs.
+    </p>
+    @if (preview()) {
+      <img class="camera-preview" [src]="preview()" alt="Submitted checkpoint photo" />
+    }
+    @if (candidate(); as match) {
+      <p class="small">
+        {{ match.status }} · similarity {{ match.similarity | number: '1.3-3' }} · margin
+        {{ match.margin | number: '1.3-3' }}.
+      </p>
+    }
+  </section>
+  <section>
+    <h2>2. Choose any saved destination</h2>
+    <label
+      >Destination floor<select
+        [ngModel]="destinationFloorId()"
+        (ngModelChange)="filterFloor($event)"
+      >
+        <option value="all">All floors</option>
+        @for (floor of floors(); track floor.id) {
+          <option [value]="floor.id">{{ floor.label }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Room, stairs or elevator<select
+        [ngModel]="destinationId()"
+        (ngModelChange)="chooseDestination($event)"
+        [disabled]="busy()"
+      >
+        <option value="">Choose destination</option>
+        @for (place of filteredDestinations(); track place.id) {
+          <option [value]="place.id" [disabled]="!place.available">
+            {{ place.floorLabel }} · {{ place.label }}{{ place.available ? '' : ' · unavailable' }}
+          </option>
+        }
+      </select></label
+    >
+    <label
+      >Travel between floors<select
+        [ngModel]="preference()"
+        (ngModelChange)="setPreference($event)"
+      >
+        <option value="any">Stairs or elevator</option>
+        <option value="stairs">Use stairs</option>
+        <option value="elevator">Use elevators · avoid stairs</option>
+      </select></label
+    >
+    <button
+      (click)="showRoute()"
+      [disabled]="busy() || !currentNode() || !destination()?.available"
+    >
+      Show / replan route
+    </button>
+    <p class="tracking-state" role="status" aria-live="polite">
+      <strong>{{ arrived() ? 'Destination vicinity recognised' : 'Route guidance' }}</strong
+      ><br />{{ checkpointMessage() }}
+    </p>
+    @if (destination(); as place) {
+      <p>
+        Destination: <strong>{{ place.floorLabel }} · {{ place.label }}</strong
+        >.
+      </p>
+      <p class="small">{{ place.accessNote }}</p>
+    }
+    @if (transitions().length) {
+      <h3>Floor connections</h3>
+      <ol>
+        @for (step of transitions(); track step.id) {
+          <li>
+            <strong>{{ step.label }}</strong> · {{ floorLabel(step.from.floorId) }} →
+            {{ floorLabel(step.to.floorId) }}
+          </li>
+        }
+      </ol>
+      @if (nextTransition(); as step) {
+        <button
+          (click)="confirmTransition(step.id)"
+          [disabled]="step.from.floorId !== currentFloorId()"
+        >
+          I reached {{ floorLabel(step.to.floorId) }} via {{ step.label }}
+        </button>
+      }
+    }
+    @if (nextCheckpoint(); as next) {
+      <p>Next photo checkpoint: {{ floorLabel(next.floorId) }} · {{ next.label }}.</p>
+    }
+    @if (routeDirections().length) {
+      <details>
+        <summary>Route directions</summary>
+        <ol>
+          @for (instruction of routeDirections(); track $index) {
+            <li>{{ instruction }}</li>
+          }
+        </ol>
+      </details>
+    }
+    @if (arrivalPhotoNodes().length) {
+      <p>
+        Destination photo checkpoint:
+        @for (node of arrivalPhotoNodes(); track node.id) {
+          <strong>{{ node.label }}</strong>
+        }
+        · Level 1.
+      </p>
+    }
+    <p class="small">
+      Connections and doorway access are source assumptions, not field-verified accessibility. Route
+      weights are plan distances and connector penalties, not measured travel times.
+    </p>
+  </section>
+  @if (viewedFloor(); as floor) {
     <section class="map-card">
       <div class="map-heading">
-        <h2>2D map · {{ map.floor }}</h2>
+        <h2>{{ floor.label }} map</h2>
         <div class="actions">
           <button (click)="changeZoom(-0.5)" aria-label="Zoom out">−</button
           ><span>{{ zoom | number: '1.1-1' }}×</span
           ><button (click)="changeZoom(0.5)" aria-label="Zoom in">+</button>
         </div>
       </div>
+      <label
+        >View floor<select [ngModel]="visibleFloorId()" (ngModelChange)="browseFloor($event)">
+          @for (item of floors(); track item.id) {
+            <option [value]="item.id">{{ item.label }}</option>
+          }
+        </select></label
+      >
       <div class="map-scroll">
         <div
           class="map-inner"
           [style.width.%]="zoom * 100"
-          [style.aspect-ratio]="map.width + '/' + map.height"
+          [style.aspect-ratio]="floor.width + '/' + floor.height"
         >
-          <img
-            [src]="map.underlay"
-            alt="Original Level 1 floor plan without numbered graph overlays"
-          /><svg
-            [attr.viewBox]="'0 0 ' + map.width + ' ' + map.height"
+          <img [src]="floor.underlay" [alt]="floor.label + ' original SVG floor plan'" />
+          <svg
+            [attr.viewBox]="'0 0 ' + floor.width + ' ' + floor.height"
             class="overlay"
-            aria-label="Current relative motion estimate"
+            aria-label="Route on the displayed floor"
           >
-            @if (result()?.position; as position) {
-              <circle
-                [attr.cx]="position.x"
-                [attr.cy]="position.y"
-                r="6"
-                fill="#fff"
-                stroke="#135cd1"
-                stroke-width="2"
+            @for (segment of visibleSegments(); track $index) {
+              <polyline
+                [attr.points]="segment"
+                fill="none"
+                stroke="white"
+                stroke-width="7"
+                stroke-linejoin="round"
               />
-              <circle [attr.cx]="position.x" [attr.cy]="position.y" r="2.3" fill="#135cd1" />
+              <polyline
+                [attr.points]="segment"
+                fill="none"
+                stroke="#135cd1"
+                stroke-width="4"
+                stroke-linejoin="round"
+              />
+            }
+            @if (destination(); as place) {
+              @if (place.floorId === floor.id) {
+                <circle
+                  [attr.cx]="place.x"
+                  [attr.cy]="place.y"
+                  r="7"
+                  fill="#d97924"
+                  stroke="white"
+                  stroke-width="2"
+                />
+              }
+            }
+            @if (currentNode(); as node) {
+              @if (node.floorId === floor.id) {
+                <circle
+                  [attr.cx]="node.x"
+                  [attr.cy]="node.y"
+                  r="6"
+                  [attr.fill]="arrived() ? '#19733a' : '#135cd1'"
+                  stroke="white"
+                  stroke-width="2"
+                />
+                <text [attr.x]="node.x + 9" [attr.y]="node.y - 9" font-size="12" fill="#19332c">
+                  {{ node.label }}
+                </text>
+              }
             }
           </svg>
         </div>
       </div>
       <p class="small">
-        Blue cursor: unverified relative estimate. Corridor constraints do not prove a door is open
-        or that the estimate is correct. Vertical movement or tracking loss requires registration
-        again.
+        Changing the viewed floor does not change your location. Use the landing-confirmation button
+        only after physically reaching that floor.
       </p>
-      @if (result()?.metresPerUnit; as scale) {
-        <p>
-          Map scale: {{ scale | number: '1.3-3' }} m / SVG unit.
-          @if (result()?.lateralErrorM !== null) {
-            Corridor offset: {{ result()?.lateralErrorM | number: '1.1-1' }} m (not a confidence
-            radius).
-          }
-        </p>
-      }
       @if (nearby().length) {
-        <h3>Nearby on this floor</h3>
+        <h3>Near your current checkpoint</h3>
         <ul>
-          @for (place of nearby(); track place.label) {
-            <li>
-              {{ place.label }}
-              @if (place.metres !== null) {
-                · about {{ place.metres | number: '1.0-0' }} m in a straight line
-              }
-            </li>
+          @for (place of nearby(); track place.id) {
+            <li>{{ place.floorLabel }} · {{ place.label }}</li>
           }
         </ul>
       }
     </section>
   }
-  <section>
-    <h2>3. Optional visual correction</h2>
-    <p>
-      Uses a frame from the same ARKit camera, paired with its capture pose. It sends JPEGs to your
-      existing MegaLoc test service, then asks you to confirm a stored point. Ambiguous or old
-      matches hold the position.
-    </p>
-    <label
-      >HTTPS test service<input
-        type="url"
-        [(ngModel)]="origin"
-        [disabled]="visualOn()"
-        autocomplete="off"
-        spellcheck="false" /></label
-    ><button (click)="toggleVisual()" [disabled]="!active()">
-      {{ visualOn() ? 'Stop visual checks' : 'Send occasional frames for matching' }}
-    </button>
-    <p role="status" aria-live="polite">{{ visualMessage() }}</p>
-    @if (framePreview()) {
-      <img
-        class="camera-preview"
-        [src]="framePreview()"
-        alt="Latest ARKit frame sent for optional reference matching"
-      />
-    }
-    @if (candidate()?.status === 'candidate') {
-      <p>
-        Suggested stored point: <strong>{{ candidateLabel() }}</strong>
-      </p>
-      <button (click)="confirmVisual()">I recognise this point · confirm correction</button>
-    }
-    <p class="small">
-      Use landmarks and your physical surroundings to confirm. This experiment does not certify
-      navigation safety or detect the fifth-floor clinic automatically.
-    </p>
-  </section>
 </main>

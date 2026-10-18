@@ -2,6 +2,17 @@ import { CapacitorHttp } from '@capacitor/core';
 import type { CameraCandidate } from './camera-lab';
 import type { IOSCapturedPoseFrame } from './indoor-pose';
 
+function readJsonReply(data: unknown, status: number): any {
+  if (typeof data !== 'string') return data;
+  try {
+    return JSON.parse(data);
+  } catch {
+    throw new Error(
+      `Photo matching service returned a non-JSON response (HTTP ${status}). Check the HTTPS matching-service address and that the computer's matcher/tunnel is running, then retry your photo.`,
+    );
+  }
+}
+
 /** Optional JPEG-only native transport. No developer cookie, private token or retained video. */
 export class IOSVisualMatcher {
   private readonly origin: string;
@@ -28,14 +39,18 @@ export class IOSVisualMatcher {
     this.session = null;
     const response = await CapacitorHttp.get({
       url: `${this.origin}/experiment-api/session`,
-      headers: { 'ngrok-skip-browser-warning': 'true', 'Cache-Control': 'no-store' },
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Cache-Control': 'no-store',
+        Accept: 'application/json',
+      },
       connectTimeout: 5000,
-      readTimeout: 10000,
+      readTimeout: 15000,
       disableRedirects: true,
-      responseType: 'json',
+      responseType: 'text',
     });
     if (generation !== this.generation) throw new Error('Visual matching was stopped.');
-    const body = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    const body = readJsonReply(response.data, response.status);
     if (
       response.status !== 200 ||
       typeof body?.sessionId !== 'string' ||
@@ -65,14 +80,15 @@ export class IOSVisualMatcher {
         url: `${this.origin}/experiment-api/ios-match`,
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
           'X-Lab-Session': this.session,
           'ngrok-skip-browser-warning': 'true',
         },
         data: { jpegBase64: frame.jpegBase64, monotonicSeconds: frame.monotonicSeconds },
         connectTimeout: 5000,
-        readTimeout: 10000,
+        readTimeout: 60000,
         disableRedirects: true,
-        responseType: 'json',
+        responseType: 'text',
       });
       if (generation !== this.generation)
         throw new Error('This visual result belongs to a stopped session.');
@@ -80,7 +96,7 @@ export class IOSVisualMatcher {
         throw new Error('The CPU matcher is busy. This frame was skipped.');
       if (response.status !== 200)
         throw new Error(`iOS frame matching failed (${response.status}).`);
-      const body = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      const body = readJsonReply(response.data, response.status);
       if (
         !body ||
         !['candidate', 'uncertain'].includes(body.status) ||
