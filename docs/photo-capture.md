@@ -522,3 +522,5 @@ The local database was backed up before import. Eleven source circulation plans 
 Phone-workflow verification on 2026-10-18: 11 editor/queue/graph-conversion tests and 18 related Django tests passed; the production web build passed without style-budget warnings. Django system checks and migration checks passed (no schema changes), and source/diff checks passed. Re-importing the saved walks preserved existing drafts. Public page and session API returned 200; the CSRF-protected OAuth start generated the exact public HTTPS callback, accepted by Google after the user updated it. R2 and OAuth credentials were never printed or committed.
 
 The user subsequently confirmed the preview opens after a transient connection timeout. Local/public frontend and public session API checks returned 200; no browser/network security settings were changed. Phone camera/upload behavior remains for the user's physical-device test.
+
+Mobile collection implementation: [3de9a9a](https://github.com/mhamza1906/SnapWay/commit/3de9a9a).
