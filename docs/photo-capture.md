@@ -2,6 +2,43 @@
 
 **Status (October 18, 2026):** mobile photo-walk UI and four reference views per point are implemented on `feature/map-authoring-pipeline`. A temporary HTTPS preview reaches the app/API, Google accepts its callback, and a real synthetic R2 write/read/signed-URL test passed. Sam Ibrahim's saved collection walks are installed in the local API. No physical-phone camera test or completed human Google sign-in was performed by the agent; computer use was disabled at the user's request. Earlier test counts below document previous checkpoints.
 
+## Browser point-selection repair
+
+Implementation: [c9a7a2c](https://github.com/mhamza1906/SnapWay/commit/c9a7a2c).
+The merged canvas emits `selectionChanged` in Select mode. The preserved collector
+still listened only for `nodeClicked`, so clicking a map point did not select its
+photos. Both collector canvas bindings now handle selection and load the selected
+point's existing views. The advanced editor keeps its existing selection contract.
+
+Collection mode now uses fixed-screen-size numbered markers, 44-pixel touch areas,
+nearest-stop resolution for overlapping targets, keyboard Enter/Space selection,
+and explicit zoom/fit controls. Dragging the collection background pans the map;
+photo stops cannot be moved in collection mode. The map viewport is larger on
+phones. The same behavior works with mouse and touch. Geometry, point IDs, uploads,
+queue ownership/keys, backend permissions and the forty-stop plan are unchanged.
+
+Changed sources: [canvas controller](../apps/web/src/app/features/graph-editor/graph-canvas.ts),
+[canvas template](../apps/web/src/app/features/graph-editor/graph-canvas.html),
+[canvas styles](../apps/web/src/app/features/graph-editor/graph-canvas.scss),
+[collector controller](../apps/web/src/app/features/photo-walk-editor/photo-walk-editor.ts),
+[collector template](../apps/web/src/app/features/photo-walk-editor/photo-walk-editor.html),
+and [collection styles](../apps/web/src/app/features/photo-walk-editor/phone-walk.scss).
+[Canvas regressions](../apps/web/src/app/features/graph-editor/graph-canvas.spec.ts)
+and [collector regressions](../apps/web/src/app/features/photo-walk-editor/photo-walk-editor.spec.ts)
+exercise actual selection bindings, loading another stop's images, mouse/touch
+picking, overlapping hit areas, unchanged coordinates, disabled input, keyboard
+activation and responsive marker sizing. **24 focused tests** across these and
+existing editor/wrapper/reuse tests pass. Production web build passes without
+budget warnings. No new dependencies or native app rebuilds were needed.
+
+The existing temporary HTTPS preview serves the current feature branch. Read-only
+authenticated requests returned all eleven saved walks, Level 1's forty stops,
+Point 1's four saved views and a real signed R2 JPEG (200). The temporary test
+session was removed. Counts remain 156 reference photos and 779 total graph nodes.
+No browser/computer automation or physical-phone validation was performed.
+Refresh the existing saved collection link after Google Developer sign-in using
+the account that owns the walks. Main's public deployment remains separate.
+
 ## Current 40-stop plan and shared R2 PDFs
 
 Implementation: [cb985bb](https://github.com/mhamza1906/SnapWay/commit/cb985bb).
