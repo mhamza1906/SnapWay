@@ -93,7 +93,7 @@ LightGlue's maintainer distinguishes its license from SuperPoint's more restrict
 
 ## 6. Implications for SnapWay
 
-Three-second Gemini 4 queries can provide semantic confirmation/candidate reduction. Approaching the demonstrated real-world attachment also needs **local continuous tracking, map alignment and robust geometric re-localization**. Gemini retains map interpretation, labels, exclusions and ambiguity explanation; these responsibilities coexist without silently changing the selected models.
+**Canonical place identity:** MegaLoc via `/api/navigation/localize/` ([localization-megaloc.md](../localization-megaloc.md)). Approaching real-world attachment also needs **local continuous tracking, map alignment and robust geometric re-localization**. Gemini remains for **map authoring** (interpretation, labels, exclusions); do not use Gemini as the visitor place matcher.
 
 Four-direction references aid recognition/guidance but do not guarantee reconstruction: rotation at one point lacks triangulation baseline, and 90-degree views may not overlap sufficiently. A VPS experiment needs overlapping captures/keyframes along the route, camera parameters, timestamps and available poses. Reuse existing multianchor originals if their overlap is adequate rather than assuming a full reshoot.
 

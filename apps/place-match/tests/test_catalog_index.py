@@ -2,8 +2,15 @@
 
 from __future__ import annotations
 
-from placematch.catalog_index import cross_target_uncertain
+from placematch.catalog_index import GlobalCatalog, cross_target_uncertain
 from placematch.schemas import Candidate
+
+
+def test_sync_empty_does_not_deadlock():
+    """sync() used to call snapshot() while holding Lock → permanent hang."""
+    cat = GlobalCatalog()
+    snap = cat.sync([], {})
+    assert snap == {"sets": [], "n_vectors": 0}
 
 
 def test_cross_target_uncertain():

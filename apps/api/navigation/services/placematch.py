@@ -128,33 +128,17 @@ def catalog_get() -> dict:
 
 def catalog_sync(desired: list[dict], zips: dict[str, bytes]) -> dict:
     """Push desired catalog sets; ``zips`` only for new/changed ``set_key`` values."""
-    boundary = f"snapway-{secrets.token_hex(12)}"
-    parts: list[bytes] = [
-        (
-            f"--{boundary}\r\n"
-            'Content-Disposition: form-data; name="meta"\r\n'
-            "Content-Type: application/json\r\n\r\n"
-        ).encode()
-        + json.dumps({"sets": desired}).encode()
-        + b"\r\n"
-    ]
-    for set_key, raw in zips.items():
-        parts.append(
-            (
-                f"--{boundary}\r\n"
-                f'Content-Disposition: form-data; name="zip_{set_key}"; '
-                f'filename="{set_key}.zip"\r\n'
-                "Content-Type: application/zip\r\n\r\n"
-            ).encode()
-            + raw
-            + b"\r\n"
-        )
-    parts.append(f"--{boundary}--\r\n".encode())
+    import base64
+
+    payload = {
+        "sets": desired,
+        "zips": {key: base64.b64encode(raw).decode("ascii") for key, raw in zips.items()},
+    }
     request = urllib.request.Request(
         _url("/v1/catalog/sync"),
-        data=b"".join(parts),
+        data=json.dumps(payload).encode(),
         method="POST",
-        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        headers={"Content-Type": "application/json"},
     )
     return _send(request).json()
 

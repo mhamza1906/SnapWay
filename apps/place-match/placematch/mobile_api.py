@@ -27,7 +27,17 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 import numpy as np
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse, Response
 from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -70,6 +80,22 @@ class FrameMeta(BaseModel):
     ) = None
     app_version: str | None = Field(default=None, max_length=32)
     source: Literal["camera", "video"] | None = None
+
+
+class CatalogSetSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    set_key: str
+    content_hash: str
+    revision_id: str
+    target_id: str
+
+
+class CatalogSyncBody(BaseModel):
+    """JSON catalog sync: optional base64 zips for new/changed set_keys."""
+
+    model_config = ConfigDict(extra="forbid")
+    sets: list[CatalogSetSpec]
+    zips: dict[str, str] = Field(default_factory=dict)
 
 
 @dataclass
@@ -671,41 +697,32 @@ def create_app(engine: MobileEngine | None = None, settings: MobileSettings | No
         return {"api_version": API_VERSION, **engine_.global_catalog.snapshot()}
 
     @app.post("/v1/catalog/sync")
-    async def catalog_sync(_: Authorised, request: Request) -> dict:
+    def catalog_sync(
+        payload: CatalogSyncBody,
+        authorization: Annotated[str | None, Header()] = None,
+    ) -> dict:
         """Sync desired revision index zips into the global catalog.
 
-        Form field ``meta`` is JSON ``{"sets":[{set_key, content_hash, revision_id, target_id}]}``.
-        For each set whose hash is new/changed, include a file field named ``zip_<set_key>``.
+        JSON body ``sets`` plus optional ``zips`` map of set_key → base64 zip bytes.
         Sets not listed are dropped from the catalog.
+
+        Auth uses the Authorization header only (no Request dependency) so JSON body
+        parsing cannot deadlock with Starlette's request stream on Windows.
         """
+        scheme, _, token = (authorization or "").partition(" ")
+        if scheme.lower() != "bearer" or not hmac.compare_digest(token.encode(), expected):
+            raise HTTPException(401, "missing or invalid token", {"WWW-Authenticate": "Bearer"})
+        who = hashlib.sha256(token.encode()).hexdigest()[:16]
+        wait = limiter.check(who)
+        if wait is not None:
+            raise HTTPException(429, "rate limit exceeded", {"Retry-After": str(int(wait) + 1)})
+
         engine_ = get_engine()
-        form = await request.form()
-        meta_raw = form.get("meta")
-        if meta_raw is None:
-            raise HTTPException(422, "meta form field is required")
-        if hasattr(meta_raw, "read"):
-            meta_raw = (await meta_raw.read()).decode("utf-8")
+        desired = [s.model_dump() for s in payload.sets]
         try:
-            payload = json.loads(str(meta_raw))
-            desired = payload["sets"]
-            if not isinstance(desired, list):
-                raise ValueError("sets must be a list")
-        except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            raise HTTPException(422, "meta must be JSON with a sets array") from exc
-        zips: dict[str, bytes] = {}
-        for key in form:
-            if not str(key).startswith("zip_"):
-                continue
-            set_key = str(key)[4:]
-            upload = form[key]
-            if hasattr(upload, "read"):
-                data = await upload.read()
-            else:
-                data = bytes(upload)
-            zips[set_key] = data
-        try:
+            zips = {key: base64.b64decode(value) for key, value in payload.zips.items()}
             snapshot = engine_.global_catalog.sync(desired, zips)
-        except ValueError as exc:
+        except (ValueError, TypeError) as exc:
             raise HTTPException(400, str(exc)) from exc
         return {"api_version": API_VERSION, **snapshot}
 

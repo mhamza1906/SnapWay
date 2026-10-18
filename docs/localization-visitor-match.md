@@ -1,13 +1,13 @@
 # Visitor localization against stored MegaLoc indexes
 
+**Canonical product visitor path** (with [localization-megaloc.md](localization-megaloc.md)).  
 **Branch:** `feature/visitor-localization-match`  
-**Status:** Backend implemented (no frontend UI in this PR).  
-**Depends on:** [localization-megaloc.md](localization-megaloc.md) (developer embed + store).  
+**Status:** Backend implemented and live-E2E verified (no frontend UI in this PR).  
 Personal history: ignored `local/ACTIONS.md`.
 
 ## Goal
 
-Visitor submits a camera JPEG (**no floor prompt**). MegaLoc embeds once and cosine-searches the **union of all ready floor index zips**. Response includes building/floor/target/node + decision.
+Visitor submits a camera JPEG (**no floor prompt**). MegaLoc embeds once and cosine-searches the **union of all ready floor index zips**. Response includes building/floor/target/node + decision (`floor_id` is **output enrichment**, not an input).
 
 ```text
 JPEG → Django POST /api/navigation/localize/
@@ -22,8 +22,10 @@ Frontend is owned by teammates; this document is the **API handoff**.
 
 - **Eligible indexes:** current `Publication` revisions with `RevisionArtifact(kind=index, state=ready)`. When `DEBUG=True`, also unfrozen draft revisions with a ready index.
 - **Engine:** [`placematch/catalog_index.py`](../apps/place-match/placematch/catalog_index.py) + `/v1/catalog`, `/v1/catalog/sync`, `/v1/match-global` on [`mobile_api.py`](../apps/place-match/placematch/mobile_api.py).
+- **Catalog sync:** JSON body with optional base64 zips (not multipart). `GlobalCatalog.sync` must not call `snapshot()` while holding the same non-reentrant lock (deadlock).
 - **Django:** [`maps/services/index_catalog.py`](../apps/api/maps/services/index_catalog.py), [`navigation/services/placematch.py`](../apps/api/navigation/services/placematch.py), [`LocalizeView`](../apps/api/navigation/views.py) (default `mode=global`; `mode=legacy` keeps old single-set match).
 - **Cross-floor guard:** if top-1/top-2 are different `target_id` and cosine margin is thin → `uncertain`.
+- **Thresholds:** without `apps/place-match/data/calibration/current.json`, MegaLoc never returns `likely_match` (stays `uncertain`). Local E2E can use REPORT-v2 MegaLoc accept ≥ 0.331 (gitignored under `data/`).
 - **Not in this PR:** Angular UI, Capture/`LocalizationResult` persistence, Vertex/verify on global path.
 
 ## Frontend handoff — `POST /api/navigation/localize/`
@@ -111,3 +113,4 @@ python scripts/dev.py api
 
 - Draft + multi-floor design on this branch (2026-10-17).
 - Backend global catalog + localize (2026-10-17).
+- Live E2E: catalog sync deadlock fix + calibrated localize → `likely_match` (2026-10-17).

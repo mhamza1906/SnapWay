@@ -5,6 +5,12 @@ Work lives on branch `feature/mobile-ios` (cut from `main` at `71f24ab`, `main` 
 `2dfd1ef`). Personal execution history is in ignored `local/ACTIONS.md`. The brief is
 [`apps/place-match/IOS_AGENT_PROMPT.md`](../apps/place-match/IOS_AGENT_PROMPT.md).
 
+**Canonical localize path (product):** MegaLoc global catalog via SnapWay
+`POST /api/navigation/localize/` (default `mode=global`) — see
+[localization-megaloc.md](localization-megaloc.md) and
+[localization-visitor-match.md](localization-visitor-match.md).  
+Direct engine `/v1/match` and API `mode=legacy` are the older single reference-set path.
+
 ## Approved scope
 
 The [architecture plan](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md)
@@ -31,9 +37,11 @@ the camera/matching work, committing `apps/place-match` here, and merging it int
 ## How it fits together
 
 ```text
-iPhone (Angular visitor UI) ──FrameCapture (Swift)──► HTTPS ─┬─► place-match engine  /v1/*          (dev, via ngrok)
-                                                             └─► SnapWay API /api/navigation/localize/* ──► engine (private)
-engine: MegaLoc local (default) → Vertex AI only as fallback / verified second opinion
+iPhone (Angular visitor UI) ──FrameCapture (Swift)──► HTTPS
+  preferred: SnapWay API POST /api/navigation/localize/  (mode=global)
+               → catalog sync + /v1/match-global (MegaLoc, all ready floor indexes)
+  legacy/dev:  engine /v1/match or localize?mode=legacy  (single MOBILE_REFERENCE_SET)
+engine: MegaLoc local; Vertex only as optional legacy fallback / second opinion
 ```
 
 | Piece | Path |
@@ -61,13 +69,14 @@ engine: MegaLoc local (default) → Vertex AI only as fallback / verified second
 
 ### Matching rules (engine)
 
-MegaLoc decides first. Vertex AI runs only when MegaLoc is unavailable or, with **second
-opinion** on, when MegaLoc is `uncertain`; it always runs geometric verification and
-can only report `likely_match` with verification passing (and, as a second opinion, at
-MegaLoc's top-1 `location_id`). Disagreement is `uncertain`; no backend is HTTP 503,
-never a guess. Responses carry `backend_used`, `fallback_used`, `second_opinion_used`,
-`thresholds_id` (hash of `data/calibration/current.json`), raw cosines labelled
-"similarity" (never %), verification and per-stage `timings_ms`.
+**Global path (canonical):** MegaLoc embeds once and searches the synced union catalog;
+cross-floor thin margins → `uncertain`. Floor/building come from Django enrichment.
+Thresholds require `data/calibration/current.json` or outcomes stay `uncertain`.
+
+**Legacy single-set path:** MegaLoc decides first. Vertex AI runs only when MegaLoc is
+unavailable or, with **second opinion** on, when MegaLoc is `uncertain`; Vertex always
+verifies and can only report `likely_match` with verification (and, as second opinion, at
+MegaLoc's top-1 `location_id`). Disagreement is `uncertain`; no backend is HTTP 503.
 
 ### Authentication
 

@@ -50,21 +50,24 @@ class GlobalCatalog:
     rows: list[CatalogRow] = field(default_factory=list)
     lock: threading.Lock = field(default_factory=threading.Lock)
 
+    def _snapshot_unlocked(self) -> dict:
+        return {
+            "sets": [
+                {
+                    "set_key": s.info.set_key,
+                    "content_hash": s.info.content_hash,
+                    "revision_id": s.info.revision_id,
+                    "target_id": s.info.target_id,
+                    "n_vectors": s.info.n_vectors,
+                }
+                for s in sorted(self.loaded.values(), key=lambda x: x.info.set_key)
+            ],
+            "n_vectors": len(self.rows),
+        }
+
     def snapshot(self) -> dict:
         with self.lock:
-            return {
-                "sets": [
-                    {
-                        "set_key": s.info.set_key,
-                        "content_hash": s.info.content_hash,
-                        "revision_id": s.info.revision_id,
-                        "target_id": s.info.target_id,
-                        "n_vectors": s.info.n_vectors,
-                    }
-                    for s in sorted(self.loaded.values(), key=lambda x: x.info.set_key)
-                ],
-                "n_vectors": len(self.rows),
-            }
+            return self._snapshot_unlocked()
 
     def sync(self, desired: list[dict], zips: dict[str, bytes]) -> dict:
         """Replace catalog to match ``desired``; ``zips`` keyed by set_key for new/changed sets."""
@@ -105,7 +108,8 @@ class GlobalCatalog:
 
             self.loaded = next_loaded
             self._rebuild_union()
-            return self.snapshot()
+            # Must not call snapshot() here — it re-acquires the same non-reentrant lock.
+            return self._snapshot_unlocked()
 
     def _rebuild_union(self) -> None:
         if not self.loaded:
