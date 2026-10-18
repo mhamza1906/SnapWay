@@ -24,11 +24,13 @@ def draft(actors):
 
 
 def _tiny_png() -> bytes:
-    return (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-        b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f"
-        b"\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
+    import io
+
+    from PIL import Image
+
+    raw = io.BytesIO()
+    Image.new("RGB", (1, 1), "white").save(raw, format="PNG")
+    return raw.getvalue()
 
 
 @pytest.mark.django_db
@@ -39,6 +41,9 @@ def test_patch_node_label(actors, draft):
     node = add_node(revision, x=10, y=20, label="Old", actor=actors["member"])
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -61,6 +66,9 @@ def test_stranger_cannot_patch_label(actors, draft):
     node = add_node(revision, x=1, y=2, actor=actors["member"])
     client = APIClient()
     client.force_login(actors["stranger"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -81,6 +89,9 @@ def test_frozen_rejects_label_update(actors, draft):
     freeze_revision(revision)
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.patch(
         reverse(
             "map-revision-node-detail",
@@ -101,6 +112,9 @@ def test_attach_list_delete_node_photo(actors, draft, settings, tmp_path):
     node = add_node(revision, x=5, y=5, label="Door", actor=actors["member"])
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     photos_url = reverse(
         "map-revision-node-photos",
         kwargs={"revision_id": draft["revision_id"], "node_id": node.id},
@@ -140,6 +154,9 @@ def test_underlay_uses_media_store(actors, draft, settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
     client = APIClient()
     client.force_login(actors["member"])
+    session = client.session
+    session["snapway_mode"] = "developer"
+    session.save()
     response = client.post(
         reverse("map-revision-underlay", kwargs={"revision_id": draft["revision_id"]}),
         {"file": SimpleUploadedFile("plan.png", _tiny_png(), content_type="image/png")},

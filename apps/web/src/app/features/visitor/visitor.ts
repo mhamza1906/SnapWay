@@ -7,7 +7,9 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
 import { Icon } from '../../shared/icon';
 import { matchingCheckpoint, type MatchResult } from '../../core/place-match';
 import { VisitorCamera } from './visitor-camera';
@@ -31,6 +33,8 @@ import { DestinationSearch } from './visitor-destination-search';
 })
 export class VisitorJourney {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  readonly auth = inject(AuthService);
   readonly buildings = signal<VisitorBuilding[]>(withDemoBuildings([]));
   readonly loading = signal(true);
   readonly error = signal('');
@@ -128,7 +132,15 @@ export class VisitorJourney {
       this.stopLocation();
       document.removeEventListener('visibilitychange', pause);
     });
+    void this.auth.refresh().catch(() => undefined);
     void this.load();
+  }
+  async switchToDeveloper() {
+    if (await this.auth.switchMode('developer'))
+      await this.router.navigateByUrl(this.auth.landingPath());
+  }
+  async signOut() {
+    if (await this.auth.signOut()) await this.router.navigateByUrl('/sign-in');
   }
   async load() {
     const attempt = ++this.loadAttempt;

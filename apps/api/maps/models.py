@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F, Q
+from django.db.models.functions import Now
 
 
 class Record(models.Model):
@@ -30,6 +31,7 @@ def scope_key(scope, name):
 
 
 class Building(Record):
+    google_place_id = models.CharField(max_length=300, null=True, blank=True, unique=True)
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
     address = models.TextField(blank=True)
@@ -63,6 +65,8 @@ class Floor(Record):
 
 
 class MapTarget(Record):
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
+
     class Status(models.TextChoices):
         OPEN = "open", "Open"
         ARCHIVED = "archived", "Archived"
@@ -106,6 +110,8 @@ class Membership(Record):
 
 
 class Contribution(Record):
+    updated_at = models.DateTimeField(auto_now=True, db_default=Now())
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         SUBMITTED = "submitted", "Submitted"

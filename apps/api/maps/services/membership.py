@@ -54,6 +54,12 @@ def grant_membership(
 ) -> Membership:
     if role not in Membership.Role.values:
         raise ValidationError({"role": f"Invalid role: {role}"})
+    if role == Membership.Role.ADMIN and not (
+        granted_by and (granted_by.is_staff or granted_by.is_superuser)
+    ):
+        raise PermissionDenied(
+            "Administrator provisioning requires a database-provisioned operator."
+        )
     if not _actor_may_manage_memberships(granted_by, target):
         raise PermissionDenied(
             "Only a map administrator or Django staff (bootstrap) may grant membership."

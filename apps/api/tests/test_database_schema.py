@@ -200,7 +200,7 @@ def test_only_one_current_publication_per_target_and_sessions_keep_old_revision(
     visitor.refresh_from_db()
     assert visitor.publication_id == first.pk
     assert visitor.revision_id == first.revision_id
-    assert Publication.objects.get(is_current=True).pk == second.pk
+    assert Publication.objects.get(target=world.target, is_current=True).pk == second.pk
 
 
 def test_job_deduplication_survives_retries(world):
@@ -272,19 +272,19 @@ def test_publication_failure_preserves_previous_complete_publication(world):
     with pytest.raises(IntegrityError, match="artifacts"), transaction.atomic():
         Publication.objects.filter(pk=first.pk).update(is_current=False)
         Publication.objects.create(**values)
-    assert Publication.objects.get(is_current=True).pk == first.pk
+    assert Publication.objects.get(target=world.target, is_current=True).pk == first.pk
 
 
 @postgresql
-def test_publication_rejects_stale_base(world):
+def test_publication_accepts_stale_base_with_a_new_approval(world):
     stale = snapshot(world)  # Started before the first publication.
     first = Publication.objects.create(**candidate(world))
     values = candidate(world, stale)
     values["sequence"] = 2
-    with pytest.raises(IntegrityError, match="stale"), transaction.atomic():
+    with transaction.atomic():
         Publication.objects.filter(pk=first.pk).update(is_current=False)
-        Publication.objects.create(**values)
-    assert Publication.objects.get(is_current=True).pk == first.pk
+        accepted = Publication.objects.create(**values)
+    assert Publication.objects.get(target=world.target, is_current=True).pk == accepted.pk
 
 
 @postgresql

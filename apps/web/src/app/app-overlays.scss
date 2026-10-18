@@ -1,4 +1,42 @@
-﻿.toast {
+﻿.global-busy {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  background: #13231c55;
+  backdrop-filter: blur(2px);
+}
+.global-busy-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #fffffff2;
+  box-shadow: 0 12px 40px #13231c33;
+  color: #243842;
+  font-size: 13px;
+  font-weight: 600;
+}
+.global-busy-card p {
+  margin: 0;
+}
+.global-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid #d7e0db;
+  border-top-color: #c76039;
+  animation: global-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes global-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.toast {
   position: fixed;
   bottom: 26px;
   left: 50%;

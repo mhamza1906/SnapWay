@@ -1,0 +1,34 @@
+.developer {
+  animation: enter-left 2.4s cubic-bezier(0.25, 0.6, 0.25, 1) both;
+}
+.public {
+  animation: enter-right 2.4s cubic-bezier(0.25, 0.6, 0.25, 1) both;
+}
+@keyframes enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-108%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(108%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

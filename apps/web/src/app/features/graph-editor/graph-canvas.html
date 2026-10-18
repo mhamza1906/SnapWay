@@ -1,47 +1,115 @@
 <svg
   class="graph-svg"
-  [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
-  role="img"
+  [class.panning]="tool() === 'pan' || spacePan()"
+  [class.adding]="tool() === 'add' || tool() === 'connect'"
+  [attr.viewBox]="viewBox()"
+  role="group"
+  tabindex="0"
   aria-label="Map graph canvas"
-  (click)="onBackground($event)"
+  (pointerdown)="down($event)"
+  (pointermove)="move($event)"
+  (pointerup)="up($event)"
+  (pointercancel)="cancel()"
+  (lostpointercapture)="cancel()"
+  (wheel)="wheel($event)"
 >
+  <rect [attr.width]="width()" [attr.height]="height()" fill="white" />
   @if (underlayUrl(); as url) {
-    <image [attr.href]="url" x="0" y="0" [attr.width]="width()" [attr.height]="height()" />
-  } @else {
     <image
-      href="/demo/floor-plan.svg"
+      [attr.href]="url"
       x="0"
       y="0"
       [attr.width]="width()"
       [attr.height]="height()"
+      draggable="false"
     />
+  } @else {
+    <text
+      [attr.x]="width() / 2"
+      [attr.y]="height() / 2"
+      text-anchor="middle"
+      fill="#899794"
+      font-size="22"
+    >
+      Upload a floor plan to begin
+    </text>
   }
-
   @for (path of paths(); track path.edge.id) {
     @if (path.start && path.end) {
-      <line
-        class="edge"
+      <g
+        [attr.data-edge]="path.edge.id"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="
+          'Connection: ' +
+          (path.start.label || 'waypoint') +
+          ' to ' +
+          (path.end.label || 'waypoint') +
+          ', weight ' +
+          path.edge.cost
+        "
+        (keydown.enter)="edgeClicked.emit(path.edge.id)"
         [class.selected]="path.edge.id === selectedEdgeId()"
-        [attr.x1]="path.start.x"
-        [attr.y1]="path.start.y"
-        [attr.x2]="path.end.x"
-        [attr.y2]="path.end.y"
-        (click)="onEdge($event, path.edge.id)"
-      />
+      >
+        <rect
+          fill="transparent"
+          [attr.x]="path.start.x"
+          [attr.y]="path.start.y - (7 * view().w) / width()"
+          [attr.width]="path.length"
+          [attr.height]="(14 * view().w) / width()"
+          [attr.transform]="'rotate(' + path.angle + ' ' + path.start.x + ' ' + path.start.y + ')'"
+        />
+        <path
+          class="edge-hit"
+          [attr.d]="'M' + path.start.x + ' ' + path.start.y + 'L' + path.end.x + ' ' + path.end.y"
+        />
+        <path
+          class="edge"
+          [attr.d]="'M' + path.start.x + ' ' + path.start.y + 'L' + path.end.x + ' ' + path.end.y"
+        />
+        <title>Directed connection &middot; weight {{ path.edge.cost }}</title>
+      </g>
     }
   }
-
-  @for (node of nodes(); track node.id) {
+  @for (node of displayed(); track node.id) {
     <g
       class="node"
-      [class.selected]="node.id === selectedNodeId()"
+      [attr.data-node]="node.id"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Waypoint: ' + (node.label || 'Unlabeled')"
+      [attr.aria-pressed]="selectedIds().includes(node.id)"
+      (keydown.enter)="
+        tool() === 'select' ? selectionChanged.emit([node.id]) : nodeClicked.emit(node.id)
+      "
+      [class.selected]="selectedIds().includes(node.id)"
       [class.connect-from]="node.id === connectFromId()"
-      (click)="onNode($event, node.id)"
     >
-      <circle [attr.cx]="node.x" [attr.cy]="node.y" r="10" />
-      @if (node.label) {
-        <text [attr.x]="node.x" [attr.y]="node.y - 16">{{ node.label }}</text>
+      <circle
+        class="node-hit"
+        [attr.cx]="node.x"
+        [attr.cy]="node.y"
+        [attr.r]="(15 * view().w) / width()"
+      />
+      <circle [attr.cx]="node.x" [attr.cy]="node.y" [attr.r]="(6 * view().w) / width()" />
+      @if (labels() && node.label) {
+        <text
+          [attr.x]="node.x"
+          [attr.y]="node.y - (12 * view().w) / width()"
+          [attr.font-size]="(12 * view().w) / width()"
+        >
+          {{ node.label }}
+        </text>
       }
     </g>
+  }
+  @if (marquee(); as box) {
+    <rect
+      class="marquee"
+      [attr.x]="box.x"
+      [attr.y]="box.y"
+      [attr.width]="box.w"
+      [attr.height]="box.h"
+    />
   }
 </svg>

@@ -16,12 +16,16 @@ exports the whole file. Start it from the root with
 `python scripts/google_maps_smoke.py`, then open `http://127.0.0.1:4201/`.
 Google OAuth uses the existing Django session flow, not a client-side secret.
 
-The real application starts at `/map`. Start Django with `python scripts/dev.py api`
-from the repository root, then run the frontend command below. `/welcome` starts
-Google sign-in and restores the requested route after callback; the account menu
-supports server logout. Public discovery reads current publications and real
-Building coordinates from Django, not local prototype targets. The visitor bundle
-also starts at the map, retaining `/navigate` as a labeled sample preview.
+The web application starts at `/sign-in`. Start Django with `python scripts/dev.py api`
+from the repository root, then run the frontend command below. `/sign-in` offers
+Developer and Public User cards that start Google login. The verified callback goes
+directly to My maps (through the compatible `/overview` redirect) or `/public`
+(authenticated visitor journey). `/welcome` remains an authenticated account page
+for switching and logout. See [authentication modes](../../docs/authentication-modes.md)
+for the API and administrator provisioning. Signed-in Public Users hitting `/map`
+or `/navigate` continue at `/public`; Developers use `/explore` and can preview the
+visitor UI at `/app-preview`. Anonymous `/map` discovery remains. Discovery reads
+publications and real Building coordinates from Django, not local prototype targets.
 See the iteration guide for acceptance results and native/production setup still
 requiring validation. No Maps/OAuth dependency or secret is bundled into Angular.
 
@@ -61,7 +65,9 @@ npm run build:visitor
 
 Outputs: `dist/snapway/browser` for the web workspace and
 `dist/snapway-visitor/browser` for the visitor. The visitor entry excludes the
-workspace route. Both are scaffolds; map editing and navigation follow later.
+workspace routes. The web workspace now uses Django snapshots, review/publication,
+AI-floor import and exports; see [Developer workspace](../../docs/developer-workspace.md)
+for routes, database migration and acceptance details. The native visitor work is separate.
 
 ## Running unit tests
 

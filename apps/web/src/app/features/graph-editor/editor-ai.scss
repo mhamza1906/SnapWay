@@ -1,0 +1,138 @@
+.ai-panel {
+  width: 360px;
+  flex: 0 0 360px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid #dce5e1;
+  background: #fff;
+  z-index: 10;
+  animation: arrive 0.22s ease-out;
+  > header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 19px 16px;
+    border-bottom: 1px solid #edf0ee;
+    h2 {
+      font-size: 15px;
+      margin: 0 0 4px;
+    }
+    small {
+      font-size: 10px;
+      color: #87948e;
+    }
+    .icon-action {
+      margin-left: auto;
+      width: 30px;
+      height: 30px;
+      flex-basis: 30px;
+      border: 0;
+    }
+  }
+}
+.ai-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: #f0effb;
+  color: #7971b6;
+  border-radius: 10px;
+}
+.ai-content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px 18px;
+  h3 {
+    font-size: 24px;
+    letter-spacing: -0.8px;
+    font-weight: 500;
+    margin: 24px 0 10px;
+  }
+  p {
+    font-size: 12px;
+    line-height: 1.7;
+    color: #7c8a86;
+  }
+}
+.integration-badge {
+  font-size: 10px;
+  background: #f6f3e8;
+  color: #9b8557;
+  padding: 5px 8px;
+  border-radius: 20px;
+}
+.context-card {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-top: 24px;
+  padding: 13px 10px;
+  border: 1px solid #e4ebe6;
+  border-radius: 10px;
+  font-size: 11px;
+  small {
+    display: block;
+    font-size: 9px;
+    color: #95a19b;
+    margin-top: 4px;
+  }
+}
+.chat-message {
+  margin-top: 16px;
+  padding: 13px;
+  border-radius: 12px;
+  background: #f0f5f3;
+  small,
+  span {
+    font-size: 9px;
+    color: #80948a;
+    overflow-wrap: anywhere;
+  }
+  p {
+    white-space: pre-wrap;
+    margin: 7px 0;
+    color: #304f47;
+    overflow-wrap: anywhere;
+  }
+}
+.composer {
+  padding: 14px;
+  border-top: 1px solid #e8ede9;
+  textarea {
+    resize: none;
+    font-size: 12px;
+    border: 0;
+    background: #f4f7f5;
+    padding: 12px;
+  }
+  div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+  small {
+    font-size: 9px;
+    color: #97a49c;
+  }
+  .icon-action {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    background: #385f53;
+    color: white;
+    border: 0;
+  }
+}
+@keyframes arrive {
+  from {
+    transform: translateX(25px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
