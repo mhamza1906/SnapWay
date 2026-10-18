@@ -1,11 +1,30 @@
 """Offline boundaries for the opt-in GitHub Actions cloud audit."""
 
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).parents[2]
+
+
+def syntax_bash():
+    if sys.platform != "win32":
+        executable = shutil.which("bash")
+        assert executable, "Bash is required for the read-only audit syntax check"
+        return executable
+    # Windows' system bash.exe may only be an unconfigured WSL launcher. Locate
+    # Git for Windows' actual shell beside its resolved git.exe installation.
+    git = shutil.which("git")
+    assert git, "Git for Windows with Git Bash is required for the audit syntax check"
+    for root in Path(git).resolve().parents[:3]:
+        for relative in ("bin/bash.exe", "usr/bin/bash.exe"):
+            candidate = root / relative
+            if candidate.is_file():
+                return str(candidate)
+    raise AssertionError("Git Bash was not found beside the configured Git installation")
 
 
 def workflow():
@@ -55,8 +74,8 @@ def test_audit_keeps_existing_main_only_production_gates():
 def test_cloud_audit_pins_host_keys_and_never_reads_remote_credentials_or_mutates():
     script = (ROOT / "infra/cloud-readiness.sh").read_text()
     # Feed LF bytes through stdin: no Windows drive path or text-mode CRLF
-    # conversion reaches Bash, regardless of which Windows Bash is selected.
-    subprocess.run(["bash", "-n"], input=script.encode("utf-8"), check=True)
+    # conversion reaches Bash. Windows uses Git Bash, never the WSL launcher.
+    subprocess.run([syntax_bash(), "-n"], input=script.encode("utf-8"), check=True)
     assert "umask 077" in script
     assert "StrictHostKeyChecking=yes" in script
     assert "UserKnownHostsFile=$sshdir/known_hosts" in script
@@ -89,3 +108,20 @@ def test_cloud_audit_pins_host_keys_and_never_reads_remote_credentials_or_mutate
         "mkdir ",
     ]:
         assert forbidden not in remote
+
+
+def test_windows_syntax_check_selects_git_bash_instead_of_path_wsl_stub(tmp_path, monkeypatch):
+    git = tmp_path / "Git" / "cmd" / "git.exe"
+    git.parent.mkdir(parents=True)
+    git.touch()
+    shell = tmp_path / "Git" / "bin" / "bash.exe"
+    shell.parent.mkdir()
+    shell.touch()
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(shutil, "which", lambda name: str(git) if name == "git" else "wsl-stub")
+    assert syntax_bash() == str(shell)
+    shell.unlink()
+    alternate = tmp_path / "Git" / "usr" / "bin" / "bash.exe"
+    alternate.parent.mkdir(parents=True)
+    alternate.touch()
+    assert syntax_bash() == str(alternate)

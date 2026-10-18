@@ -60,6 +60,9 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(
         return subprocess.check_output(["git", "-C", str(tmp_path), *args], text=True).strip()
 
     git("init", "--quiet")
+    # Exercise Windows-style archive conversion even on Linux/macOS: the
+    # release must preserve committed bytes regardless of contributor config.
+    git("config", "core.autocrlf", "true")
     git("add", ".")
     git(
         "-c",

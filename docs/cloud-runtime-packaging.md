@@ -21,7 +21,9 @@ python3 scripts/package_release.py <40-character-commit>-<run-id>-<attempt> \
 ```
 
 The release ID must name the checked-out commit. Packaging uses `git archive HEAD`,
-so uncommitted edits and ignored local files never become release source. The flag
+so uncommitted edits and ignored local files never become release source. The
+archive command disables `core.autocrlf` conversion to preserve committed source
+bytes even when packaging from a Windows checkout. The flag
 requires the optional sources and lock files to be committed. Run without the flag
 for the existing API/MCP/browser archive and original manifest shape.
 
@@ -157,7 +159,9 @@ silently enabled in CI and pushing a feature branch does not deploy a server.
 - [MegaLoc unit template](../infra/units/snapway-placematch.service)
 
 **Validation:** packaging and existing deployment-controller suites pass together
-(**34 tests**); changed Python lint/format and Git whitespace checks pass.
+and cloud-audit checks (**38 tests**); changed Python lint/format and Git whitespace
+checks pass. Windows regressions exercise Git Bash selection and committed source
+byte preservation with `core.autocrlf=true`.
 Focused packaging tests use disposable Git repositories and synthetic secrets;
 they cover default archive compatibility, opt-in committed code/locks/SVGs,
 manifest components, uncommitted changes, artifact exclusions, and template

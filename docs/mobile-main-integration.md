@@ -151,7 +151,8 @@ secret, env key or schema version was introduced.
 - 234 tests pass on an isolated local PostgreSQL database, including real database
   constraints. SQLite passes 215 cases with 19 expected PostgreSQL skips.
 - 233 pipeline tests pass, with 18 optional-fixture skips; 41 Sam project tests pass.
-- 37 cloud packaging/controller/audit tests pass.
+- 38 cloud packaging/controller/audit tests pass, including Windows Git Bash
+  selection and committed-byte preservation with `core.autocrlf=true`.
 - Android Java compilation, lint and debug APK build pass; unsigned iOS simulator
   build passes. Both platforms receive the final visitor bundle and native HTTP config.
 - Ruff, formatting, 14 preserved-document checks and 10 immutable audit checks pass.

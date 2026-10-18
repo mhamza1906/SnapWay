@@ -108,10 +108,14 @@ def main():
                 parser.error(f"Mobile service source must be committed before packaging: {path}")
         extra_paths = list(MOBILE_SOURCE_PATHS)
     # git archive excludes ignored/uncommitted files; the opt-in filter also
-    # excludes accidentally tracked private/runtime/model artifacts.
+    # excludes accidentally tracked private/runtime/model artifacts. Disable
+    # checkout newline conversion so Windows Git emits the committed Linux
+    # source bytes rather than CRLF scripts and service templates.
     source = subprocess.check_output(
         [
             "git",
+            "-c",
+            "core.autocrlf=false",
             "archive",
             "--format=tar",
             "--prefix=source/",
