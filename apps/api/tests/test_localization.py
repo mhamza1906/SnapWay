@@ -36,7 +36,7 @@ def _upload(client, data=None, ctype="image/jpeg", meta=None, query=""):
     if query and not query.startswith("?"):
         query = "?" + query
     if "mode=" not in query:
-        query = ("?mode=legacy" if not query else query + "&mode=legacy")
+        query = "?mode=legacy" if not query else query + "&mode=legacy"
     return client.post(
         "/api/navigation/localize/" + query,
         {
