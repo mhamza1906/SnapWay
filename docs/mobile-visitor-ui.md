@@ -2,7 +2,8 @@
 
 Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
 commits include `a0564a9` and `ca59f45`; heading spacing and local Android packaging
-notes are recorded in `1407e12`. The publication-fixture correction below is pending commit.
+notes are recorded in `1407e12`; the publication-fixture correction is in `57e8b26`.
+The installed-app API connection below is pending commit.
 Personal execution details remain in ignored `local/ACTIONS.md`.
 
 ## Entry points and interaction
@@ -178,10 +179,10 @@ Release integration is still pending:
 - Supply reviewed guidance images and a route/publication-aware frame adapter to
   the typed renderer. No uploaded images, route-generation endpoint, turn sequence
   or automatic step advancement is implemented by this UI task.
-- Configure and validate installed-app HTTPS API transport, the actual Capacitor
-  origin and restricted Google Maps credentials. Current relative public API calls
-  retain the existing same-origin contract; bundled localhost assets alone cannot
-  reach Django. No permissive CORS or remote live-reload server was introduced.
+- Apply the exact Android CORS allowance described below and verify restricted
+  Google Maps credentials on the physical phone. API address routing is implemented;
+  production CORS is verified. Google Maps referrer authorization and final map
+  acceptance remain pending with the credential owner.
 - Provide the existing authorized localization session/capability. There is no
   public visitor-session issuance endpoint yet, and the iOS bridge's configured
   token transport remains debug-only. Anonymous browser captures may be denied;
@@ -197,6 +198,70 @@ Maps/OAuth/native transport credentials must come from the responsible owner thr
 the team's external private channel; this UI does not distribute them. Future API
 origin/guest-session architecture or dependency changes require the requesting
 member's approval under [AGENTS.md](../AGENTS.md).
+
+## Installed Android API connection
+
+The contributor approved `https://snapway.work` as the installed-app backend and
+selected standard WebView HTTP with an exact CORS allowance. The bundled Android
+page uses `https://localhost`; a relative `/api/client-config/` previously resolved
+against those local assets instead of Django, producing **Map unavailable**.
+The [visitor entry](../apps/web/src/main.visitor.ts) now registers an
+[API interceptor](../apps/web/src/app/core/native-api.interceptor.ts) that prefixes
+relative `/api/` requests with the HTTPS backend only inside Capacitor. Website
+requests, local assets and explicitly addressed URLs keep their existing addresses.
+Maps configuration, public building discovery and the existing photo-upload request
+use this route. Developer login stays on the website; this adds no guest capability
+issuance, shared token or cross-site credential option. Existing localization
+permissions remain authoritative.
+
+The final build does not enable Capacitor's native HTTP patch, change dependencies,
+load remote application assets, allow cleartext traffic or change the local origin.
+The [transport tests](../apps/web/src/app/core/native-api.interceptor.spec.ts) cover
+phone configuration/discovery URLs, preserved multipart bodies, website behavior
+and requests that must remain untouched. All **93 frontend tests** and both web
+and visitor production builds pass; Android sync, debug assembly and APK signature
+verification pass. The updated debug APK was installed on the connected phone with
+app data preserved. Successful map rendering still requires the provider allowlist
+update described below.
+
+The deployment owner must add **`https://localhost`** to the existing
+`CORS_ALLOWED_ORIGINS` value in `/etc/indoor-nav/api.env`, preserving other origins.
+This existing host override requires no template/key/schema update; obtain or
+coordinate the private configuration through the team channel. Do not enable
+wildcard origins or credentialed CORS. CORS allows response reading and is not
+application identity or authorization. Validate before restarting:
+
+```bash
+# The installed root-owned validator is absent on this server. Use the deployed
+# validator without running release-owned code as root; private values stay piped.
+sudo cat /etc/indoor-nav/api.env | python3 \
+  /srv/indoor-nav/current/source/scripts/env_contract.py check \
+  --template /srv/indoor-nav/current/source/.env.example \
+  --file /dev/stdin --profile production
+# Run only after validation succeeds; restart active API units only.
+sudo systemctl try-restart 'snapway-api-*.service'
+```
+
+Verify `GET /api/client-config/` with `Origin: https://localhost` returns
+`Access-Control-Allow-Origin: https://localhost` without an allow-credentials header,
+then retry the map on the phone. The owner has applied the CORS change: live config
+and liveness requests both return HTTP 200 with the exact origin and no
+allow-credentials header. The phone confirms Android platform, native HTTP patch
+disabled, and configuration/discovery requests to `https://snapway.work`.
+It now reaches Google Maps, which rejects the referrer with
+`RefererNotAllowedMapError`. The Maps credential owner must add
+`https://localhost/*` to the browser key's website restrictions, preserving existing
+website and API restrictions. Identify the active key from `maps.browser_key` in
+the public client-config response and match it in Google Cloud Credentials; do
+not confuse it with the server-only OAuth client. Never remove restrictions to
+mask this error. Retry/reload the map after saving; provider allowlist changes
+require no APK rebuild. Final map rendering remains unverified until this update.
+Existing SSH admin identities were rejected; a read-only deployment-identity
+check verified the release validator path. No server environment or provider
+account was changed by the agent; the requesting member made the CORS update.
+
+References: [Capacitor local origin configuration](https://capacitorjs.com/docs/config),
+[Google Maps key/WebView restrictions](https://developers.google.com/maps/api-security-best-practices).
 
 ## Android CLI Java setup
 
