@@ -72,6 +72,36 @@ if command -v curl >/dev/null 2>&1; then
 else
     printf '%s\n' 'curl unavailable; HTTP probes skipped'
 fi
+printf '\nRead-only Sam Ibrahim compute probes (no provider/model calls):\n'
+python3 - <<'PROBE'
+import json
+from pathlib import Path
+from urllib.request import Request, build_opener, ProxyHandler
+from urllib.error import HTTPError, URLError
+file = Path("/srv/indoor-nav/current/source/apps/api/maps/data/sam-ibrahim.json")
+print("API bundled project:", "present" if file.is_file() else "missing")
+if file.is_file():
+    project = json.loads(file.read_text())
+    opener = build_opener(ProxyHandler({}))
+    for operation, floor in (("summary", None), ("render", "LB"), ("render", "L1")):
+        body = {"building": project}
+        if floor:
+            body["floorId"] = floor
+        req = Request("http://127.0.0.1:5175/api/authoring/" + operation,
+            data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+        try:
+            with opener.open(req, timeout=20) as response:
+                data = json.load(response)
+                print(operation, floor or "all floors", response.status,
+                    "floors=" + str(len(data.get("floors", []))) if not floor else
+                    "svg=" + str("<svg" in data.get("svg", "")))
+        except HTTPError as error:
+            text = error.read(8192).decode(errors="replace")
+            kind = "missing-source" if "ENOENT" in text else "schema" if "Zod" in text else "compute-error"
+            print(operation, floor or "all floors", error.code, kind)
+        except (URLError, TimeoutError, ValueError):
+            print(operation, floor or "all floors", "unavailable")
+PROBE
 printf '%s\n' '```' '' 'Audit complete. This does not activate services, validate model accuracy, or confirm mobile map rendering.'
 REMOTE
 then
