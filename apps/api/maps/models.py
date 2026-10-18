@@ -561,6 +561,33 @@ class ChangeSet(Record):
         ]
 
 
+class FloorConnector(Record):
+    """Cross-floor stair/lift correspondence for multi-floor routing.
+
+    Endpoints list matching vertical nodes on each floor of one building.
+    Edges remain per-revision; routing joins floors through these rows.
+    """
+
+    class Kind(models.TextChoices):
+        STAIRS = "stairs", "Stairs"
+        LIFT = "lift", "Lift"
+
+    building = models.ForeignKey(
+        Building, on_delete=models.PROTECT, related_name="floor_connectors"
+    )
+    code = models.CharField(max_length=40)
+    kind = models.CharField(max_length=16, choices=Kind)
+    label = models.CharField(max_length=200, blank=True)
+    # [{floor_code, target_id, node_id, node_stable_id, label}]
+    endpoints = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["building", "code"], name="floor_connector_code_uq"),
+            enum_check("kind", ["stairs", "lift"], "floor_connector_kind_ck"),
+        ]
+
+
 class AuditEvent(Record):
     target = models.ForeignKey(MapTarget, on_delete=models.PROTECT, related_name="events")
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)

@@ -20,6 +20,7 @@ from maps.views_optimize import (
     VectorizeDemoView,
 )
 from maps.views_workspace import (
+    BuildingConnectorsView,
     ContributionDetailView,
     ContributionListView,
     EditMapView,
@@ -35,6 +36,10 @@ from maps.views_workspace import (
 urlpatterns = [
     path("workspace/", WorkspaceMapsView.as_view()),
     path("workspace/buildings/", WorkspaceBuildingsView.as_view()),
+    path(
+        "workspace/buildings/<uuid:building_id>/connectors/",
+        BuildingConnectorsView.as_view(),
+    ),
     path("workspace/activity/", WorkspaceActivityView.as_view()),
     path("workspace/contributions/", ContributionListView.as_view()),
     path("workspace/contributions/<uuid:contribution_id>/", ContributionDetailView.as_view()),

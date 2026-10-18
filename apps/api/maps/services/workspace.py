@@ -21,6 +21,7 @@ from maps.models import (
     Contribution,
     Edge,
     Floor,
+    FloorConnector,
     MapObject,
     MapTarget,
     Membership,
@@ -136,6 +137,28 @@ def workspace_buildings(user):
             }
         )
     return list(buildings.values())
+
+
+def building_connectors(user, building_id):
+    """Stair/lift correspondence across floors of one building (cross-floor routing).
+
+    Caller must already see at least one open floor of the building.
+    """
+    building = Building.objects.get(pk=building_id)
+    visible = visible_targets(user).filter(status=MapTarget.Status.OPEN, floor__building=building)
+    if not visible.exists():
+        raise PermissionError("This building is not available in your workspace.")
+    rows = FloorConnector.objects.filter(building=building).order_by("kind", "code")
+    return [
+        {
+            "id": str(row.id),
+            "code": row.code,
+            "kind": row.kind,
+            "label": row.label,
+            "endpoints": row.endpoints,
+        }
+        for row in rows
+    ]
 
 
 def current_publication(target):

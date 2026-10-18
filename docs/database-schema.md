@@ -23,6 +23,11 @@ catalog, diagrams and SQL export below remain the original pre-`0004` evidence;
 migrations and [Developer workspace](developer-workspace.md) describe the current
 delta. No original catalog evidence was overwritten.
 
+**Multifloor update:** migration `0007_floor_connector` adds `maps_floorconnector`
+(`FloorConnector`) for stair/lift correspondence across floors of one building.
+See [IA multifloor](ia-multifloor.md). Apply with `DATABASE_MIGRATOR` when the
+runtime role cannot create tables.
+
 **Initial deployment record:** migrated to the Tiger Cloud DEV database `db-snap-way`
 on October 17, 2026: **26 migrations applied, zero pending**, with **24 domain
 tables** in the `snapway` schema. See the [cloud migration record](#tiger-cloud-migration--completed-october-17-2026)

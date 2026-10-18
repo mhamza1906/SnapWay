@@ -68,6 +68,19 @@ class WorkspaceBuildingsView(WorkspaceView):
 
 
 @extend_schema(exclude=True)
+class BuildingConnectorsView(WorkspaceView):
+    """Cross-floor stair/lift endpoints for multi-floor routing."""
+
+    def get(self, request, building_id):
+        return Response(
+            {
+                "building_id": str(building_id),
+                "connectors": svc.building_connectors(request.user, building_id),
+            }
+        )
+
+
+@extend_schema(exclude=True)
 class WorkspaceMapsView(WorkspaceView):
     def get(self, request):
         # List must stay metadata-only: do not sign underlay URLs here. Each

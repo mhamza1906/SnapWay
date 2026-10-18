@@ -28,8 +28,8 @@ hosting the API does not connect unfinished product features automatically.
   data. Deployment applies pending migrations; it never resets the database.
 - Repository Actions secrets: `VULTR_HOST`, `VULTR_USER` (`snapwaydeploy`),
   `VULTR_SSH_PORT`, `VULTR_SSH_KEY`, `VULTR_KNOWN_HOSTS`.
-- Production deployment is disabled until the repository Actions **variable**
-  `PRODUCTION_DEPLOY_ENABLED` is explicitly set to the string `true`.
+- Production deployment requires the repository Actions **variable**
+  `PRODUCTION_DEPLOY_ENABLED` to be explicitly set to the string `true`.
 
 The contributor completed server setup during guided installation. The first
 release attempt passed SSH upload, dependency installation and settings checks,
@@ -179,12 +179,14 @@ for the special behavior of `sslrootcert=system`.
 
 ## First release and automatic releases
 
-1. Review and commit the branch, open a PR and merge only after CI passes. This
-   does not deploy while `PRODUCTION_DEPLOY_ENABLED` is absent or false.
-2. Complete server setup, verify the real Tiger TLS/role profile, and arrange
+1. Complete server setup, verify the real Tiger TLS/role profile, and arrange
    recoverable database plus persistent-file backups before storing valuable data.
-3. Set the Actions repository **variable** `PRODUCTION_DEPLOY_ENABLED=true`.
-4. In Actions, select **CI → Run workflow → main**, enable **deploy**, and run.
+2. Configure the five required repository SSH secrets listed above. Missing or
+   incorrect credentials fail deployment; they are not a successful release.
+3. Set the Actions repository **variable** `PRODUCTION_DEPLOY_ENABLED=true` when
+   production deployment is approved, then review/merge the branch after CI passes.
+   Successful application packages on `main` deploy only with this opt-in.
+4. To redeploy manually, select **CI → Run workflow → main**, enable **deploy**, and run.
    The manual run checks all tracked application inputs before packaging.
 5. Check the workflow, `https://snapway.work/`, `/api/health/live/`,
    `/api/health/ready/`, a deep Angular route, and browser asset requests. Confirm
@@ -195,6 +197,11 @@ PRs, feature branches, documentation-only commits and ordinary manual check runs
 do not deploy. The existing required CI result remains available. A main run and
 the production release job are not canceled when another commit arrives;
 GitHub concurrency plus a server-side lock prevent concurrent promotions.
+The deployment job explicitly evaluates its successful package dependency with
+`always()` so unrelated skipped component jobs do not suppress promotion. It
+still rejects pull-request and non-main runs and requires the repository variable
+opt-in. An absent or false `PRODUCTION_DEPLOY_ENABLED` intentionally skips the
+stage; see the [CI repair record](ci.md#main-merge-and-deployment-gate).
 
 ## Release behavior and recovery
 
