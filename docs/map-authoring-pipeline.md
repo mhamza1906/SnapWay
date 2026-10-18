@@ -17,7 +17,7 @@ Status: integrated as a local service with an Angular screen; not deployed.
   - preview a route
   - save a copy
 - **Providers:**
-  - **Everyone uses `.env.prod`** (`npm run prod`): Claude Sonnet 5.5 at high effort for planning and mapping, and Gemini image models on Vertex AI for clean-plan redraws. Set `AI_PROVIDER=vertex` to map with Gemini (`gemini-4-argon`) instead.
+  - **Everyone uses `.env.prod`** (`npm run prod`): Claude Sonnet 5.5 at high effort for planning and mapping. Set `AI_PROVIDER=vertex` to map with Gemini (`gemini-4-argon`) instead.
   - `.env.dev` remains Arjun's personal development file.
   - `APP_ENV` defaults to `prod`. Prod accepts only `anthropic` or `vertex`, never falls back automatically, and fails at startup if misconfigured.
 - **Docs:** [docs/pipeline/](pipeline/README.md) covers the overview, [environments](pipeline/environments.md), [stages](pipeline/stages.md), the [HTTP API and CLI](pipeline/api.md), and [operations, costs and trial results](pipeline/operations.md).

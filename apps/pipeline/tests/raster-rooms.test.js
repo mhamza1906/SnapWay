@@ -5,7 +5,8 @@ import { join } from "node:path";
 import sharp from "sharp";
 import { rasterRoomsMap } from "../server/pipelines/raster-rooms.js";
 import { runSmartMap } from "../server/pipelines/smart-map.js";
-import { cleanPlan, buildingFromClean } from "../server/pipelines/clean-plan.js";
+import { preparePlan } from "../server/pipelines/preparation.js";
+import { newBuilding, newFloor, parseBuilding } from "../shared/building/schema.js";
 import { OpenAIProvider } from "../server/provider.js";
 import { emptyMap, validateMap, pointSegment, inside, distance, clone } from "../shared/map.js";
 
@@ -238,7 +239,8 @@ test("inventory names regions by position; label words and generic names decide 
 });
 
 // ---------------------------------------------------------------------------
-// runSmartMap: a clean redraw is segmented locally; the model only names it.
+// runSmartMap: raster segmentation runs locally on the source image; the model
+// only names it.
 
 const message = (body) => ({ status: "completed", usage: { total_tokens: 100 }, output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(body) }] }] });
 const response = (body) => new Response(JSON.stringify(body), { status: 200 });
@@ -268,18 +270,25 @@ function fakeProvider() {
   } });
   return { provider, requests };
 }
-// A one-floor building whose mapping source is a clean redraw (the fake image
-// model returns the synthetic plan itself; no paid call).
-async function cleanBuilding(png) {
-  const imageModel = { model: "synthetic-redraw", imageSize: "2K", configured: true,
-    async generate() { return { dataUrl: `data:image/png;base64,${png.toString("base64")}`, model: "synthetic-redraw", usage: { total_tokens: 0 }, text: "" }; } };
-  const clean = await cleanPlan({ buffer: png, fileName: "synthetic.png", mime: "image/png", mode: "floor", labels: ["Level 1"],
-    imageModel, provider: null, cacheDir: cache() });
-  return buildingFromClean(clean, { name: "Synthetic raster plan" });
+// A one-floor building straight from the synthetic upload (as POST
+// /api/authoring/plans builds it). legacyClean marks the source like a saved
+// building from the removed clean-redraw step, which "auto" still segments locally.
+async function planBuilding(png, { legacyClean = false } = {}) {
+  const prepared = await preparePlan(png, "synthetic.png", "image/png"), [source] = prepared.sources, b = newBuilding();
+  b.id = "plan-synthetic"; b.name = "Synthetic raster plan"; b.assets = prepared.assets;
+  if (legacyClean) b.assets[source.assetId] = { ...b.assets[source.assetId],
+    provenance: "Clean redraw by synthetic-redraw (clean-plan-v4-2026-10-17); generated, not the original" };
+  const floor = newFloor("floor-1", "Level 1", 1);
+  floor.width = source.width; floor.height = source.height;
+  floor.sources = [{ ...source, geometryIds: [], alignment: "reviewed", notes: "Synthetic test plan; identity alignment." }];
+  floor.geometry = emptyMap({ name: source.name, width: source.width, height: source.height,
+    dataUrl: b.assets[source.assetId].dataUrl, normalized: true, provenance: "Original source", fictional: false });
+  b.floors = [floor];
+  return parseBuilding(b);
 }
 
-test("runSmartMap segments a clean redraw locally (auto): no floor_plan request, raster method, named corridor and rooms", async () => {
-  const b = await cleanBuilding(await twoRooms({ gaps: NARROW })), [floor] = b.floors, [source] = floor.sources;
+test("runSmartMap segments a saved clean-redraw source locally (auto): no floor_plan request, raster method, named corridor and rooms", async () => {
+  const b = await planBuilding(await twoRooms({ gaps: NARROW }), { legacyClean: true }), [floor] = b.floors, [source] = floor.sources;
   assert.match(b.assets[source.assetId].provenance, /^Clean redraw/);
   assert.equal(source.width, W); assert.equal(source.height, H);
   const before = JSON.stringify(b), { provider, requests } = fakeProvider();
@@ -300,9 +309,9 @@ test("runSmartMap segments a clean redraw locally (auto): no floor_plan request,
   assert.ok(p.records.length >= p.map.doors.length, "every raster opening was checked");
 });
 
-test("runSmartMap: raster doorways the model confirms also pass the local opening check", async () => {
-  const b = await cleanBuilding(await twoRooms({ gaps: NARROW })), [floor] = b.floors, { provider } = fakeProvider();
-  const result = await runSmartMap(b, { floorIds: [floor.id], rebuild: true }, { provider, cacheDir: cache() });
+test("runSmartMap: raster segmentation of the uploaded source; doorways the model confirms also pass the local opening check", async () => {
+  const b = await planBuilding(await twoRooms({ gaps: NARROW })), [floor] = b.floors, { provider } = fakeProvider();
+  const result = await runSmartMap(b, { floorIds: [floor.id], rebuild: true, segmentation: "raster" }, { provider, cacheDir: cache() });
   const [p] = result.proposals;
   assert.ok(p.records.length >= 2);
   assert.deepEqual(p.records.map((r) => [r.doorId, r.evidence.verifier.verdict]).filter(([, v]) => v !== "supported"), [],
@@ -311,7 +320,7 @@ test("runSmartMap: raster doorways the model confirms also pass the local openin
 });
 
 test("segmentation 'model' (and auto on a non-redraw source) still traces tiles with floor_plan", async () => {
-  const b = await cleanBuilding(await twoRooms({ gaps: NARROW })), [floor] = b.floors, light = { maxDetailTiles: 1, maxRepairTiles: 0 };
+  const b = await planBuilding(await twoRooms({ gaps: NARROW }), { legacyClean: true }), [floor] = b.floors, light = { maxDetailTiles: 1, maxRepairTiles: 0 };
   const model = fakeProvider();
   const forced = await runSmartMap(b, { floorIds: [floor.id], rebuild: true, segmentation: "model", ...light }, { provider: model.provider, cacheDir: cache() });
   assert.ok(model.requests.includes("floor_plan"), `requests: ${model.requests}`);

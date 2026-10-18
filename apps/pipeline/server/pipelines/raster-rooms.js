@@ -1,5 +1,6 @@
-// Rooms, hallways and doorways from a clean floor-plan raster (black walls on
-// white, as produced by the clean-plan stage). Deterministic, no model call.
+// Rooms, hallways and doorways from a floor-plan raster (works best on black
+// walls on white; grey #D8D8D8 circulation fill, as in clean redraws saved before
+// the redraw step was removed, is read as hallways). Deterministic, no model call.
 //
 // 1. Walls: dark strokes at least `minWallHalf` px from their own edge
 //    (morphological opening), so text, seat rows and stair treads drop out.
@@ -406,7 +407,7 @@ function simplifyChains(chains, rings, tol) {
 }
 
 const GENERIC = /^(unlabel|unlabeled|unknown|unnamed|space\b|area\b)/i;
-// The clean redraw's circulation fill (#D8D8D8 = 216) with room for JPEG and
+// The circulation grey of saved clean redraws (#D8D8D8 = 216) with room for JPEG and
 // anti-aliasing; a plan counts as grey-coded when 3% of its floor is grey.
 const GREY_LOW = 185, GREY_HIGH = 240, GREY_PLAN_FRACTION = 0.03, GREY_REGION_FRACTION = 0.45;
 const isGrey = (g) => g >= GREY_LOW && g <= GREY_HIGH, GREY_MIN_DOOR = 15, MIN_WALL_PX = 5;

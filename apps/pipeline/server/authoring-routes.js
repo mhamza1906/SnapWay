@@ -3,11 +3,6 @@
 // inside the doorway helpers; nothing here writes a saved file.
 import express from "express";
 import multer from "multer";
-import sharp from "sharp";
-import { createProvider } from "./provider.js";
-import { VertexImageModel } from "./vertex-image.js";
-import { PlanBriefModel } from "./plan-brief.js";
-import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 import { preparePlan } from "./pipelines/preparation.js";
 import { hashBytes } from "./pipelines/extraction.js";
 import { BuildingSchema, newBuilding, newFloor, parseBuilding } from "../shared/building/schema.js";
@@ -132,43 +127,6 @@ export function renderFloor(building, floorId, overlay = {}) {
 
 const respond = (res, building, extra = {}) => res.json({ building, summary: buildingSummary(building), ...extra });
 
-// Clean-plan jobs (image model redraws each floor before mapping). One at a time;
-// state is in memory and the generated images are cached on disk.
-const cleanJobs = new Map();
-const preview = async (dataUrl, edge = 640) =>
-  "data:image/jpeg;base64," + (await sharp(Buffer.from(dataUrl.split(",")[1], "base64"))
-    .resize({ width: edge, height: edge, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer()).toString("base64");
-export function startCleanJob(file, { mode, floors, labels, name }, deps = {}) {
-  if ([...cleanJobs.values()].some((j) => j.status === "running"))
-    throw new Error("A clean-plan job is already running. Wait for it to finish.");
-  const id = crypto.randomUUID(), controller = new AbortController(),
-    job = { id, status: "running", mode, floors, startedAt: new Date().toISOString(), progress: { stage: "queued", message: "Queued" }, controller };
-  cleanJobs.set(id, job);
-  (async () => {
-    try {
-      const clean = await cleanPlan({ buffer: file.buffer, fileName: file.originalname, mime: file.mimetype, mode, floors, labels,
-        provider: deps.provider ?? createProvider(), imageModel: deps.imageModel ?? new VertexImageModel(),
-        briefModel: "briefModel" in deps ? deps.briefModel : new PlanBriefModel(),
-        cacheDir: deps.cacheDir, signal: controller.signal, progress: (p) => { job.progress = p; } });
-      const building = await buildingFromClean(clean, { name });
-      job.result = {
-        building, summary: buildingSummary(building), elapsedMs: clean.elapsedMs, imageModel: clean.imageModel, usage: clean.usage,
-        floors: await Promise.all(clean.floors.map(async (f) => ({ label: f.label, level: f.level, crop: { left: f.crop.left, top: f.crop.top, width: f.crop.width, height: f.crop.height },
-          cached: f.clean.cached, latencyMs: f.clean.latencyMs, model: f.clean.model, usage: f.clean.usage,
-          originalPreview: await preview(f.crop.dataUrl), cleanPreview: await preview(f.clean.dataUrl) }))),
-        transcript: clean.transcript,
-      };
-      job.status = "complete";
-      job.progress = { stage: "finished", message: `${clean.floors.length} clean floor(s) ready` };
-    } catch (e) {
-      job.status = controller.signal.aborted ? "cancelled" : "failed";
-      job.error = e.message;
-      job.transcript = e.transcript;
-    } finally { job.finishedAt = new Date().toISOString(); }
-  })();
-  return { id };
-}
-const jobView = ({ controller, ...job }) => job;
 
 export function authoringRouter() {
   const r = express.Router();
@@ -194,32 +152,6 @@ export function authoringRouter() {
       const building = parseBuilding(b);
       res.json({ building, summary: buildingSummary(building) });
     } catch (e) { next(e); }
-  });
-  // Floor plan (one floor) or building plan (the user says how many floors):
-  // each floor is redrawn as a clean plan before mapping.
-  r.post("/clean-plans", upload.single("plan"), (req, res, next) => {
-    try {
-      if (!req.file) throw new Error("Choose a PDF, PNG or JPEG plan.");
-      const mode = req.body.mode === "building" ? "building" : req.body.mode === "floor" ? "floor" : null;
-      if (!mode) throw new Error("Say whether this is a floor plan or a building plan.");
-      const floors = mode === "floor" ? 1 : Number(req.body.floors);
-      if (!Number.isInteger(floors) || floors < 2 || floors > 20)
-        if (mode === "building") throw new Error("Enter how many floors the building plan shows (2–20).");
-      const labels = String(req.body.labels || "").split(",").map((l) => l.trim()).filter(Boolean).slice(0, 20);
-      if (labels.length && labels.length !== floors) throw new Error(`Give ${floors} floor names, or leave the names empty.`);
-      res.status(202).json(startCleanJob(req.file, { mode, floors, labels, name: req.body.name || "" }));
-    } catch (e) { next(e); }
-  });
-  r.get("/clean-plans/:id", (req, res) => {
-    const job = cleanJobs.get(req.params.id);
-    if (!job) return res.status(404).json({ error: "Clean-plan job not found." });
-    res.json(jobView(job));
-  });
-  r.post("/clean-plans/:id/cancel", (req, res) => {
-    const job = cleanJobs.get(req.params.id);
-    if (!job) return res.status(404).json({ error: "Clean-plan job not found." });
-    job.controller.abort();
-    res.json({ cancelled: job.status === "running" });
   });
   r.post("/summary", (req, res, next) => {
     try { res.json(buildingSummary(BuildingSchema.parse(req.body.building))); } catch (e) { next(e); }

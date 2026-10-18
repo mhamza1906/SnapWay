@@ -13,55 +13,27 @@ import { validateBuilding } from "../shared/building/validation.js";
 import { placeAssumedDoorways } from "../shared/building/assumed-doors.js";
 import { roomAvailability } from "../shared/building/routing.js";
 import { createProvider } from "./provider.js";
-import { VertexImageModel } from "./vertex-image.js";
-import { PlanBriefModel } from "./plan-brief.js";
-import { cleanPlan, buildingFromClean } from "./pipelines/clean-plan.js";
 
 // One building from N plan files: each file becomes its own labelled floor and
 // all floors run through the model pipeline at the same time (one independent
 // pipeline per floor, each with its own request budget).
 const args = process.argv.slice(2), flags = args.filter((a) => a.startsWith("--")), [destination, ...inputs] = args.filter((a) => !a.startsWith("--"));
 if (!destination || !inputs.length)
-  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--segmentation=auto|raster|model] [--no-assumed-doors]\n       node server/build-floors.js <output-directory> <plan> --clean=floor|building [--floors=N] [--labels=...]   (the image model redraws each floor first)');
+  throw new Error('Usage: node server/build-floors.js <output-directory> <plan1.pdf|png|jpg> <plan2> ... [--labels="Level B,Level 1,..."] [--levels="-1,1,..."] [--name=Building] [--max-calls=40] [--floor-concurrency=6] [--segmentation=auto|raster|model] [--no-assumed-doors]');
 const flag = (name) => flags.find((f) => f.startsWith(`--${name}=`))?.split("=").slice(1).join("="),
   labels = flag("labels")?.split(",").map((s) => s.trim()) || [],
   levels = flag("levels")?.split(",").map(Number) || [];
-if (labels.length && labels.length !== inputs.length && !flag("clean")) throw new Error("Give one label per input file.");
-if (levels.length && levels.length !== inputs.length && !flag("clean")) throw new Error("Give one level per input file.");
+if (labels.length && labels.length !== inputs.length) throw new Error("Give one label per input file.");
+if (levels.length && levels.length !== inputs.length) throw new Error("Give one level per input file.");
 const MIME = { ".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg" };
 
-const directory = resolve(destination), cleanMode = flag("clean");
+const directory = resolve(destination);
 let building = newBuilding();
 const hashes = [];
 building.assets = {};
 building.floors = [];
 await mkdir(directory, { recursive: true });
-if (cleanMode) {
-  // Clean-plan stage: the image model (Nano Banana 2.1 by default) redraws each floor first (building mode
-  // lets the text model crop the floors out of one image, in parallel).
-  if (inputs.length !== 1) throw new Error("--clean takes exactly one input file.");
-  const input = inputs[0], extension = extname(input).toLowerCase();
-  if (!MIME[extension]) throw new Error(`${input}: use PDF, PNG or JPEG.`);
-  const floors = cleanMode === "floor" ? 1 : Number(flag("floors"));
-  if (cleanMode === "building" && !(floors >= 2)) throw new Error("--clean=building needs --floors=N (2 or more).");
-  const clean = await cleanPlan({ buffer: await readFile(input), fileName: basename(input), mime: MIME[extension], mode: cleanMode, floors, labels,
-    provider: createProvider(), imageModel: new VertexImageModel(), briefModel: new PlanBriefModel(), cacheDir: ".local/clean-plans",
-    progress: (p) => console.log(`${new Date().toISOString().slice(11, 19)} clean: ${p.message}`) });
-  building = await buildingFromClean(clean, { name: flag("name") });
-  await mkdir(join(directory, "clean"), { recursive: true });
-  for (const f of clean.floors) {
-    const slug = f.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    await writeFile(join(directory, "clean", `${slug}-original.png`), Buffer.from(f.crop.dataUrl.split(",")[1], "base64"));
-    await writeFile(join(directory, "clean", `${slug}-clean.png`), Buffer.from(f.clean.dataUrl.split(",")[1], "base64"));
-  }
-  await atomicJson(join(directory, "clean-report.json"), { imageModel: clean.imageModel, briefModel: clean.briefModel, elapsedMs: clean.elapsedMs, usage: clean.usage,
-    floors: clean.floors.map((f) => ({ label: f.label, level: f.level, crop: { left: f.crop.left, top: f.crop.top, width: f.crop.width, height: f.crop.height },
-      cached: f.clean.cached, latencyMs: f.clean.latencyMs, usage: f.clean.usage, model: f.clean.model, note: f.clean.note,
-      brief: f.clean.plan ? { model: f.clean.plan.model, cached: f.clean.plan.cached, usage: f.clean.plan.usage, latencyMs: f.clean.plan.latencyMs, ...f.clean.plan.brief } : null })),
-    transcript: clean.transcript });
-  console.log(`clean: ${clean.floors.length} floor(s) in ${Math.round(clean.elapsedMs / 1000)} s`);
-}
-for (const [i, input] of (cleanMode ? [] : inputs).entries()) {
+for (const [i, input] of inputs.entries()) {
   const extension = extname(input).toLowerCase(), mime = MIME[extension];
   if (!mime) throw new Error(`${input}: use PDF, PNG or JPEG.`);
   const bytes = await readFile(input), prepared = await preparePlan(bytes, basename(input), mime);
@@ -77,11 +49,9 @@ for (const [i, input] of (cleanMode ? [] : inputs).entries()) {
     dataUrl: building.assets[source.assetId].dataUrl, normalized: true, provenance: "Original source", fictional: false });
   building.floors.push(floor);
 }
-if (!cleanMode) {
-  building.id = "plan-" + hashBytes(hashes.join(":")).slice(0, 16);
-  building.name = flag("name") || "Multi-floor building";
-  building.provenance = `Automatic hybrid pipeline: ${inputs.length} original sources, one per floor, processed in parallel; uncertain access remains disabled.`;
-}
+building.id = "plan-" + hashBytes(hashes.join(":")).slice(0, 16);
+building.name = flag("name") || "Multi-floor building";
+building.provenance = `Automatic hybrid pipeline: ${inputs.length} original sources, one per floor, processed in parallel; uncertain access remains disabled.`;
 await atomicJson(join(directory, "input-building.json"), parseBuilding(building));
 
 const controller = new AbortController();

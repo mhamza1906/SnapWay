@@ -1,4 +1,3 @@
-import { VertexImageModel } from "./vertex-image.js";
 import "./env.js";
 import express from "express";
 import multer from "multer";
@@ -48,7 +47,7 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 app.get("/api/health", (_, res) => {
-  const provider = createProvider(), imageModel = new VertexImageModel();
+  const provider = createProvider();
   res.json({
     ok: true,
     environment: process.env.APP_ENV,
@@ -56,7 +55,6 @@ app.get("/api/health", (_, res) => {
     configured: provider.configured,
     model: provider.model,
     ...(provider.effort ? { effort: provider.effort } : {}),
-    imageModel: { model: imageModel.model, size: imageModel.imageSize, configured: imageModel.configured },
   });
 });
 app.post("/api/normalize", upload.single("image"), async (req, res, next) => {

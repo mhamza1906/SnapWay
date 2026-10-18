@@ -90,16 +90,6 @@
           </p>
         }
       }
-      <label class="choice">
-        <input
-          type="checkbox"
-          [checked]="cleanFirst()"
-          (change)="cleanFirst.set(!cleanFirst())"
-          data-testid="clean-first"
-        />
-        Redraw each floor as a clean plan first ({{ health()?.imageModel?.model ?? 'image model' }},
-        paid; floors run in parallel)
-      </label>
     </div>
     <div class="panel-body source-row">
       <label class="field"
@@ -132,47 +122,6 @@
       }
     </div>
   </section>
-
-  @if (cleanJob(); as cj) {
-    <section class="panel" aria-labelledby="clean-title">
-      <div class="panel-heading">
-        <h2 id="clean-title">Clean floor plans</h2>
-        <span
-          class="badge"
-          [class.green]="cj.status === 'complete'"
-          [class.red]="cj.status === 'failed'"
-        >
-          {{ cj.status }}
-        </span>
-      </div>
-      <div class="panel-body">
-        <p class="job" data-testid="clean-job">{{ cj.progress?.message }}</p>
-        @if (cleanRunning()) {
-          <button class="btn danger small" (click)="cancelClean()">Cancel</button>
-        }
-        @if (cleanFloors().length) {
-          <p class="hint">
-            Generated images can move walls or drop doors. Compare each redraw with its original
-            before building the map.
-          </p>
-          <div class="clean-grid" data-testid="clean-floors">
-            @for (f of cleanFloors(); track f.label) {
-              <figure class="clean-floor">
-                <figcaption>
-                  <strong>{{ f.label }}</strong>
-                  <small>{{ f.cached ? 'cached' : seconds(f.latencyMs) }}</small>
-                </figcaption>
-                <div class="pair">
-                  <img [src]="f.originalPreview" [alt]="f.label + ' original'" />
-                  <img [src]="f.cleanPreview" [alt]="f.label + ' clean redraw'" />
-                </div>
-              </figure>
-            }
-          </div>
-        }
-      </div>
-    </section>
-  }
 
   @if (summary(); as s) {
     <nav class="floor-tabs" aria-label="Floors">

@@ -201,9 +201,9 @@ test("snap keeps adjusted points on the corridor centreline", () => {
   assert.throws(() => snapToCorridor(b, FX, "corridor-unknown", { direction: "forward", x: 1, y: 1 }), /Unknown corridor/);
 });
 
-// A synthetic clean redraw (black walls on white, not a real building)
+// A synthetic plan (black walls on white, not a real building)
 // segmented by the local raster pipeline: jagged centrelines with corner
-// chamfers, as on a clean-plan floor.
+// chamfers, as on any raster-segmented floor.
 async function rasterFloor(scaled) {
   const W = 800, H = 500, T = 10, cut = (a, z, gaps) => gaps.reduce((out, [g0, g1]) =>
     out.flatMap(([p, q]) => (g1 <= p || g0 >= q ? [[p, q]] : [[p, g0], [g1, q]].filter(([u, v]) => v > u))), [[a, z]]);

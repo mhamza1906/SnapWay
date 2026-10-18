@@ -5,7 +5,7 @@ How to run the map-authoring pipeline (`apps/pipeline/`) safely: its limits, cac
 Related pages:
 
 - [README.md](README.md): overview.
-- [environments.md](environments.md): `.env.prod` (everyone: Claude Sonnet 5.5 for mapping by default, Gemini on Vertex selectable, Vertex image models) and `.env.dev` (Arjun's development file).
+- [environments.md](environments.md): `.env.prod` (everyone: Claude Sonnet 5.5 for mapping by default, Gemini on Vertex selectable) and `.env.dev` (Arjun's development file).
 - [stages.md](stages.md): what each stage does internally.
 - [api.md](api.md): HTTP endpoints.
 
@@ -136,7 +136,7 @@ In the floor 1 breakdown, detail tiles used about 58% of the tokens, and thinkin
 
 These figures are **estimates from reported usage, not invoices**. They leave out earlier or interrupted invocations. Warm reruns (for example 11 calls and 94k tokens for floor 1, round 3) reuse earlier work and are not cold-run costs. The trial summary priced the 1.67M tokens at roughly $7 using list prices. That estimate has not been checked against billing. An exact audit has to reconcile these figures with the provider's usage records.
 
-**Production now defaults to Claude Sonnet 5.5 (high)**, so the Sonnet figures above apply to `.env.prod` unless it is switched to `AI_PROVIDER=vertex`. Gemini mapping figures are in the clean-plan trial below.
+**Production now defaults to Claude Sonnet 5.5 (high)**, so the Sonnet figures above apply to `.env.prod` unless it is switched to `AI_PROVIDER=vertex`. Gemini mapping figures are in the (historical) clean-plan trial below.
 
 ## 4. Measured trial results
 
@@ -194,8 +194,10 @@ The map has 114 regions, 133 openings (45 of them analytical joins), 45 of 53 de
 
 ### Clean-plan trial
 
-Sam Ibrahim board photo, 6 floors, prod (Vertex AI), October 17, 2026. See
-[clean-plans.md](clean-plans.md) for the clean stage itself.
+Sam Ibrahim board photo, 6 floors, prod (Vertex AI), October 17, 2026.
+Historical: the clean (redraw) stage measured here was removed later the same
+day; see [clean-plans.md](clean-plans.md). The mapping figures still describe
+Gemini 4 throughput on Vertex.
 
 | Run | Clean stage | Mapping (6 floors in parallel, Gemini 4 high) | Outcome |
 | --- | --- | --- | --- |

@@ -276,7 +276,6 @@ describe('map authoring page', () => {
     const input = { value: 'Test building' } as HTMLInputElement;
     const file = new File(['%PDF'], 'plan.pdf', { type: 'application/pdf' });
     page.planType.set('floor');
-    page.cleanFirst.set(false);
     const upload = page.upload({ target: { files: [file], value: '' } } as unknown as Event, input);
     const req = http.expectOne(`${PIPELINE_BASE}/authoring/plans`);
     expect(req.request.body instanceof FormData).toBe(true);
@@ -330,7 +329,7 @@ describe('map authoring page', () => {
       } as HTMLInputElement,
     );
     expect(page.error()).toContain('How many floors');
-    http.expectNone(`${PIPELINE_BASE}/authoring/clean-plans`);
+    http.expectNone(`${PIPELINE_BASE}/authoring/plans`);
   });
 
   it('lists regions with kind, stair badge and default-name flags, and filters them', async () => {
@@ -1207,61 +1206,6 @@ describe('map authoring page', () => {
     expect(page.busy()).toBe(false);
     expect(within<HTMLSelectElement>(row(el, 'h1'), 'region-kind').value).toBe('corridor');
     expect(within(el, 'error').textContent).toContain('Unknown kind.');
-  });
-
-  it('cleans a building plan into its floors before mapping', async () => {
-    const fixture = await start();
-    const page = fixture.componentInstance;
-    page.planType.set('building');
-    page.floorCount.set(2);
-    page.floorNames.set('Level B, Level 1');
-    const file = new File(['x'], 'board.jpg', { type: 'image/jpeg' });
-    const upload = page.upload(
-      { target: { files: [file], value: '' } } as unknown as Event,
-      {
-        value: 'Sam',
-      } as HTMLInputElement,
-    );
-    const start_ = http.expectOne(`${PIPELINE_BASE}/authoring/clean-plans`);
-    const form = start_.request.body as FormData;
-    expect(form.get('mode')).toBe('building');
-    expect(form.get('floors')).toBe('2');
-    expect(form.get('labels')).toBe('Level B, Level 1');
-    start_.flush({ id: 'job-1' });
-    await flush();
-    const img = 'data:image/jpeg;base64,AA==';
-    http.expectOne(`${PIPELINE_BASE}/authoring/clean-plans/job-1`).flush({
-      id: 'job-1',
-      status: 'complete',
-      mode: 'building',
-      floors: 2,
-      progress: { stage: 'finished', message: '2 clean floor(s) ready' },
-      result: {
-        building,
-        summary,
-        elapsedMs: 41000,
-        imageModel: 'gemini-nano-banana-2.1',
-        usage: { calls: 3, tokens: 9000, images: 2, cachedImages: 0 },
-        floors: ['Level B', 'Level 1'].map((label, i) => ({
-          label,
-          level: i,
-          crop: { left: 0, top: 0, width: 10, height: 10 },
-          cached: false,
-          latencyMs: 30000,
-          model: 'gemini-nano-banana-2.1',
-          originalPreview: img,
-          cleanPreview: img,
-        })),
-      },
-    });
-    await flush();
-    http.expectOne(`${PIPELINE_BASE}/authoring/render`).flush({ svg: '<svg></svg>' });
-    await upload;
-    fixture.detectChanges();
-    const grid = fixture.nativeElement.querySelector('[data-testid="clean-floors"]') as HTMLElement;
-    expect(grid.querySelectorAll('figure').length).toBe(2);
-    expect(grid.textContent).toContain('Level B');
-    expect(page.message()).toContain('2 clean floor(s) from gemini-nano-banana-2.1');
   });
 });
 

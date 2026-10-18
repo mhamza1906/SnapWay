@@ -81,7 +81,7 @@ local/                 Ignored private settings, database, logs and research
 The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
 `apps/pipeline/`. Run it with `npm ci && npm run prod` from `apps/pipeline`
 (Claude Sonnet 5.5 at high effort by default; Gemini on Vertex AI selectable with
-`AI_PROVIDER=vertex`; Gemini image models on Vertex for clean-plan redraws).
+`AI_PROVIDER=vertex`).
 Everyone uses `.env.prod`; `.env.dev` is Arjun's development file. See
 [docs/pipeline](docs/pipeline/README.md) and the
 [feature record](docs/map-authoring-pipeline.md).

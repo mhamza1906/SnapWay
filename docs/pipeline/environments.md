@@ -7,9 +7,8 @@ For setup, see the [README](README.md). For cost and limits, see
 
 > [!IMPORTANT]
 > **Everyone on the team uses `.env.prod`.** Production runs **Claude
-> (Anthropic), `claude-sonnet-5-5` at `high` effort**, for planning and mapping,
-> and Gemini image models on Vertex AI for the clean-plan redraws. Start the
-> service with `npm run prod`.
+> (Anthropic), `claude-sonnet-5-5` at `high` effort**, for planning and mapping.
+> Start the service with `npm run prod`.
 >
 > **Switching:** set `AI_PROVIDER=vertex` in `.env.prod` to map with Gemini
 > (`gemini-4-argon`) instead. The change takes effect on restart; there is no
@@ -133,9 +132,9 @@ a live project here:
 - which Google Cloud API key types and restrictions Vertex accepts this way,
 - whether `gemini-4-argon` is available in your project and location.
 
-`VERTEX_IMAGE_MODEL` (default `gemini-nano-banana-2.1`), `VERTEX_BRIEF_MODEL` (default `gemini-4-argon`, the plan reader that runs before each redraw; `VERTEX_BRIEF_EFFORT` default `high`) and `VERTEX_IMAGE_SIZE`
-(default `2K`) select the clean-plan image model; see
-[clean-plans.md](clean-plans.md).
+The clean-plan redraw step and its `VERTEX_IMAGE_*` / `VERTEX_BRIEF_*`
+variables were removed on 2026-10-17; see [clean-plans.md](clean-plans.md).
+Old env files that still set them are harmless (the variables are ignored).
 
 ### Optional dev-only adapters
 
@@ -197,8 +196,8 @@ curl -s http://127.0.0.1:5175/api/health
 | `effort` | Effort level, included only for Vertex AI and Anthropic |
 
 A teammate should see `"environment":"prod"`, `"provider":"Anthropic"`,
-`"model":"claude-sonnet-5-5"`, `"effort":"high"`, `"configured":true` and
-`imageModel.configured: true` before starting any job. If `"configured"` is
+`"model":"claude-sonnet-5-5"`, `"effort":"high"` and `"configured":true`
+before starting any job. If `"configured"` is
 `false`, fill in `ANTHROPIC_API_KEY` (or the Vertex variables when
 `AI_PROVIDER=vertex`) in `.env.prod` and restart. If the service exits at
 startup with

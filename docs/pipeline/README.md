@@ -61,7 +61,7 @@ Things this service does not do yet:
 - Its model choice differs from the plan. The plan names Gemini as primary
   (`gemini-4-argon`) and Claude Opus 5.5 as the vector-modelling backup. Here,
   Claude Sonnet 5.5 (high effort) is used in prod by default, with Gemini on
-  Vertex AI selectable; Gemini image models on Vertex redraw the plans.
+  Vertex AI selectable.
 
 Moving the work into Django jobs, or porting the geometry and vision code to the
 Python packages, is **future work**. The plan's own rule still applies: the
@@ -84,12 +84,12 @@ Requirements:
   `node apps/pipeline/server/start.js prod` from the repository root. Run the
   plain `node server/...` CLI scripts from `apps/pipeline/` (see
   [environments.md](environments.md)).
-- An Anthropic API key (from Arjun) and the team's Vertex AI project and API key (used for the clean-plan images, and for mapping if you switch to Gemini).
+- An Anthropic API key (from Arjun), plus the team's Vertex AI project and API key if you switch mapping to Gemini (`AI_PROVIDER=vertex`).
 
 ```sh
 cd apps/pipeline
 npm ci
-cp .env.prod.example .env.prod   # then fill in ANTHROPIC_API_KEY, VERTEX_API_KEY and VERTEX_PROJECT
+cp .env.prod.example .env.prod   # then fill in ANTHROPIC_API_KEY (and VERTEX_API_KEY / VERTEX_PROJECT for AI_PROVIDER=vertex)
 npm run prod                     # prints: SnapWay map-authoring pipeline (prod): http://127.0.0.1:5175
 ```
 
@@ -97,8 +97,7 @@ Before running any job, confirm which provider is live. This check is free:
 
 ```sh
 curl -s http://127.0.0.1:5175/api/health
-# {"ok":true,"environment":"prod","provider":"Anthropic","configured":true,"model":"claude-sonnet-5-5","effort":"high",
-#  "imageModel":{"model":"gemini-nano-banana-2.1","size":"2K","configured":true}}
+# {"ok":true,"environment":"prod","provider":"Anthropic","configured":true,"model":"claude-sonnet-5-5","effort":"high"}
 ```
 
 Then start the Angular workspace from the repository root in a second terminal:
@@ -142,7 +141,7 @@ the tests in more detail.
 | [stages.md](stages.md) | How the pipeline works internally, stage by stage |
 | [api.md](api.md) | HTTP endpoints (`/api/...`, `/api/authoring/...`) and the CLI scripts |
 | [operations.md](operations.md) | Limits, cost, caching, testing, trial results and troubleshooting |
-| [clean-plans.md](clean-plans.md) | Floor vs building plans, the image-model redraw stage (Nano Banana 2.1 by default), the floor splitter and parallel floors |
+| [clean-plans.md](clean-plans.md) | Note: the image-model redraw stage was removed on 2026-10-17 |
 
 Related SnapWay documents:
 

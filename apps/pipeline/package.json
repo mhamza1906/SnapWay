@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Map-authoring pipeline service: floor-plan PDF to rooms, doorways and walking paths (Claude Sonnet 5.5 in prod by default, Gemini on Vertex AI selectable; Vertex image models for clean plans).",
+  "description": "Map-authoring pipeline service: floor-plan PDF to rooms, doorways and walking paths (Claude Sonnet 5.5 in prod by default, Gemini on Vertex AI selectable).",
   "engines": {
     "node": ">=22"
   },

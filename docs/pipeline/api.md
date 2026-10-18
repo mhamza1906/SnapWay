@@ -47,7 +47,7 @@ Sources: `server/index.js`, `server/authoring-routes.js`, `server/map-jobs.js`,
   doorway and region endpoints never read image bytes, so the editor sends them a
   light building (every image `dataUrl` replaced by `LIGHT_IMAGE`) and puts its
   own images back into the answer. Saving a copy, building with AI, uploads,
-  clean plans, source crops, map jobs and exports need the full building.
+  source crops, map jobs and exports need the full building.
   Read-only passes (validation, room availability, route checks) derive each
   floor's segment context once (`segmentContext`, `edgeContext`) instead of per
   edge. On the six-floor Sam Ibrahim building a summary takes about 1.2 s and a
@@ -141,21 +141,9 @@ Turns an uploaded plan into a new building, with one draft floor per page.
   - More than 20 pages: `Import up to 20 PDF pages at a time.`
   - A file over 15 MB is rejected.
 
-### `POST /api/authoring/clean-plans` (local, paid)
-
-Redraws each floor with the image model before mapping. See
-[clean-plans.md](clean-plans.md).
-
-- **Request:** multipart `plan` (file), `mode` (`floor` or `building`),
-  `floors` (required for `building`, 2–20), optional `labels`
-  (comma-separated, one per floor, bottom to top) and `name`.
-- **Response:** `202 {id}`. Poll `GET /api/authoring/clean-plans/:id` for
-  `{id, status: running|complete|failed|cancelled, progress, result?, error?}`.
-  `result` is `{building, summary, elapsedMs, imageModel, usage, floors[]}` with
-  per-floor `originalPreview` and `cleanPreview` JPEG data URLs.
-  `POST /api/authoring/clean-plans/:id/cancel` stops it. One job at a time.
-- **Errors:** missing plan type, missing floor count, a label count that does
-  not match the floor count, or a multi-page PDF for a floor plan.
+The `POST /api/authoring/clean-plans` redraw endpoints (and their `GET …/:id`
+and `POST …/:id/cancel` companions) were removed on 2026-10-17; see
+[clean-plans.md](clean-plans.md). Upload plans with `POST /api/authoring/plans`.
 
 ### `POST /api/authoring/summary` (local)
 

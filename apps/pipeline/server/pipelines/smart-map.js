@@ -32,9 +32,10 @@ export const SmartOptions = z.object({
   deadlineMs: z.number().int().min(1000).max(3600000).default(1200000),
   // One model request; several floors in flight make each reply slower.
   requestTimeoutMs: z.number().int().min(1000).max(600000).default(300000),
-  // Room and hallway geometry: "raster" segments a clean redraw locally,
-  // "model" traces detail tiles with the model, "auto" picks raster for
-  // clean redraws and model otherwise.
+  // Room and hallway geometry: "raster" segments the source image locally (any
+  // source; best on black walls on white), "model" traces detail tiles with the
+  // model, "auto" picks raster for clean-redraw sources in saved buildings (the
+  // redraw step was removed on 2026-10-17) and model otherwise.
   segmentation: z.enum(["auto", "raster", "model"]).default("auto"),
   maxDetailTiles: z.number().int().min(1).max(30).default(8),
   maxSemanticBatches: z.number().int().min(0).max(10).default(4),
@@ -496,16 +497,16 @@ export async function runSmartMap(building, inputOptions, {
           proposal.map = reconciled.map; proposal.coverage = reconciled.coverage;
         };
         if (rasterMode) {
-          // Clean redraw: rooms, hallways, lobbies and doorway gaps come from the
-          // image itself; the inventory only names the regions.
-          notify("segment", `${floor.label}: segmenting rooms and hallways from the clean plan`);
+          // Raster: rooms, hallways, lobbies and doorway gaps come from the
+          // source image itself; the inventory only names the regions.
+          notify("segment", `${floor.label}: segmenting rooms and hallways from the source image`);
           const started = Date.now(),
             raster = await rasterRoomsMap(Buffer.from(asset.dataUrl.split(",")[1], "base64"), { inventory: inventory.items });
           stats.localMs += Date.now() - started;
           const g = emptyMap(normalized);
           Object.assign(g, { floorName: floor.label, spaces: raster.spaces, doors: raster.doors, walls: raster.walls });
           g.review.issues = [{ id: "raster-review", resolved: false, resolution: "",
-            message: "Regions, hallways and doorway gaps were segmented locally from the clean redraw; compare them with the original before review." }];
+            message: "Regions, hallways and doorway gaps were segmented locally from the source image; compare them with the original before review." }];
           g.extraction = { ...g.extraction, provider: "Local raster segmentation", model: RASTER_VERSION, mode: "live",
             notes: `Raster segmentation: ${raster.stats.regions} regions (${raster.stats.corridors} hallways, ${raster.stats.lobbies} lobbies), ${raster.stats.doors} doorway gaps; names from the ${provider.model} inventory.` };
           proposal.map = g;
@@ -577,7 +578,7 @@ export async function runSmartMap(building, inputOptions, {
         proposal.classifications = [];
         proposal.coverage.extractionIssues = sections.flatMap(section => section.map.review.issues.filter(i => i.id !== "source-review")
           .map(i => ({ ...i, crop: section.crop })));
-        // Clean-redraw (raster) floors: the model only names rooms; stairs, voids and
+        // Raster floors: the model only names rooms; stairs, voids and
         // merges are the user's decisions in the editor, so no region classification.
         const sensitive = rasterMode ? [] : semanticCandidates(proposal.map, { items: inventory.items.map(i => ({ ...i, spaceId: proposal.coverage.items.find(x => x.label === i.label)?.spaceId })), issues: proposal.coverage.extractionIssues });
         for (let i = 0; i < Math.min(sensitive.length, options.maxSemanticBatches * 8); i += 8) {
