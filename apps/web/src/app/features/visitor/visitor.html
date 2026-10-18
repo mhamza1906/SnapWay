@@ -1,4 +1,23 @@
 <main class="journey" [class.guiding]="active()">
+  @if (auth.signedIn() && !active()) {
+    <section class="account-bar" aria-label="Account">
+      <p>
+        Signed in as <strong>{{ auth.name() }}</strong>
+        <span class="account-mode">Public User</span>
+      </p>
+      <div class="account-actions">
+        <button type="button" class="text-button" (click)="switchToDeveloper()" [disabled]="auth.busy()">
+          Switch to Developer
+        </button>
+        <button type="button" class="text-button" (click)="signOut()" [disabled]="auth.busy()">
+          Sign out
+        </button>
+      </div>
+      @if (auth.error()) {
+        <p class="account-error" role="alert">{{ auth.error() }}</p>
+      }
+    </section>
+  }
   @if (!active()) {
     <section class="search-panel">
       <div class="destination-heading">

@@ -1,6 +1,8 @@
 # Mobile visitor navigation UI
 
-Updated October 17, 2026. Feature work on `feature/frontend-user`; implementation
+Updated October 18, 2026. Authenticated web `/public` now hosts this visitor journey
+on `feature/merged-integration` (modes handoff from [authentication-modes.md](authentication-modes.md)).
+Feature work originated on `feature/frontend-user`; implementation
 commits include `a0564a9` and `ca59f45`; heading spacing and local Android packaging
 notes are recorded in `1407e12`; the publication-fixture correction is in `57e8b26`.
 The installed-app API connection below is pending commit.
@@ -9,11 +11,13 @@ Personal execution details remain in ignored `local/ACTIONS.md`.
 ## Entry points and interaction
 
 The existing Angular/Capacitor architecture and locked dependencies are retained.
-The website still starts at `/map`, including on phone browsers. The separate
-Capacitor visitor build starts at the new destination-first screen and redirects
-`/map` and `/navigate` there. It excludes contributor features. `/app-preview` in
-the web build explicitly previews the installed-app layout; viewport width does
-not switch the website into that experience.
+Anonymous website discovery still starts at `/map`. Signed-in Public Users land
+on `/public` (same destination-first visitor journey) after Google sign-in; `/map`
+and `/navigate` redirect them there. The separate Capacitor visitor build starts
+at the destination-first screen and redirects `/map` and `/navigate` there. It
+excludes contributor features. `/app-preview` in the web build explicitly previews
+the installed-app layout for Developers; viewport width does not switch the website
+into that experience.
 
 **Find your destination** sits beside the existing SnapWay route mark in a single
 vertically aligned header row, with the 32 px logo on the left and a 20 px heading.

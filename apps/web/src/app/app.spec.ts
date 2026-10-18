@@ -15,7 +15,7 @@ describe('Workspace shell routing', () => {
       providers: [
         provideRouter([
           { path: 'welcome', component: RouteContent },
-          { path: 'navigate', component: RouteContent },
+          { path: 'app-preview', component: RouteContent },
           { path: 'targets', component: RouteContent },
         ]),
         { provide: PROTOTYPE_STORAGE, useValue: null },
@@ -42,7 +42,7 @@ describe('Workspace shell routing', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Route content');
-    await router.navigateByUrl('/navigate?target=innovation#capture');
+    await router.navigateByUrl('/app-preview?target=innovation#capture');
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('.sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Back to workspace');

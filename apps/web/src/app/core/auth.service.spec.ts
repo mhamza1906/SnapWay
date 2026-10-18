@@ -14,6 +14,7 @@ import {
   developerGuard,
   adminGuard,
   publicGuard,
+  publicDiscoveryGuard,
 } from './auth.service';
 
 describe('Django session authentication', () => {
@@ -147,7 +148,7 @@ describe('Django session authentication', () => {
     expect(auth.canAdmin()).toBe(true);
   });
 
-  it('requires a server session for the public placeholder', async () => {
+  it('requires a server session for the public visitor journey', async () => {
     const pending = TestBed.runInInjectionContext(() =>
       publicGuard({} as ActivatedRouteSnapshot, { url: '/public' } as RouterStateSnapshot),
     );
@@ -155,6 +156,20 @@ describe('Django session authentication', () => {
     expect(
       TestBed.inject(Router).serializeUrl((await pending) as ReturnType<Router['createUrlTree']>),
     ).toBe('/sign-in?returnUrl=%2Fpublic');
+  });
+
+  it('sends signed-in Public Users from discovery map to the visitor journey', async () => {
+    const pending = TestBed.runInInjectionContext(() => publicDiscoveryGuard());
+    http.expectOne('/api/auth/me/').flush({ authenticated: true, mode: 'public' });
+    expect(
+      TestBed.inject(Router).serializeUrl((await pending) as ReturnType<Router['createUrlTree']>),
+    ).toBe('/public');
+  });
+
+  it('keeps the anonymous discovery map available', async () => {
+    const pending = TestBed.runInInjectionContext(() => publicDiscoveryGuard());
+    http.expectOne('/api/auth/me/').flush({ authenticated: false });
+    expect(await pending).toBe(true);
   });
 
   it('submits the selected mode with a CSRF token in the native Google start form', async () => {

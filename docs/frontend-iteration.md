@@ -6,7 +6,7 @@ default map with a dedicated journey screen; the website retains `/map`.
 
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
 The latest [authentication modes](authentication-modes.md) update defines the new
-`/sign-in` card entry, direct Developer workspace/Public User placeholder landing,
+`/sign-in` card entry, direct Developer workspace/Public User visitor journey landing,
 retained `/welcome` account page, session-mode API and controlled administrator
 provisioning. It supersedes the earlier login-entry behavior recorded
 below. The active [Developer workspace](developer-workspace.md) now replaces the

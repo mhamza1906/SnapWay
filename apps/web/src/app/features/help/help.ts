@@ -78,7 +78,7 @@ import { Icon } from '../../shared/icon';
             </li>
           </ol>
           <div class="journey-actions">
-            <a class="btn secondary" routerLink="/navigate"
+            <a class="btn secondary" routerLink="/app-preview"
               >Try visitor navigation <app-icon name="arrow-right" /></a
             ><span class="subtle-label">Desktop and mobile preview</span>
           </div>

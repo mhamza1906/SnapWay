@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { adminGuard, developerGuard, publicGuard, sessionGuard } from './core/auth.service';
+import {
+  adminGuard,
+  developerGuard,
+  publicDiscoveryGuard,
+  publicGuard,
+  sessionGuard,
+} from './core/auth.service';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
@@ -61,8 +67,12 @@ export const routes: Routes = [
     canActivate: [developerGuard],
     loadComponent: () => import('./features/developer/help').then((m) => m.DeveloperHelpPage),
   },
-  // Public discovery map from main (visitor / embedding UI). Developers use /explore.
-  { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
+  // Anonymous discovery map. Signed-in Public Users continue at /public (visitor journey).
+  {
+    path: 'map',
+    canActivate: [publicDiscoveryGuard],
+    loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage),
+  },
   { path: 'overview', pathMatch: 'full', redirectTo: 'my-maps' },
   { path: 'targets', pathMatch: 'full', redirectTo: 'my-maps' },
   { path: 'targets/:id', redirectTo: 'my-maps' },
@@ -74,10 +84,7 @@ export const routes: Routes = [
   {
     path: 'public',
     canActivate: [publicGuard],
-    loadComponent: () =>
-      import('./features/public-placeholder/public-placeholder').then(
-        (m) => m.PublicPlaceholderPage,
-      ),
+    loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
   },
   {
     path: 'sign-in',
@@ -92,7 +99,7 @@ export const routes: Routes = [
     canActivate: [sessionGuard],
     loadComponent: () => import('./features/welcome/welcome').then((m) => m.WelcomePage),
   },
-  { path: 'navigate', pathMatch: 'full', redirectTo: 'app-preview' },
+  { path: 'navigate', pathMatch: 'full', redirectTo: 'public' },
   {
     path: 'connection-check',
     canActivate: [developerGuard],

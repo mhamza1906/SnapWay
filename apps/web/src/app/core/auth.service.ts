@@ -178,6 +178,19 @@ export const publicGuard = (async (route, state) => {
   return auth.isDeveloper() ? router.createUrlTree(['/overview']) : true;
 }) satisfies CanActivateFn;
 
+/** Anonymous discovery map stays; signed-in Public Users use the visitor journey. */
+export const publicDiscoveryGuard = (async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  try {
+    await auth.refresh();
+  } catch {
+    /* Keep the public discovery map when session refresh fails. */
+  }
+  if (auth.signedIn() && !auth.isDeveloper()) return router.createUrlTree(['/public']);
+  return true;
+}) satisfies CanActivateFn;
+
 export const adminGuard = (async (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);

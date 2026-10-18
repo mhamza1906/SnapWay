@@ -1,6 +1,7 @@
 # Google sign-in and session experience modes
 
-Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
+Updated October 18, 2026. Active on `feature/frontend-iteration` /
+`feature/merged-integration`.
 This implements the contributor-approved authentication change on top of the
 [architecture baseline](initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md).
 The requesting contributor confirmed production Google configuration was repaired;
@@ -61,33 +62,33 @@ profile and header display **Developer**, including for manually privileged acco
 The sidebar can scroll on short viewports so its existing logout control stays
 reachable; no workspace layout redesign is included.
 
-`/public` is a deliberately isolated, authenticated placeholder while another
-contributor rebuilds the Public User experience. It shows the signed-in identity,
-same-account switching to Developer, and logout; it loads no map or navigation
-workflow. A Public User opening old web `/map`, `/navigate`, or developer URLs
-is redirected here. Developers can still preview the existing map/navigation
-from the unchanged workspace. Anonymous protected URLs lead to `/sign-in`.
-The separate native visitor entry retains its existing map/navigation routes.
+`/public` is the authenticated Public User journey: the destination-first visitor
+UI ([VisitorJourney](../apps/web/src/app/features/visitor/visitor.ts)) with building/room
+search, outdoor walking map, indoor camera localize, account switch to Developer,
+and logout. A Public User opening `/map` or `/navigate` is redirected here.
+Developers preview the same journey at `/app-preview` (with a back-to-workspace
+link) without leaving Developer mode. Anonymous `/map` discovery remains available.
+Anonymous protected URLs lead to `/sign-in`. The separate native visitor entry
+retains its existing map/navigation routes.
 
 The retained `/welcome` two-column account page is still available from existing
 account links; Continue and successful mode switches go directly to the selected
-experience. Workspace-to-Public and placeholder-to-Developer switches use the
+experience. Workspace-to-Public and Public-to-Developer switches use the
 existing server mode endpoint without another Google login. Failed switches stay
 on the current page with an error. Signing out returns to `/sign-in`.
 
-Handoff: replace the route's lazy component at `/public` in
-[app.routes.ts](../apps/web/src/app/app.routes.ts) when the teammate's Public User
-page is merged. Keep its session/mode guard and the shared `AuthService.landingPath`
-contract; no callback, API, schema, environment or Google Console change is needed.
-The old map/navigation implementations are preserved to avoid rewriting the
-teammate's integration surface during this temporary stage.
+Integration: `/public` keeps `publicGuard` and `AuthService.landingPath`;
+`publicDiscoveryGuard` sends signed-in Public Users from `/map` to `/public`.
+No callback, API, schema, environment or Google Console change is required for
+this route swap. Guidance frame adapters and guest navigation sessions remain
+follow-ups in [mobile-visitor-ui.md](mobile-visitor-ui.md).
 
 ## Mode is not administrator authority
 
 | Session | Visible experience | Server authority |
 | --- | --- | --- |
 | Anonymous | Web sign-in cards; existing native visitor map | Existing public APIs only |
-| Public User | Authenticated `/public` placeholder and retained account page | No draft, graph, underlay, photo or target-access API access, even for an account with admin membership |
+| Public User | Authenticated `/public` visitor journey and retained account page | No draft, graph, underlay, photo or target-access API access, even for an account with admin membership |
 | Developer | Existing workspace and graph editing | Existing target-specific membership checks still apply; creating a draft grants only volunteer membership |
 | Developer with manually provisioned privileges | Existing administrator-capable entry points | Database staff flags and/or active target admin memberships; never card selection |
 
@@ -157,9 +158,10 @@ Android asset sync, format/lint and environment-contract checks passed.
 
 Live localhost browser acceptance completed both Google card flows directly to
 their selected experience, Developer-to-Public-to-Developer switching, logout back
-to sign-in, and anonymous `/public` rejection. Public sessions opening old web
-`/map`, `/navigate` or `/overview` URLs reached the placeholder. Developer profile
-and header both show only Developer; the sidebar logout works with short viewports.
+to sign-in, and anonymous `/public` rejection. Public sessions opening `/map` or
+`/navigate` now reach the visitor journey at `/public` (replacing the earlier
+placeholder). Developer profile and header both show only Developer; the sidebar
+logout works with short viewports.
 The earlier card-layout desktop
 layout was measured at a 1707 × 876 viewport: both cards are 374 px high, entrance
 durations are 2.4 seconds, and there is no horizontal or vertical page overflow.
@@ -191,7 +193,7 @@ Web and Visitor production builds pass without style-budget warnings.
   [session service/guards](../apps/web/src/app/core/auth.service.ts),
   [routes](../apps/web/src/app/app.routes.ts),
   [welcome](../apps/web/src/app/features/welcome/welcome.ts),
-  [temporary Public User page](../apps/web/src/app/features/public-placeholder/public-placeholder.ts),
+  [Public User visitor journey](../apps/web/src/app/features/visitor/visitor.ts),
   [callback](../apps/web/src/app/features/welcome/auth-complete.ts).
 - Integration: [shell](../apps/web/src/app/app.ts), [shell template](../apps/web/src/app/app.html),
   [sidebar scroll styles](../apps/web/src/app/app.scss),
@@ -203,11 +205,13 @@ Web and Visitor production builds pass without style-budget warnings.
   [entry tests](../apps/web/src/app/features/sign-in/sign-in.spec.ts),
   [direct callback landing tests](../apps/web/src/app/features/welcome/auth-complete.spec.ts),
   [session tests](../apps/web/src/app/core/auth.service.spec.ts),
-  [shell tests](../apps/web/src/app/app.spec.ts), [map tests](../apps/web/src/app/features/map/map.spec.ts).
+  [shell tests](../apps/web/src/app/app.spec.ts), [map tests](../apps/web/src/app/features/map/map.spec.ts),
+  [visitor journey tests](../apps/web/src/app/features/visitor/visitor.spec.ts).
   Existing backend graph, media and membership fixtures now select Developer mode
   explicitly; provider recovery assertions point to `/sign-in`.
 - Setup references: [web README](../apps/web/README.md),
-  [backend OAuth record](backend-oauth.md), [frontend integration record](frontend-iteration.md).
+  [backend OAuth record](backend-oauth.md), [frontend integration record](frontend-iteration.md),
+  [mobile visitor UI](mobile-visitor-ui.md).
 
 Adapter contracts were checked against the installed pinned package and official
 [account adapter](https://docs.allauth.org/en/latest/account/adapter.html) and
