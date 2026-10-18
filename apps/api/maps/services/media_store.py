@@ -2,9 +2,22 @@
 
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+
+
+def point_photo_storage_ready() -> bool:
+    storage = settings.STORAGES.get("default", {})
+    endpoint = urlsplit(storage.get("OPTIONS", {}).get("endpoint_url", ""))
+    return (
+        getattr(settings, "MEDIA_STORAGE_BACKEND", "filesystem") == "s3"
+        and storage.get("BACKEND") == "storages.backends.s3boto3.S3Boto3Storage"
+        and endpoint.scheme == "https"
+        and (endpoint.hostname or "").endswith(".r2.cloudflarestorage.com")
+    )
 
 
 def put_bytes(storage_key: str, raw: bytes, content_type: str) -> str:

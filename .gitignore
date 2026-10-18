@@ -239,3 +239,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local database/data safety copies.
+/output/backups/

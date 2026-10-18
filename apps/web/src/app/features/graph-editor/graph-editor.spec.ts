@@ -7,6 +7,7 @@ import { GraphEditorPage } from './graph-editor';
 describe('GraphEditorPage', () => {
   let fixture: ComponentFixture<GraphEditorPage>;
   const api = {
+    listDrafts: vi.fn(async () => ({ drafts: [] })),
     listNodePhotos: vi.fn<(...args: string[]) => Promise<{ photos: NodePhoto[] }>>(),
     uploadNodePhoto: vi.fn<(...args: unknown[]) => Promise<NodePhoto>>(),
     me: async () => ({ authenticated: true, email: 'a@b.c' }),
@@ -35,6 +36,7 @@ describe('GraphEditorPage', () => {
   };
 
   beforeEach(async () => {
+    vi.restoreAllMocks();
     api.listNodePhotos.mockReset().mockResolvedValue({ photos: [] });
     api.uploadNodePhoto.mockReset();
     await TestBed.configureTestingModule({
@@ -73,9 +75,8 @@ describe('GraphEditorPage', () => {
     }) as unknown as Event;
   async function selectPoint() {
     const page = fixture.componentInstance;
-    await page.ngOnInit();
     fixture.detectChanges();
-    await fixture.whenStable();
+    await vi.waitFor(() => expect(page.status()).toContain('Auto-saves'));
     page.setTool('select');
     await page.onNodeClick('n1');
     expect(page.revisionId()).toBe('r1');
@@ -142,5 +143,56 @@ describe('GraphEditorPage', () => {
     await first;
     expect(page.photos()).toEqual([]);
     expect(page.photosLoading()).toBe(false);
+  });
+
+  it('phone collection sorts numbered stops, skips path vertices and hides editing controls', async () => {
+    const page = await selectPoint();
+    page.nodes.set([
+      { id: 'n10', x: 10, y: 0, label: 'Point 10', kind: 'checkpoint' },
+      { id: 'bend', x: 5, y: 0, label: 'Path junction / bend', kind: 'junction' },
+      { id: 'n2', x: 2, y: 0, label: 'Point 2', kind: 'junction' },
+    ]);
+    await page.setPhotoMode(true);
+    expect(page.capturePoints().map((p) => p.id)).toEqual(['n2', 'n10']);
+    expect(page.selectedNodeId()).toBe('n2');
+    await page.onNodeClick('bend');
+    expect(page.selectedNodeId()).toBe('n2');
+    await page.movePoint(1);
+    expect(page.selectedNodeId()).toBe('n10');
+    page.onKey(new KeyboardEvent('keydown', { key: 'Delete' }));
+    expect(page.nodes()).toHaveLength(3);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Collect reference photos');
+    expect(fixture.nativeElement.querySelector('[aria-label="Graph tools"]')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.walk-camera input')).toHaveLength(4);
+  });
+
+  it('keeps a phone photo pending until cloud storage accepts it', async () => {
+    const page = await selectPoint();
+    page.nodes.set([{ id: 'n1', x: 1, y: 2, label: 'Point 1', kind: 'checkpoint' }]);
+    await page.setPhotoMode(true);
+    page.cloudReady.set(false);
+    vi.spyOn(page.phoneQueue, 'prepare').mockResolvedValue(
+      new File(['jpeg'], 'p.jpg', { type: 'image/jpeg' }),
+    );
+    await page.onDirectionPicked(picked(), 'front');
+    expect(page.pendingPhotos()).toHaveLength(1);
+    expect(page.uploadedViews()).toBe(0);
+    expect(api.uploadNodePhoto).not.toHaveBeenCalled();
+    const graph = vi.spyOn(api, 'getGraph').mockResolvedValue({
+      revision_id: 'r1',
+      coordinate_frame: { width: 1000, height: 640 },
+      underlay_url: null,
+      nodes: page.nodes(),
+      edges: [],
+    } as never);
+    api.uploadNodePhoto.mockRejectedValueOnce(new Error('Network unavailable'));
+    await page.retryPending();
+    expect(page.pendingPhotos()).toHaveLength(1);
+    api.uploadNodePhoto.mockResolvedValueOnce(photo('front'));
+    await page.retryPending();
+    expect(graph).toHaveBeenCalled();
+    expect(page.pendingPhotos()).toHaveLength(0);
+    expect(page.uploadedViews()).toBe(1);
   });
 });

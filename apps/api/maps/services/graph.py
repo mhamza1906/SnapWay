@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from maps.models import Edge, MapTarget, Membership, Node, Revision
-from maps.services.media_store import signed_url
+from maps.services.media_store import point_photo_storage_ready, signed_url
 from maps.services.membership import get_active_membership
 
 WRITABLE_ROLES = frozenset({Membership.Role.ADMIN, Membership.Role.VOLUNTEER})
@@ -39,6 +39,12 @@ def _require_writable(user, revision: Revision) -> Membership:
 
 
 def list_graph(revision: Revision) -> dict[str, Any]:
+    directions = {}
+    for node_id, direction in revision.references.filter(node__isnull=False).values_list(
+        "node_id", "capture_context__direction"
+    ):
+        if direction in ("front", "right", "back", "left"):
+            directions.setdefault(node_id, set()).add(direction)
     nodes = [
         {
             "id": str(n.id),
@@ -46,6 +52,7 @@ def list_graph(revision: Revision) -> dict[str, Any]:
             "y": float(n.y),
             "label": n.label,
             "kind": n.kind,
+            "photo_directions": sorted(directions.get(n.id, set())),
         }
         for n in revision.nodes.order_by("created_at")
     ]
@@ -63,6 +70,7 @@ def list_graph(revision: Revision) -> dict[str, Any]:
         underlay_url = signed_url(revision.source_asset.storage_key)
     return {
         "revision_id": str(revision.id),
+        "photo_uploads_available": point_photo_storage_ready(),
         "coordinate_frame": revision.coordinate_frame,
         "underlay_url": underlay_url,
         "nodes": nodes,

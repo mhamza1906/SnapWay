@@ -8,17 +8,40 @@ import {
   type PhotoDirection,
 } from '../../core/graph-api.service';
 import { GraphCanvas, GraphTool } from './graph-canvas';
+import { PointPhotoQueue, type PendingPointPhoto } from './point-photo-queue';
 
 @Component({
   selector: 'app-graph-editor',
   imports: [GraphCanvas, RouterLink],
   templateUrl: './graph-editor.html',
-  styleUrl: './graph-editor.scss',
+  styleUrls: ['./graph-editor.scss', './phone-walk.scss'],
 })
 export class GraphEditorPage implements OnInit {
   private readonly api = inject(GraphApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly phoneQueue = inject(PointPhotoQueue);
+  readonly captureMode = signal(this.route.snapshot.queryParamMap.get('mode') === 'photos');
+  readonly cloudReady = signal(true);
+  readonly savedWalks = signal<{ target_id: string; title: string; floor: string }[]>([]);
+  readonly capturePoints = computed(() => {
+    const numbered = this.nodes().filter((node) => /^Point\s+\d+$/i.test(node.label));
+    return (numbered.length ? numbered : this.nodes().filter((node) => node.kind === 'checkpoint'))
+      .slice()
+      .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  });
+  readonly pointIndex = computed(() =>
+    this.capturePoints().findIndex((point) => point.id === this.selectedNodeId()),
+  );
+  readonly pendingPhotos = computed(() =>
+    this.phoneQueue.items().filter((item) => item.revisionId === this.revisionId()),
+  );
+  readonly uploadedViews = computed(() =>
+    this.capturePoints().reduce((sum, node) => sum + (node.photo_directions?.length ?? 0), 0),
+  );
+  readonly completedPoints = computed(
+    () => this.capturePoints().filter((node) => node.photo_directions?.length === 4).length,
+  );
 
   readonly tool = signal<GraphTool>('add');
   readonly status = signal('Loading draft…');
@@ -52,6 +75,7 @@ export class GraphEditorPage implements OnInit {
         );
         return;
       }
+      await this.phoneQueue.open(me.username || me.email || 'signed-in-user');
       const targetHint = this.route.snapshot.queryParamMap.get('target') ?? undefined;
       const draft = await this.api.ensureDraft(targetHint);
       this.revisionId.set(draft.revision_id);
@@ -61,10 +85,14 @@ export class GraphEditorPage implements OnInit {
       // Pin target in the URL so refresh resumes the same draft (edits auto-save via API).
       await this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { target: draft.target_id },
+        queryParams: { target: draft.target_id, ...(this.captureMode() ? { mode: 'photos' } : {}) },
         replaceUrl: true,
       });
       await this.refresh();
+      if (this.captureMode()) {
+        this.savedWalks.set((await this.api.listDrafts()).drafts);
+        await this.startPhotoWalk();
+      }
       const n = this.nodes().length;
       const e = this.edges().length;
       this.status.set(
@@ -74,6 +102,114 @@ export class GraphEditorPage implements OnInit {
       this.error.set(this.message(err));
       this.status.set('Could not open draft');
     }
+  }
+
+  async setPhotoMode(enabled: boolean): Promise<void> {
+    this.captureMode.set(enabled);
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { mode: enabled ? 'photos' : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    if (enabled) {
+      this.savedWalks.set((await this.api.listDrafts()).drafts);
+      await this.startPhotoWalk();
+    }
+  }
+
+  async openSavedWalk(target: string): Promise<void> {
+    if (this.photoUploading()) return;
+    try {
+      const draft = await this.api.ensureDraft(target);
+      this.clearSelection();
+      this.targetId.set(draft.target_id);
+      this.revisionId.set(draft.revision_id);
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { target, mode: 'photos' },
+        replaceUrl: true,
+      });
+      await this.refresh();
+      await this.startPhotoWalk();
+      this.error.set(null);
+    } catch (error) {
+      this.error.set(this.message(error));
+    }
+  }
+
+  private async startPhotoWalk(): Promise<void> {
+    this.setTool('select');
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(`snapway-photo-stop:${this.revisionId()}`);
+    } catch {
+      /* Optional resume hint. */
+    }
+    const points = this.capturePoints();
+    const first =
+      points.find((point) => point.id === saved) ||
+      points.find((point) => (point.photo_directions?.length ?? 0) < 4) ||
+      points[0];
+    if (first) await this.onNodeClick(first.id);
+  }
+
+  async movePoint(offset: number): Promise<void> {
+    const point = this.capturePoints()[this.pointIndex() + offset];
+    if (point) await this.onNodeClick(point.id);
+  }
+
+  pendingFor(direction: PhotoDirection): boolean {
+    return this.pendingPhotos().some(
+      (item) => item.nodeId === this.selectedNodeId() && item.direction === direction,
+    );
+  }
+
+  @HostListener('window:online')
+  async retryPending(): Promise<void> {
+    if (this.photoUploading() || !this.revisionId()) return;
+    this.photoUploading.set(true);
+    this.error.set(null);
+    try {
+      await this.refresh();
+      if (!this.cloudReady())
+        throw new Error(
+          'Cloud storage is not configured yet. Your pending photos remain on this phone.',
+        );
+      for (const item of this.pendingPhotos()) await this.syncPhoneItem(item);
+      this.status.set('All pending photos uploaded to cloud storage.');
+    } catch (error) {
+      this.error.set(this.message(error));
+    } finally {
+      this.photoUploading.set(false);
+    }
+  }
+
+  private async syncPhoneItem(item: PendingPointPhoto): Promise<void> {
+    const file = new File([item.blob], item.filename, { type: item.blob.type });
+    const photo = await this.api.uploadNodePhoto(
+      item.revisionId,
+      item.nodeId,
+      file,
+      item.direction,
+    );
+    await this.phoneQueue.remove(item.id);
+    if (this.revisionId() !== item.revisionId) return;
+    this.nodes.update((nodes) =>
+      nodes.map((node) =>
+        node.id === item.nodeId
+          ? {
+              ...node,
+              photo_directions: [...new Set([...(node.photo_directions ?? []), item.direction])],
+            }
+          : node,
+      ),
+    );
+    if (this.selectedNodeId() === item.nodeId)
+      this.photos.update((photos) => [
+        ...photos.filter((old) => old.direction !== item.direction),
+        photo,
+      ]);
   }
 
   /** Start a brand-new empty map (does not delete the previous draft). */
@@ -139,11 +275,18 @@ export class GraphEditorPage implements OnInit {
     if (!revisionId) return;
     const tool = this.tool();
     if (tool === 'select') {
+      if (this.captureMode() && !this.capturePoints().some((point) => point.id === id)) return;
       this.selectedNodeId.set(id);
       this.selectedEdgeId.set(null);
       const node = this.nodes().find((n) => n.id === id);
       this.editLabel.set(node?.label ?? '');
       await this.loadPhotos(id);
+      if (this.captureMode())
+        try {
+          localStorage.setItem(`snapway-photo-stop:${revisionId}`, id);
+        } catch {
+          /* Optional. */
+        }
       return;
     }
     if (tool === 'connect') {
@@ -224,6 +367,36 @@ export class GraphEditorPage implements OnInit {
   );
   /** Uploads one of the four views; it replaces this point's earlier photo for that direction. */
   async onDirectionPicked(event: Event, direction: PhotoDirection): Promise<void> {
+    if (this.captureMode()) {
+      const input = event.target as HTMLInputElement,
+        file = input.files?.[0];
+      const revisionId = this.revisionId(),
+        nodeId = this.selectedNodeId();
+      if (!file || !revisionId || !nodeId || this.photoUploading()) return;
+      this.photoUploading.set(true);
+      this.error.set(null);
+      try {
+        const prepared = await this.phoneQueue.prepare(file);
+        const item = await this.phoneQueue.save({
+          revisionId,
+          nodeId,
+          direction,
+          blob: prepared,
+          filename: prepared.name,
+        });
+        this.status.set('Saved on this phone. Waiting for cloud upload.');
+        if (this.cloudReady() && navigator.onLine !== false) {
+          await this.syncPhoneItem(item);
+          this.status.set(`${direction} photo uploaded to cloud storage.`);
+        }
+      } catch (error) {
+        this.error.set(this.message(error));
+      } finally {
+        this.photoUploading.set(false);
+        input.value = '';
+      }
+      return;
+    }
     await this.uploadPhoto(event, direction);
   }
 
@@ -297,6 +470,7 @@ export class GraphEditorPage implements OnInit {
 
   @HostListener('window:keydown', ['$event'])
   onKey(event: KeyboardEvent): void {
+    if (this.captureMode()) return;
     if (event.key === 'Delete' || event.key === 'Backspace') {
       const tag = (event.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -335,7 +509,21 @@ export class GraphEditorPage implements OnInit {
     this.photosLoading.set(true);
     try {
       const result = await this.api.listNodePhotos(revisionId, nodeId);
-      if (current()) this.photos.set(result.photos);
+      if (current()) {
+        this.photos.set(result.photos);
+        const directions = [
+          ...new Set(
+            result.photos
+              .map((photo) => photo.direction)
+              .filter((direction): direction is PhotoDirection => !!direction),
+          ),
+        ];
+        this.nodes.update((nodes) =>
+          nodes.map((node) =>
+            node.id === nodeId ? { ...node, photo_directions: directions } : node,
+          ),
+        );
+      }
     } catch (err) {
       if (current()) {
         this.photos.set([]);
@@ -360,6 +548,7 @@ export class GraphEditorPage implements OnInit {
     if (!revisionId) return;
     const graph = await this.api.getGraph(revisionId);
     this.nodes.set(graph.nodes);
+    this.cloudReady.set(graph.photo_uploads_available !== false);
     this.edges.set(graph.edges);
     this.underlayUrl.set(graph.underlay_url);
     this.applyFrame(graph.coordinate_frame);

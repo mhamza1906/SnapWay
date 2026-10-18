@@ -50,6 +50,33 @@ class EnsureDraftView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        """List this contributor's writable maps for phone collection; no writes."""
+        from maps.models import Contribution
+
+        drafts = []
+        for contribution in (
+            Contribution.objects.filter(
+                author=request.user,
+                status=Contribution.Status.DRAFT,
+                head_revision__isnull=False,
+                head_revision__frozen_at__isnull=True,
+                target__status=MapTarget.Status.OPEN,
+            )
+            .select_related("target__floor", "head_revision")
+            .order_by("-created_at")
+        ):
+            membership = get_active_membership(request.user, contribution.target)
+            if membership and membership.role in ("admin", "volunteer"):
+                drafts.append(
+                    {
+                        "target_id": str(contribution.target_id),
+                        "title": contribution.target.title,
+                        "floor": contribution.target.floor.name,
+                    }
+                )
+        return Response({"drafts": drafts})
+
     @extend_schema(
         summary="Ensure demo draft contribution + unfrozen revision",
         request=inline_serializer(

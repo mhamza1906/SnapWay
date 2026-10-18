@@ -8,6 +8,7 @@ export type GraphNode = {
   y: number;
   label: string;
   kind: string;
+  photo_directions?: PhotoDirection[];
 };
 
 export type GraphEdge = {
@@ -19,6 +20,7 @@ export type GraphEdge = {
 
 export type GraphPayload = {
   revision_id: string;
+  photo_uploads_available?: boolean;
   coordinate_frame: { width?: number; height?: number; origin?: string; units?: string };
   underlay_url: string | null;
   nodes: GraphNode[];
@@ -50,7 +52,9 @@ export class GraphApiService {
   private readonly http = inject(HttpClient);
 
   me() {
-    return firstValueFrom(this.http.get<{ authenticated: boolean }>('/api/auth/me/'));
+    return firstValueFrom(
+      this.http.get<{ authenticated: boolean; username?: string; email?: string }>('/api/auth/me/'),
+    );
   }
 
   ensureDraft(targetId?: string, forceNew = false) {
@@ -58,6 +62,14 @@ export class GraphApiService {
     if (targetId) body.target_id = targetId;
     if (forceNew) body.force_new = true;
     return firstValueFrom(this.http.post<DraftEnsure>('/api/maps/drafts/ensure/', body));
+  }
+
+  listDrafts() {
+    return firstValueFrom(
+      this.http.get<{ drafts: { target_id: string; title: string; floor: string }[] }>(
+        '/api/maps/drafts/ensure/',
+      ),
+    );
   }
 
   getGraph(revisionId: string) {

@@ -1,11 +1,6 @@
 # Photo capture mode (mobile browser)
 
-**Status:** photos stored in Cloudflare R2 and an optional four-photo offer added (October 17, 2026; R2 not yet tried with a real upload). Implemented on `feature/map-authoring-pipeline` (October 17, 2026),
-requested by Arjun; not yet committed. Automated tests pass (pipeline 226 run,
-208 pass, 18 skipped; API 44 pass, 17 PostgreSQL-only skipped; web 103 pass),
-format/lint and the web build pass. **Not yet tested in a browser or on a
-phone** (deferred at Arjun's request). This document is the shared contract for
-the parts below; keep it current when an interface changes.
+**Status (October 18, 2026):** mobile photo-walk UI and four reference views per point are implemented on `feature/map-authoring-pipeline`. A temporary HTTPS preview reaches the app/API, Google accepts its callback, and a real synthetic R2 write/read/signed-URL test passed. Sam Ibrahim's saved collection walks are installed in the local API. No physical-phone camera test or completed human Google sign-in was performed by the agent; computer use was disabled at the user's request. Earlier test counts below document previous checkpoints.
 
 Changed files:
 [capture-points.js](../apps/pipeline/shared/building/capture-points.js),
@@ -492,3 +487,38 @@ Four-view safeguards: corrupt images are rejected before upload; replacements se
 Verification for the 12-stop/four-view change: 38 authoring/conversion tests, 5 graph-editor tests, 46 related Django tests (1 PostgreSQL-only skip), and 232 pipeline tests (18 optional-fixture skips) passed. The production web build passed. R2 adapter tests stub remote S3 responses while exercising storage writes and signed URL generation; no live cloud upload or camera test was performed. The live local planner API returns 12 points by default after restart. No browser or desktop automation was used. Editor implementation: [logic](../apps/web/src/app/features/graph-editor/graph-editor.ts), [styles](../apps/web/src/app/features/graph-editor/graph-editor.scss), [tests](../apps/web/src/app/features/graph-editor/graph-editor.spec.ts); [CI storage extra](../.github/workflows/ci.yml).
 
 Twelve-stop defaults and four R2 views: [2ebc522](https://github.com/mhamza1906/SnapWay/commit/2ebc522).
+
+## Phone photo walk over a temporary HTTPS preview
+
+Open `<PREVIEW_ORIGIN>/graph-editor?mode=photos` in Safari/Chrome on the phone and sign in with the same Google account used on the computer. Choose the saved floor/circulation, stand at the highlighted numbered stop, and take Front, Right, Back and Left. Previous/Next and a stop picker avoid tapping small map markers. Only numbered photo stops appear in this view; graph-editing controls and path support vertices are omitted. Completion counts are returned from the server, so already-uploaded views resume on another signed-in device. Switching maps uses the contributor's own writable draft list; it grants no new access to other people's maps.
+
+The [phone view and shared logic](../apps/web/src/app/features/graph-editor/graph-editor.ts), [template](../apps/web/src/app/features/graph-editor/graph-editor.html) and [phone styles](../apps/web/src/app/features/graph-editor/phone-walk.scss) use large camera buttons, a narrow-screen layout, safe-area padding and sticky previous/next navigation. The existing desktop [editor styles](../apps/web/src/app/features/graph-editor/graph-editor.scss) stay separate. Images are oriented/decoded by the browser, resized to at most 2048 pixels on the long side and encoded as JPEG before the existing 5 MiB upload API.
+
+[Pending photos](../apps/web/src/app/features/graph-editor/point-photo-queue.ts) are saved in IndexedDB, scoped to the signed-in account/revision/point/direction, before attempting upload. They are removed only after the server acknowledges the upload. Failed uploads remain retryable; one pending file per direction is retained. The page distinguishes phone-pending from cloud-uploaded photos. Browser storage failures fall back to memory with a visible keep-this-tab-open notice. This does not provide a fully offline website: load the page/maps while connected; pending files can resume after reconnecting to the same browser and preview origin. [Queue tests](../apps/web/src/app/features/graph-editor/point-photo-queue.spec.ts), [view regressions](../apps/web/src/app/features/graph-editor/graph-editor.spec.ts).
+
+[Graph responses](../apps/api/maps/services/graph.py) include saved view directions and a storage-configuration flag. [Reference uploads](../apps/api/maps/services/references.py) and the graph API share the same [R2 readiness check](../apps/api/maps/services/media_store.py). The [draft-list endpoint](../apps/api/maps/views_graph.py) returns only the caller's writable draft targets. [Web API client](../apps/web/src/app/core/graph-api.service.ts); [API tests](../apps/api/tests/test_node_media.py). Credentials remain server-side.
+
+### Preview setup and account handoff
+
+The user chose a temporary preview with the computer remaining on. [phone-preview.mjs](../scripts/phone-preview.mjs) starts/reuses only the named `snapway-phone` tunnel through the already-running configured ngrok agent; it leaves unrelated tunnels unchanged. Run `node scripts/phone-preview.mjs info` for the current phone URL and required API/frontend commands, or `start` if the named tunnel is absent. It writes only non-secret preview metadata to ignored `local/phone-preview.json`. `stop` removes only this tunnel. [ngrok's local agent API](https://ngrok.com/docs/gateway/agent/api) documents starting/stopping endpoints without stopping the agent.
+
+Preserve the public Host through the tunnel. The frontend allows exactly that additional host through Vite's existing `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` option. The loopback Django development process uses `DEV_EXTRA_ORIGINS=<PREVIEW_ORIGIN>` and the existing `DJANGO_TRUST_PROXY=true` opt-in; [development settings](../apps/api/config/settings/development.py) trust the HTTPS scheme from this controlled preview proxy. The public API/session and CSRF-protected Google-login POST were checked. The resulting OAuth callback uses the public HTTPS origin, rather than a loopback URL.
+
+The Google OAuth web client's **Authorized redirect URIs** must include `<PREVIEW_ORIGIN>/accounts/google/login/callback/` exactly. On 2026-10-18 Google rejected the new preview callback with `redirect_uri_mismatch`; the user was given the Cloud Console Clients steps to add it. The user added the callback, and a fresh Google authorization request returned without `redirect_uri_mismatch` or another OAuth error. Human account selection/sign-in is left to the user. Keep the computer awake, connected and running the API, frontend and ngrok. A new preview hostname needs a new OAuth callback entry and cannot access pending browser storage from an old hostname. Remove the temporary callback when retiring the preview.
+
+R2 credentials were supplied in existing private local configuration during this task. A real synthetic R2 write, read-back and signed-URL GET succeeded, and the synthetic object was removed. Display underlays for the imported walks were stored through the configured R2 adapter. No human camera photos were captured or uploaded by the agent. The consolidated `local/.env` contract is still absent in this checkout; the existing private legacy configuration supplies the working settings. Never copy secrets into Git. Local SQLite backups are excluded through [gitignore](../.gitignore).
+
+### Preparing Sam Ibrahim's saved walks
+
+The [offline exporter](../experiments/sam-ibrahim-hardcoded/phone-walks.mjs) uses the same original-SVG project, 12-stop planner and source-polyline graph conversion as authoring. It does not call an AI provider. The [import command](../apps/api/maps/management/commands/import_photo_walks.py) creates only the named existing contributor's own new drafts, stores source underlays through the existing adapter, and skips already-imported source identities rather than overwriting their graphs/photos:
+
+```sh
+node --experimental-strip-types experiments/sam-ibrahim-hardcoded/phone-walks.mjs local/phone-walks.json
+DJANGO_SETTINGS_MODULE=config.settings.development .venv/bin/python apps/api/manage.py import_photo_walks --username YOUR_EXISTING_USERNAME --file local/phone-walks.json
+```
+
+The local database was backed up before import. Eleven source circulation plans containing 121 total stops were installed for the existing contributor. Normal-size plans use 12 stops; small plans retain fewer valid locations. The phone picker includes all saved plans, including both Level 5 areas (24 stops / 96 possible directional photos). No global staff role or other user's membership was changed. The export is single-floor collection data; it does not alter the project's cross-floor routes.
+
+Phone-workflow verification on 2026-10-18: 11 editor/queue/graph-conversion tests and 18 related Django tests passed; the production web build passed without style-budget warnings. Django system checks and migration checks passed (no schema changes), and source/diff checks passed. Re-importing the saved walks preserved existing drafts. Public page and session API returned 200; the CSRF-protected OAuth start generated the exact public HTTPS callback, accepted by Google after the user updated it. R2 and OAuth credentials were never printed or committed.
+
+The user subsequently confirmed the preview opens after a transient connection timeout. Local/public frontend and public session API checks returned 200; no browser/network security settings were changed. Phone camera/upload behavior remains for the user's physical-device test.

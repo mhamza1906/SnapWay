@@ -281,3 +281,80 @@ def test_directional_photos_refused_without_r2(actors, draft, settings, tmp_path
     assert response.status_code == 503
     assert "Cloudflare R2" in response.json()["detail"]
     assert not list(tmp_path.rglob("*.png"))
+
+
+@pytest.mark.django_db
+def test_phone_draft_list_is_scoped_and_graph_reports_saved_views(
+    actors, draft, settings, tmp_path
+):
+    from maps.models import Asset, ReferencePhoto, Revision
+
+    settings.MEDIA_ROOT = tmp_path
+    revision = Revision.objects.get(pk=draft["revision_id"])
+    node = add_node(revision, x=1, y=2, label="Point 1", actor=actors["member"])
+    asset = Asset.objects.create(
+        target=revision.target,
+        uploaded_by=actors["member"],
+        kind="photo",
+        storage_key="test.png",
+        content_type="image/png",
+        sha256="a" * 64,
+        byte_size=1,
+    )
+    for direction in ["front", "right"]:
+        ReferencePhoto.objects.create(
+            revision=revision, node=node, asset=asset, capture_context={"direction": direction}
+        )
+    client = APIClient()
+    client.force_login(actors["member"])
+    listed = client.get(reverse("map-draft-ensure"))
+    assert listed.status_code == 200
+    assert [d["target_id"] for d in listed.json()["drafts"]] == [str(revision.target_id)]
+    graph = client.get(reverse("map-revision-graph", kwargs={"revision_id": revision.id})).json()
+    assert graph["nodes"][0]["photo_directions"] == ["front", "right"]
+    assert graph["photo_uploads_available"] is False
+    client.force_login(actors["stranger"])
+    assert client.get(reverse("map-draft-ensure")).json()["drafts"] == []
+
+
+@pytest.mark.django_db
+def test_import_phone_walks_preserves_existing_draft_on_repeat(actors, settings, tmp_path):
+    import base64
+    import io
+    import json
+
+    from django.core.management import call_command
+    from maps.models import Contribution
+
+    settings.MEDIA_ROOT = tmp_path
+    source = tmp_path / "walk.json"
+    source.write_text(
+        json.dumps(
+            {
+                "walks": [
+                    {
+                        "source": "test-svg:floor:circulation:12",
+                        "title": "Test circulation",
+                        "floor": "Level 2",
+                        "width": 100,
+                        "height": 100,
+                        "points": 1,
+                        "underlay": base64.b64encode(_tiny_png()).decode(),
+                        "nodes": [{"x": 5, "y": 10, "label": "Point 1", "kind": "checkpoint"}],
+                        "edges": [],
+                    }
+                ]
+            }
+        )
+    )
+    for _ in range(2):
+        call_command(
+            "import_photo_walks", username="member", file=str(source), stdout=io.StringIO()
+        )
+    contributions = Contribution.objects.filter(author=actors["member"])
+    assert contributions.count() == 1
+    revision = contributions.get().head_revision
+    assert revision.nodes.count() == 1
+    assert revision.geometry["photo_walk_source"] == "test-svg:floor:circulation:12"
+    actors["member"].refresh_from_db()
+    assert not actors["member"].is_staff

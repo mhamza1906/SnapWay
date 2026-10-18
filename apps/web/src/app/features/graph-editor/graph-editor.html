@@ -1,185 +1,352 @@
-<div class="graph-page">
-  <header class="graph-bar">
-    <div class="brand-block">
-      <a class="brand" routerLink="/map">SnapWay</a>
-      <a class="workspace-return" routerLink="/overview">← Back to workspace</a>
-      <h1>Graph editor</h1>
-      <p class="lede">Place waypoints and connections on the floor plan.</p>
-    </div>
-    <div class="tools" role="toolbar" aria-label="Graph tools">
-      <button
-        type="button"
-        class="tool"
-        [class.active]="tool() === 'select'"
-        (click)="setTool('select')"
-      >
-        Select
-      </button>
-      <button type="button" class="tool" [class.active]="tool() === 'add'" (click)="setTool('add')">
-        Add waypoint
-      </button>
-      <button
-        type="button"
-        class="tool"
-        [class.active]="tool() === 'connect'"
-        (click)="setTool('connect')"
-      >
-        Connect
-      </button>
-      <button type="button" class="tool" [class.active]="tool() === 'cut'" (click)="setTool('cut')">
-        Cut connection
-      </button>
-      <label class="tool upload">
-        Upload underlay
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          hidden
-          (change)="onUnderlayPicked($event)"
-        />
+@if (captureMode()) {
+  <div class="phone-walk">
+    <header class="walk-header">
+      <div>
+        <span class="eyebrow">SNAPWAY · PHOTO WALK</span>
+        <h1>Collect reference photos</h1>
+      </div>
+      <button class="walk-text-button" (click)="setPhotoMode(false)">Edit map</button>
+    </header>
+    @if (savedWalks().length) {
+      <label class="walk-picker"
+        >Floor and circulation
+        <select
+          [value]="targetId()"
+          (change)="openSavedWalk($any($event.target).value)"
+          [disabled]="photoUploading()"
+          data-testid="walk-map-picker"
+        >
+          @for (walk of savedWalks(); track walk.target_id) {
+            <option [value]="walk.target_id">{{ walk.title }}</option>
+          }
+        </select>
       </label>
-      <button
-        type="button"
-        class="tool danger"
-        [disabled]="!selectedNodeId() && !selectedEdgeId()"
-        (click)="removeSelected()"
-      >
-        Remove
-      </button>
-      <button type="button" class="tool" (click)="startNewMap()">New map</button>
-    </div>
-  </header>
-
-  @if (tool() === 'add') {
-    <div class="label-row">
-      <label>
-        Waypoint label
-        <input
-          type="text"
-          [value]="labelDraft()"
-          (input)="labelDraft.set($any($event.target).value)"
-          placeholder="e.g. Studio 101"
-          maxlength="120"
-        />
+    }
+    <section class="walk-progress" aria-label="Collection progress">
+      <strong>{{ completedPoints() }} / {{ capturePoints().length }} stops complete</strong>
+      <span>{{ uploadedViews() }} / {{ capturePoints().length * 4 }} views uploaded</span>
+      <progress [value]="uploadedViews()" [max]="capturePoints().length * 4 || 1"></progress>
+    </section>
+    @if (!cloudReady()) {
+      <p class="walk-notice" role="status">
+        Cloud storage needs configuration. Photos you take here will wait on this phone until
+        uploads are available.
+      </p>
+    }
+    @if (!phoneQueue.persistent()) {
+      <p class="walk-notice">
+        This browser cannot keep pending photos after closing. Keep this tab open until every photo
+        is uploaded.
+      </p>
+    }
+    @if (pendingPhotos().length) {
+      <div class="walk-pending">
+        <span>{{ pendingPhotos().length }} photos waiting on this phone</span>
+        <button (click)="retryPending()" [disabled]="photoUploading()">Retry uploads</button>
+      </div>
+    }
+    @if (capturePoints().length) {
+      <label class="walk-picker"
+        >Photo stop
+        <select
+          [value]="selectedNodeId()"
+          (change)="onNodeClick($any($event.target).value)"
+          [disabled]="photoUploading()"
+          data-testid="walk-point"
+        >
+          @for (point of capturePoints(); track point.id) {
+            <option [value]="point.id">
+              {{ point.label }} · {{ point.photo_directions?.length || 0 }}/4 uploaded
+            </option>
+          }
+        </select>
       </label>
-    </div>
-  }
-
-  <div class="workspace">
-    <div class="stage">
-      <app-graph-canvas
-        [width]="width()"
-        [height]="height()"
-        [underlayUrl]="underlayUrl()"
-        [nodes]="nodes()"
-        [edges]="edges()"
-        [selectedNodeId]="selectedNodeId()"
-        [selectedEdgeId]="selectedEdgeId()"
-        [connectFromId]="connectFromId()"
-        [tool]="tool()"
-        (canvasClicked)="onCanvasClick($event)"
-        (nodeClicked)="onNodeClick($event)"
-        (edgeClicked)="onEdgeClick($event)"
-      />
-    </div>
-
-    @if (tool() === 'select' && selectedNodeId(); as nodeId) {
-      <aside class="inspector" aria-label="Selected waypoint">
-        <h2>Waypoint</h2>
-        <label>
-          Label
-          <input
-            type="text"
-            [value]="editLabel()"
-            (input)="editLabel.set($any($event.target).value)"
-            maxlength="120"
-            placeholder="Classroom or landmark name"
+      <details class="walk-map" open>
+        <summary>Find this stop on the map</summary>
+        <div class="walk-map-stage">
+          <app-graph-canvas
+            [width]="width()"
+            [height]="height()"
+            [underlayUrl]="underlayUrl()"
+            [nodes]="capturePoints()"
+            [edges]="[]"
+            [selectedNodeId]="selectedNodeId()"
+            [tool]="'select'"
+            (nodeClicked)="onNodeClick($event)"
           />
-        </label>
-        <button type="button" class="tool active save" (click)="saveLabel()">Save label</button>
-
-        <div class="photos-block" data-testid="direction-photos">
-          <div class="photos-head">
-            <h3>Point photos ({{ directionCount() }}/4)</h3>
-          </div>
-          <p class="muted">
-            At each numbered Point, choose your walking direction as Front, then take Right, Back
-            and Left views. Path junction / bend nodes do not need photos. Photos save to cloud
-            storage; replacing a view keeps one current photo for that side.
-          </p>
-          <div class="direction-grid">
-            @for (d of directions; track d.key) {
-              <div class="direction-slot" [attr.data-direction]="d.key">
-                @if (photoFor(d.key); as photo) {
-                  <a [href]="photo.url" target="_blank" rel="noopener">
-                    <img [src]="photo.url" [alt]="d.label + ' photo'" />
-                  </a>
-                } @else {
-                  <div class="direction-empty">No photo</div>
-                }
-                <label class="tool upload small">
-                  {{ photoFor(d.key) ? 'Replace ' + d.label : d.label }}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    capture="environment"
-                    [disabled]="photosLoading() || photoUploading()"
-                    hidden
-                    (change)="onDirectionPicked($event, d.key)"
-                  />
-                </label>
-              </div>
-            }
-          </div>
         </div>
-        @if (photoUploading()) {
-          <p role="status">Uploading photo…</p>
-        }
-
-        <div class="photos-block">
-          <div class="photos-head">
-            <h3>Other photos</h3>
-            <label class="tool upload small">
-              Attach
+      </details>
+      <section class="walk-current" aria-label="Current photo stop">
+        <div>
+          <span class="eyebrow">STOP {{ pointIndex() + 1 }} OF {{ capturePoints().length }}</span>
+          <h2>{{ selectedNode()?.label }}</h2>
+        </div>
+        <span class="walk-count">{{ directionCount() }}/4 uploaded</span>
+        <p>
+          Stand at the highlighted point. Face along your walking direction for Front, then turn
+          right for each next view.
+        </p>
+      </section>
+      <div class="walk-slots">
+        @for (d of directions; track d.key; let i = $index) {
+          <section class="walk-slot" [class.saved]="photoFor(d.key) && !pendingFor(d.key)">
+            <div class="walk-slot-heading">
+              <h3>{{ i + 1 }}. {{ d.label }}</h3>
+              <span>{{
+                pendingFor(d.key) ? 'Waiting to upload' : photoFor(d.key) ? 'Uploaded ✓' : 'Needed'
+              }}</span>
+            </div>
+            @if (photoFor(d.key); as photo) {
+              <img [src]="photo.url" [alt]="d.label + ' reference view'" />
+            }
+            <label class="walk-camera" [class.disabled]="photoUploading() || photosLoading()">
+              {{ photoFor(d.key) || pendingFor(d.key) ? 'Retake ' : 'Take ' }}{{ d.label }} photo
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/webp"
-                hidden
-                [disabled]="photosLoading() || photoUploading()"
-                (change)="onPhotoPicked($event)"
+                accept="image/*"
+                capture="environment"
+                (change)="onDirectionPicked($event, d.key)"
+                [disabled]="photoUploading() || photosLoading()"
+                [attr.aria-label]="'Take ' + d.label + ' photo'"
               />
             </label>
-          </div>
-          @if (photosLoading()) {
-            <p class="muted">Loading…</p>
-          } @else if (!otherPhotos().length) {
-            <p class="muted">No other photos. Attach an extra reference image for this waypoint.</p>
-          } @else {
-            <ul class="photo-list">
-              @for (photo of otherPhotos(); track photo.id) {
-                <li>
-                  <a [href]="photo.url" target="_blank" rel="noopener">
-                    <img [src]="photo.url" alt="Node reference photo" />
-                  </a>
-                  <button type="button" class="tool danger small" (click)="removePhoto(photo.id)">
-                    Remove
-                  </button>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-      </aside>
+          </section>
+        }
+      </div>
+      <nav class="walk-bottom" aria-label="Move between photo stops">
+        <button (click)="movePoint(-1)" [disabled]="pointIndex() <= 0 || photoUploading()">
+          ← Previous
+        </button>
+        <span>{{ pointIndex() + 1 }} / {{ capturePoints().length }}</span>
+        <button
+          (click)="movePoint(1)"
+          [disabled]="pointIndex() >= capturePoints().length - 1 || photoUploading()"
+        >
+          Next stop →
+        </button>
+      </nav>
+    } @else {
+      <section class="walk-empty">
+        <h2>No photo stops saved yet</h2>
+        <p>
+          In Map authoring, select a circulation area, generate its 12 photo stops, then choose Send
+          to graph editor. Open Photo walk from that saved graph.
+        </p>
+        <a routerLink="/authoring">Open map authoring</a>
+      </section>
     }
-  </div>
-
-  <footer class="status-line">
-    <span>{{ status() }}</span>
+    <p class="walk-status" role="status">
+      {{ photoUploading() ? 'Preparing or uploading photo…' : status() }}
+    </p>
     @if (error(); as err) {
-      <span class="err">{{ err }}</span>
+      <p class="walk-error" role="alert">
+        {{ err }} Pending photos stay on this phone; use Retry uploads when connected.
+      </p>
     }
-    @if (!authenticated()) {
-      <a class="signin" href="/accounts/google/login/">Sign in with Google</a>
+    <p class="walk-help">
+      Temporary preview: keep the computer online. Sign in with the same account on this phone.
+      Pending photos belong to this browser and link.
+    </p>
+  </div>
+} @else {
+  <div class="graph-page">
+    <header class="graph-bar">
+      <div class="brand-block">
+        <a class="brand" routerLink="/map">SnapWay</a>
+        <a class="workspace-return" routerLink="/overview">← Back to workspace</a>
+        <h1>Graph editor</h1>
+        <button class="tool active" (click)="setPhotoMode(true)" data-testid="open-photo-walk">
+          Photo walk · use on phone
+        </button>
+        <p class="lede">Place waypoints and connections on the floor plan.</p>
+      </div>
+      <div class="tools" role="toolbar" aria-label="Graph tools">
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'select'"
+          (click)="setTool('select')"
+        >
+          Select
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'add'"
+          (click)="setTool('add')"
+        >
+          Add waypoint
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'connect'"
+          (click)="setTool('connect')"
+        >
+          Connect
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'cut'"
+          (click)="setTool('cut')"
+        >
+          Cut connection
+        </button>
+        <label class="tool upload">
+          Upload underlay
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            hidden
+            (change)="onUnderlayPicked($event)"
+          />
+        </label>
+        <button
+          type="button"
+          class="tool danger"
+          [disabled]="!selectedNodeId() && !selectedEdgeId()"
+          (click)="removeSelected()"
+        >
+          Remove
+        </button>
+        <button type="button" class="tool" (click)="startNewMap()">New map</button>
+      </div>
+    </header>
+
+    @if (tool() === 'add') {
+      <div class="label-row">
+        <label>
+          Waypoint label
+          <input
+            type="text"
+            [value]="labelDraft()"
+            (input)="labelDraft.set($any($event.target).value)"
+            placeholder="e.g. Studio 101"
+            maxlength="120"
+          />
+        </label>
+      </div>
     }
-  </footer>
-</div>
+
+    <div class="workspace">
+      <div class="stage">
+        <app-graph-canvas
+          [width]="width()"
+          [height]="height()"
+          [underlayUrl]="underlayUrl()"
+          [nodes]="nodes()"
+          [edges]="edges()"
+          [selectedNodeId]="selectedNodeId()"
+          [selectedEdgeId]="selectedEdgeId()"
+          [connectFromId]="connectFromId()"
+          [tool]="tool()"
+          (canvasClicked)="onCanvasClick($event)"
+          (nodeClicked)="onNodeClick($event)"
+          (edgeClicked)="onEdgeClick($event)"
+        />
+      </div>
+
+      @if (tool() === 'select' && selectedNodeId(); as nodeId) {
+        <aside class="inspector" aria-label="Selected waypoint">
+          <h2>Waypoint</h2>
+          <label>
+            Label
+            <input
+              type="text"
+              [value]="editLabel()"
+              (input)="editLabel.set($any($event.target).value)"
+              maxlength="120"
+              placeholder="Classroom or landmark name"
+            />
+          </label>
+          <button type="button" class="tool active save" (click)="saveLabel()">Save label</button>
+
+          <div class="photos-block" data-testid="direction-photos">
+            <div class="photos-head">
+              <h3>Point photos ({{ directionCount() }}/4)</h3>
+            </div>
+            <p class="muted">
+              At each numbered Point, choose your walking direction as Front, then take Right, Back
+              and Left views. Path junction / bend nodes do not need photos. Photos save to cloud
+              storage; replacing a view keeps one current photo for that side.
+            </p>
+            <div class="direction-grid">
+              @for (d of directions; track d.key) {
+                <div class="direction-slot" [attr.data-direction]="d.key">
+                  @if (photoFor(d.key); as photo) {
+                    <a [href]="photo.url" target="_blank" rel="noopener">
+                      <img [src]="photo.url" [alt]="d.label + ' photo'" />
+                    </a>
+                  } @else {
+                    <div class="direction-empty">No photo</div>
+                  }
+                  <label class="tool upload small">
+                    {{ photoFor(d.key) ? 'Replace ' + d.label : d.label }}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      capture="environment"
+                      [disabled]="photosLoading() || photoUploading()"
+                      hidden
+                      (change)="onDirectionPicked($event, d.key)"
+                    />
+                  </label>
+                </div>
+              }
+            </div>
+          </div>
+          @if (photoUploading()) {
+            <p role="status">Uploading photo…</p>
+          }
+
+          <div class="photos-block">
+            <div class="photos-head">
+              <h3>Other photos</h3>
+              <label class="tool upload small">
+                Attach
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  hidden
+                  [disabled]="photosLoading() || photoUploading()"
+                  (change)="onPhotoPicked($event)"
+                />
+              </label>
+            </div>
+            @if (photosLoading()) {
+              <p class="muted">Loading…</p>
+            } @else if (!otherPhotos().length) {
+              <p class="muted">
+                No other photos. Attach an extra reference image for this waypoint.
+              </p>
+            } @else {
+              <ul class="photo-list">
+                @for (photo of otherPhotos(); track photo.id) {
+                  <li>
+                    <a [href]="photo.url" target="_blank" rel="noopener">
+                      <img [src]="photo.url" alt="Node reference photo" />
+                    </a>
+                    <button type="button" class="tool danger small" (click)="removePhoto(photo.id)">
+                      Remove
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+
+    <footer class="status-line">
+      <span>{{ status() }}</span>
+      @if (error(); as err) {
+        <span class="err">{{ err }}</span>
+      }
+      @if (!authenticated()) {
+        <a class="signin" href="/accounts/google/login/">Sign in with Google</a>
+      }
+    </footer>
+  </div>
+}

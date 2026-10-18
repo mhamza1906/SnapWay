@@ -59,6 +59,11 @@ CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, *DEV_EXTRA_ORIGINS]  # noqa: F405
 _phone_hosts = [urlsplit(origin).hostname for origin in DEV_EXTRA_ORIGINS]
 ALLOWED_HOSTS = list(dict.fromkeys([*ALLOWED_HOSTS, *filter(None, _phone_hosts)]))  # noqa: F405
 
+# Opt in only when the loopback server is behind the chosen HTTPS preview
+# proxy. Preserve its Host so OAuth callbacks use the public phone URL.
+if env.bool("DJANGO_TRUST_PROXY", default=False):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Cloudflare R2 / S3-compatible media when S3_* (or R2_* aliases) are set in local/.env.
 from config.storage_backends import apply_storages  # noqa: E402
 

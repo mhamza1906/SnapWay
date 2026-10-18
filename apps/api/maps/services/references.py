@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from urllib.parse import urlsplit
 
-from django.conf import settings
 from django.db import transaction
 
 from maps.models import Asset, Node, ReferencePhoto, Revision
 from maps.services import graph as graph_svc
 from maps.services.graph import GraphError
-from maps.services.media_store import put_bytes, signed_url
+from maps.services.media_store import point_photo_storage_ready, put_bytes, signed_url
 
 MAX_BYTES = 5 * 1024 * 1024
 ALLOWED = {
@@ -81,15 +79,7 @@ def attach_node_photo(
     direction = (direction or "").strip().lower() or None
     if direction is not None and direction not in DIRECTIONS:
         raise GraphError("direction must be front, right, back or left.")
-    storage = settings.STORAGES.get("default", {})
-    endpoint = urlsplit(storage.get("OPTIONS", {}).get("endpoint_url", ""))
-    r2_configured = (
-        getattr(settings, "MEDIA_STORAGE_BACKEND", "filesystem") == "s3"
-        and storage.get("BACKEND") == "storages.backends.s3boto3.S3Boto3Storage"
-        and endpoint.scheme == "https"
-        and (endpoint.hostname or "").endswith(".r2.cloudflarestorage.com")
-    )
-    if direction is not None and not r2_configured:
+    if direction is not None and not point_photo_storage_ready():
         raise PhotoStorageUnavailable(
             "Point photos are stored in Cloudflare R2 only. Set the R2 bucket settings "
             "(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME or S3_*) "
