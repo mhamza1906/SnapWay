@@ -40,7 +40,10 @@ export type NodePhoto = {
   content_type: string;
   byte_size: number;
   status: string;
+  /** front, right, back or left for a point's four reference views; null for other photos. */
+  direction?: PhotoDirection | null;
 };
+export type PhotoDirection = 'front' | 'right' | 'back' | 'left';
 
 @Injectable({ providedIn: 'root' })
 export class GraphApiService {
@@ -104,9 +107,11 @@ export class GraphApiService {
     );
   }
 
-  uploadNodePhoto(revisionId: string, nodeId: string, file: File) {
+  /** With `direction`, the photo is one of the point's four views (stored in R2 only). */
+  uploadNodePhoto(revisionId: string, nodeId: string, file: File, direction?: PhotoDirection) {
     const form = new FormData();
     form.append('file', file);
+    if (direction) form.append('direction', direction);
     return firstValueFrom(
       this.http.post<NodePhoto>(`/api/maps/revisions/${revisionId}/nodes/${nodeId}/photos/`, form),
     );

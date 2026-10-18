@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import uuid
+from urllib.parse import urlsplit
 
+from django.conf import settings
 from django.db import transaction
 
 from maps.models import Asset, Node, ReferencePhoto, Revision
@@ -18,6 +20,18 @@ ALLOWED = {
     "image/jpeg": ".jpg",
     "image/webp": ".webp",
 }
+# The four reference views taken at each photo point, relative to the walking
+# direction. One photo per direction per node; a new one replaces the old.
+DIRECTIONS = ("front", "right", "back", "left")
+
+
+class PhotoStorageUnavailable(RuntimeError):
+    """Directional photos are stored in Cloudflare R2 only; it is not configured."""
+
+
+def _direction(ref) -> str | None:
+    value = (ref.capture_context or {}).get("direction")
+    return value if value in DIRECTIONS else None
 
 
 def list_node_photos(revision: Revision, *, node_id, actor) -> list[dict]:
@@ -39,6 +53,7 @@ def list_node_photos(revision: Revision, *, node_id, actor) -> list[dict]:
             "content_type": ref.asset.content_type,
             "byte_size": ref.asset.byte_size,
             "status": ref.status,
+            "direction": _direction(ref),
         }
         for ref in rows
     ]
@@ -52,12 +67,34 @@ def attach_node_photo(
     uploaded_file,
     actor,
     content_type: str | None = None,
+    direction: str | None = None,
 ) -> dict:
     graph_svc._require_writable(actor, revision)
     try:
-        node = revision.nodes.get(pk=node_id)
+        # Serialize replacements on this point, including simultaneous uploads
+        # from two clients, so a direction never gains two active references.
+        node = revision.nodes.select_for_update().get(pk=node_id)
     except Node.DoesNotExist as exc:
         raise GraphError("Node not found on this revision.") from exc
+    if direction is not None and not isinstance(direction, str):
+        raise GraphError("direction must be front, right, back or left.")
+    direction = (direction or "").strip().lower() or None
+    if direction is not None and direction not in DIRECTIONS:
+        raise GraphError("direction must be front, right, back or left.")
+    storage = settings.STORAGES.get("default", {})
+    endpoint = urlsplit(storage.get("OPTIONS", {}).get("endpoint_url", ""))
+    r2_configured = (
+        getattr(settings, "MEDIA_STORAGE_BACKEND", "filesystem") == "s3"
+        and storage.get("BACKEND") == "storages.backends.s3boto3.S3Boto3Storage"
+        and endpoint.scheme == "https"
+        and (endpoint.hostname or "").endswith(".r2.cloudflarestorage.com")
+    )
+    if direction is not None and not r2_configured:
+        raise PhotoStorageUnavailable(
+            "Point photos are stored in Cloudflare R2 only. Set the R2 bucket settings "
+            "(R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME or S3_*) "
+            "in the API's server env."
+        )
 
     ctype = (content_type or getattr(uploaded_file, "content_type", "") or "").lower()
     if ctype not in ALLOWED:
@@ -71,8 +108,6 @@ def attach_node_photo(
     ext = ALLOWED[ctype]
     digest = hashlib.sha256(raw).hexdigest()
     storage_key = f"photos/{revision.target_id}/{node.id}/{uuid.uuid4().hex}{ext}"
-    put_bytes(storage_key, raw, ctype)
-
     width = height = None
     try:
         import io
@@ -81,8 +116,24 @@ def attach_node_photo(
 
         with Image.open(io.BytesIO(raw)) as img:
             width, height = img.size
+            if direction is not None:
+                if Image.MIME.get(img.format) != ctype:
+                    raise ValueError("Image format does not match its content type.")
+                img.verify()
     except Exception:  # noqa: BLE001
+        if direction is not None:
+            raise GraphError("Upload a valid PNG, JPEG, or WebP image.") from None
         width = height = None
+
+    try:
+        storage_key = put_bytes(storage_key, raw, ctype)
+        url = signed_url(storage_key)
+    except Exception:
+        if direction is not None:
+            raise PhotoStorageUnavailable(
+                "Could not save the photo to Cloudflare R2. Try again."
+            ) from None
+        raise
 
     asset = Asset.objects.create(
         target=revision.target,
@@ -96,19 +147,26 @@ def attach_node_photo(
         height=height,
         provenance={"role": "node_reference_photo", "node_id": str(node.id)},
     )
+    if direction is not None:
+        # Replace this node's earlier photo for the same direction (assets stay).
+        for old in ReferencePhoto.objects.filter(revision=revision, node=node):
+            if _direction(old) == direction:
+                old.delete()
     ref = ReferencePhoto.objects.create(
         revision=revision,
         asset=asset,
         node=node,
         status=ReferencePhoto.Status.PROPOSED,
+        capture_context={"direction": direction} if direction else {},
     )
     return {
         "id": str(ref.id),
         "asset_id": str(asset.id),
-        "url": signed_url(storage_key),
+        "url": url,
         "content_type": ctype,
         "byte_size": len(raw),
         "status": ref.status,
+        "direction": direction,
     }
 
 

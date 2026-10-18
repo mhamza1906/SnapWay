@@ -63,15 +63,15 @@ jobs:
           version: '0.12.15'
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - run: uv sync --locked --extra ai --extra geometry --extra mcp
+      - run: uv sync --locked --extra ai --extra geometry --extra mcp --extra storage
       - run: python scripts/env_contract.py template
       - run: python scripts/check_audit_evidence.py
-      - run: uv run --locked --extra ai --extra geometry --extra mcp ruff check .
-      - run: uv run --locked --extra ai --extra geometry --extra mcp ruff format --check .
-      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py check --settings=config.settings.test
-      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py makemigrations --check --dry-run --settings=config.settings.test
-      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest
-      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest infra/tests
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage ruff check .
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage ruff format --check .
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage python apps/api/manage.py check --settings=config.settings.test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage python apps/api/manage.py makemigrations --check --dry-run --settings=config.settings.test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage pytest
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage pytest infra/tests
 
   postgresql:
     needs: changes
@@ -92,9 +92,9 @@ jobs:
           sudo systemctl start postgresql
           sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE ROLE snapway_ci LOGIN CREATEDB PASSWORD 'snapway-ci-local';"
           sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE snapway_ci OWNER snapway_ci;"
-      - run: uv sync --locked --extra ai --extra geometry --extra mcp
-      - run: uv run --locked --extra ai --extra geometry --extra mcp python apps/api/manage.py migrate --noinput --settings=config.settings.postgresql_test
-      - run: uv run --locked --extra ai --extra geometry --extra mcp pytest --ds=config.settings.postgresql_test
+      - run: uv sync --locked --extra ai --extra geometry --extra mcp --extra storage
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage python apps/api/manage.py migrate --noinput --settings=config.settings.postgresql_test
+      - run: uv run --locked --extra ai --extra geometry --extra mcp --extra storage pytest --ds=config.settings.postgresql_test
 
   web:
     needs: changes

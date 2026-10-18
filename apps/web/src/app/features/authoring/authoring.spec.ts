@@ -1380,13 +1380,13 @@ describe('map authoring page', () => {
     expect(shown.photoPoints).toBeUndefined();
   });
 
-  it('defaults to eight photo stops and regenerates the same hall with the chosen limit', async () => {
+  it('defaults to twelve photo stops per circulation and regenerates the same hall with the chosen limit', async () => {
     const s = withSpaces(
       regionSpaces.map((space) => (space.id === 'h1' ? { ...space, kind: 'corridor' } : space)),
     );
     const { page, fixture, el } = await startMapped(s);
     page.selectedRegions.set(['h1']);
-    for (const limit of [8, 6]) {
+    for (const limit of [12, 6]) {
       if (limit === 6) {
         const input = el.querySelector('[data-testid="photo-stop-limit"]') as HTMLInputElement;
         input.value = '6';

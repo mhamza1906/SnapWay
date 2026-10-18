@@ -396,7 +396,7 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
 // pixels (default 2.2% of the floor's larger side) and metres are null.
 // This spacing generates candidates, not a required photo at every interval.
 // A sparse, distributed subset is selected; graph lines are never thinned.
-export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 8 } = {}) {
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx, maxPoints = 12 } = {}) {
   const floor = floorOf(building, floorId),
     pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
     hall = pieces.find((s) => s.id === spaceId);

@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -24,11 +26,39 @@ def draft(actors):
 
 
 def _tiny_png() -> bytes:
-    return (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-        b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f"
-        b"\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
-    )
+    from io import BytesIO
+
+    from PIL import Image
+
+    out = BytesIO()
+    Image.new("RGB", (2, 2), "white").save(out, format="PNG")
+    return out.getvalue()
+
+
+@pytest.fixture
+def r2_stub(settings):
+    from botocore.stub import Stubber
+    from django.core.files.storage import default_storage
+
+    settings.MEDIA_STORAGE_BACKEND = "s3"
+    settings.STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": "testing",
+                "secret_key": "testing",
+                "bucket_name": "test-bucket",
+                "endpoint_url": "https://test-account.r2.cloudflarestorage.com",
+                "region_name": "auto",
+                "signature_version": "s3v4",
+                "default_acl": None,
+                "file_overwrite": True,
+            },
+        },
+    }
+    with Stubber(default_storage.connection.meta.client) as stub:
+        yield stub
+        stub.assert_no_pending_responses()
 
 
 @pytest.mark.django_db
@@ -150,3 +180,104 @@ def test_underlay_uses_media_store(actors, draft, settings, tmp_path):
     assert "underlays/" in response.json()["underlay_url"] or response.json()[
         "underlay_url"
     ].startswith("/")
+
+
+@pytest.mark.django_db
+def test_directional_photos_one_per_direction_in_r2(actors, draft, settings, tmp_path, r2_stub):
+    # Exercise the real S3 storage adapter/signing, stubbing only the remote API.
+    settings.MEDIA_ROOT = tmp_path
+    settings.MEDIA_STORAGE_BACKEND = "s3"
+    from maps.models import Revision
+
+    revision = Revision.objects.get(pk=draft["revision_id"])
+    node = add_node(revision, x=5, y=5, label="Point 1", actor=actors["member"])
+    client = APIClient()
+    client.force_login(actors["member"])
+    url = reverse(
+        "map-revision-node-photos",
+        kwargs={"revision_id": draft["revision_id"], "node_id": node.id},
+    )
+
+    def send(direction):
+        if direction in ("front", "right", "back", "left"):
+            r2_stub.add_client_error("head_object", service_error_code="404", http_status_code=404)
+            r2_stub.add_response("put_object", {})
+        return client.post(
+            url,
+            {
+                "file": SimpleUploadedFile("p.png", _tiny_png(), content_type="image/png"),
+                "direction": direction,
+            },
+            format="multipart",
+        )
+
+    for direction in ("front", "right", "back", "left"):
+        assert send(direction).status_code == 201
+    replaced = send("front")
+    assert replaced.status_code == 201 and replaced.json()["direction"] == "front"
+    assert "test-account.r2.cloudflarestorage.com" in replaced.json()["url"]
+    assert "X-Amz-Signature=" in replaced.json()["url"]
+    photos = client.get(url).json()["photos"]
+    assert sorted(p["direction"] for p in photos) == ["back", "front", "left", "right"]
+    assert replaced.json()["id"] in {p["id"] for p in photos}
+    assert send("up").status_code == 400
+    assert not list(tmp_path.rglob("*.png"))
+
+
+@pytest.mark.django_db
+def test_directional_upload_failure_preserves_previous_view(actors, draft, r2_stub):
+    from maps.models import Asset, ReferencePhoto, Revision
+    from maps.services.references import PhotoStorageUnavailable, attach_node_photo
+
+    revision = Revision.objects.get(pk=draft["revision_id"])
+    node = add_node(revision, x=1, y=2, actor=actors["member"])
+
+    def upload(data):
+        return attach_node_photo(
+            revision,
+            node_id=node.id,
+            actor=actors["member"],
+            uploaded_file=SimpleUploadedFile("x.png", data, "image/png"),
+            direction="front",
+        )
+
+    r2_stub.add_client_error("head_object", service_error_code="404", http_status_code=404)
+    r2_stub.add_response("put_object", {})
+    first = upload(_tiny_png())
+    r2_stub.add_client_error("head_object", service_error_code="403", http_status_code=403)
+    with pytest.raises(PhotoStorageUnavailable):
+        upload(_tiny_png())
+    from maps.services.graph import GraphError
+
+    with pytest.raises(GraphError, match="valid PNG"):
+        upload(b"not an image")
+    assert list(ReferencePhoto.objects.filter(node=node).values_list("id", flat=True)) == [
+        uuid.UUID(first["id"])
+    ]
+    assert Asset.objects.filter(pk=first["asset_id"]).exists()
+
+
+@pytest.mark.django_db
+def test_directional_photos_refused_without_r2(actors, draft, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    settings.MEDIA_STORAGE_BACKEND = "filesystem"
+    from maps.models import Revision
+
+    revision = Revision.objects.get(pk=draft["revision_id"])
+    node = add_node(revision, x=5, y=5, actor=actors["member"])
+    client = APIClient()
+    client.force_login(actors["member"])
+    response = client.post(
+        reverse(
+            "map-revision-node-photos",
+            kwargs={"revision_id": draft["revision_id"], "node_id": node.id},
+        ),
+        {
+            "file": SimpleUploadedFile("p.png", _tiny_png(), content_type="image/png"),
+            "direction": "front",
+        },
+        format="multipart",
+    )
+    assert response.status_code == 503
+    assert "Cloudflare R2" in response.json()["detail"]
+    assert not list(tmp_path.rglob("*.png"))

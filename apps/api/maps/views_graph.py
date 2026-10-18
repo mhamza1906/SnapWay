@@ -24,11 +24,18 @@ from maps.services.graph import (
 )
 from maps.services.membership import get_active_membership
 from maps.services.reference_index import build_reference_index, get_index_status
-from maps.services.references import attach_node_photo, list_node_photos, remove_node_photo
+from maps.services.references import (
+    PhotoStorageUnavailable,
+    attach_node_photo,
+    list_node_photos,
+    remove_node_photo,
+)
 from maps.services.underlay import store_underlay_file
 
 
 def _error_response(exc: Exception):
+    if isinstance(exc, PhotoStorageUnavailable):
+        return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     if isinstance(exc, GraphPermissionError | PermissionError):
         return Response({"detail": str(exc)}, status=status.HTTP_403_FORBIDDEN)
     if isinstance(exc, GraphError | ValueError):
@@ -200,7 +207,12 @@ class NodePhotoCollectionView(RevisionGraphMixin, APIView):
         request={
             "multipart/form-data": inline_serializer(
                 "AttachNodePhotoRequest",
-                {"file": serializers.FileField()},
+                {
+                    "file": serializers.FileField(),
+                    "direction": serializers.ChoiceField(
+                        choices=["front", "right", "back", "left"], required=False
+                    ),
+                },
             )
         },
         responses={201: OpenApiTypes.OBJECT},
@@ -217,6 +229,7 @@ class NodePhotoCollectionView(RevisionGraphMixin, APIView):
                 uploaded_file=uploaded,
                 actor=request.user,
                 content_type=uploaded.content_type,
+                direction=request.data.get("direction") or None,
             )
         except Exception as exc:  # noqa: BLE001
             return _error_response(exc)

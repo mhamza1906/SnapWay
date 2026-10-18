@@ -1,6 +1,12 @@
-import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { GraphApiService, GraphEdge, GraphNode, NodePhoto } from '../../core/graph-api.service';
+import {
+  GraphApiService,
+  GraphEdge,
+  GraphNode,
+  NodePhoto,
+  type PhotoDirection,
+} from '../../core/graph-api.service';
 import { GraphCanvas, GraphTool } from './graph-canvas';
 
 @Component({
@@ -31,6 +37,8 @@ export class GraphEditorPage implements OnInit {
   readonly editLabel = signal('');
   readonly photos = signal<NodePhoto[]>([]);
   readonly photosLoading = signal(false);
+  readonly photoUploading = signal(false);
+  private photoLoadVersion = 0;
   readonly authenticated = signal(false);
 
   async ngOnInit(): Promise<void> {
@@ -197,19 +205,53 @@ export class GraphEditorPage implements OnInit {
   }
 
   async onPhotoPicked(event: Event): Promise<void> {
+    await this.uploadPhoto(event);
+  }
+
+  /** The four views taken at each photo point, relative to the walking direction. */
+  readonly directions: { key: PhotoDirection; label: string }[] = [
+    { key: 'front', label: 'Front' },
+    { key: 'right', label: 'Right' },
+    { key: 'back', label: 'Back' },
+    { key: 'left', label: 'Left' },
+  ];
+  photoFor(direction: PhotoDirection): NodePhoto | undefined {
+    return this.photos().find((p) => p.direction === direction);
+  }
+  readonly otherPhotos = computed(() => this.photos().filter((p) => !p.direction));
+  readonly directionCount = computed(
+    () => this.directions.filter((d) => this.photos().some((p) => p.direction === d.key)).length,
+  );
+  /** Uploads one of the four views; it replaces this point's earlier photo for that direction. */
+  async onDirectionPicked(event: Event, direction: PhotoDirection): Promise<void> {
+    await this.uploadPhoto(event, direction);
+  }
+
+  private async uploadPhoto(event: Event, direction?: PhotoDirection): Promise<void> {
     const revisionId = this.revisionId();
     const nodeId = this.selectedNodeId();
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!revisionId || !nodeId || !file) return;
+    if (!revisionId || !nodeId || !file || this.photosLoading() || this.photoUploading()) return;
+    this.photoUploading.set(true);
     try {
-      const photo = await this.api.uploadNodePhoto(revisionId, nodeId, file);
-      this.photos.update((list) => [...list, photo]);
-      this.status.set('Photo attached');
+      const photo = await this.api.uploadNodePhoto(revisionId, nodeId, file, direction);
+      if (this.revisionId() !== revisionId || this.selectedNodeId() !== nodeId) return;
+      this.photos.update((list) => [
+        ...list.filter((p) => !direction || p.direction !== direction),
+        photo,
+      ]);
+      this.status.set(
+        direction
+          ? `${direction[0].toUpperCase()}${direction.slice(1)} photo saved`
+          : 'Photo attached',
+      );
       this.error.set(null);
     } catch (err) {
-      this.error.set(this.message(err));
+      if (this.revisionId() === revisionId && this.selectedNodeId() === nodeId)
+        this.error.set(this.message(err));
     } finally {
+      this.photoUploading.set(false);
       input.value = '';
     }
   }
@@ -284,19 +326,29 @@ export class GraphEditorPage implements OnInit {
   private async loadPhotos(nodeId: string): Promise<void> {
     const revisionId = this.revisionId();
     if (!revisionId) return;
+    const version = ++this.photoLoadVersion;
+    const current = () =>
+      version === this.photoLoadVersion &&
+      this.revisionId() === revisionId &&
+      this.selectedNodeId() === nodeId;
+    this.photos.set([]);
     this.photosLoading.set(true);
     try {
       const result = await this.api.listNodePhotos(revisionId, nodeId);
-      this.photos.set(result.photos);
+      if (current()) this.photos.set(result.photos);
     } catch (err) {
-      this.photos.set([]);
-      this.error.set(this.message(err));
+      if (current()) {
+        this.photos.set([]);
+        this.error.set(this.message(err));
+      }
     } finally {
-      this.photosLoading.set(false);
+      if (current()) this.photosLoading.set(false);
     }
   }
 
   private clearSelection(): void {
+    ++this.photoLoadVersion;
+    this.photosLoading.set(false);
     this.selectedNodeId.set(null);
     this.selectedEdgeId.set(null);
     this.photos.set([]);

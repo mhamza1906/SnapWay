@@ -22,7 +22,7 @@ test('sparse photo stops respect the budget on every hall without changing walki
   const before=JSON.stringify(building);
   for(const floor of building.floors) for(const hall of floor.geometry.spaces.filter(s=>['corridor','lobby'].includes(s.kind))) {
     const normal=planHallPoints(building,floor.id,hall.id);
-    assert(normal.points.length<=8);
+    assert(normal.points.length<=12);
     for(const maxPoints of [2,6,12,30]) {
       const plan=planHallPoints(building,floor.id,hall.id,{maxPoints});
       assert.equal(plan.points.length,Math.min(maxPoints,plan.candidateCount));
@@ -42,12 +42,12 @@ test('sparse photo stops respect the budget on every hall without changing walki
   assert.equal(JSON.stringify(building),before);
 });
 
-test('hall-points API defaults to eight stops, accepts a smaller budget and rejects invalid budgets',async()=>{
+test('hall-points API defaults to twelve stops, accepts a smaller budget and rejects invalid budgets',async()=>{
   const input={building,floorId:'L5',spaceId:'L5-project-circulation-1'};
   for(const maxPoints of [undefined,6,12]) {
     const {status,data}=await post('/hall-points',{...input,maxPoints});
     assert.equal(status,200,JSON.stringify(data));
-    assert.equal(data.points.length,maxPoints??8);
+    assert.equal(data.points.length,maxPoints??12);
     assert(data.points.some(p=>p.reason==='turn'||p.reason==='junction'));
   }
   for(const maxPoints of [0,1,31,2.5,'6']) {

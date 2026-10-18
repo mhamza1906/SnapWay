@@ -98,26 +98,65 @@
         </label>
         <button type="button" class="tool active save" (click)="saveLabel()">Save label</button>
 
+        <div class="photos-block" data-testid="direction-photos">
+          <div class="photos-head">
+            <h3>Point photos ({{ directionCount() }}/4)</h3>
+          </div>
+          <p class="muted">
+            At each numbered Point, choose your walking direction as Front, then take Right, Back
+            and Left views. Path junction / bend nodes do not need photos. Photos save to cloud
+            storage; replacing a view keeps one current photo for that side.
+          </p>
+          <div class="direction-grid">
+            @for (d of directions; track d.key) {
+              <div class="direction-slot" [attr.data-direction]="d.key">
+                @if (photoFor(d.key); as photo) {
+                  <a [href]="photo.url" target="_blank" rel="noopener">
+                    <img [src]="photo.url" [alt]="d.label + ' photo'" />
+                  </a>
+                } @else {
+                  <div class="direction-empty">No photo</div>
+                }
+                <label class="tool upload small">
+                  {{ photoFor(d.key) ? 'Replace ' + d.label : d.label }}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    capture="environment"
+                    [disabled]="photosLoading() || photoUploading()"
+                    hidden
+                    (change)="onDirectionPicked($event, d.key)"
+                  />
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+        @if (photoUploading()) {
+          <p role="status">Uploading photo…</p>
+        }
+
         <div class="photos-block">
           <div class="photos-head">
-            <h3>Photos</h3>
+            <h3>Other photos</h3>
             <label class="tool upload small">
               Attach
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 hidden
+                [disabled]="photosLoading() || photoUploading()"
                 (change)="onPhotoPicked($event)"
               />
             </label>
           </div>
           @if (photosLoading()) {
             <p class="muted">Loading…</p>
-          } @else if (!photos().length) {
-            <p class="muted">No photos yet. Attach a reference image for this waypoint.</p>
+          } @else if (!otherPhotos().length) {
+            <p class="muted">No other photos. Attach an extra reference image for this waypoint.</p>
           } @else {
             <ul class="photo-list">
-              @for (photo of photos(); track photo.id) {
+              @for (photo of otherPhotos(); track photo.id) {
                 <li>
                   <a [href]="photo.url" target="_blank" rel="noopener">
                     <img [src]="photo.url" alt="Node reference photo" />
