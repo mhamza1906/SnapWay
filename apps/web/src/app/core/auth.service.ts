@@ -15,7 +15,7 @@ export interface SessionIdentity {
 
 export function safeReturnPath(value: string | null): string {
   return value &&
-    /^\/(map|overview|graph-editor|targets|contributions|authoring|review|activity|settings|help)([/?#]|$)/.test(
+    /^\/(map|overview|graph-editor|targets|contributions|authoring|capture|review|activity|settings|help)([/?#]|$)/.test(
       value,
     ) &&
     !/[\\\r\n]/.test(value)

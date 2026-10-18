@@ -255,3 +255,16 @@ invalid-photo fixes, with local/remote verification kept distinct. Frontend chan
 apply the required formatter and preserve behavior. The current env contract is
 `2026-10-17.3` (56 keys); main deployment and real pipeline acceptance remain
 separate gates.
+
+## Photo points and the graph editor (October 18, 2026)
+
+After merging main, the authoring screen's Photo points menu can send a hall's
+photo points to main's graph editor ("Send to graph editor"). It creates a fresh
+graph draft (`POST /api/maps/drafts/ensure/` with `force_new`), uploads the floor
+plan rendered to PNG as the underlay (the editor's frame is the image size, so
+points are converted into its pixels), adds one node per point (`checkpoint`,
+or `junction` at junctions) labelled `Point N`, and links neighbouring points in
+walking order (skipping jumps longer than 1.6 spacings). Photos for each node are
+then added in the graph editor and stored in R2 by main's media store. It needs a
+signed-in session (Google sign-in); the authoring screen is behind main's
+session guard. Not yet tried end to end with a signed-in account.

@@ -7,6 +7,8 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { vi } from 'vitest';
+import { AuthService } from '../../core/auth.service';
 import { CAPTURE_API_BASE, CAPTURE_MAP_BASE } from './capture-api.service';
 import { CapturePage } from './capture';
 import type { CaptureFloor, CapturePlan, Me, ServerPoint, SessionDetail } from './capture.models';
@@ -127,7 +129,7 @@ describe('capture page', () => {
   }
   const text = (h: RouterTestingHarness) => (h.routeNativeElement as HTMLElement).textContent ?? '';
 
-  it('shows a sign-in link when the contributor is not authenticated', async () => {
+  it('offers the app Google sign-in when the contributor is not authenticated', async () => {
     const harness = await RouterTestingHarness.create();
     void harness.navigateByUrl('/capture');
     (await nextRequest(http, 'GET', `${CAPTURE_API_BASE}/me`)).flush({
@@ -139,9 +141,13 @@ describe('capture page', () => {
     (await nextRequest(http, 'GET', `${CAPTURE_MAP_BASE}/buildings`)).flush(buildings);
     await flush();
     harness.detectChanges();
-    const link =
-      harness.routeNativeElement!.querySelector<HTMLAnchorElement>('[data-testid="sign-in"]');
-    expect(link?.getAttribute('href')).toBe('/accounts/login/?next=%2Fcapture');
+    const page = harness.routeDebugElement!.componentInstance as CapturePage;
+    const signIn = vi.spyOn(TestBed.inject(AuthService), 'signIn').mockResolvedValue();
+    harness
+      .routeNativeElement!.querySelector<HTMLButtonElement>('[data-testid="sign-in"]')!
+      .click();
+    expect(page).toBeTruthy();
+    expect(signIn).toHaveBeenCalledWith('/capture');
   });
 
   it('offers only floors the contributor may capture, plans a manual session and syncs it before photos', async () => {

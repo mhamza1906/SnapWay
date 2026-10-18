@@ -74,7 +74,17 @@
           } @else if (me(); as m) {
             @if (!m.authenticated) {
               <p>Sign in with your SnapWay account to capture photos for a mapping target.</p>
-              <a class="btn primary" [href]="loginHref()" data-testid="sign-in">Sign in</a>
+              <button
+                class="btn primary"
+                [disabled]="signingIn()"
+                (click)="signIn()"
+                data-testid="sign-in"
+              >
+                Sign in with Google
+              </button>
+              @if (signInError()) {
+                <p class="notice error" role="alert">{{ signInError() }}</p>
+              }
             } @else {
               <p>
                 Signed in as <strong>{{ m.username }}</strong

@@ -175,9 +175,11 @@ images, seed command) with tests in
 **Auth.** Django session authentication with CSRF. The CSRF cookie is
 `XSRF-TOKEN` and the header is `X-XSRF-TOKEN` (the project-wide setting in
 `config/settings/base.py`, Angular's default, so `HttpClient` sends it
-automatically). `GET /me` sets the cookie. Contributors sign in with username
-and password at `/accounts/login/?next=/capture` (Django's `LoginView`; allauth
-is installed but not enabled). Logout is `POST /accounts/logout/`. Not signed
+automatically). `GET /me` sets the cookie. Since the merge with main
+(October 18, 2026), contributors sign in with the app's Google sign-in
+(allauth, `AuthService.signIn('/capture')`, which returns to `/capture`); the
+capture-only password login page was removed. `GET /me` still returns a
+`loginUrl` (`/accounts/login/?next=…`) for clients without the web app. Not signed
 in → `401` (`WWW-Authenticate: Session`); signed in without access → `403`;
 bad input → `400`; conflicts → `409`; image over 20 MB → `413`. Error bodies
 are `{ "detail": "…" }` or DRF field errors `{ "field": ["…"] }`.

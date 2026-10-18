@@ -11,6 +11,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
+import { GraphApiService } from '../../core/graph-api.service';
 import { Icon } from '../../shared/icon';
 import { AuthoringSession } from './authoring-session';
 import {
@@ -223,13 +225,14 @@ export function applyMapView(host: HTMLElement, view: MapView): void {
 // then fix doorways by hand. Nothing here is saved until "Save a copy" is used.
 @Component({
   selector: 'app-authoring',
-  imports: [Icon],
+  imports: [Icon, RouterLink],
   templateUrl: './authoring.html',
   styleUrl: './authoring.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthoringPage implements OnInit {
   private readonly pipeline = inject(PipelineService);
+  private readonly graphApi = inject(GraphApiService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -1109,6 +1112,53 @@ export class AuthoringPage implements OnInit {
     await this.repaint();
   }
   /** Deletes the photo point plan (list and map). */
+  /** The graph-editor draft the photo points were last sent to (link target). */
+  readonly sentGraph = signal<{ targetId: string; nodes: number; edges: number } | null>(null);
+  /**
+   * Sends the photo points to the graph editor (Django): a fresh draft with the
+   * floor plan as its underlay, one checkpoint node per point (junctions as
+   * junction nodes), labelled "Point N", and edges between neighbouring points
+   * in walking order. Photos for each node are then added in the graph editor
+   * (stored in R2). Needs a signed-in session.
+   */
+  async sendPhotosToGraphEditor(): Promise<void> {
+    const building = this.building(),
+      plan = this.hallPlan(),
+      floorId = this.floorId();
+    if (!building || !plan?.points.length) return;
+    await this.run(async () => {
+      const { svg } = await this.pipeline.render(building, floorId, {});
+      const { png, frame } = await rasterizePlan(svg),
+        draft = await this.graphApi.ensureDraft(undefined, true);
+      await this.graphApi.uploadUnderlay(
+        draft.revision_id,
+        new File([png], `${floorId}-plan.png`, { type: 'image/png' }),
+      );
+      const ids: string[] = [];
+      for (const p of plan.points) {
+        const node = await this.graphApi.addNode(draft.revision_id, {
+          x: Math.round((p.x - frame.x) * frame.scale * 100) / 100,
+          y: Math.round((p.y - frame.y) * frame.scale * 100) / 100,
+          label: `Point ${p.order}`,
+          kind: p.reason === 'junction' ? 'junction' : 'checkpoint',
+        });
+        ids.push(node.id);
+      }
+      // Neighbours in walking order, unless the walk jumps back to another branch.
+      let edges = 0;
+      for (let i = 1; i < plan.points.length; i++) {
+        const a = plan.points[i - 1],
+          b = plan.points[i];
+        if (Math.hypot(b.x - a.x, b.y - a.y) > 1.6 * plan.spacingPx) continue;
+        await this.graphApi.addEdge(draft.revision_id, ids[i - 1], ids[i]);
+        edges++;
+      }
+      this.sentGraph.set({ targetId: draft.target_id, nodes: ids.length, edges });
+      this.say(
+        `Sent ${ids.length} photo points and ${edges} links to the graph editor. Open it to add photos to each point.`,
+      );
+    }, 'send-graph');
+  }
   async clearHallPoints(): Promise<void> {
     this.hallPlan.set(null);
     this.pickedPhotos.set([]);
@@ -1342,4 +1392,36 @@ export class AuthoringPage implements OnInit {
   num(event: Event): number {
     return Number((event.target as HTMLInputElement).value);
   }
+}
+
+/**
+ * Renders the designed floor SVG to a PNG for the graph editor's underlay and
+ * returns how floor coordinates map onto its pixels (the editor's frame is the
+ * image size). At most 2400 px wide, so it stays under the 5 MB underlay limit.
+ */
+async function rasterizePlan(
+  svg: string,
+): Promise<{ png: Blob; frame: { x: number; y: number; scale: number } }> {
+  const box = /viewBox="([^"]+)"/.exec(svg)?.[1].trim().split(/\s+/).map(Number);
+  if (!box || box.length !== 4 || !box.every(Number.isFinite))
+    throw new Error('The floor plan has no drawing frame.');
+  const [x, y, w, h] = box,
+    scale = Math.min(2, 2400 / w),
+    image = new Image();
+  image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await image.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const png = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('Could not render the floor plan.'))),
+      'image/png',
+    ),
+  );
+  return { png, frame: { x, y, scale } };
 }

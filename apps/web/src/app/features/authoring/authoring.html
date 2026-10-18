@@ -367,6 +367,26 @@
                     >
                       Clear points
                     </button>
+                    <button
+                      class="btn small primary"
+                      [disabled]="busy() || !plan.points.length"
+                      (click)="sendPhotosToGraphEditor()"
+                      data-testid="send-graph"
+                    >
+                      Send to graph editor
+                    </button>
+                    @if (isSaving('send-graph')) {
+                      <span class="saving" role="status" data-testid="saving">Sending…</span>
+                    }
+                    @if (sentGraph(); as sent) {
+                      <a
+                        class="btn small secondary"
+                        routerLink="/graph-editor"
+                        [queryParams]="{ target: sent.targetId }"
+                        data-testid="open-graph"
+                        >Open graph editor ({{ sent.nodes }} points)</a
+                      >
+                    }
                   </div>
                   <ul class="photo-list" data-testid="photo-list">
                     @for (p of plan.points; track p.key) {

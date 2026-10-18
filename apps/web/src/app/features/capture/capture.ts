@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 import { Icon } from '../../shared/icon';
 import { CaptureApi, requestError } from './capture-api.service';
 import { CaptureCamera, type SavedPhoto, type SlotState } from './capture-camera';
@@ -113,6 +114,7 @@ function placement(p: PlanPoint) {
 })
 export class CapturePage {
   private readonly api = inject(CaptureApi);
+  private readonly auth = inject(AuthService);
   readonly queue = inject(UploadQueue);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly router = inject(Router);
@@ -338,11 +340,11 @@ export class CapturePage {
       await this.selectFloor(choices[0].id, choices[0].floors[0].id);
   }
 
-  loginHref(): string {
-    const url = this.me()?.loginUrl || '/accounts/login/';
-    return url.includes('next=')
-      ? url
-      : `${url}${url.includes('?') ? '&' : '?'}next=${encodeURIComponent('/capture')}`;
+  /** The app's Google sign-in (allauth), returning to this screen. */
+  readonly signingIn = this.auth.busy;
+  readonly signInError = this.auth.error;
+  signIn(): void {
+    void this.auth.signIn('/capture').catch(() => undefined);
   }
 
   targetFloorLabel(t: MeTarget): string {
