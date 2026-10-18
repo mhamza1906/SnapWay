@@ -1,7 +1,12 @@
 import type { Routes } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 
 /** One shared installed-app entry for Android and iOS, with no editor bundle. */
 export const mobileRoutes: Routes = [
+  {
+    path: 'ios-pose-lab',
+    loadComponent: () => import('./features/movement-lab/ios-pose-lab').then((m) => m.IOSPoseLab),
+  },
   {
     path: 'movement-lab',
     loadComponent: () => import('./features/movement-lab/movement-lab').then((m) => m.MovementLab),
@@ -9,7 +14,7 @@ export const mobileRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'movement-lab',
+    redirectTo: Capacitor.getPlatform() === 'ios' ? 'ios-pose-lab' : 'movement-lab',
   },
   {
     path: 'app-home',

@@ -149,3 +149,7 @@ Sources: [Apple world tracking](https://developer.apple.com/documentation/arkit/
 [ARCore concepts](https://developers.google.com/ar/develop/fundamentals),
 [UTSC location](https://utsc.utoronto.ca/grad-edu/health-counselling-services),
 [OSM outline](https://www.openstreetmap.org/way/1265894595).
+
+The subsequent [iOS ARKit extension](ios-arkit-map-tracking.md) adds native
+camera-and-motion registration and optional paired visual corrections in the
+separate iOS app. Android and the browser's motion implementation are unchanged.

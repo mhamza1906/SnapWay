@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C1F00082F00A00100F0C001 /* IndoorPosePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1F00072F00A00100F0C001 /* IndoorPosePlugin.swift */; };
 		7C1F00062F00A00100F0C001 /* NavigationSensorsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1F00052F00A00100F0C001 /* NavigationSensorsPlugin.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
@@ -21,6 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7C1F00072F00A00100F0C001 /* IndoorPosePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndoorPosePlugin.swift; sourceTree = "<group>"; };
 		7C1F00052F00A00100F0C001 /* NavigationSensorsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationSensorsPlugin.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 				7C1F00032F00A00100F0C001 /* SnapWayViewController.swift */,
 				7C1F00012F00A00100F0C001 /* FrameCapturePlugin.swift */,
 				7C1F00052F00A00100F0C001 /* NavigationSensorsPlugin.swift */,
+				7C1F00072F00A00100F0C001 /* IndoorPosePlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -168,6 +171,7 @@
 				7C1F00042F00A00100F0C001 /* SnapWayViewController.swift in Sources */,
 				7C1F00022F00A00100F0C001 /* FrameCapturePlugin.swift in Sources */,
 				7C1F00062F00A00100F0C001 /* NavigationSensorsPlugin.swift in Sources */,
+				7C1F00082F00A00100F0C001 /* IndoorPosePlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

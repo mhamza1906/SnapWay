@@ -9,6 +9,10 @@ import {
 
 export const routes: Routes = [
   {
+    path: 'ios-pose-lab',
+    loadComponent: () => import('./features/movement-lab/ios-pose-lab').then((m) => m.IOSPoseLab),
+  },
+  {
     path: 'movement-lab',
     loadComponent: () => import('./features/movement-lab/movement-lab').then((m) => m.MovementLab),
   },

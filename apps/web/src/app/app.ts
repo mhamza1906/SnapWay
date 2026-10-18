@@ -27,7 +27,7 @@ export class App implements OnInit {
     { initialValue: this.router.url.split(/[?#]/)[0] },
   );
   readonly fullScreen = computed(() =>
-    /^\/(map|auth|navigate|public|welcome|sign-in|capture|graph-editor|app-preview|movement-lab)(\/|\?|$)/.test(
+    /^\/(map|auth|navigate|public|welcome|sign-in|capture|graph-editor|app-preview|movement-lab|ios-pose-lab)(\/|\?|$)/.test(
       this.url(),
     ),
   );

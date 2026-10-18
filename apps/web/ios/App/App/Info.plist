@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>SnapWay uses the camera to recognise where you are inside a building. Frames stay on this iPhone and are sent to a matching server only when you choose to.</string>
+	<string>SnapWay uses the camera for ARKit motion tracking and indoor visual matching. AR tracking stays on this iPhone. Individual frames are sent to the matching server only when you start visual matching; video is not retained.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>SnapWay estimates your movement from step counts and phone rotation while the indoor experiment is open. Motion data is not stored.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -1,0 +1,177 @@
+<main>
+  <header>
+    <a href="/movement-lab">← GPS / browser test</a>
+    <p class="eyebrow">Isolated iPhone experiment</p>
+    <h1>Camera + motion tracking</h1>
+    <p>
+      Level 1 circulation 2 · original stored points. ARKit estimates relative motion; the SVG
+      constrains movement to connected corridors.
+    </p>
+  </header>
+  @if (!sensors.available) {
+    <section>
+      <h2>Open the native iPhone test app</h2>
+      <p>
+        Safari cannot run ARKit. This screen is available in the separate SnapWay Motion Lab iOS
+        build. Android stays on its existing workflow.
+      </p>
+    </section>
+  }
+  <section>
+    <h2>1. Start the iPhone camera</h2>
+    <p>
+      Keep the rear camera facing visible corridor features. Hold the phone steadily. No full video
+      is recorded.
+    </p>
+    <div class="actions">
+      <button (click)="start()" [disabled]="!sensors.available || active() || !plan()">
+        Allow camera & start ARKit</button
+      ><button (click)="stop()" [disabled]="!active()">Stop camera</button>
+    </div>
+    <p role="status" aria-live="polite">{{ message() }}</p>
+    <p class="small">
+      Camera tracking: {{ pose()?.tracking || 'off' }}. Backgrounding the app stops tracking and
+      clears calibration.
+    </p>
+  </section>
+  <section>
+    <h2>2. Register two known points</h2>
+    <p>
+      Stand at the first saved point, then walk straight to a second saved point at least 2 metres
+      away. Use the same floor and one corridor without a turn. Point 19 is your designated building
+      entry; it is not the fifth-floor clinic doorway.
+    </p>
+    <div class="fields">
+      <label
+        >First known point<select [(ngModel)]="firstId" (ngModelChange)="resetRegistration()">
+          @for (node of stops(); track node.id) {
+            <option [value]="node.id">{{ node.label }}</option>
+          }
+        </select></label
+      ><button (click)="saveFirst()" [disabled]="!active() || pose()?.tracking !== 'normal'">
+        I am here · save first</button
+      ><label
+        >Second known point<select [(ngModel)]="secondId">
+          <option value="">Choose a different point</option>
+          @for (node of stops(); track node.id) {
+            <option [value]="node.id">{{ node.label }}</option>
+          }
+        </select></label
+      ><button
+        (click)="saveSecond()"
+        [disabled]="!active() || !firstSaved() || !secondId || pose()?.tracking !== 'normal'"
+      >
+        I arrived · register map
+      </button>
+    </div>
+    <p role="status">
+      {{
+        result()?.reason ||
+          'Choose your physical starting point. No location is guessed before registration.'
+      }}
+    </p>
+  </section>
+  @if (plan(); as map) {
+    <section class="map-card">
+      <div class="map-heading">
+        <h2>2D map · {{ map.floor }}</h2>
+        <div class="actions">
+          <button (click)="changeZoom(-0.5)" aria-label="Zoom out">−</button
+          ><span>{{ zoom | number: '1.1-1' }}×</span
+          ><button (click)="changeZoom(0.5)" aria-label="Zoom in">+</button>
+        </div>
+      </div>
+      <div class="map-scroll">
+        <div
+          class="map-inner"
+          [style.width.%]="zoom * 100"
+          [style.aspect-ratio]="map.width + '/' + map.height"
+        >
+          <img
+            [src]="map.underlay"
+            alt="Original Level 1 floor plan without numbered graph overlays"
+          /><svg
+            [attr.viewBox]="'0 0 ' + map.width + ' ' + map.height"
+            class="overlay"
+            aria-label="Current relative motion estimate"
+          >
+            @if (result()?.position; as position) {
+              <circle
+                [attr.cx]="position.x"
+                [attr.cy]="position.y"
+                r="6"
+                fill="#fff"
+                stroke="#135cd1"
+                stroke-width="2"
+              />
+              <circle [attr.cx]="position.x" [attr.cy]="position.y" r="2.3" fill="#135cd1" />
+            }
+          </svg>
+        </div>
+      </div>
+      <p class="small">
+        Blue cursor: unverified relative estimate. Corridor constraints do not prove a door is open
+        or that the estimate is correct. Vertical movement or tracking loss requires registration
+        again.
+      </p>
+      @if (result()?.metresPerUnit; as scale) {
+        <p>
+          Map scale: {{ scale | number: '1.3-3' }} m / SVG unit.
+          @if (result()?.lateralErrorM !== null) {
+            Corridor offset: {{ result()?.lateralErrorM | number: '1.1-1' }} m (not a confidence
+            radius).
+          }
+        </p>
+      }
+      @if (nearby().length) {
+        <h3>Nearby on this floor</h3>
+        <ul>
+          @for (place of nearby(); track place.label) {
+            <li>
+              {{ place.label }}
+              @if (place.metres !== null) {
+                · about {{ place.metres | number: '1.0-0' }} m in a straight line
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+  <section>
+    <h2>3. Optional visual correction</h2>
+    <p>
+      Uses a frame from the same ARKit camera, paired with its capture pose. It sends JPEGs to your
+      existing MegaLoc test service, then asks you to confirm a stored point. Ambiguous or old
+      matches hold the position.
+    </p>
+    <label
+      >HTTPS test service<input
+        type="url"
+        [(ngModel)]="origin"
+        [disabled]="visualOn()"
+        autocomplete="off"
+        spellcheck="false" /></label
+    ><button (click)="toggleVisual()" [disabled]="!active()">
+      {{ visualOn() ? 'Stop visual checks' : 'Send occasional frames for matching' }}
+    </button>
+    <p role="status" aria-live="polite">{{ visualMessage() }}</p>
+    @if (framePreview()) {
+      <img
+        class="camera-preview"
+        [src]="framePreview()"
+        alt="Latest ARKit frame sent for optional reference matching"
+      />
+    }
+    @if (candidate()?.status === 'candidate') {
+      <p>
+        Suggested stored point: <strong>{{ candidateLabel() }}</strong>
+      </p>
+      <button (click)="confirmVisual()">I recognise this point · confirm correction</button>
+    }
+    <p class="small">
+      Use landmarks and your physical surroundings to confirm. This experiment does not certify
+      navigation safety or detect the fifth-floor clinic automatically.
+    </p>
+  </section>
+</main>

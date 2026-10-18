@@ -67,10 +67,13 @@ class LabMatcher:
                 "start": now,
                 "seen": now,
                 "request": 0.0,
+                "clock": None,
+                "capture_start": None,
+                "capture_last": None,
             }
             return key
 
-    def match(self, key: str, jpeg: bytes):
+    def match(self, key: str, jpeg: bytes, *, capture_timestamp: float | None = None):
         import numpy as np
         import torch
         from PIL import Image
@@ -83,6 +86,21 @@ class LabMatcher:
                 raise PermissionError("Start a fresh live matching session.")
             if now - session["request"] < 1:
                 raise BlockingIOError("Frames are limited to one per second.")
+            clock = "capture" if capture_timestamp is not None else "server"
+            if session["clock"] is not None and session["clock"] != clock:
+                raise ValueError("Start a new session before changing capture clock.")
+            session["clock"] = clock
+            if capture_timestamp is not None:
+                if not np.isfinite(capture_timestamp) or capture_timestamp < 0:
+                    raise ValueError("Capture timestamp must be finite and nonnegative.")
+                if (
+                    session["capture_last"] is not None
+                    and capture_timestamp <= session["capture_last"]
+                ):
+                    raise ValueError("Capture timestamps must increase.")
+                if session["capture_start"] is None:
+                    session["capture_start"] = capture_timestamp
+                session["capture_last"] = capture_timestamp
             session["request"] = now
             session["seen"] = now
         if not self.inference.acquire(blocking=False):
@@ -111,7 +129,11 @@ class LabMatcher:
                 similarities = self.vectors @ vector
                 scores = np.array([similarities[ix].max() for ix in self.indices])
                 result = session["tracker"].update(
-                    scores, time.monotonic() - session["start"], quality.flags
+                    scores,
+                    (capture_timestamp - session["capture_start"])
+                    if capture_timestamp is not None
+                    else time.monotonic() - session["start"],
+                    quality.flags,
                 )
             node = self.metadata[result["candidate_node_id"]]
             return {
@@ -134,6 +156,7 @@ class LabMatcher:
                 ],
                 "inferenceMs": round((time.perf_counter() - started) * 1000, 1),
                 "stored": False,
+                "captureMonotonicSeconds": capture_timestamp,
                 "futureContext": False,
             }
         finally:

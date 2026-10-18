@@ -2,7 +2,10 @@
 """Isolated static motion lab with optional local CPU matching and read-only video replay."""
 
 import argparse
+import base64
+import binascii
 import json
+import math
 import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -51,7 +54,7 @@ class LabHandler(SimpleHTTPRequestHandler):
             self.send_header("Location", "/movement-lab")
             self.end_headers()
             return
-        if path == "/movement-lab":
+        if path in {"/movement-lab", "/ios-pose-lab"}:
             self.path = "/index.html"
         if path.startswith(("/api", "/pipeline", "/accounts", "/experiment-api")):
             self.send_error(404)
@@ -59,7 +62,9 @@ class LabHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
-        if urlsplit(self.path).path != "/experiment-api/match":
+        path = urlsplit(self.path).path
+        ios = path == "/experiment-api/ios-match"
+        if path not in {"/experiment-api/match", "/experiment-api/ios-match"}:
             self.reply(404, {"error": "No application write APIs are exposed."})
             return
         if not self.same_origin():
@@ -68,21 +73,46 @@ class LabHandler(SimpleHTTPRequestHandler):
         if self.matcher is None:
             self.reply(503, {"error": "Local CPU matching is unavailable."})
             return
-        if self.headers.get("Content-Type", "").split(";")[0].strip() != "image/jpeg":
-            self.reply(415, {"error": "Send image/jpeg."})
+        expected_type = "application/json" if ios else "image/jpeg"
+        if self.headers.get("Content-Type", "").split(";")[0].strip() != expected_type:
+            self.reply(415, {"error": "Send " + expected_type})
             return
         try:
             size = int(self.headers.get("Content-Length", "0"))
         except ValueError:
             size = 0
-        if size < 1 or size > 3_000_000:
-            self.reply(413, {"error": "Send a JPEG under 3 MB."})
+        if size < 1 or size > (4_100_000 if ios else 3_000_000):
+            self.reply(413, {"error": "Send a bounded JPEG frame."})
             return
         try:
             data = self.rfile.read(size)
             if len(data) != size:
-                raise ValueError("Incomplete JPEG.")
-            self.reply(200, self.matcher.match(self.headers.get("X-Lab-Session", ""), data))
+                raise ValueError("Incomplete frame.")
+            capture_time = None
+            if ios:
+                body = json.loads(data)
+                if not isinstance(body, dict) or not isinstance(body.get("jpegBase64"), str):
+                    raise ValueError("Send jpegBase64 and monotonicSeconds.")
+                capture_time = body.get("monotonicSeconds")
+                if (
+                    isinstance(capture_time, bool)
+                    or not isinstance(capture_time, (int, float))
+                    or not math.isfinite(capture_time)
+                    or not 0 <= capture_time < 1e12
+                ):
+                    raise ValueError("A finite native capture timestamp is required.")
+                try:
+                    data = base64.b64decode(body["jpegBase64"], validate=True)
+                except (binascii.Error, ValueError) as error:
+                    raise ValueError("Invalid JPEG base64.") from error
+                if not 0 < len(data) <= 3_000_000:
+                    raise ValueError("Send a JPEG under 3 MB.")
+            self.reply(
+                200,
+                self.matcher.match(
+                    self.headers.get("X-Lab-Session", ""), data, capture_timestamp=capture_time
+                ),
+            )
         except PermissionError as error:
             self.reply(401, {"error": str(error)})
         except BlockingIOError as error:

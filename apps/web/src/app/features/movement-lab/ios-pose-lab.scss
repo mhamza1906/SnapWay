@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  color: #19332c;
+  background: #f2f5ef;
+}
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 24px max(16px, env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom));
+}
+header {
+  padding: 10px 0 18px;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.1;
+}
+h2 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+p,
+li {
+  line-height: 1.6;
+}
+a {
+  color: #245f46;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 700;
+}
+section {
+  padding: 24px;
+  margin: 18px 0;
+  background: white;
+  border: 1px solid #d9e2d8;
+  border-radius: 18px;
+}
+.actions,
+.map-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.map-heading {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+button,
+input,
+select {
+  min-height: 48px;
+  border: 1px solid #b6c8b9;
+  border-radius: 10px;
+  font: inherit;
+  color: inherit;
+}
+button {
+  padding: 10px 16px;
+  font-weight: 650;
+  cursor: pointer;
+  background: #eaf2e7;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #d48330;
+  outline-offset: 3px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  margin: 14px 0;
+}
+input,
+select {
+  padding: 10px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+.fields label {
+  margin: 0;
+}
+.map-scroll {
+  overflow: auto;
+  border-radius: 12px;
+  background: #eff1ed;
+}
+.map-inner {
+  position: relative;
+  min-width: 100%;
+}
+.map-inner img {
+  width: 100%;
+  display: block;
+  height: 100%;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.camera-preview {
+  display: block;
+  margin: 12px 0;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: #142b22;
+  border-radius: 12px;
+}
+.small {
+  font-size: 13px;
+  color: #5d7066;
+}
+@media (max-width: 600px) {
+  main {
+    padding-top: 12px;
+  }
+  section {
+    padding: 17px;
+  }
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .actions button {
+    flex: 1;
+  }
+}
