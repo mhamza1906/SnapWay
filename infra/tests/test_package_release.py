@@ -18,6 +18,7 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(
 ):
     tracked = {
         "apps/api/app.py": "committed application",
+        "apps/api/maps/data/sam-ibrahim.json": '{"id":"sam-ibrahim-hardcoded"}',
         "apps/mcp/server.py": "scaffold",
         "packages/geometry/__init__.py": "",
         "pyproject.toml": "[project]\nname='fixture'\n",
@@ -105,6 +106,12 @@ def test_package_contains_committed_source_and_browser_but_no_local_secrets(
     )
     with tarfile.open(output) as archive:
         assert archive.extractfile("source/apps/api/app.py").read() == b"committed application"
+        assert (
+            json.loads(archive.extractfile("source/apps/api/maps/data/sam-ibrahim.json").read())[
+                "id"
+            ]
+            == "sam-ibrahim-hardcoded"
+        )
         assert archive.extractfile("web/index.html").read() == b"validated frontend"
         assert archive.extractfile("source/.env.example").read().decode().splitlines() == [
             "ENV_SCHEMA_VERSION=fixture"

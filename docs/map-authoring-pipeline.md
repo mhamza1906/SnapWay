@@ -294,3 +294,8 @@ Implementation: `apps/api/maps/views_authoring.py`, `maps/urls.py`,
 `tests/test_authoring_compute.py`, and the authoring component/PipelineService in
 `apps/web/src/app/features/authoring/`. No dependency or environment-key changes.
 The private Node service must remain available on loopback port 5175 for compute.
+
+The download snapshot is packaged with Django at `apps/api/maps/data/sam-ibrahim.json`
+(the same frozen project as `apps/pipeline/public/buildings/sam-ibrahim.json`). This
+ensures ordinary API/web releases contain it without opting into mobile-runtime
+source packaging. The release-package tests verify its inclusion in both modes.
