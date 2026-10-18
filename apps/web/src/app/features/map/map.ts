@@ -25,6 +25,8 @@ import { Icon } from '../../shared/icon';
 export interface PublicBuilding {
   id: string;
   name: string;
+  slug?: string;
+  place_id?: string;
   address: string;
   latitude: number;
   longitude: number;
@@ -34,6 +36,8 @@ export interface PublicBuilding {
     code: string;
     publication_id: string;
     sequence: number;
+    checkpoints?: { id: string; label: string }[];
+    destinations?: { id: string; label: string; name?: string }[];
   }[];
 }
 

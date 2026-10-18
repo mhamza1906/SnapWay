@@ -4,6 +4,10 @@ import { adminGuard, developerGuard, publicGuard, sessionGuard } from './core/au
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'sign-in' },
   {
+    path: 'app-preview',
+    loadComponent: () => import('./features/visitor/visitor').then((m) => m.VisitorJourney),
+  },
+  {
     path: 'explore',
     canActivate: [developerGuard],
     loadComponent: () => import('./features/developer/explore').then((m) => m.ExplorePage),
@@ -57,7 +61,8 @@ export const routes: Routes = [
     canActivate: [developerGuard],
     loadComponent: () => import('./features/developer/help').then((m) => m.DeveloperHelpPage),
   },
-  { path: 'map', pathMatch: 'full', redirectTo: 'explore' },
+  // Public discovery map from main (visitor / embedding UI). Developers use /explore.
+  { path: 'map', loadComponent: () => import('./features/map/map').then((m) => m.PublicMapPage) },
   { path: 'overview', pathMatch: 'full', redirectTo: 'my-maps' },
   { path: 'targets', pathMatch: 'full', redirectTo: 'my-maps' },
   { path: 'targets/:id', redirectTo: 'my-maps' },
@@ -87,7 +92,7 @@ export const routes: Routes = [
     canActivate: [sessionGuard],
     loadComponent: () => import('./features/welcome/welcome').then((m) => m.WelcomePage),
   },
-  { path: 'navigate', pathMatch: 'full', redirectTo: 'public' },
+  { path: 'navigate', pathMatch: 'full', redirectTo: 'app-preview' },
   {
     path: 'connection-check',
     canActivate: [developerGuard],

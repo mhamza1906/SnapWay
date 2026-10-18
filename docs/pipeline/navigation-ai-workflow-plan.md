@@ -1,7 +1,11 @@
 # Map development, scene capture and visual navigation workflow plan
 
 Date: 2026-10-17. Branch: `acceptance/map-authoring-pipeline`; assessment baseline: `d78c5f4`.
-Status: **future plan and feasibility assessment, not an implemented runtime replacement**. This addresses the member's seven updated requirements under the [architecture baseline](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md) and [stakeholder workflows](../initial/Indoor_Navigation_Stakeholders_and_Workflows_Review_EN.md). Angular, Django/DRF, PostgreSQL, Celery/Redis and Capacitor retain their responsibilities. This update changes documentation, not APIs, schemas or dependencies, and makes no paid requests.
+Status: **future plan and feasibility assessment for map authoring / navigation UX**, not a completed runtime replacement. This addresses the member's seven updated requirements under the [architecture baseline](../initial/Indoor_Navigation_Architecture_and_Dependencies_EN.md) and [stakeholder workflows](../initial/Indoor_Navigation_Stakeholders_and_Workflows_Review_EN.md). Angular, Django/DRF, PostgreSQL, Celery/Redis and Capacitor retain their responsibilities.
+
+> **Canonical visitor photo localization (2026-10-17):** MegaLoc image embeddings + cosine search over ready revision index zips, **no floor prompt**.  
+> See [localization-megaloc.md](../localization-megaloc.md) and [localization-visitor-match.md](../localization-visitor-match.md).  
+> Sections below that assign **Gemini 4 / NLP embeddings / floor-first search** to visitor photograph matching are **superseded** by that pipeline. Gemini remains relevant for **map authoring** (raster/semantics/graph proposals) and optional scene-description jobs — not for place match.
 
 **Continuous-tracking update, 2026-10-17:** the member authorized camera, accelerometer and gyroscope integration and continuous geometric tracking as explicit dynamic-navigation work, informed by OpenVINS/ORB-SLAM3 and related implementations. Sections 9.4-9.7 define the approach and acceptance boundary; actual hardware access and SDK installation remain unimplemented.
 
@@ -26,12 +30,13 @@ The Public User indoor interface becomes **start/destination selection, referenc
 | Workflow | Selected model / service | Boundary |
 |---|---|---|
 | Source optimization and natural-language image editing | GPT Image 2.5, retaining `gpt-image-2.5-sunburst` | Reviewable raster output, not authoritative metric distances or approved passages |
-| Map semantics, scene descriptions, initial/repeated localization | `gemini-4-argon` (Gemini 4) | Bounded structured responses with input identity/evidence; no direct publication |
+| Map semantics / graph proposals / optional scene descriptions | `gemini-4-argon` (Gemini 4) | Bounded structured responses with input identity/evidence; no direct publication; **not** visitor place match |
+| **Visitor photograph localization (canonical)** | **MegaLoc** via place-match + Django `/api/navigation/localize/` | Image embedding + cosine over ready indexes; no floor prompt — [localization-megaloc.md](../localization-megaloc.md) |
 | Developer label/edit assistance | `gemini-3.8-flash` | Allowed edit commands through the same server validation |
 | Automated vectorization | Official Vectorizer.AI adapter | Disabled for this event, credentials empty, no paid conversion |
 | Construction demonstration substitute | Existing `/api/vectorization/mock` | **IA floor 4, `ia-4`, only**; real prebuilt asset pending; not arbitrary-image conversion |
 
-OpenAI documents source-image/text editing; Google model pages confirm the Gemini IDs, image inputs and structured outputs. Supplier interfaces do not establish project accuracy. Verify account access and Vertex/Gemini API differences during implementation. Both specified Gemini model pages list Live API as unsupported; repeated localization uses ordinary asynchronous requests. [OpenAI edit API](https://developers.openai.com/api/reference/resources/images/methods/edit), [Gemini 4](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon), [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash).
+OpenAI documents source-image/text editing; Google model pages confirm the Gemini IDs for **authoring**. Supplier interfaces do not establish project accuracy. **Repeated visitor localization uses MegaLoc** (`/api/navigation/localize/`), not Gemini Live/API vision. [OpenAI edit API](https://developers.openai.com/api/reference/resources/images/methods/edit), [Gemini 4](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon), [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash).
 
 Manual Figma import, Vectorize, export and storage follow the [implemented commands/mock contract](vectorizer-api-demo.md). **IA-1 is part of the navigation demo route; IA-4 is the construction-workflow mock.** The English meaning of the required disclosure is: "A commercial automated API service is available, but we have not paid for it; this demonstration shows the resulting experience only." Also identify the SVG as a manual Figma prebuild. SVG is a visual background; routing uses a separately reviewed semantic graph, not the 1,321 traced paths.
 
@@ -168,13 +173,13 @@ Actual angles/regions need capture context or image evidence and may remain unkn
 
 People/animals are not stable localization landmarks. Treat changing scenery/reflections beyond glass as unreliable while retaining stable window frames/glass structure where useful. Record lighting/exposure separately and use color as supporting evidence. Developer can describe/outline temporary tables and inspect what was excluded or remains uncertain; ambiguous instructions cannot remove a whole wall or every table. Exclusions control matching evidence/weights, not deletion of facts from original photographs.
 
-A room name or directional sign does not establish the camera's location. Separate observed-object relations from camera-node associations. Descriptions may not distinguish similar corridors: evaluate the specified Gemini 4 workflow first, then text retrieval with small-candidate original-image verification, and potentially compatible image retrieval. An additional embedding service is not a predetermined dependency.
+A room name or directional sign does not establish the camera's location. Separate observed-object relations from camera-node associations. **Visitor place match uses MegaLoc image embeddings** ([localization-megaloc.md](../localization-megaloc.md)), not Gemini scene-text retrieval. Optional Gemini scene descriptors remain authoring/enrichment only and must not replace the MegaLoc index.
 
 ## 8. Public static reference-photo navigation
 
-1. Select available building/floor context and start; enter a destination mapped to a published node. Resolve duplicate/unknown names by selection, not invented destinations.
+1. Enter a destination mapped to a published node (building/floor may be inferred from the destination or later from visual match). Resolve duplicate/unknown names by selection, not invented destinations.
 2. Choose a start-confirmation photo or continuous localization. A selected start is a user claim until visually confirmed; retain manual mode for denied camera access.
-3. Match against approved directional references, returning floor, position, heading and uncertainty separately. Ask for alignment to a reference when heading is unknown.
+3. **Visual start:** `POST /api/navigation/localize/` (MegaLoc global catalog; **no floor prompt**). Response includes `node_id`, `target_id`, `floor_id`, `building_id`, and decision. Heading alignment remains a separate UX step when needed.
 4. Route through open, verified edges satisfying restrictions on the pinned publication. Report unreachable destinations; use calibrated edge distances.
 5. Select each image by the route segment's **departure heading**. Reverse routes use reverse references. Show the next landmark, turn and approximate distance; request alignment/additional photos when headings or corners lack coverage.
 6. Offer a continuous route-photo preview, but **playback progress is not physical location**. Walking mode uses explicit "Reached this point / Next step" confirmation and optional re-capture. Confirm the destination from a sign/scene or user action, not the final slide.
@@ -189,7 +194,7 @@ While foreground camera preview runs, start **one three-frame burst every three 
 
 Allow one in-flight localization request and one latest pending frame per session. Replace old pending frames rather than growing a queue. Bind results to `sessionId / publicationId / contextVersion / captureSequence / capturedAt`; stale/obsolete responses cannot overwrite current state. Destination/floor changes increment context version.
 
-This schedule is only for Gemini queries. Local tracking needs the engine's continuous camera/IMU streams; waking a camera every three seconds does not provide continuous VIO. Share camera ownership as defined in section 9.5.
+This schedule is for **MegaLoc / localize** cloud requests (not Gemini place match). Local tracking needs continuous camera/IMU streams; waking a camera every three seconds does not provide continuous VIO. Share camera ownership as defined in section 9.5.
 
 Three seconds is a sampling target, not an end-to-end latency guarantee. At most about 20 selected frames/minute are available; a ten-second serial request processes about six/minute, requiring drops or reduced frequency. Measure capture/upload/queue/inference/validation p50/p95 before selecting cadence, crops and settings; concurrency is not an unlimited remedy.
 
@@ -197,9 +202,9 @@ Browser camera access requires real permission and an appropriate secure context
 
 ### 9.2 Constrained search and re-localization
 
-Use selected/confirmed building and floor context rather than sending every reference to Gemini each cycle. Prioritize the previous location, nearby graph neighborhoods and possible headings; compare stable features, signs and candidate references. Return candidates, evidence, heading and ambiguity/rejection reasons. Position may be a node or interval along an edge, avoiding false precision between sparse anchors.
+**Canonical matcher:** MegaLoc global (or debug-narrowed) cosine search via `/api/navigation/localize/` — not Gemini per frame. After a confirmed start, optional product logic may prioritize neighborhood/route consistency in the **client or Django**, but must not replace MegaLoc or invent a floor prompt. Return candidates, evidence, and ambiguity/rejection from the engine decision. Position may be a node or interval along an edge, avoiding false precision between sparse anchors.
 
-Constrain candidates with `reachable graph distance <= v_max * elapsed capture time + position-error margin`. Use graph distance, actual capture-time differences and the relevant movement mode; unknown metric scale prevents metric hard pruning. Keep multiple hypotheses. Low confidence expands search or requests a new view/floor selection, so an initial false match cannot permanently exclude the true location. Handle lift/stair transitions separately; a room number alone does not establish a floor change.
+Constrain candidates with `reachable graph distance <= v_max * elapsed capture time + position-error margin`. Use graph distance, actual capture-time differences and the relevant movement mode; unknown metric scale prevents metric hard pruning. Keep multiple hypotheses. Low confidence expands search or requests a new view (still **no floor prompt**), so an initial false match cannot permanently exclude the true location. Handle lift/stair transitions separately; a room number alone does not establish a floor change.
 
 At an illustrative 1.5m/s, a visitor travels about 4.5m in three seconds, plus inference delay. Ask visitors to stop at ambiguous turns, show last-confirmed time and uncertainty, and do not claim precise corridor position from a speed bound. People/animals excluded from localization may still obstruct the real path; this is not a real-time obstacle-avoidance promise.
 
@@ -209,15 +214,15 @@ Start with **screen-space guidance**: next segment's relative direction, landmar
 
 Relative turns require confirmed map heading. Otherwise ask for reference alignment without a definite left/right arrow. Unknown along-edge position requires ranges/approximation; no scale means no metre display. A landmark bounding box must come from the current valid frame, not an old image overlaid on new video.
 
-The member authorized **continuous geometric tracking and world-coordinate alignment**. Implementation needs camera intrinsics, visual-inertial pose tracking, map alignment, metric scale and recovery; retain screen-space guidance until the corresponding gates pass. Four-direction references/Gemini provide position-heading hypotheses; local tracking supplies continuous relative movement. [ARCore fundamentals](https://developers.google.com/ar/develop/fundamentals).
+The member authorized **continuous geometric tracking and world-coordinate alignment**. Implementation needs camera intrinsics, visual-inertial pose tracking, map alignment, metric scale and recovery; retain screen-space guidance until the corresponding gates pass. Four-direction reference photos and MegaLoc localize provide place/heading hypotheses; local tracking supplies continuous relative movement. Gemini remains authoring enrichment only. [ARCore fundamentals](https://developers.google.com/ar/develop/fundamentals).
 
-The [Indoor Live View research](indoor-live-view-research.md) records evidence and alignment principles. The following sections turn them into authorized project work without claiming installed dependencies or changes to the specified Gemini roles.
+The [Indoor Live View research](indoor-live-view-research.md) records evidence and alignment principles. The following sections turn them into authorized project work without claiming installed dependencies or changing MegaLoc as the place matcher.
 
 ### 9.4 Dual-rate estimation, tracking states and delayed corrections
 
 **Local fast path:** continuous camera plus accelerometer/gyroscope -> native VIO/SLAM or supported tracking SDK -> pose/quality -> map alignment -> arrow updates on available render frames. Fuse raw IMU locally; do not send every sample to Gemini or trigger full Angular refreshes per sample.
 
-**Cloud slow path:** selected burst frame and capture-time tracking context -> Gemini 4 semantic position/heading verification and candidate reduction -> consistency check -> map-association correction/re-anchoring. A future geometric VPS may provide constrained absolute camera pose; a Gemini node/label judgment does not itself supply full pose.
+**Cloud slow path:** selected burst frame -> **MegaLoc localize** (same canonical engine) and/or optional later geometric verification -> consistency check with tracking epoch -> map-association correction/re-anchoring. A future geometric VPS may provide constrained absolute camera pose; a Gemini node/label judgment is **not** the place matcher and does not supply full pose.
 
 | Capability / state | Permitted display |
 |---|---|
@@ -359,7 +364,7 @@ Record every attempt's model/endpoint/settings, prompt/schema version, input has
 
 For N distinct anchors, basic collection is about 4N photographs; include retakes, exclusion reanalysis and graph-revision rebuilds. A T-minute dynamic session offers at most about 20T requests before in-flight limits/reduced cadence. Include initial localization, rejection/retakes, failures and concurrent visitors. Compare total cost/time per accepted route, not successful single calls alone.
 
-Keep Gemini 4 for understanding/localization and Flash for edits. Freeze task/input/acceptance sets when comparing configurations; report quality, latency, human correction and cost. If Gemini 4 misses freshness needs, report the limitation and use static/stop-to-localize mode before proposing a model change, rather than silently substituting Flash.
+Keep Gemini 4 / Flash for **authoring** cost accounting; keep MegaLoc for **visitor localize** latency/quality. Freeze task/input/acceptance sets when comparing configurations. If MegaLoc freshness or accuracy misses the gate, use static/stop-to-localize and report the limitation — do not silently substitute Gemini as the place matcher.
 
 ### 11.3 Acceptance gates and failure cases
 

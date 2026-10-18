@@ -1,5 +1,9 @@
 # Frontend iteration: Google Maps, sessions and Developer workspace
 
+Subsequent packaged-app UI work is maintained in the single
+[mobile visitor UI record](mobile-visitor-ui.md). It replaces the visitor entry's
+default map with a dedicated journey screen; the website retains `/map`.
+
 Updated October 17, 2026. Active branch: `feature/frontend-iteration`.
 The latest [authentication modes](authentication-modes.md) update defines the new
 `/sign-in` card entry, direct Developer workspace/Public User placeholder landing,

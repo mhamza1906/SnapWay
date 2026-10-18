@@ -26,6 +26,7 @@ from maps.services.graph import (
     update_node,
 )
 from maps.services.membership import get_active_membership
+from maps.services.reference_index import build_reference_index, get_index_status
 from maps.services.references import attach_node_photo, list_node_photos, remove_node_photo
 from maps.services.underlay import store_underlay_file
 
@@ -264,6 +265,35 @@ class PhotoDetailView(RevisionGraphMixin, APIView):
         except Exception as exc:  # noqa: BLE001
             return _error_response(exc)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RevisionIndexView(RevisionGraphMixin, APIView):
+    """Developer/contributor MegaLoc index for reference photos on a revision."""
+
+    @extend_schema(
+        summary="Get MegaLoc reference index status for a revision",
+        responses={200: OpenApiTypes.OBJECT},
+    )
+    def get(self, request, revision_id):
+        revision = self.get_revision()
+        try:
+            payload = get_index_status(revision, actor=request.user)
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(exc)
+        return Response(payload)
+
+    @extend_schema(
+        summary="Build or refresh MegaLoc reference index for a revision",
+        request=None,
+        responses={200: OpenApiTypes.OBJECT},
+    )
+    def post(self, request, revision_id):
+        revision = self.get_revision()
+        try:
+            payload = build_reference_index(revision, actor=request.user)
+        except Exception as exc:  # noqa: BLE001
+            return _error_response(exc)
+        return Response(payload)
 
 
 class EdgeCollectionView(RevisionGraphMixin, APIView):

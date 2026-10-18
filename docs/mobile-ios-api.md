@@ -2,31 +2,33 @@
 
 Reference for the interfaces added on `feature/mobile-ios`. Overview, setup and decisions are
 in [mobile-ios.md](mobile-ios.md); hosting is in [place-match-production.md](place-match-production.md).
-Example values below are illustrative, not measurements.
+**Canonical product contract:** [localization-visitor-match.md](localization-visitor-match.md)
+(global MegaLoc; no floor prompt). Example values below are illustrative, not measurements.
 
 ## Request path
 
 1. The iOS app captures a frame with the native `FrameCapture` plugin and stores it in the
    app sandbox (JPEG, at most 1024 px, plus a metadata JSON file).
 2. On **Send** (or with auto-send on), the plugin uploads it natively, adding the token from
-   the Keychain, to either:
-   - the engine directly: `https://<tunnel>/v1/match` (development), or
-   - the SnapWay API: `/api/navigation/localize/`, which authenticates the caller and
-     forwards the frame to the engine on a private address.
-3. The engine embeds the frame with MegaLoc, searches the reference index, applies the
-   calibrated thresholds and, only when allowed, asks Vertex AI (with geometric verification).
-4. The app shows the outcome, backend, thresholds id, raw similarities and timings. A
-   "Use … as start" button appears only when a `likely_match` location id exactly names a map
-   checkpoint; manual start selection always remains.
+   the Keychain, preferably to:
+   - **SnapWay API** `POST /api/navigation/localize/` (default **global** MegaLoc catalog —
+     sync ready revision indexes, then `/v1/match-global`), or
+   - engine `/v1/match` / API `?mode=legacy` (older single `MOBILE_REFERENCE_SET` path).
+3. MegaLoc embeds the frame, cosine-searches the catalog (or legacy set), applies calibrated
+   thresholds. Vertex/verify apply only on the legacy path when enabled.
+4. The app shows outcome, backend, thresholds id, similarities and timings; global responses
+   also include `floor_id` / `building_id`. "Use … as start" when `likely_match` names a
+   checkpoint; manual start always remains.
 
 ## Endpoints
 
 | Engine (`serve-mobile`, 127.0.0.1:8790) | SnapWay API | Purpose |
 | --- | --- | --- |
-| `GET /v1/health` | `GET /api/navigation/localize/health/` | Backend readiness, reference set, `thresholds_id` |
-| `POST /v1/match` | `POST /api/navigation/localize/` | Match one frame |
-| `GET /v1/references/{set}/thumb/{reference_id}` | `GET /api/navigation/localize/references/{set}/thumb/{reference_id}` | Small JPEG of a reference photo (ids from that set only) |
-| `GET /v1/references/{set}/megaloc-index` | `GET /api/navigation/localize/references/{set}/megaloc-index/` | fp16 MegaLoc vectors for future on-device search |
+| `GET /v1/health` | `GET /api/navigation/localize/health/` | Backend readiness, thresholds / catalog |
+| `POST /v1/match-global` (+ `/v1/catalog*`) | `POST /api/navigation/localize/` | **Canonical** global MegaLoc match |
+| `POST /v1/match` | `POST /api/navigation/localize/?mode=legacy` | Older single reference-set match |
+| `GET /v1/references/{set}/thumb/{reference_id}` | `GET /api/navigation/localize/references/{set}/thumb/{reference_id}` | Thumbnail (legacy set ids) |
+| `GET /v1/references/{set}/megaloc-index` | `GET /api/navigation/localize/references/{set}/megaloc-index/` | fp16 vectors for future on-device search |
 
 ### Authentication
 

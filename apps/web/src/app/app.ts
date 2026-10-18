@@ -35,7 +35,7 @@ export class App implements OnInit {
   readonly fullScreen = computed(
     () =>
       !this.auth.isDeveloper() ||
-      /^\/(auth|navigate|public|welcome|sign-in)(\/|$)/.test(this.url()),
+      /^\/(auth|navigate|public|welcome|sign-in|map|app-preview)(\/|$)/.test(this.url()),
   );
   readonly mobileOpen = signal(false);
   readonly profileOpen = signal(false);

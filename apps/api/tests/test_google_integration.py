@@ -11,18 +11,22 @@ from maps.models import (
     Building,
     Contribution,
     Floor,
+    MapObject,
     MapTarget,
+    Node,
     Publication,
     Review,
     Revision,
     RevisionArtifact,
+    Room,
 )
 from rest_framework.test import APIClient
 
 pytestmark = pytest.mark.django_db
 
 
-def publish(user, *, coordinates=True, building=None):
+def publish(user, *, coordinates=True, building=None, populate_revision=None):
+    """Populate draft content before freezing and publishing the revision."""
     building = building or Building.objects.create(
         name="Published building",
         slug=uuid.uuid4().hex,
@@ -45,8 +49,11 @@ def publish(user, *, coordinates=True, building=None):
         created_by=user,
         geometry={"private_draft": "never-disclose"},
         content_hash="a" * 64,
-        frozen_at=timezone.now(),
     )
+    if populate_revision is not None:
+        populate_revision(revision)
+    revision.frozen_at = timezone.now()
+    revision.save(update_fields=["frozen_at"])
     Contribution.objects.filter(pk=contribution.pk).update(
         head_revision=revision, status="submitted"
     )
@@ -120,6 +127,49 @@ def test_discovery_hides_drafts_archived_invalid_and_unlocated_buildings():
     assert buildings[0]["floors"][0]["target_id"] == str(visible.target_id)
     assert "never-disclose" not in response.content.decode()
     assert str(missing.target.floor.building_id) not in response.content.decode()
+
+
+def test_public_destinations_use_only_published_revision_and_safe_room_fields():
+    user = get_user_model().objects.create_user(username="room-publisher")
+
+    def populate_revision(revision):
+        obj = MapObject.objects.create(revision=revision, kind="room")
+        room = Room.objects.create(
+            revision=revision,
+            map_object=obj,
+            number="IA2021",
+            name="Classroom",
+            purpose="private-purpose",
+            provenance={"private": "never-show"},
+        )
+        Node.objects.create(
+            revision=revision,
+            kind="room",
+            room=room,
+            x=1,
+            y=2,
+            label="Room door",
+        )
+
+    publication = publish(user, populate_revision=populate_revision)
+    revision = publication.revision
+    node = Node.objects.get(revision=revision, kind="room")
+    draft = Revision.objects.create(
+        target=publication.target,
+        contribution=revision.contribution,
+        created_by=user,
+    )
+    Node.objects.create(revision=draft, kind="checkpoint", x=1, y=2, label="private-draft-node")
+    response = APIClient().get("/api/maps/public/buildings/")
+    floor = response.json()["buildings"][0]["floors"][0]
+    assert floor["destinations"] == [
+        {"id": str(node.stable_id), "label": "IA2021", "name": "Classroom"}
+    ]
+    assert floor["checkpoints"] == [{"id": str(node.stable_id), "label": "Room door"}]
+    body = response.content.decode()
+    assert "private-purpose" not in body
+    assert "never-show" not in body
+    assert "private-draft-node" not in body
 
 
 def test_session_get_bootstraps_csrf_and_logout_requires_it():

@@ -1,0 +1,62 @@
+[
+  {
+    "catId": 48600,
+    "altitude": 0,
+    "lat": 43.786816,
+    "lng": -79.189484,
+    "mapId": 1809,
+    "id": 493695,
+    "weight": 0,
+    "icon": "",
+    "iconRotation": null,
+    "level": [
+      0
+    ],
+    "location_open": "",
+    "locationType": "standard",
+    "marker_feed": {
+      "rate": 0
+    },
+    "mrkId": 363654,
+    "name": "Instructional Centre | IC",
+    "reference": "",
+    "schedule": "",
+    "shape": "",
+    "minZoom": null,
+    "maxZoom": null,
+    "geojson_feature": null,
+    "iconSize": 35,
+    "showIcon": 1,
+    "showText": 0
+  },
+  {
+    "catId": 48600,
+    "altitude": 0,
+    "lat": 43.788609,
+    "lng": -79.191116,
+    "mapId": 1809,
+    "id": 959718,
+    "weight": 0,
+    "icon": "",
+    "iconRotation": null,
+    "level": [
+      0
+    ],
+    "location_open": "",
+    "locationType": "standard",
+    "marker_feed": {
+      "rate": 0
+    },
+    "mrkId": 723740,
+    "name": "Sam Ibrahim Building | IA",
+    "reference": "",
+    "schedule": "",
+    "shape": "",
+    "minZoom": null,
+    "maxZoom": null,
+    "geojson_feature": null,
+    "iconSize": 35,
+    "showIcon": 1,
+    "showText": 0
+  }
+]
