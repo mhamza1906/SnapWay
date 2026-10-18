@@ -383,3 +383,85 @@ export function snapToCorridor(building, floorId, corridorId, { direction = "for
     nodeId = nodeAt.find(([, v]) => Math.abs(v - s) < 0.5)?.[0] ?? null;
   return orderKeys({ planId: null, order: null, ...pointAt(w, s, ctx), nodeId, reason: "adjusted" });
 }
+
+// Photo points for a whole hall at once, instead of one corridor at a time.
+// The hall's centreline is every corridor edge running mostly inside the hall
+// (its merge seams included). Dead-end spurs shorter than one spacing (door
+// stubs, raster whiskers) are dropped. Points go at junctions and dead ends
+// first, then every `spacing` along each line; a point closer than 0.6 spacing
+// to one already placed is skipped, which also folds parallel duplicate
+// centrelines into one row of points. They are numbered in walking order: a
+// depth-first walk from the dead end nearest the top-left corner.
+// Spacing is `spacingM` metres on a verified scale; otherwise `spacingPx` map
+// pixels (default 2.2% of the floor's larger side) and metres are null.
+export function planHallPoints(building, floorId, spaceId, { spacingM = 2, spacingPx } = {}) {
+  const floor = floorOf(building, floorId),
+    pieces = floor.geometry.spaces.filter((s) => s.id === spaceId || s.id.startsWith(`${spaceId}:seam-`)),
+    hall = pieces.find((s) => s.id === spaceId);
+  if (!hall) throw new CaptureError("Unknown region.", 404);
+  if (!Number.isFinite(spacingM) || spacingM < 0.5 || spacingM > 50) throw new CaptureError("spacingM must be between 0.5 and 50.");
+  const ppm = scaleOf(floor), all = floor.geometry.spaces.flatMap((s) => s.polygon),
+    side = Math.max(Math.max(...all.map((p) => p.x)) - Math.min(...all.map((p) => p.x)), Math.max(...all.map((p) => p.y)) - Math.min(...all.map((p) => p.y))),
+    step = ppm ? spacingM * ppm : Number.isFinite(spacingPx) && spacingPx > 0 ? spacingPx : Math.round(0.022 * side),
+    within = (p) => pieces.some((s) => inside(p, s.polygon)),
+    nodes = new Map(building.nodes.map((n) => [n.id, n]));
+  // Edges mostly inside the hall.
+  let edges = corridorEdges(building, floorId).filter((e) => {
+    const len = polyLength(e.path);
+    let inLen = 0;
+    for (let i = 1; i < e.path.length; i++) {
+      const a = e.path[i - 1], b = e.path[i];
+      if (within({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })) inLen += distance(a, b);
+    }
+    return len > 1e-6 && inLen >= 0.5 * len;
+  });
+  const incidentOf = (list) => { const m = new Map(); for (const e of list) for (const id of [e.from, e.to]) (m.get(id) || m.set(id, []).get(id)).push(e); return m; };
+  for (let pass = 0; pass < 2; pass++) {
+    const inc = incidentOf(edges);
+    edges = edges.filter((e) => !(polyLength(e.path) < step && (inc.get(e.from).length === 1) !== (inc.get(e.to).length === 1)));
+  }
+  const inc = incidentOf(edges), posOf = (id, e) => nodes.get(id)?.position || (e.from === id ? e.path[0] : e.path.at(-1));
+  // Walking order: depth-first over edges from the dead end nearest the top-left.
+  const ends = [...inc.keys()].filter((id) => inc.get(id).length === 1),
+    starts = (ends.length ? ends : [...inc.keys()]).map((id) => ({ id, p: posOf(id, inc.get(id)[0]) })).sort((a, z) => a.p.x + a.p.y - (z.p.x + z.p.y));
+  const usedE = new Set(), visits = [];
+  const dfs = (at) => {
+    visits.push({ node: at });
+    for (const e of inc.get(at) || []) {
+      if (usedE.has(e.id)) continue;
+      usedE.add(e.id);
+      const forward = e.from === at;
+      visits.push({ edge: e, forward });
+      dfs(forward ? e.to : e.from);
+    }
+  };
+  for (const s of starts) if ((inc.get(s.id) || []).some((e) => !usedE.has(e.id))) dfs(s.id);
+  for (const e of edges) if (!usedE.has(e.id)) dfs(e.from);
+  // Candidates: junctions and dead ends first, then spaced points along edges.
+  const points = [], min = 0.6 * step,
+    add = (p, reason, extra) => { if (points.every((q) => distance(q, p) >= min)) points.push({ x: r2(p.x), y: r2(p.y), reason, ...extra }); };
+  const keyNodes = [...inc.keys()].filter((id) => inc.get(id).length !== 2);
+  for (const id of keyNodes) add(posOf(id, inc.get(id)[0]), inc.get(id).length >= 3 ? "junction" : "end", { nodeId: id, _visit: Infinity });
+  visits.forEach((v, i) => {
+    if (v.node) { const kp = points.find((q) => q.nodeId === v.node); if (kp && kp._visit === Infinity) kp._visit = i; return; }
+    const pts = v.forward ? v.edge.path : [...v.edge.path].reverse(), total = polyLength(pts);
+    for (let k = 1; k * step < total - min / 2; k++) {
+      let want = k * step, at = 0;
+      for (let j = 1; j < pts.length; j++) {
+        const d = distance(pts[j - 1], pts[j]);
+        if (at + d >= want) {
+          const t = (want - at) / (d || 1);
+          add({ x: pts[j - 1].x + (pts[j].x - pts[j - 1].x) * t, y: pts[j - 1].y + (pts[j].y - pts[j - 1].y) * t }, "spacing", { edgeId: v.edge.id, _visit: i + k / 1000 });
+          break;
+        }
+        at += d;
+      }
+    }
+  });
+  points.sort((a, z) => a._visit - z._visit);
+  return {
+    spaceId, label: hall.label, scaleVerified: !!ppm, spacingM: ppm ? spacingM : null, spacingPx: r2(step),
+    lines: edges.map((e) => e.path.map((p) => ({ x: r2(p.x), y: r2(p.y) }))),
+    points: points.map(({ _visit, ...q }, i) => ({ order: i + 1, ...q, nodeId: q.nodeId ?? null, edgeId: q.edgeId ?? null })),
+  };
+}

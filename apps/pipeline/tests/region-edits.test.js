@@ -10,6 +10,7 @@ import { doorAccessState, regionNeedsSemanticReview } from "../shared/building/a
 import { roomAvailability, routeBuilding } from "../shared/building/routing.js";
 import { mergeHistory, mergeNeighbours, mergeSpaces, renameSpace, setSpaceStair, unmergeSpaces } from "../shared/building/region-edits.js";
 import { authoringRouter, floorSummary, renderFloor } from "../server/authoring-routes.js";
+import { describeDoorway, editAssumedDoor, removeAssumedDoor, removeDoorways } from "../shared/building/assumed-doors.js";
 
 // Synthetic layout (not a real building): rooms 101–103 above a hallway, 104
 // and two stair pieces below it. 101|102 share an edge with an internal door;
@@ -200,13 +201,14 @@ test("merging as a stair across a hairline gap gives one walkable stair; a given
   const { building: merged, spaceId } = mergeSpaces(base, "t", ["t:s1", "t:s2"], { stair: true });
   const stair = spaceOf(merged, spaceId), f = floorOf(merged);
   assert.equal(spaceId, "t:s1");
-  assert.deepEqual([stair.kind, stair.use, stair.label], ["lobby", "stair", "105"]);
+  // The first region keeps its name (Unlabelled stair), even next to a printed one.
+  assert.deepEqual([stair.kind, stair.use, stair.label], ["lobby", "stair", "Unlabelled stair"]);
   assert.ok(Math.abs(area(stair.polygon) - 20000) < 0.01, "the 1.2 px gap is closed");
   assert.deepEqual(geometryErrors(merged), []);
   assert.equal(f.geometry.walls.some((w) => w.id === "raster-3"), false, "the wall in the gap is removed");
   assert.deepEqual(wallsOn(merged, 200.6, 140, 240), []);
   assert.deepEqual(f.geometry.doors.filter((d) => d.spaceIds.includes("t:s1")).map((d) => d.id).sort(), ["t:ds1", "t:ds2"]);
-  assert.deepEqual(floorSummary(merged, "t").stairs, [{ id: "t:s1", label: "105" }]);
+  assert.deepEqual(floorSummary(merged, "t").stairs, [{ id: "t:s1", label: "Unlabelled stair" }]);
   assert.equal(f.access.records.at(-1).review.status, "agent-inspected");
   assert.ok(routeBuilding(merged, "t:r4", "t:r3"));
   const named = mergeSpaces(base, "t", ["t:s2", "t:s1"], { label: " Stair A ", stair: false }).building;
@@ -218,12 +220,18 @@ test("merging as a stair across a hairline gap gives one walkable stair; a given
 });
 
 test("regions that do not share a boundary, or that would enclose a hole, are not merged", () => {
-  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r4"]), /Only regions that share a wall can be merged: 104 does not/);
-  assert.throws(() => mergeSpaces(base, "t", ["t:r1"]), /two regions at a time/);
-  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r2", "t:r3"]), /two regions at a time/);
+  // 101 and 104 are 40 px apart across the hallway: beyond this floor's 30 px reach.
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r4"]), /Only rooms close to each other can be merged: 104 is too far/);
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1"]), /at least two regions/);
   assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:r1"]), /only once/);
   assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:nope"]), /Unknown region t:nope/);
-  assert.throws(() => mergeOutlines([rect(0, 0, 300, 100), rect(0, 100, 100, 200), rect(200, 100, 300, 200), rect(0, 200, 300, 300)]), /surround/);
+  const ringOf4 = [rect(0, 0, 300, 100), rect(0, 100, 100, 200), rect(200, 100, 300, 200), rect(0, 200, 300, 300)];
+  // A hole holding another region is refused (unless it is kept with a seam); an empty one is filled.
+  assert.throws(() => mergeOutlines(ringOf4, { others: [rect(100, 100, 200, 200)] }), /surround/);
+  assert.ok(Math.abs(area(mergeOutlines(ringOf4)) - 90000) < 1, "an unoccupied hole is filled");
+  const seams = [], kept = mergeOutlines(ringOf4, { others: [rect(100, 100, 200, 200)], keepHoles: true, seams });
+  assert.equal(seams.length, 1, "the region inside stays, reached through one seam");
+  assert.ok(Math.abs(area(kept) + area(seams[0].polygon) - 80000) < 1, "the merged ring plus its seam cover the four pieces");
   assert.throws(() => mergeOutlines([rect(0, 0, 100, 100), rect(100, 100, 200, 200)]), /share a boundary/, "corner contact is not a shared boundary");
 });
 
@@ -267,6 +275,120 @@ test("unmerge puts both rooms, the doorway between them and the walls back exact
   assert.throws(() => unmergeSpaces(back0, "t", "nope"), /Unknown merge/);
 });
 
+test("any doorway can be described, removed or moved in the editor, not only assumed ones", () => {
+  // 101's doorway onto the hallway has no per-opening record (legacy, usable).
+  const f = floorOf(base), d = describeDoorway(f, "t:d1");
+  assert.deepEqual([d.state, d.assumed, d.room.id, d.joins.map((j) => j.label)], ["legacy", false, "t:r1", ["101", "Hallway"]]);
+  assert.ok(d.options.some((o) => o.key === d.edgeKey), "the current edge is offered");
+  assert.match(renderFloor(base, "t"), /data-door-id="t:d1"/);
+  // Removed: gone from the map, recorded as the author's decision.
+  const removed = floorOf(removeAssumedDoor(base, "t", "t:d1", "Dev"));
+  assert.ok(!removed.geometry.doors.some((x) => x.id === "t:d1"));
+  const rec = removed.access.records.findLast((r) => r.doorId === "t:d1");
+  assert.deepEqual([rec.kind, rec.review.status], ["rejected-door", "human-reviewed"]);
+  assert.match(rec.reason, /Dev says it does not exist/);
+  // Moved along its edge: placed in the editor, assumed until a named person confirms it.
+  const moved = editAssumedDoor(base, "t", "t:d1", { edgeKey: d.edgeKey, t: 0.25, width: 10 });
+  const md = floorOf(moved).geometry.doors.find((x) => x.id === "t:d1");
+  assert.ok(md && Math.abs((md.a.x + md.b.x) / 2 - 25) < 1, JSON.stringify(md));
+  assert.equal(describeDoorway(floorOf(moved), "t:d1").state, "assumed");
+  const confirmed = editAssumedDoor(base, "t", "t:d1", { edgeKey: d.edgeKey, t: 0.25, width: 10, confirm: true, reviewer: "Dev" });
+  assert.equal(describeDoorway(floorOf(confirmed), "t:d1").state, "verified");
+  assert.throws(() => describeDoorway(f, "nope"), /Unknown doorway/);
+});
+
+test("several rooms merge into the first; each must be near any chosen room, and unmerge restores them all", () => {
+  const key = (b) => {
+    const g = floorOf(b).geometry, sort = (l) => JSON.stringify([...l].sort((a, z) => (a.id < z.id ? -1 : 1)));
+    return [sort(g.spaces), sort(g.doors), sort(g.walls), JSON.stringify(g.pois)];
+  };
+  // 103 does not touch 101; it joins through 102 (near any chosen room, not only the kept one).
+  const merged = mergeSpaces(base, "t", ["t:r1", "t:r2", "t:r3"], { reviewer: "Dev" }).building, f = floorOf(merged);
+  assert.deepEqual(["t:r2", "t:r3"].map((id) => !!spaceOf(merged, id)), [false, false]);
+  assert.ok(Math.abs(area(spaceOf(merged, "t:r1").polygon) - 30000) < 0.5);
+  const [m] = mergeHistory(f);
+  assert.deepEqual([m.keptId, m.removedLabel, m.removedCount, m.undoable], ["t:r1", "Unlabelled 2, 103", 2, true]);
+  const back = unmergeSpaces(merged, "t", m.recordId, "Dev");
+  assert.deepEqual(key(back), key(base), "all three rooms, their doors and walls are back exactly");
+  assert.deepEqual(geometryErrors(back), []);
+});
+
+test("rooms that are close but do not touch are joined by a bridge across the gap", () => {
+  const bridges = [],
+    out = mergeOutlines([rect(0, 0, 100, 100), rect(120, 0, 220, 100)], { maxGap: 30, bridges });
+  assert.equal(bridges.length, 1);
+  assert.ok(Math.abs(bridges[0].d - 20) < 1e-6);
+  assert.ok(area(out) > 20000 && area(out) < 22500, `two rooms plus a bridge: ${area(out)}`);
+  assert.throws(() => mergeOutlines([rect(0, 0, 100, 100), rect(160, 0, 260, 100)], { maxGap: 30 }), /must be close to each other/);
+});
+
+test("merging rooms across a corridor takes only the corridor part between them, and unmerge puts it back", () => {
+  // Synthetic: rooms A (above) and B (below) with a 20 px corridor between them that runs far past both.
+  const b = newBuilding(), f = newFloor("c", "Corridor floor", 1);
+  b.id = "corridor-merge-fixture"; b.name = "Synthetic corridor merge";
+  f.width = f.geometry.source.width = 1000; f.height = f.geometry.source.height = 400;
+  f.geometry.spaces = [
+    space("c:a", "Room A", "room", rect(300, 50, 400, 150)),
+    space("c:hall", "Hallway", "corridor", rect(50, 150, 950, 170)),
+    space("c:b", "Room B", "room", rect(300, 170, 400, 270)),
+  ];
+  f.geometry.doors = [
+    door("c:da", { x: 340, y: 150 }, { x: 360, y: 150 }, ["c:a", "c:hall"]),
+    door("c:db", { x: 340, y: 170 }, { x: 360, y: 170 }, ["c:b", "c:hall"]),
+  ];
+  f.geometry.walls = traceBoundaryWalls(f.geometry);
+  f.geometryStatus = "reviewed";
+  b.floors = [f];
+  const cFloor = (x) => x.floors.find((y) => y.id === "c");
+  const base2 = buildGraph(parseBuilding(b), "c"), out = mergeSpaces(base2, "c", ["c:a", "c:b"]);
+  assert.deepEqual([out.absorbed, out.carved.map((x) => x.label)], [[], ["Hallway"]]);
+  const g = cFloor(out.building).geometry, merged = g.spaces.find((x) => x.id === "c:a");
+  assert.ok(Math.abs(area(merged.polygon) - 22000) < 50, `two rooms plus the 100 x 20 strip: ${area(merged.polygon)}`);
+  const pieces = g.spaces.filter((x) => x.id === "c:hall" || x.id.startsWith("c:hall:part-"));
+  assert.equal(pieces.length, 2, "the corridor keeps both sides, split where the strip was taken");
+  assert.ok(Math.abs(pieces.reduce((n, x) => n + area(x.polygon), 0) - 16000) < 50);
+  assert.ok(!g.spaces.some((x) => x.id === "c:b"));
+  const [m] = mergeHistory(cFloor(out.building));
+  assert.match(m.removedLabel, /Room B, part of Hallway/);
+  const back = unmergeSpaces(out.building, "c", m.recordId), sort = (l) => JSON.stringify([...l].sort((x, z) => (x.id < z.id ? -1 : 1)));
+  for (const k of ["spaces", "doors", "walls"]) assert.equal(sort(cFloor(back).geometry[k]), sort(cFloor(base2).geometry[k]), k);
+});
+
+test("removing a doorway asks how: made into a (black) wall, or just removed with no wall", () => {
+  const asWall = floorOf(removeAssumedDoor(base, "t", "t:d1", "Dev", { as: "wall" }));
+  assert.ok(!asWall.geometry.doors.some((x) => x.id === "t:d1"));
+  assert.deepEqual(asWall.geometry.walls.find((w) => w.id === "t:d1:wall")?.points, [{ x: 40, y: 100 }, { x: 50, y: 100 }]);
+  assert.match(asWall.access.records.findLast((r) => r.doorId === "t:d1").reason, /made into a wall by Dev/);
+  const svg = renderFloor(removeAssumedDoor(base, "t", "t:d1", "Dev", { as: "wall" }), "t");
+  assert.match(svg, /data-wall-id="t:d1:wall"[^>]*stroke="#000000"/);
+  // Without a wall: the doorway is just removed (joining spaces is a merge).
+  const none = floorOf(removeAssumedDoor(base, "t", "t:d1", "Dev", { as: "none" }));
+  assert.ok(!none.geometry.doors.some((x) => x.id === "t:d1"));
+  assert.ok(!none.geometry.walls.some((w) => w.id.startsWith("t:d1:")), "no wall is left where the doorway was");
+  assert.ok(none.geometry.spaces.some((x) => x.id === "t:r1"), "the rooms stay separate");
+  assert.throws(() => removeAssumedDoor(base, "t", "t:d1", "Dev", { as: "door" }), /as a wall or with no line/);
+});
+
+test("several doorways can be removed at once, as walls or with no walls", () => {
+  const walls = floorOf(removeDoorways(base, "t", ["t:d1", "t:d4"], "Dev", { as: "wall" }));
+  assert.ok(!walls.geometry.doors.some((x) => ["t:d1", "t:d4"].includes(x.id)));
+  assert.deepEqual(walls.geometry.walls.filter((w) => w.id.endsWith(":wall")).map((w) => w.id).sort(), ["t:d1:wall", "t:d4:wall"]);
+  const gone = floorOf(removeDoorways(base, "t", ["t:d1", "t:d4"], "Dev", { as: "none" }));
+  assert.ok(!gone.geometry.doors.some((x) => ["t:d1", "t:d4"].includes(x.id)));
+  assert.ok(!gone.geometry.walls.some((w) => w.id.startsWith("t:d1:") || w.id.startsWith("t:d4:")));
+  assert.throws(() => removeDoorways(base, "t", []), /at least one doorway/);
+  assert.throws(() => removeDoorways(base, "t", ["nope"]), /Unknown doorway nope/);
+});
+
+test("hallways, rooms and stairs only merge with their own type", () => {
+  assert.throws(() => mergeSpaces(base, "t", ["t:hall", "t:r1"]), /only merge with their own type: Hallway is a hallway, 101 is a room/);
+  assert.throws(() => mergeSpaces(base, "t", ["t:r1", "t:hall"]), /101 is a room, Hallway is a hallway/);
+  const stairs = setSpaceStair(base, "t", "t:s1", true);
+  assert.throws(() => mergeSpaces(stairs, "t", ["t:s1", "t:s2"]), /Unlabelled stair is a stair, 105 is a room/);
+  // Two rooms keep their type (and the first one's name).
+  assert.equal(spaceOf(mergeSpaces(base, "t", ["t:r1", "t:r2"]).building, "t:r1").kind, "room");
+});
+
 // The authoring routes over HTTP, with the same error handler as the server.
 let server, url;
 before(async () => {
@@ -299,7 +421,7 @@ test("HTTP: rename, stair and merge return {building, summary}; merge also retur
   assert.equal(merged.data.building.floors[0].geometry.spaces.find((s) => s.id === "t:r3").use, "stair");
   const bad = await post("/spaces/merge", { building: base, floorId: "t", spaceIds: ["t:r1", "t:r4"], stair: false, reviewer: "" });
   assert.equal(bad.status, 400);
-  assert.equal(bad.data.error, "Only regions that share a wall can be merged: 104 does not share a wall with the rest.");
+  assert.equal(bad.data.error, "Only rooms close to each other can be merged: 104 is too far from the others.");
   const badStair = await post("/spaces/stair", { building: base, floorId: "t", spaceId: "t:r3" });
   assert.equal(badStair.status, 400);
   const badFloor = await post("/spaces/rename", { building: base, floorId: "nope", spaceId: "t:r3", label: "X" });

@@ -246,6 +246,27 @@
               >
             </div>
             <div class="panel-body">
+              <div class="panel-switch" role="group" aria-label="What a click on the map selects">
+                <span class="hint">Select on map:</span>
+                <button
+                  class="btn small"
+                  [class.primary]="selectMode() === 'rooms'"
+                  [attr.aria-pressed]="selectMode() === 'rooms'"
+                  (click)="setSelectMode('rooms')"
+                  data-testid="select-rooms"
+                >
+                  Rooms
+                </button>
+                <button
+                  class="btn small"
+                  [class.primary]="selectMode() === 'doorways'"
+                  [attr.aria-pressed]="selectMode() === 'doorways'"
+                  (click)="setSelectMode('doorways')"
+                  data-testid="select-doorways"
+                >
+                  Doorways
+                </button>
+              </div>
               <div class="focus-slot" aria-live="polite">
                 @if (focused(); as fx) {
                   <div class="focus-bar" data-testid="focus-bar">
@@ -299,7 +320,142 @@
           </section>
 
           <div class="side-panels">
-            <section class="panel tools-panel" aria-labelledby="doors-title">
+            <div class="panel-switch" role="tablist" aria-label="Editing tools">
+              <button
+                role="tab"
+                class="btn small"
+                [class.primary]="sidePanel() === 'doorways'"
+                [attr.aria-selected]="sidePanel() === 'doorways'"
+                (click)="sidePanel.set('doorways')"
+                data-testid="show-doorways"
+              >
+                Doorways
+              </button>
+              <button
+                role="tab"
+                class="btn small"
+                [class.primary]="sidePanel() === 'regions'"
+                [attr.aria-selected]="sidePanel() === 'regions'"
+                (click)="sidePanel.set('regions')"
+                data-testid="show-regions"
+              >
+                Regions
+              </button>
+              <button
+                role="tab"
+                class="btn small"
+                [class.primary]="sidePanel() === 'photos'"
+                [attr.aria-selected]="sidePanel() === 'photos'"
+                (click)="sidePanel.set('photos')"
+                data-testid="show-photos"
+              >
+                Photo points{{ hallPlan() ? ' (' + hallPlan()!.points.length + ')' : '' }}
+              </button>
+            </div>
+            <section
+              class="panel photos-panel"
+              aria-labelledby="photos-title"
+              data-testid="photos"
+              [hidden]="sidePanel() !== 'photos'"
+            >
+              <div class="panel-heading">
+                <h2 id="photos-title">Photo points</h2>
+                @if (hallPlan(); as plan) {
+                  <span class="badge">{{ plan.label }} · {{ plan.points.length }} points</span>
+                }
+              </div>
+              <div class="panel-body">
+                @if (hallPlan(); as plan) {
+                  <p class="hint">
+                    Numbered in walking order,
+                    {{
+                      plan.scaleVerified
+                        ? 'every ' + plan.spacingM + ' m'
+                        : 'every ' + plan.spacingPx + ' map pixels (no verified scale)'
+                    }}. Tick points here or click them on the map, then remove them. Relabel numbers
+                    the rest 1 to {{ plan.points.length }} with no gaps.
+                  </p>
+                  <div class="merge-actions">
+                    <button
+                      class="btn small secondary"
+                      (click)="toggleAllPhotos()"
+                      data-testid="select-all-photos"
+                    >
+                      {{ allPhotosPicked() ? 'Select none' : 'Select all' }}
+                    </button>
+                    <button
+                      class="btn small secondary"
+                      [disabled]="!pickedPhotos().length"
+                      (click)="removePhotos()"
+                      data-testid="remove-photos"
+                    >
+                      Remove {{ pickedPhotos().length || '' }} selected
+                    </button>
+                    <button
+                      class="btn small primary"
+                      [disabled]="!photoGaps()"
+                      (click)="relabelPhotos()"
+                      data-testid="relabel-photos"
+                    >
+                      Relabel 1–{{ plan.points.length }}
+                    </button>
+                    @if (pickedPhotos().length) {
+                      <button class="btn small ghost" (click)="clearPickedPhotos()">
+                        Clear selection
+                      </button>
+                    }
+                    <button
+                      class="btn small secondary"
+                      (click)="togglePhotosVisible()"
+                      data-testid="hide-photos"
+                    >
+                      {{ photosVisible() ? 'Hide on map' : 'Show on map' }}
+                    </button>
+                    <button
+                      class="btn small ghost"
+                      (click)="clearHallPoints()"
+                      data-testid="clear-photos"
+                    >
+                      Clear points
+                    </button>
+                  </div>
+                  <ul class="photo-list" data-testid="photo-list">
+                    @for (p of plan.points; track p.key) {
+                      <li [class.picked]="pickedPhotos().includes(p.key!)">
+                        <label>
+                          <input
+                            type="checkbox"
+                            [checked]="pickedPhotos().includes(p.key!)"
+                            (change)="togglePhoto(p.key!)"
+                          />
+                          <strong>{{ p.order }}</strong>
+                          <span class="hint">{{
+                            p.reason === 'spacing' ? 'along the hall' : p.reason
+                          }}</span>
+                        </label>
+                        <button
+                          class="btn small ghost"
+                          (click)="removePhotos([p.key!])"
+                          [attr.aria-label]="'Remove photo point ' + p.order"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="hint">
+                    No photo points yet. Under Regions, select one hallway and click “Photo points
+                    for …”.
+                  </p>
+                }
+              </div>
+            </section>
+            <section
+              class="panel tools-panel"
+              aria-labelledby="doors-title"
+              [hidden]="sidePanel() !== 'doorways'"
+            >
               <div class="panel-heading">
                 <h2 id="doors-title">3. Doorways</h2>
                 <button class="btn secondary small" [disabled]="busy()" (click)="placeAll()">
@@ -311,6 +467,179 @@
                   >Your name (recorded on confirmations and room decisions)
                   <input [value]="reviewer()" (input)="reviewer.set(value($event))" />
                 </label>
+
+                @if (selectedDoor(); as d) {
+                  <div class="merge-box" data-testid="selected-door">
+                    <h3>Selected doorway</h3>
+                    <p class="hint">
+                      Between
+                      @for (j of d.joins; track j.id; let last = $last) {
+                        <strong>{{ j.label }}</strong
+                        >{{ last ? '' : ' and ' }}
+                      }
+                      · {{ doorStateText(d.state) }}. Shown in magenta on the map.
+                    </p>
+                    @if (d.candidates.length) {
+                      <label class="field"
+                        >Opens onto (from {{ d.roomLabel }})
+                        <select
+                          (change)="setEdit(d, { edgeKey: num($event), t: 0.5 })"
+                          data-testid="selected-door-edge"
+                        >
+                          @for (c of d.candidates; track c.key) {
+                            <option [value]="c.key" [selected]="c.key === editOf(d).edgeKey">
+                              {{ candidateLabel(d, c) }}
+                            </option>
+                          }
+                        </select>
+                      </label>
+                      <label class="field"
+                        >Position along edge · {{ (editOf(d).t * 100).toFixed(0) }}%
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          [value]="editOf(d).t"
+                          (input)="setEdit(d, { t: num($event) })"
+                          data-testid="selected-door-position"
+                        />
+                      </label>
+                      <label class="field"
+                        >Width (px)
+                        <input
+                          type="number"
+                          min="2"
+                          [value]="editOf(d).width"
+                          (change)="setEdit(d, { width: num($event) })"
+                        />
+                      </label>
+                    } @else {
+                      <p class="hint">This doorway cannot be moved (no shared edge found).</p>
+                    }
+                    <div class="button-row">
+                      @if (d.candidates.length) {
+                        <button
+                          class="btn small primary"
+                          [disabled]="busy()"
+                          (click)="saveSelectedDoor()"
+                          data-testid="selected-door-save"
+                        >
+                          Save changes
+                        </button>
+                        <button
+                          class="btn small secondary"
+                          [disabled]="busy() || !reviewer()"
+                          (click)="saveSelectedDoor(true)"
+                        >
+                          Confirm doorway
+                        </button>
+                      }
+                      <button
+                        class="btn small danger"
+                        [disabled]="busy()"
+                        (click)="removeSelectedDoor()"
+                        data-testid="selected-door-remove"
+                      >
+                        Remove…
+                      </button>
+                      <button
+                        class="btn small ghost"
+                        (click)="clearDoor()"
+                        data-testid="selected-door-close"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    @if (removeChoice() === d.doorId) {
+                      <div class="button-row" data-testid="remove-choice">
+                        <span class="hint"
+                          >Remove this doorway: keep a wall there, or remove the separation so both
+                          sides become one space?</span
+                        >
+                        <button
+                          class="btn small"
+                          style="background: #d84315; color: #fff"
+                          [disabled]="busy()"
+                          (click)="removeDoorAs(d, 'wall')"
+                          data-testid="remove-as-wall"
+                        >
+                          Make it a wall
+                        </button>
+                        <button
+                          class="btn small danger"
+                          [disabled]="busy()"
+                          (click)="removeDoorAs(d, 'none')"
+                          data-testid="remove-as-none"
+                        >
+                          Remove it (no wall)
+                        </button>
+                        <button class="btn small ghost" (click)="removeChoice.set(null)">
+                          Cancel
+                        </button>
+                      </div>
+                    }
+                  </div>
+                } @else if (selectedDoors().length > 1) {
+                  <div class="merge-box" data-testid="selected-doors">
+                    <h3>{{ selectedDoors().length }} doorways selected</h3>
+                    <ul class="merge-members">
+                      @for (d of selectedDoors(); track d.doorId) {
+                        <li>
+                          <span>{{ d.joins.map(joinLabel).join(' – ') }}</span>
+                          <button
+                            class="btn small ghost"
+                            (click)="selectDoor(d.doorId)"
+                            [attr.aria-label]="
+                              'Unselect the doorway ' + d.joins.map(joinLabel).join(' – ')
+                            "
+                          >
+                            Unselect
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                    <p class="hint">
+                      Click more doorways on the map to add them, or click one again to unselect it.
+                      Remove them all: put a wall at each, or remove them with no walls. To join
+                      spaces, merge them under Regions.
+                    </p>
+                    <div class="button-row">
+                      <button
+                        class="btn small"
+                        style="background: #d84315; color: #fff"
+                        [disabled]="busy()"
+                        (click)="removeSelectedDoorsAs('wall')"
+                        data-testid="doors-as-wall"
+                      >
+                        Make them walls
+                      </button>
+                      <button
+                        class="btn small danger"
+                        [disabled]="busy()"
+                        (click)="removeSelectedDoorsAs('none')"
+                        data-testid="doors-as-none"
+                      >
+                        Remove them (no walls)
+                      </button>
+                      <button
+                        class="btn small ghost"
+                        (click)="clearDoor()"
+                        data-testid="doors-clear"
+                      >
+                        Clear selection
+                      </button>
+                      @if (isSaving('doors')) {
+                        <span class="saving" role="status" data-testid="saving">Saving…</span>
+                      }
+                    </div>
+                  </div>
+                } @else if (selectMode() === 'doorways') {
+                  <p class="hint" data-testid="door-pick-hint">
+                    Click doorways on the map to select them (click again to unselect); one can be
+                    moved, several removed together.
+                  </p>
+                }
 
                 <h3>Needs attention ({{ f.needsAttention.length }})</h3>
                 @for (q of f.needsAttention; track q.spaceId) {
@@ -469,9 +798,37 @@
                         Add another
                       </button>
                       <button class="btn small danger" [disabled]="busy()" (click)="removeDoor(d)">
-                        Remove
+                        Remove…
                       </button>
                     </div>
+                    @if (removeChoice() === d.doorId) {
+                      <div class="button-row" data-testid="remove-choice">
+                        <span class="hint"
+                          >Remove this doorway: keep a wall there, or remove the separation so both
+                          sides become one space?</span
+                        >
+                        <button
+                          class="btn small"
+                          style="background: #d84315; color: #fff"
+                          [disabled]="busy()"
+                          (click)="removeDoorAs(d, 'wall')"
+                          data-testid="remove-as-wall"
+                        >
+                          Make it a wall
+                        </button>
+                        <button
+                          class="btn small danger"
+                          [disabled]="busy()"
+                          (click)="removeDoorAs(d, 'none')"
+                          data-testid="remove-as-none"
+                        >
+                          Remove it (no wall)
+                        </button>
+                        <button class="btn small ghost" (click)="removeChoice.set(null)">
+                          Cancel
+                        </button>
+                      </div>
+                    }
                   </div>
                 } @empty {
                   <p class="hint">No assumed doorways on this floor.</p>
@@ -483,6 +840,7 @@
               class="panel regions-panel"
               aria-labelledby="regions-title"
               data-testid="regions"
+              [hidden]="sidePanel() !== 'regions'"
             >
               <div class="panel-heading">
                 <h2 id="regions-title">Regions</h2>
@@ -547,9 +905,11 @@
                   >
                     <h3 id="merge-title">Merge two rooms</h3>
                     <p class="hint">
-                      One merge at a time. Pick the room to keep first, then a room that shares a
-                      wall with it; the second room is merged into the first. You can unmerge later
-                      under “Merged rooms”.
+                      Merges two or more regions of the same type (hallways with hallways, rooms
+                      with rooms, stairs with stairs) that are close to each other; they don't have
+                      to touch. The one selected first is kept with its name; the others are removed
+                      and their space joins it. When rooms merge, only the part of a corridor
+                      directly between them is taken. You can unmerge later under “Merged rooms”.
                     </p>
                     @if (!group.length) {
                       <label class="field"
@@ -561,7 +921,7 @@
                         >
                           <option value="" selected>Choose a room, or click one on the map…</option>
                           @for (sp of floor()?.spaces ?? []; track sp.id) {
-                            <option [value]="sp.id" [disabled]="!sp.neighbours?.length">
+                            <option [value]="sp.id" [disabled]="!hasMergePartner(sp)">
                               {{ sp.label }}
                             </option>
                           }
@@ -571,7 +931,11 @@
                       <ol class="merge-members" data-testid="merge-members">
                         @for (m of mergeMembers(); track m.id; let first = $first) {
                           <li>
-                            <span class="merge-role">{{ first ? 'Keep' : 'Merge in' }}</span>
+                            <span class="merge-role">{{
+                              first
+                                ? 'Keep (selected first)'
+                                : 'Remove (merged into ' + mergeMembers()[0].label + ')'
+                            }}</span>
                             <span>{{ m.label }}</span>
                             <button
                               class="btn small ghost"
@@ -587,10 +951,10 @@
                       <p class="hint">
                         {{
                           mergeMembers().length > 1
-                            ? 'Or merge in a different room'
-                            : 'Merge in a room'
+                            ? 'Add another room to remove'
+                            : 'Choose a room to remove'
                         }}
-                        that shares a wall with {{ mergeMembers()[0]?.label }}:
+                        (same type, close to any chosen so far):
                       </p>
                       @if (mergeCandidates().length) {
                         <ul class="merge-candidates" data-testid="merge-candidates">
@@ -598,8 +962,6 @@
                             <li>
                               <button
                                 class="btn small secondary"
-                                [class.chosen]="group[1] === c.id"
-                                [attr.aria-pressed]="group[1] === c.id"
                                 (click)="addToMerge(c.id)"
                                 [attr.data-region-id]="c.id"
                                 data-testid="merge-candidate"
@@ -611,7 +973,7 @@
                         </ul>
                       } @else {
                         <p class="hint" data-testid="merge-none">
-                          No other room shares a wall with {{ mergeMembers()[0]?.label }}.
+                          No other room is close to the rooms chosen so far.
                         </p>
                       }
                     }
@@ -640,7 +1002,10 @@
                         (click)="mergeRegions()"
                         data-testid="merge-regions"
                       >
-                        @if (mergeMembers().length > 1) {
+                        @if (mergeMembers().length > 2) {
+                          Merge {{ mergeMembers().length - 1 }} rooms into
+                          {{ mergeMembers()[0].label }}
+                        } @else if (mergeMembers().length === 2) {
                           Merge {{ mergeMembers()[1].label }} into {{ mergeMembers()[0].label }}
                         } @else {
                           Merge
@@ -667,6 +1032,45 @@
                   >
                     Merge rooms
                   </button>
+                }
+
+                @if (selectedHall(); as hall) {
+                  <button
+                    class="btn small secondary"
+                    [disabled]="busy()"
+                    (click)="showHallPoints()"
+                    data-testid="hall-points"
+                  >
+                    Photo points for {{ hall.label }}
+                  </button>
+                  @if (isSaving('hall-points')) {
+                    <span class="saving" role="status" data-testid="saving">Planning…</span>
+                  }
+                }
+
+                @if (strips().length) {
+                  <div class="merge-box" data-testid="thin-strips">
+                    <p>
+                      <strong
+                        >{{ strips().length }} thin strip{{
+                          strips().length === 1 ? '' : 's'
+                        }}</strong
+                      >
+                      between walls {{ strips().length === 1 ? 'is' : 'are' }} not real
+                      {{ strips().length === 1 ? 'a region' : 'regions' }}: {{ stripsText() }}.
+                    </p>
+                    <button
+                      class="btn small secondary"
+                      [disabled]="busy()"
+                      (click)="foldStrips()"
+                      data-testid="fold-strips"
+                    >
+                      Fold into neighbours
+                    </button>
+                    @if (isSaving('strips')) {
+                      <span class="saving" role="status" data-testid="saving">Saving…</span>
+                    }
+                  </div>
                 }
 
                 @if (merges().length) {
@@ -795,13 +1199,13 @@
                         </button>
                         <button
                           class="btn small secondary"
-                          [disabled]="busy() || !sp.neighbours?.length"
+                          [disabled]="busy() || !hasMergePartner(sp)"
                           (click)="openMerge(sp.id)"
-                          [attr.aria-label]="
-                            'Merge ' + sp.label + ' with a room that shares a wall'
-                          "
+                          [attr.aria-label]="'Merge ' + sp.label + ' with rooms close to it'"
                           [title]="
-                            sp.neighbours?.length ? '' : 'No room shares a wall with this one'
+                            hasMergePartner(sp)
+                              ? ''
+                              : 'No region of the same type is close to this one'
                           "
                           data-testid="merge-from"
                         >

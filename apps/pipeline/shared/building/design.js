@@ -166,6 +166,8 @@ const esc = (s) =>
       })[c],
   );
 const pts = (p) => p.map((v) => `${v.x},${v.y}`).join(" ");
+// Walls the map author made from doorways are drawn black.
+export const MADE_WALL = "#000000";
 export function labelPoint(polygon) {
   const c = centre(polygon);
   const clearanceAt = (p) =>
@@ -206,6 +208,10 @@ export function labelPoint(polygon) {
     }
   return best || polygon[0];
 }
+// A merge that surrounds another region opens it with a thin seam, kept as its
+// own region `<keptId>:seam-<n>` joined to the kept one by doorways along both
+// long sides. Seams are drawn and clicked as part of the kept region.
+export const seamParent = (id) => /^(.+):seam-\d+$/.exec(id)?.[1] ?? null;
 const fontFamily = (font) =>
   ({
     sans: "Arial, Helvetica, sans-serif",
@@ -234,29 +240,64 @@ export function designContent(
   let out = `<defs><pattern id="${pattern}" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="${c.storage}"/><path d="M-1 1L1 -1M0 6L6 0M5 7L7 5" stroke="${c.wall}" stroke-opacity=".2" stroke-width=".7"/></pattern>${stairs ? `<pattern id="${treads}" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="${c.lobby}"/><path d="M0 2H4" stroke="${c.wall}" stroke-opacity=".35" stroke-width=".5"/></pattern>` : ""}</defs><rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="${c.background}"/>`;
   if (s.showTitle)
     out += `<text x="${minX}" y="${minY - unit * 1.4}" font-family="${fontFamily(s.labels.font)}" fill="${c.text}" font-size="${unit * 1.15}" font-weight="700">${esc(s.title || floor.label)}</text><text x="${maxX}" y="${minY - unit * 1.4}" text-anchor="end" font-family="Arial, sans-serif" fill="${c.text}" opacity=".65" font-size="${unit * 0.45}">INDOOR MAP · ${reviewLabel(floor)}</text>`;
+  const fillOf = (r) =>
+      r.access === "nonwalkable"
+        ? `url(#${pattern})`
+        : r.access === "unknown"
+          ? "#f2d8a7"
+          : s.rooms[r.id]?.fill || (r.use === "stair" ? `url(#${treads})` : c[r.kind] || c.room),
+    byId = new Map(floor.geometry.spaces.map((r) => [r.id, r])),
+    seams = floor.geometry.spaces.filter((r) => byId.has(seamParent(r.id)));
+  // Seam fills go underneath, so neighbouring walls stay on top of them.
+  for (const r of seams)
+    out += `<g data-room-id="${esc(seamParent(r.id))}" class="designed-room designed-seam"><title>${esc(byId.get(seamParent(r.id)).label)}</title><polygon points="${pts(r.polygon)}" fill="${fillOf(byId.get(seamParent(r.id)))}" stroke="none"/></g>`;
   for (const r of floor.geometry.spaces) {
-    const override = s.rooms[r.id],
-      fill =
-        r.access === "nonwalkable"
-          ? `url(#${pattern})`
-          : r.access === "unknown"
-            ? "#f2d8a7"
-            : override?.fill || (r.use === "stair" ? `url(#${treads})` : c[r.kind] || c.room);
+    if (seams.includes(r)) continue;
+    const fill = fillOf(r);
     out += `<g data-room-id="${esc(r.id)}" class="designed-room"><title>${esc(r.label)}${r.use === "stair" ? " · Stair" : ""}${r.access === "unknown" ? " · Doorway review needed" : r.use === "closed" ? " · Closed" : r.access === "nonwalkable" ? " · Non-walkable" : ""}</title><polygon points="${pts(r.polygon)}" fill="${fill}" stroke="${selection === r.id ? c.accent : showWalls ? c.wall : "none"}" stroke-width="${selection === r.id ? s.wallWidth * 2 : s.wallWidth}" stroke-linejoin="round"${r.access === "unknown" ? ' stroke-dasharray="2 1.5"' : ""}/></g>`;
   }
+  // The kept region's outline along each seam's long sides is painted over in
+  // its fill, so the seam reads as part of it; its short ends sit on walls
+  // (the outer edge and the surrounded region's), which are drawn back on top.
+  for (const r of seams) {
+    const parent = byId.get(seamParent(r.id)),
+      fill = fillOf(parent),
+      edges = r.polygon.map((a, i) => [a, r.polygon[(i + 1) % r.polygon.length]]),
+      // Ends reach past the painted sides (by `grow`) so no fill shows through.
+      path = (long, grow = 0) =>
+        edges
+          .filter(([a, b]) => Math.hypot(b.x - a.x, b.y - a.y) > 4 === long)
+          .map(([a, b]) => {
+            const l = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = ((b.x - a.x) / l) * grow, uy = ((b.y - a.y) / l) * grow;
+            return `M${a.x - ux},${a.y - uy}L${b.x + ux},${b.y + uy}`;
+          })
+          .join(""),
+      sides = path(true),
+      ends = path(false, s.wallWidth);
+    if (sides)
+      out += `<g data-room-id="${esc(parent.id)}" class="designed-room designed-seam"><title>${esc(parent.label)}</title><path d="${sides}" fill="none" stroke="${fill}" stroke-width="${s.wallWidth * 2}"/>${showWalls && ends ? `<path d="${ends}" fill="none" stroke="${c.wall}" stroke-width="${s.wallWidth}" stroke-linecap="square"/>` : ""}</g>`;
+  }
+  const seamJoin = (d) => d.spaceIds.length === 2 && d.spaceIds.some((id) => seams.some((r) => r.id === id) && d.spaceIds.includes(seamParent(id)));
   if (s.showDoors && showWalls)
     for (const d of floor.geometry.doors) {
+      if (seamJoin(d)) continue;
       const target = d.spaceIds
           .map((id) => floor.geometry.spaces.find((r) => r.id === id))
           .find((r) => r?.kind === "corridor" || r?.kind === "lobby"),
         fill = target ? c[target.kind] || c.corridor : c.corridor;
-      out += `<path d="M${d.a.x},${d.a.y}L${d.b.x},${d.b.y}" fill="none" stroke="${fill}" stroke-width="${s.wallWidth * 2.2}"/><path d="M${d.a.x},${d.a.y}L${d.b.x},${d.b.y}" fill="none" stroke="${c.accent}" stroke-width="${s.wallWidth * 0.45}" opacity=".7"/>`;
+      // A wide transparent line makes the doorway easy to click in the editor.
+      out += `<g data-door-id="${esc(d.id)}" class="designed-door"><title>${esc(d.label || "Doorway")}</title><path d="M${d.a.x},${d.a.y}L${d.b.x},${d.b.y}" fill="none" stroke="${fill}" stroke-width="${s.wallWidth * 2.2}"/><path d="M${d.a.x},${d.a.y}L${d.b.x},${d.b.y}" fill="none" stroke="${c.accent}" stroke-width="${s.wallWidth * 0.45}" opacity=".7"/><path d="M${d.a.x},${d.a.y}L${d.b.x},${d.b.y}" fill="none" stroke="transparent" stroke-width="${Math.max(10, s.wallWidth * 10)}" pointer-events="stroke"/></g>`;
     }
+  // Doorways the map author made into walls: drawn as solid black walls.
+  if (showWalls)
+    for (const w of floor.geometry.walls.filter((w) => w.id.endsWith(":wall")))
+      out += `<polyline data-wall-id="${esc(w.id)}" class="made-wall" points="${pts(w.points)}" fill="none" stroke="${MADE_WALL}" stroke-width="${s.wallWidth * 2.4}" stroke-linecap="round"><title>Wall (was a doorway)</title></polyline>`;
   if (s.labels.visible)
     for (const r of floor.geometry.spaces) {
       if (
         (!s.labels.corridors && r.kind === "corridor") ||
-        (r.access === "nonwalkable" && r.use !== "closed")
+        (r.access === "nonwalkable" && r.use !== "closed") ||
+        seamParent(r.id)
       )
         continue;
       const xs = r.polygon.map((p) => p.x),

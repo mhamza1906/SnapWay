@@ -87,6 +87,13 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/capture"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 CAPTURE_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+# Capture photos are stored in Cloudflare R2 only (capture/photo_store.py); never on disk.
+CAPTURE_PHOTO_STORE = env("CAPTURE_PHOTO_STORE", default="r2")
+R2_ACCOUNT_ID = env("R2_ACCOUNT_ID", default="")
+R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
+R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
+R2_BUCKET_NAME = env("R2_BUCKET_NAME", default="")
+R2_PREFIX = env("R2_PREFIX", default="snapway")
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = None

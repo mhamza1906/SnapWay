@@ -60,6 +60,10 @@ const regionSpaces: SpaceSummary[] = [
   },
   { id: 'l1', label: 'Open lobby 2', kind: 'lobby', doors: 1, stair: false, neighbours: ['h1'] },
 ];
+/** The fixture with Hallway 3 as a room-type region, for room merge tests. */
+function roomLike(): BuildingSummary {
+  return withSpaces(regionSpaces.map((s) => (s.id === 'h1' ? { ...s, kind: 'room' } : s)));
+}
 function withSpaces(spaces: SpaceSummary[]): BuildingSummary {
   const floor: FloorSummary = {
     ...summary.floors[0],
@@ -107,7 +111,9 @@ const roomsSvg =
   '<g data-room-id="r1" class="designed-room"><polygon points="100,100 200,100 200,200 100,200"/></g>' +
   '<g data-room-id="h1" class="designed-room"><polygon points="400,300 600,300 600,400 400,400"/></g>' +
   '<g data-room-id="l1" class="designed-room"><polygon points="600,300 700,300 700,400 600,400"/></g>' +
-  '<g data-room-id="s1" class="designed-room"><polygon points="800,600 900,600 900,700 800,700"/></g></svg>';
+  '<g data-room-id="s1" class="designed-room"><polygon points="800,600 900,600 900,700 800,700"/></g>' +
+  '<g data-door-id="d7" class="designed-door"><path d="M140,200L160,200"/><path d="M140,200L160,200"/><path d="M140,200L160,200" pointer-events="stroke"/></g>' +
+  '<g data-door-id="d8" class="designed-door"><path d="M450,300L470,300"/><path d="M450,300L470,300"/><path d="M450,300L470,300" pointer-events="stroke"/></g></svg>';
 // An image too big to send on every click, and a building that carries it everywhere.
 const IMG = 'data:image/png;base64,' + 'A'.repeat(4000);
 const IMG_HISTORY = 'data:image/png;base64,' + 'B'.repeat(4000);
@@ -410,6 +416,185 @@ describe('map authoring page', () => {
     expect(page.message()).toBe('Hallway 3 is now a stair.');
   });
 
+  it('keeps the open building, floor and panel when you leave the page and come back', async () => {
+    const first = await startMapped();
+    within<HTMLButtonElement>(first.el, 'show-regions').click();
+    await noRender(first.fixture);
+    first.fixture.destroy();
+    // Back on Authoring: no reload; the floor is drawn again from the kept building.
+    const again = TestBed.createComponent(AuthoringPage);
+    again.detectChanges();
+    expect(again.componentInstance.building()).toBe(building);
+    expect(again.componentInstance.floorId()).toBe('floor-1');
+    expect(again.componentInstance.reviewer()).toBe('Sam');
+    expect(again.componentInstance.sidePanel()).toBe('regions');
+    expect(await renderOverlay()).toEqual({});
+    http.expectOne(`${PIPELINE_BASE}/health`).flush({
+      ok: true,
+      provider: 'Vertex AI',
+      configured: true,
+      model: 'gemini-4-argon',
+      effort: 'high',
+      environment: 'prod',
+    });
+    await flush();
+    http.expectOne(`${PIPELINE_BASE}/buildings`).flush({ buildings: [] });
+    await flush();
+    again.detectChanges();
+    expect(within(again.nativeElement, 'regions').hidden).toBe(false);
+  });
+
+  it('Select: Doorways picks a doorway on the map to move or remove, whatever its state', async () => {
+    const { fixture, page, el } = await startMapped();
+    const hit = () =>
+      el.querySelector('[data-testid="map"] [data-door-id="d7"] > path:last-child')!;
+    expect(hit().getAttribute('pointer-events')).toBe('none');
+    within<HTMLButtonElement>(el, 'select-doorways').click();
+    await noRender(fixture);
+    expect(hit().getAttribute('pointer-events')).toBe('stroke');
+    expect(within(el, 'door-pick-hint')).not.toBeNull();
+    hit().dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await flush();
+    const req = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/describe`);
+    expect(req.request.body).toEqual(jasmineLike({ floorId: 'floor-1', doorId: 'd7' }));
+    req.flush({
+      doorId: 'd7',
+      label: 'Doorway',
+      roomId: 'r1',
+      roomLabel: '101',
+      state: 'verified',
+      assumed: false,
+      joins: [
+        { id: 'r1', label: '101' },
+        { id: 'h1', label: 'Hallway 3' },
+      ],
+      edgeKey: 0,
+      t: 0.5,
+      width: 20,
+      segment: { a: { x: 140, y: 200 }, b: { x: 160, y: 200 } },
+      candidates: [
+        {
+          key: 0,
+          adjacentId: 'h1',
+          adjacentLabel: 'Hallway 3',
+          adjacentKind: 'corridor',
+          hallway: true,
+          length: 100,
+          doors: 1,
+          a: { x: 100, y: 200 },
+          b: { x: 200, y: 200 },
+        },
+      ],
+    });
+    await noRender(fixture);
+    const card = within<HTMLElement>(el, 'selected-door');
+    expect(card.textContent).toContain('101');
+    expect(card.textContent).toContain('Verified on the plan');
+    expect(page.sidePanel()).toBe('doorways');
+    expect(el.querySelector('[data-door-segment]')).not.toBeNull();
+    within<HTMLButtonElement>(card, 'selected-door-remove').click();
+    await noRender(fixture);
+    // Removing asks how: made into a wall, or the line removed.
+    http.expectNone(`${PIPELINE_BASE}/authoring/doorways/remove`);
+    within<HTMLButtonElement>(within(el, 'remove-choice'), 'remove-as-wall').click();
+    await flush();
+    const rm = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/remove`);
+    expect(rm.request.body).toEqual(
+      jasmineLike({ floorId: 'floor-1', doorId: 'd7', reviewer: 'Sam', as: 'wall' }),
+    );
+    rm.flush({ building, summary: withSpaces(regionSpaces) });
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(within(el, 'selected-door')).toBeNull();
+    expect(page.message()).toBe(
+      'Doorway between 101 and Hallway 3 made into a wall; paths rebuilt.',
+    );
+    within<HTMLButtonElement>(el, 'select-rooms').click();
+    await noRender(fixture);
+    expect(hit().getAttribute('pointer-events')).toBe('none');
+  });
+
+  it('selects several doorways by clicking (click again to unselect) and removes them together', async () => {
+    const { fixture, page, el } = await startMapped();
+    within<HTMLButtonElement>(el, 'select-doorways').click();
+    await noRender(fixture);
+    const info = (id: string, x: number, y: number, other: string) => ({
+      doorId: id,
+      label: 'Doorway',
+      roomId: 'r1',
+      roomLabel: '101',
+      state: 'legacy',
+      assumed: false,
+      joins: [
+        { id: 'r1', label: '101' },
+        { id: 'h1', label: other },
+      ],
+      edgeKey: 0,
+      t: 0.5,
+      width: 20,
+      segment: { a: { x, y }, b: { x: x + 20, y } },
+      candidates: [],
+    });
+    const click = async (id: string) => {
+      el.querySelector(
+        `[data-testid="map"] [data-door-id="${id}"] > path:last-child`,
+      )!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await flush();
+    };
+    await click('d7');
+    http
+      .expectOne(`${PIPELINE_BASE}/authoring/doorways/describe`)
+      .flush(info('d7', 140, 200, 'Hallway 3'));
+    await noRender(fixture);
+    await click('d8');
+    http
+      .expectOne(`${PIPELINE_BASE}/authoring/doorways/describe`)
+      .flush(info('d8', 450, 300, 'Lobby 2'));
+    await noRender(fixture);
+    expect(page.selectedDoorIds()).toEqual(['d7', 'd8']);
+    expect(within(el, 'selected-door')).toBeNull();
+    expect(within(el, 'selected-doors').textContent).toContain('2 doorways selected');
+    expect(el.querySelectorAll('[data-door-segment]').length).toBe(2);
+    // Clicking d8 again unselects it: back to the single-doorway card, no new request.
+    await click('d8');
+    await noRender(fixture);
+    expect(page.selectedDoorIds()).toEqual(['d7']);
+    expect(within(el, 'selected-door')).not.toBeNull();
+    await click('d8');
+    await noRender(fixture);
+    within<HTMLButtonElement>(el, 'doors-as-wall').click();
+    await flush();
+    const rm = http.expectOne(`${PIPELINE_BASE}/authoring/doorways/remove`);
+    expect(rm.request.body).toEqual(
+      jasmineLike({ floorId: 'floor-1', doorIds: ['d7', 'd8'], reviewer: 'Sam', as: 'wall' }),
+    );
+    rm.flush({ building, summary: withSpaces(regionSpaces) });
+    expect(await renderOverlay()).toEqual({});
+    fixture.detectChanges();
+    expect(page.selectedDoorIds()).toEqual([]);
+    expect(page.message()).toBe('2 doorways made into walls; paths rebuilt.');
+  });
+
+  it('shows one tool panel at a time: Doorways or Regions, switched by the toggle', async () => {
+    const { fixture, el } = await startMapped();
+    const doors = el.querySelector<HTMLElement>('[aria-labelledby="doors-title"]')!,
+      regions = within<HTMLElement>(el, 'regions');
+    expect([doors.hidden, regions.hidden]).toEqual([false, true]);
+    within<HTMLButtonElement>(el, 'show-regions').click();
+    await noRender(fixture);
+    expect([doors.hidden, regions.hidden]).toEqual([true, false]);
+    expect(within(el, 'show-regions').getAttribute('aria-selected')).toBe('true');
+    within<HTMLButtonElement>(el, 'show-doorways').click();
+    await noRender(fixture);
+    expect([doors.hidden, regions.hidden]).toEqual([false, true]);
+    // Clicking a region on the map opens the Regions panel.
+    el.querySelector('[data-testid="map"] [data-room-id="h1"] polygon')!.dispatchEvent(
+      new MouseEvent('click', { bubbles: true }),
+    );
+    await noRender(fixture);
+    expect(regions.hidden).toBe(false);
+  });
+
   it('highlights selected regions on the map; ticking never starts a merge', async () => {
     const { fixture, page, el } = await startMapped();
     expect(within(el, 'merge-regions')).toBeNull();
@@ -485,7 +670,7 @@ describe('map authoring page', () => {
   });
 
   it('merges two rooms from the Merge rooms menu: the second into the first', async () => {
-    const { fixture, page, el } = await startMapped();
+    const { fixture, page, el } = await startMapped(roomLike());
     within<HTMLButtonElement>(el, 'open-merge').click();
     await noRender(fixture);
     const start = within<HTMLSelectElement>(el, 'merge-start');
@@ -502,12 +687,12 @@ describe('map authoring page', () => {
     expect(drawnSelected(el)).toEqual(['r1']);
     within<HTMLButtonElement>(el, 'merge-candidate').click();
     await noRender(fixture);
-    // One merge at a time: still only rooms touching 101 are offered.
-    expect(offered()).toEqual(['h1']);
+    // The lobby is close to the hallway but is a hallway-type region, so it is not offered.
+    expect(offered()).toEqual([]);
     expect(page.mergeGroup()).toEqual(['r1', 'h1']);
     expect(drawnSelected(el)).toEqual(['r1', 'h1']);
     expect(el.querySelector('[data-testid="merge-members"]')!.textContent).toMatch(
-      /Keep\s*101.*Merge in\s*Hallway 3/s,
+      /Keep \(selected first\)\s*101.*Remove \(merged into 101\)\s*Hallway 3/s,
     );
 
     const name = within<HTMLInputElement>(el, 'merge-name');
@@ -539,6 +724,8 @@ describe('map authoring page', () => {
         { ...regionSpaces[2], neighbours: ['r1'] },
       ]),
       spaceId: 'r1',
+      absorbed: [{ id: 'c9', label: 'Closet 9' }],
+      carved: [{ id: 'h7', label: 'Hallway 7' }],
     });
     expect(await renderOverlay()).toEqual({});
     fixture.detectChanges();
@@ -547,34 +734,47 @@ describe('map authoring page', () => {
     expect(within(el, 'merge-box')).toBeNull();
     expect(row(el, 'h1')).toBeNull();
     expect(within(row(el, 'r1'), 'stair-badge')).not.toBeNull();
-    expect(page.message()).toBe('Merged 2 regions into "Main stair".');
+    expect(page.message()).toBe(
+      'Merged 2 regions into "Main stair". Also merged in what lay between them: Closet 9. Took only the part between the rooms from: Hallway 7.',
+    );
   });
 
-  it('only lets a room that shares a wall with the first room be merged into it', async () => {
-    const { fixture, page, el } = await startMapped();
+  it('with two rooms ticked, Merge rooms merges them: the first ticked is kept, the second removed', async () => {
+    const { fixture, page, el } = await startMapped(roomLike());
+    within<HTMLInputElement>(row(el, 'h1'), 'region-select').click();
+    within<HTMLInputElement>(row(el, 'r1'), 'region-select').click();
+    await noRender(fixture);
+    within<HTMLButtonElement>(el, 'open-merge').click();
+    await noRender(fixture);
+    expect(page.mergeGroup()).toEqual(['h1', 'r1']);
+    expect(within(el, 'merge-regions').textContent).toContain('Merge 101 into Hallway 3');
+    expect(el.querySelector('[data-testid="merge-members"]')!.textContent).toMatch(
+      /Keep \(selected first\)\s*Hallway 3.*Remove \(merged into Hallway 3\)\s*101/s,
+    );
+    within<HTMLButtonElement>(el, 'cancel-merge').click();
+    await noRender(fixture);
+  });
+
+  it('only merges regions of the same type that are close to a chosen one', async () => {
+    const { fixture, page, el } = await startMapped(roomLike());
     const click = async (id: string) => {
       el.querySelector(`[data-testid="map"] [data-room-id="${id}"] polygon`)!.dispatchEvent(
         new MouseEvent('click', { bubbles: true }),
       );
       await noRender(fixture);
     };
-    // A room's own Merge… button starts the menu from that room.
     within<HTMLButtonElement>(row(el, 'r1'), 'merge-from').click();
     await noRender(fixture);
     expect(page.mergeGroup()).toEqual(['r1']);
-    // The lobby doesn't touch 101, so it is refused.
-    await click('l1');
-    expect(page.mergeGroup()).toEqual(['r1']);
-    expect(page.message()).toBe(
-      "Open lobby 2 does not share a wall with 101, so they can't be merged.",
-    );
     await click('h1');
     expect(page.mergeGroup()).toEqual(['r1', 'h1']);
-    // Still two rooms only: the lobby touches the hallway but not 101.
+    // The lobby is close to the hallway piece, but it is a hallway and 101 is a room.
     await click('l1');
     expect(page.mergeGroup()).toEqual(['r1', 'h1']);
-    expect(page.selectedRegions()).toEqual([]);
-    // Removing the room to merge in keeps the first; removing the first starts over.
+    expect(page.message()).toBe(
+      'Open lobby 2 is a hallway and 101 is a room; hallways, rooms and stairs only merge with their own type.',
+    );
+    // Removing a room drops any room that was only close through it; removing the first starts over.
     within<HTMLButtonElement>(
       [...el.querySelectorAll<HTMLElement>('[data-testid="merge-members"] li')][1],
       'merge-remove',
@@ -584,11 +784,9 @@ describe('map authoring page', () => {
     within<HTMLButtonElement>(el, 'merge-remove').click();
     await noRender(fixture);
     expect(page.mergeGroup()).toEqual([]);
-    expect(within(el, 'merge-start')).not.toBeNull();
     within<HTMLButtonElement>(el, 'cancel-merge').click();
     await noRender(fixture);
     expect(page.mergeGroup()).toBeNull();
-    expect(drawnSelected(el)).toEqual([]);
     http.expectNone(`${PIPELINE_BASE}/authoring/spaces/merge`);
   });
 

@@ -194,6 +194,25 @@ not joined across polygon vertices, because a doorway must lie on one shared
 edge. `assumed[].candidates` always includes the door's current stretch
 (`edgeKey`), however short, and counts the other doors on each stretch in
 `doors`. Every listed key is valid for `doorways/edit` and `doorways/add`.
+
+Any doorway, not only assumed ones, can be edited or removed. In the editor,
+"Select on map: Doorways" makes each doorway clickable (the designed SVG wraps
+every door in `<g data-door-id>` with a wide transparent hit line). Clicking
+one calls `POST doorways/describe` `{building, floorId, doorId}` →
+`{doorId, label, roomId, roomLabel, state, assumed, joins: [{id, label}],
+edgeKey, t, width, segment, candidates}`; `state` is verified, assumed,
+legacy, stale or rejected, and `roomId` is the room the door is moved from
+(an assumed door's own room, else the side that is not a hallway).
+`doorways/edit` moves any door: a moved door keeps no old evidence and is
+recorded as placed in the editor (assumed) until a named person confirms it.
+`doorways/remove` removes any door the map author says does not exist,
+recorded as a `rejected-door` (human-reviewed when a name is given). Its
+`as` field says what is left: `"wall"` adds an explicit wall across the old
+opening (`<doorId>:wall`, drawn as a solid black line on the designed map),
+`"none"` just removes the doorway and leaves no wall (to join two spaces,
+merge them); omitted, the opening is closed as before. The editor asks which
+(Make it a wall / Remove it, no wall). `doorIds` removes several at once, in
+one transaction.
 Automatic placement still tries every stretch.
 
 ### `POST /api/authoring/render` (local)
@@ -293,7 +312,7 @@ recorded as a `classification` record with `evidence.method: "manual"`.
 | `rename` | `spaceId`, `label` (trimmed, 1–120 characters) | (none) | Renames the region. Graph node labels follow on the rebuild, and a display-only label override for the region is cleared. A rename does not lift a hold for source classification. Renaming to the current name changes nothing. |
 | `stair` | `spaceId`, `stair` (boolean, required) | (none) | `true` marks a walkable stair: `kind: "lobby"`, `use: "stair"`. A non-walkable region becomes walkable with access `unknown`. `false` makes it `kind: "room"` and removes `use`. Asking for the current state changes nothing. |
 | `kind` | `spaceId`, `kind` (required, one of the kinds below) | (none) | Sets the region's role. Asking for the current role changes nothing. A pending classification hold on the region is superseded. |
-| `merge` | `spaceIds` (exactly 2 distinct ids on this floor that share a wall), `label?`, `stair?` (boolean) | `spaceId`: the merged region's id, which is always `spaceIds[0]` | Merges the second region into the first, described below. One merge at a time. |
+| `merge` | `spaceIds` (2 or more distinct ids on this floor, each close to another chosen one), `label?`, `stair?` (boolean) | `spaceId` (always `spaceIds[0]`), `absorbed` (regions between the rooms that were merged in too) | Merges the other regions into the first, described below. |
 | `unmerge` | `recordId` (from the floor summary's `merges[]`) | (none) | Undoes one recorded merge, described below. |
 
 Kinds for `spaces/kind` (each sets `kind`, `use` and access together):
@@ -314,9 +333,30 @@ other than `stair` makes a stair no longer a stair. Errors:
 and `Unknown region.`
 
 Summary fields for merging: each `spaces[]` row has `neighbours`, the ids of
-regions it shares a wall with (at least 4 px of outline on the same line,
-within the 2 px merge snap; corner contact does not count). Only those can be
-merged with it. `merges[]` lists the floor's merges that are not undone,
+regions close enough to merge with it: touching, or within the floor's merge
+reach (2% of its larger side, at least 30 px). Rooms need not touch; each
+chosen room must be within reach of at least one other chosen room (not only
+the kept one). Gaps are bridged. Of a region lying between the rooms only
+the part directly between them is taken (the band across both facing sides):
+it is cut off, the region keeps the rest (pieces left on each side become
+`<id>:part-<k>` regions with the same name), and it is returned in `carved`.
+Types never mix: hallways (corridors, lobbies), rooms and stairs only merge
+with their own type, and the chosen regions must all be one type. Between
+rooms, only part of a corridor may be taken (never a whole corridor); between
+hallways, only hallway pieces. A same-type region 80% or more inside that
+band, or one the merged outline would surround, is taken whole and returned
+in `absorbed`; a region of another type in the way stops the merge with a message naming
+it. A region of another type the merged region would surround (a corridor
+loop round a room) stays itself: regions are single rings, so the hole is
+opened by a 3 px seam at the shortest crossing to the outer edge, kept as its
+own small region (`<id>:seam-<k>`) joined on both sides by open circulation
+joins (a seam under 4 px long is left as a gap); a hole no region occupies is
+filled. Rooms are never cut: a room between merged rooms is taken whole only
+if it is a closet (80% in the band, at most a quarter of the smallest chosen
+room). A doorway a corridor cut runs through is trimmed to the edge it keeps,
+with its evidence. The first chosen region always names the result. Walls left inside the
+merged room are cut. Unmerge restores cut regions to their whole shape and
+every doorway of the regions involved as it was. `merges[]` lists the floor's merges that are not undone,
 newest first: `{recordId, keptId, label (current name), keptLabel, removedId,
 removedLabel, at, undoable, reason}`. `undoable` is `false`, with a reason,
 while the merged region has been merged again since (undo the later merge
@@ -331,10 +371,10 @@ How `merge` builds the region:
   first label that does not start with Unlabelled, Hallway or Open lobby, or
   else the first label.
 - The kind is a stair (`lobby` + `use: "stair"`) when `stair` is `true`.
-  Otherwise it is `corridor` when every region is a corridor, `lobby` when
-  they are all corridors or lobbies with at least one lobby, and `room` in
-  every other case. When `stair` is omitted, the result stays a stair only
-  if every merged region was one.
+  Otherwise it is the first (kept) region's kind and use: pieces merged into
+  a hallway stay a hallway, never a big room. When `stair` is omitted, the
+  result stays a stair only if every merged region was one; a kept stair
+  that is not one any more becomes a room.
 - Doors between merged regions are removed, each with a `rejected-door`
   record. Doors to other regions are re-pointed to the kept id.
 - Walls along the merged-away boundaries are cut. That covers traced and
@@ -368,7 +408,7 @@ Errors from these routes:
 - `Choose a region kind: room, hall-room, corridor, lobby, stair or closed.`
 - `Merge two regions at a time.`
 - `Each region can be listed only once.`
-- `Only regions that share a wall can be merged: <name> does not share a wall with the rest.`
+- `Only rooms close to each other can be merged: <name> is too far from the others.`
 - `Regions must share a boundary to be merged.` A corner contact does not count.
 - `Unknown merge.`, `That merge was already undone.`, `<name> changed shape after this merge; unmerge its later merge first.`
 - `The merged region would surround an area that is not part of it; include that area too or merge fewer regions.`

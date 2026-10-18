@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Icon } from '../../shared/icon';
+import { AuthoringSession } from './authoring-session';
 import {
   AssumedDoor,
   BuildingSummary,
@@ -23,6 +24,7 @@ import {
   Health,
   LibraryEntry,
   MapJob,
+  DoorwayInfo,
   MergeRecord,
   PipelineBuilding,
   PipelineService,
@@ -31,6 +33,7 @@ import {
   RenderOverlay,
   SpaceRole,
   SpaceSummary,
+  HallPlan,
 } from './pipeline.service';
 
 interface DoorEdit {
@@ -119,6 +122,10 @@ export interface MapView {
   focus: string | null;
   /** A doorway segment drawn in magenta. */
   door: { a: Point; b: Point } | null;
+  /** Doorways take clicks (Select: Doorways); otherwise clicks reach the rooms. */
+  doorClicks?: boolean;
+  /** More doorway segments drawn in magenta (several doorways selected). */
+  doors?: readonly { a: Point; b: Point }[];
 }
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** The server's own viewBox, width and height, kept on the svg to restore "Show whole floor". */
@@ -183,27 +190,33 @@ export function applyMapView(host: HTMLElement, view: MapView): void {
     svg.removeAttribute('data-focus');
   }
 
+  // Each doorway's wide transparent hit line takes clicks only when selecting doorways.
+  for (const hit of svg.querySelectorAll('[data-door-id] > path:last-child'))
+    hit.setAttribute('pointer-events', view.doorClicks ? 'stroke' : 'none');
+
   svg.querySelector(':scope > [data-client-overlay]')?.remove();
-  if (view.door) {
+  const segments = [...(view.door ? [view.door] : []), ...(view.doors ?? [])];
+  if (segments.length) {
     const doc = svg.ownerDocument,
-      layer = doc.createElementNS(SVG_NS, 'g'),
-      line = doc.createElementNS(SVG_NS, 'line'),
-      { a, b } = view.door;
+      layer = doc.createElementNS(SVG_NS, 'g');
     layer.setAttribute('data-client-overlay', 'true');
     layer.setAttribute('pointer-events', 'none');
-    for (const [k, v] of Object.entries({
-      x1: a.x,
-      y1: a.y,
-      x2: b.x,
-      y2: b.y,
-      stroke: DOOR_COLOR,
-      'stroke-width': 4,
-      'stroke-linecap': 'round',
-      'pointer-events': 'none',
-      'data-door-segment': 'true',
-    }))
-      line.setAttribute(k, String(v));
-    layer.appendChild(line);
+    for (const { a, b } of segments) {
+      const line = doc.createElementNS(SVG_NS, 'line');
+      for (const [k, v] of Object.entries({
+        x1: a.x,
+        y1: a.y,
+        x2: b.x,
+        y2: b.y,
+        stroke: DOOR_COLOR,
+        'stroke-width': 4,
+        'stroke-linecap': 'round',
+        'pointer-events': 'none',
+        'data-door-segment': 'true',
+      }))
+        line.setAttribute(k, String(v));
+      layer.appendChild(line);
+    }
     svg.appendChild(layer);
   }
 }
@@ -225,15 +238,17 @@ export class AuthoringPage implements OnInit {
   readonly health = signal<Health | null>(null);
   readonly offline = signal('');
   readonly library = signal<LibraryEntry[]>([]);
-  readonly building = signal<PipelineBuilding | null>(null);
-  readonly summary = signal<BuildingSummary | null>(null);
-  readonly floorId = signal('');
+  /** Kept app-wide, so the open building survives leaving and returning to this page. */
+  private readonly session = inject(AuthoringSession);
+  readonly building = this.session.building;
+  readonly summary = this.session.summary;
+  readonly floorId = this.session.floorId;
   readonly svg = signal<SafeHtml | null>(null);
   readonly job = signal<MapJob | null>(null);
   readonly busy = signal(false);
   readonly message = signal('');
   readonly error = signal('');
-  readonly reviewer = signal('');
+  readonly reviewer = this.session.reviewer;
   readonly edits = signal<Record<string, DoorEdit>>({});
   readonly addRoom = signal('');
   readonly addEdges = signal<EdgeOption[]>([]);
@@ -266,6 +281,20 @@ export class AuthoringPage implements OnInit {
    * merge at a time: the second room must share a wall with the first, which keeps its id.
    */
   readonly mergeGroup = signal<string[] | null>(null);
+  /** The tool panel shown beside the map: doorway tools or region tools. */
+  readonly sidePanel = this.session.sidePanel;
+  readonly selectMode = this.session.selectMode;
+  /** The doorway clicked on the map (Select: Doorways), shown under Doorways to edit or remove. */
+  readonly selectedDoor = signal<DoorwayInfo | null>(null);
+  /** Doorways selected on the map in click order; a click toggles one. */
+  readonly selectedDoorIds = signal<string[]>([]);
+  private readonly doorInfos = signal<Record<string, DoorwayInfo>>({});
+  /** The selected doorways (two or more) for the bulk card. */
+  readonly selectedDoors = computed(() =>
+    this.selectedDoorIds()
+      .map((id) => this.doorInfos()[id])
+      .filter((d): d is DoorwayInfo => !!d),
+  );
   readonly nameMax = REGION_NAME_MAX;
   readonly roleChoices = ROLE_CHOICES;
   /** "Show on map": the region the map is zoomed to; null shows the whole floor. */
@@ -293,7 +322,9 @@ export class AuthoringPage implements OnInit {
     return {
       highlight: this.highlighted(),
       focus: here ? f.spaceId : null,
-      door: here && f.door ? this.doorLine() : null,
+      door: here && f.door ? this.doorLine() : this.selectedDoor() ? this.doorLine() : null,
+      doorClicks: this.selectMode() === 'doorways',
+      doors: this.selectedDoors().length > 1 ? this.selectedDoors().map((d) => d.segment) : [],
     };
   });
 
@@ -336,14 +367,47 @@ export class AuthoringPage implements OnInit {
       .filter((s): s is SpaceSummary => !!s);
   });
   /** Rooms that share a wall with the first room of the merge: the only ones it can take in. */
+  /** Hallways, stairs and rooms only merge with their own type. */
+  mergeType(s: SpaceSummary): 'hallway' | 'stair' | 'room' {
+    return s.use === 'stair' || s.stair
+      ? 'stair'
+      : ['corridor', 'lobby', 'hallway'].includes(s.kind)
+        ? 'hallway'
+        : 'room';
+  }
+  /** Whether a region has a nearby region of its own type to merge with. */
+  hasMergePartner(sp: SpaceSummary): boolean {
+    const spaces = this.floor()?.spaces ?? [];
+    return (sp.neighbours ?? []).some((id) => {
+      const other = spaces.find((s) => s.id === id);
+      return !!other && this.mergeType(other) === this.mergeType(sp);
+    });
+  }
+  /** Regions of the first one's type close to any region chosen so far: the ones that can join. */
   readonly mergeCandidates = computed<SpaceSummary[]>(() => {
-    const first = this.mergeMembers()[0];
-    if (!first) return [];
-    const touching = new Set(first.neighbours ?? []);
-    return (this.floor()?.spaces ?? []).filter((s) => s.id !== first.id && touching.has(s.id));
+    const members = this.mergeMembers(),
+      ids = new Set(members.map((m) => m.id)),
+      close = new Set(members.flatMap((m) => m.neighbours ?? [])),
+      type = members[0] && this.mergeType(members[0]);
+    return (this.floor()?.spaces ?? []).filter(
+      (s) => !ids.has(s.id) && close.has(s.id) && this.mergeType(s) === type,
+    );
   });
   /** Merges on this floor that can be undone, newest first. */
   readonly merges = computed(() => this.floor()?.merges ?? []);
+  /** The photo point plan drawn on the map, if any. */
+  readonly hallPlan = signal<HallPlan | null>(null);
+  /** The one selected region, when it is a hall (corridor or lobby). */
+  readonly selectedHall = computed(() => {
+    const s = this.selectedSpaces();
+    return s.length === 1 && (s[0].kind === 'corridor' || s[0].kind === 'lobby') ? s[0] : null;
+  });
+  readonly strips = computed(() => (this.floor()?.strips ?? []).filter((s) => s.hostId));
+  readonly stripsText = computed(() =>
+    this.strips()
+      .map((s) => `${s.label} → ${s.hostLabel}`)
+      .join(', '),
+  );
   readonly mergeStair = computed(
     () => this.mergeStairChoice() ?? this.mergeMembers().some((s) => this.isStair(s)),
   );
@@ -369,6 +433,8 @@ export class AuthoringPage implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    // Back from another page: the building is still open; draw its floor again.
+    if (this.building() && this.summary()) void this.repaint();
     try {
       this.health.set(await this.pipeline.health());
       this.library.set((await this.pipeline.library()).buildings);
@@ -457,6 +523,9 @@ export class AuthoringPage implements OnInit {
     if (!edited.summary.floors.some((f) => f.floorId === this.floorId()))
       this.floorId.set(edited.summary.floors[0]?.floorId ?? '');
     this.edits.set({});
+    this.selectedDoor.set(null);
+    this.selectedDoorIds.set([]);
+    this.doorInfos.set({});
     this.addRoom.set('');
     this.addEdges.set([]);
     this.pruneRegions(edited.summary);
@@ -635,10 +704,22 @@ export class AuthoringPage implements OnInit {
       `door:${door.doorId}`,
     );
   }
-  removeDoor(door: AssumedDoor): Promise<void> {
+  /** Removing a doorway first asks how: made into a wall, or the line removed. */
+  readonly removeChoice = signal<string | null>(null);
+  removeDoor(door: AssumedDoor): void {
+    this.removeChoice.set(door.doorId);
+  }
+  removeDoorAs(door: AssumedDoor, as: 'wall' | 'none'): Promise<void> {
+    this.removeChoice.set(null);
+    const what =
+      'joins' in door
+        ? `between ${(door as DoorwayInfo).joins.map((j) => j.label).join(' and ')}`
+        : `of ${door.roomLabel}`;
     return this.edit(
-      (b, f) => this.pipeline.removeDoor(b, f, door.doorId, this.reviewer()),
-      `Assumed doorway removed from ${door.roomLabel}.`,
+      (b, f) => this.pipeline.removeDoor(b, f, door.doorId, this.reviewer(), as),
+      as === 'wall'
+        ? `Doorway ${what} made into a wall; paths rebuilt.`
+        : `Doorway ${what} removed (no wall); paths rebuilt.`,
       `door:${door.doorId}`,
     );
   }
@@ -801,6 +882,11 @@ export class AuthoringPage implements OnInit {
 
   /** Ticks or unticks a region; the map highlight is applied in the browser (no request). */
   toggleRegion(id: string): void {
+    // While merging, ticking a room picks it for the merge.
+    if (this.mergeGroup()) {
+      this.toggleMerge(id);
+      return;
+    }
     this.selectedRegions.update((sel) =>
       sel.includes(id) ? sel.filter((s) => s !== id) : [...sel, id],
     );
@@ -816,17 +902,72 @@ export class AuthoringPage implements OnInit {
    */
   mapClick(event: Event): void {
     const target = event.target as Element | null,
-      id = target?.closest?.('[data-room-id]')?.getAttribute('data-room-id');
+      id = target?.closest?.('[data-room-id]')?.getAttribute('data-room-id'),
+      photo = target?.closest?.('[data-photo]')?.getAttribute('data-photo');
+    // A photo point on the map picks it for the Photo points menu.
+    if (photo !== null && photo !== undefined && this.hallPlan()) {
+      this.togglePhoto(Number(photo));
+      this.sidePanel.set('photos');
+      return;
+    }
+    if (this.selectMode() === 'doorways') {
+      const doorId = target?.closest?.('[data-door-id]')?.getAttribute('data-door-id');
+      if (doorId) void this.selectDoor(doorId);
+      return;
+    }
     if (!id || !this.floor()?.spaces.some((s) => s.id === id)) return;
+    this.sidePanel.set('regions');
     if (this.mergeGroup()) this.toggleMerge(id);
     else this.toggleRegion(id);
   }
 
-  /** Opens the Merge rooms menu, starting from `startId` or the single selected region. */
+  /**
+   * Opens the Merge rooms menu. With two rooms ticked it merges those: the one ticked
+   * first is kept and the second is removed into it. Otherwise it starts from `startId`
+   * or the one ticked room.
+   */
   openMerge(startId?: string): void {
     const sel = this.selectedRegions(),
-      start = startId ?? (sel.length === 1 ? sel[0] : undefined);
+      start = startId ?? sel[0];
     this.mergeGroup.set(start ? [start] : []);
+    // Ticked rooms join in order; one too far from all the others is left out.
+    if (!startId) {
+      const pending = sel.slice(1);
+      for (let progress = true; pending.length && progress;) {
+        progress = false;
+        for (const id of [...pending])
+          if (this.mergeCandidates().some((s) => s.id === id)) {
+            this.mergeGroup.update((g) => [...(g ?? []), id]);
+            pending.splice(pending.indexOf(id), 1);
+            progress = true;
+          }
+      }
+      if (pending.length) {
+        const first = this.mergeMembers()[0],
+          left = pending
+            .map((id) => this.floor()?.spaces.find((s) => s.id === id))
+            .filter((s): s is SpaceSummary => !!s),
+          other = left
+            .filter((s) => first && this.mergeType(s) !== this.mergeType(first))
+            .map((s) => s.label),
+          far = left
+            .filter((s) => !first || this.mergeType(s) === this.mergeType(first))
+            .map((s) => s.label),
+          parts = [
+            other.length
+              ? `${other.join(', ')} ${other.length === 1 ? 'is' : 'are'} not the same type as ${first?.label}`
+              : '',
+            far.length
+              ? `${far.join(', ')} ${far.length === 1 ? 'is' : 'are'} too far from the other rooms`
+              : '',
+          ].filter(Boolean);
+        this.say(
+          `${parts.join('; ')}, so ${pending.length === 1 ? 'it was' : 'they were'} left out.`,
+        );
+      }
+    }
+    this.selectedRegions.set([]);
+    this.sidePanel.set('regions');
     this.mergeName.set('');
     this.mergeStairChoice.set(null);
     this.showSelection();
@@ -850,26 +991,254 @@ export class AuthoringPage implements OnInit {
    * Sets the first room, or the room to merge into it (replacing an earlier choice). A room
    * that doesn't share a wall with the first one is refused with a reason.
    */
-  addToMerge(id: string): void {
+  addToMerge(id: string): boolean {
     const group = this.mergeGroup();
-    if (!group || group[0] === id) return;
+    if (!group || group.includes(id)) return false;
     if (!group.length) {
       this.mergeGroup.set([id]);
-      return;
+      return true;
     }
     if (!this.mergeCandidates().some((s) => s.id === id)) {
-      const name = this.floor()?.spaces.find((s) => s.id === id)?.label ?? id,
-        first = this.mergeMembers()[0]?.label ?? group[0];
-      this.say(`${name} does not share a wall with ${first}, so they can't be merged.`);
-      return;
+      const space = this.floor()?.spaces.find((s) => s.id === id),
+        first = this.mergeMembers()[0],
+        name = space?.label ?? id;
+      this.say(
+        space && first && this.mergeType(space) !== this.mergeType(first)
+          ? `${name} is a ${this.mergeType(space)} and ${first.label} is a ${this.mergeType(first)}; hallways, rooms and stairs only merge with their own type.`
+          : `${name} is too far from the rooms being merged, so it can't join them.`,
+      );
+      return false;
     }
-    this.mergeGroup.set([group[0], id]);
+    this.mergeGroup.set([...group, id]);
+    return true;
   }
-  /** Removing the first room starts over; removing the second keeps the first. */
+  /**
+   * Removing the first room starts over; removing another also drops any room that was
+   * only close to the chosen rooms through it.
+   */
   removeFromMerge(id: string): void {
     const group = this.mergeGroup();
     if (!group) return;
-    this.mergeGroup.set(group[0] === id ? [] : group.filter((g) => g !== id));
+    if (group[0] === id) {
+      this.mergeGroup.set([]);
+      return;
+    }
+    const rest = group.filter((g) => g !== id),
+      spaces = this.floor()?.spaces ?? [],
+      close = (g: string) => spaces.find((s) => s.id === g)?.neighbours ?? [],
+      kept = new Set([rest[0]]),
+      queue = [rest[0]];
+    for (let i = 0; i < queue.length; i++)
+      for (const n of close(queue[i]))
+        if (rest.includes(n) && !kept.has(n)) {
+          kept.add(n);
+          queue.push(n);
+        }
+    this.mergeGroup.set(rest.filter((g) => kept.has(g)));
+  }
+  /** Switches what a click on the map selects. */
+  setSelectMode(mode: 'rooms' | 'doorways'): void {
+    this.selectMode.set(mode);
+    this.sidePanel.set(mode === 'doorways' ? 'doorways' : 'regions');
+    if (mode === 'rooms') this.clearDoor();
+  }
+  /**
+   * A click on a doorway adds it to the selection (drawn in magenta); clicking it again
+   * removes it. One selected doorway can be moved or removed; several can be removed
+   * together.
+   */
+  async selectDoor(doorId: string): Promise<void> {
+    const building = this.building();
+    if (!building) return;
+    this.sidePanel.set('doorways');
+    this.removeChoice.set(null);
+    if (this.selectedDoorIds().includes(doorId)) {
+      this.selectedDoorIds.update((ids) => ids.filter((id) => id !== doorId));
+      this.showDoorSelection();
+      return;
+    }
+    try {
+      const info =
+        this.doorInfos()[doorId] ??
+        (await this.pipeline.describeDoor(building, this.floorId(), doorId));
+      this.doorInfos.update((all) => ({ ...all, [doorId]: info }));
+      this.edits.update((all) => {
+        const { [doorId]: _, ...rest } = all;
+        return rest;
+      });
+      this.selectedRegions.set([]);
+      this.focused.set(null);
+      this.selectedDoorIds.update((ids) => [...ids, doorId]);
+      this.showDoorSelection();
+    } catch (e) {
+      this.error.set(this.errorText(e));
+    }
+  }
+  /** One selected doorway gets the editing card; several get the bulk card. */
+  private showDoorSelection(): void {
+    const ids = this.selectedDoorIds(),
+      one = ids.length === 1 ? (this.doorInfos()[ids[0]] ?? null) : null;
+    this.selectedDoor.set(one);
+    this.doorLine.set(one ? one.segment : null);
+  }
+  clearDoor(): void {
+    this.selectedDoorIds.set([]);
+    this.selectedDoor.set(null);
+    this.doorLine.set(null);
+  }
+  /** Removes every selected doorway the same way: as walls, or joining the spaces. */
+  removeSelectedDoorsAs(as: 'wall' | 'none'): Promise<void> {
+    const ids = this.selectedDoorIds();
+    if (ids.length < 2) return Promise.resolve();
+    return this.edit(
+      (b, f) => this.pipeline.removeDoors(b, f, ids, this.reviewer(), as),
+      as === 'wall'
+        ? `${ids.length} doorways made into walls; paths rebuilt.`
+        : `${ids.length} doorways removed (no walls); paths rebuilt.`,
+      'doors',
+    );
+  }
+  /** Moves (or confirms) the selected doorway with the pending edit. */
+  saveSelectedDoor(confirm = false): Promise<void> {
+    const door = this.selectedDoor();
+    return door ? this.applyMove(door, confirm) : Promise.resolve();
+  }
+  /** The selected doorway does not exist on the plan: asks how to remove it. */
+  removeSelectedDoor(): void {
+    const door = this.selectedDoor();
+    if (door) this.removeDoor(door);
+  }
+  readonly joinLabel = (j: { label: string }) => j.label;
+  /** Readable doorway state for the selected-doorway card. */
+  doorStateText(state: string): string {
+    return (
+      {
+        verified: 'Verified on the plan',
+        assumed: 'Assumed (not seen on the plan)',
+        legacy: 'From the map (no separate check)',
+        stale: 'Needs checking',
+        rejected: 'Rejected',
+      }[state] ?? state
+    );
+  }
+
+  /** Plans photo points over the whole selected hall and draws them. */
+  async showHallPoints(): Promise<void> {
+    const building = this.building(),
+      hall = this.selectedHall();
+    if (!building || !hall) return;
+    await this.run(async () => {
+      const plan = await this.pipeline.hallPoints(building, this.floorId(), hall.id);
+      this.hallPlan.set({ ...plan, points: plan.points.map((p, i) => ({ ...p, key: i })) });
+      this.pickedPhotos.set([]);
+      this.photosVisible.set(true);
+      this.sidePanel.set('photos');
+      this.drawPhotos();
+      this.say(
+        `${plan.points.length} photo points across ${plan.label}, numbered in walking order, ` +
+          (plan.scaleVerified
+            ? `every ${plan.spacingM} m.`
+            : `every ${Math.round(plan.spacingPx)} map pixels (no verified scale, so not metres).`),
+      );
+      await this.redraw();
+    }, 'hall-points');
+  }
+  /** Whether the photo points are drawn on the map; hiding keeps the list. */
+  readonly photosVisible = signal(true);
+  async togglePhotosVisible(): Promise<void> {
+    this.photosVisible.update((v) => !v);
+    this.drawPhotos();
+    await this.repaint();
+  }
+  /** Deletes the photo point plan (list and map). */
+  async clearHallPoints(): Promise<void> {
+    this.hallPlan.set(null);
+    this.pickedPhotos.set([]);
+    this.photosVisible.set(true);
+    this.drawPhotos();
+    await this.repaint();
+  }
+  /** Photo point keys picked in the Photo points menu or on the map. */
+  readonly pickedPhotos = signal<number[]>([]);
+  /** True when the numbers have gaps (after removing points) and Relabel would change them. */
+  readonly photoGaps = computed(() =>
+    (this.hallPlan()?.points ?? []).some((p, i) => p.order !== i + 1),
+  );
+  private drawPhotos(): void {
+    const plan = this.hallPlan(),
+      picked = new Set(this.pickedPhotos());
+    this.overlay =
+      plan && this.photosVisible()
+        ? {
+            routes: plan.lines,
+            photoPoints: plan.points.map((p) => ({ ...p, selected: picked.has(p.key!) })),
+          }
+        : {};
+  }
+  togglePhoto(key: number): void {
+    this.pickedPhotos.update((k) => (k.includes(key) ? k.filter((x) => x !== key) : [...k, key]));
+    this.drawPhotos();
+    void this.repaint();
+  }
+  /** Picks every point, or none when all are already picked. */
+  readonly allPhotosPicked = computed(() => {
+    const n = this.hallPlan()?.points.length ?? 0;
+    return n > 0 && this.pickedPhotos().length === n;
+  });
+  toggleAllPhotos(): void {
+    this.pickedPhotos.set(
+      this.allPhotosPicked() ? [] : (this.hallPlan()?.points ?? []).map((p) => p.key!),
+    );
+    this.drawPhotos();
+    void this.repaint();
+  }
+  clearPickedPhotos(): void {
+    this.pickedPhotos.set([]);
+    this.drawPhotos();
+    void this.repaint();
+  }
+  /** Removes the picked points (or one point); the others keep their numbers until Relabel. */
+  removePhotos(keys: number[] = this.pickedPhotos()): void {
+    const plan = this.hallPlan(),
+      gone = new Set(keys);
+    if (!plan || !gone.size) return;
+    this.hallPlan.set({ ...plan, points: plan.points.filter((p) => !gone.has(p.key!)) });
+    this.pickedPhotos.update((k) => k.filter((x) => !gone.has(x)));
+    this.say(
+      `Removed ${gone.size} photo point${gone.size === 1 ? '' : 's'}. Relabel to number them 1 to ${this.hallPlan()!.points.length} again.`,
+    );
+    this.drawPhotos();
+    void this.repaint();
+  }
+  /** Numbers the remaining points 1, 2, 3… in their walking order, with no gaps. */
+  relabelPhotos(): void {
+    const plan = this.hallPlan();
+    if (!plan) return;
+    this.hallPlan.set({ ...plan, points: plan.points.map((p, i) => ({ ...p, order: i + 1 })) });
+    this.say(`Photo points relabelled 1 to ${plan.points.length}.`);
+    this.drawPhotos();
+    void this.repaint();
+  }
+  /** Folds the floor's thin strips into their neighbours. */
+  async foldStrips(): Promise<void> {
+    const building = this.building(),
+      floorId = this.floorId();
+    if (!building || !this.strips().length) return;
+    await this.run(async () => {
+      const out = await this.pipeline.foldStrips(building, floorId, this.reviewer());
+      this.cancelMerge();
+      this.selectedRegions.set([]);
+      this.load(out);
+      const n = out.absorbed?.length ?? 0,
+        skipped = out.skipped?.length ?? 0;
+      this.say(
+        `Folded ${n} thin strip${n === 1 ? '' : 's'} into ${n === 1 ? 'its neighbour' : 'their neighbours'}` +
+          (skipped
+            ? `; ${skipped} could not be folded (${out.skipped!.map((s) => s.label).join(', ')}).`
+            : '.') +
+          (n ? ' Each can be undone under Merged rooms.' : ''),
+      );
+    }, 'strips');
   }
   /** Undoes a recorded merge from the Merged rooms checklist. */
   async unmerge(m: MergeRecord): Promise<void> {
@@ -924,7 +1293,17 @@ export class AuthoringPage implements OnInit {
       const name =
         this.floor()?.spaces.find((s) => s.id === merged.spaceId)?.label ??
         (label || merged.spaceId);
-      this.say(`Merged ${ids.length} regions into "${name}".`);
+      const absorbed = (merged.absorbed ?? []).map((a) => a.label),
+        carved = (merged.carved ?? []).map((a) => a.label);
+      this.say(
+        `Merged ${ids.length} regions into "${name}".` +
+          (absorbed.length
+            ? ` Also merged in what lay between them: ${absorbed.join(', ')}.`
+            : '') +
+          (carved.length
+            ? ` Took only the part between the rooms from: ${carved.join(', ')}.`
+            : ''),
+      );
     }, 'merge');
   }
 

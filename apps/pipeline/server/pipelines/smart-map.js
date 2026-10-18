@@ -16,6 +16,7 @@ import { roomAvailability } from "../../shared/building/routing.js";
 import { doorAccessState, doorRecord, regionNeedsSemanticReview } from "../../shared/building/access-state.js";
 import { clone, inside, centre, distance, emptyMap, validateMap } from "../../shared/map.js";
 import { rasterRoomsMap } from "./raster-rooms.js";
+import { absorbThinStrips } from "../../shared/building/region-edits.js";
 
 export const SMART_MAP_VERSION = "hybrid-map-v1-2026-10-16";
 const RASTER_VERSION = "raster-rooms-v7-2026-10-17";
@@ -603,6 +604,9 @@ export async function runSmartMap(building, inputOptions, {
           const applied = applyAccessDecisions(draft, floorId, [{ op: "replace-source", sourceId: source.id,
             map: proposal.map, coverage: proposal.coverage, records: proposal.records, classifications: proposal.classifications }], { reviewer: "Hybrid API pipeline", reviewStatus: "agent-inspected" });
           draft = applied.building; proposal.appliedPreview = true;
+          // Thin strips the raster cut between walls are folded into their neighbours.
+          try { const folded = absorbThinStrips(draft, floorId, "Hybrid API pipeline"); draft = folded.building; proposal.foldedStrips = folded.absorbed.length; }
+          catch (e) { proposal.queue.push({ reason: `Thin strips not folded: ${e.message}`, type: "graph-review" }); }
           proposal.queue.push(...validateBuilding(draft).filter(i => i.severity === "error" && (i.floorId === floorId || i.code === "connector" || i.code === "edge" && i.floorId === null))
             .map(i => ({ reason: i.message, target: i.target, type: "graph-review" })));
           proposal.queue.push(...applied.records.filter(r => r.kind === "opening" && r.status !== "accepted" && !proposal.queue.some(q => q.doorId === r.doorId)).map(r => ({ doorId: r.doorId, label: r.label, reason: r.reason, type: "access" })));

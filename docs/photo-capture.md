@@ -1,6 +1,6 @@
 # Photo capture mode (mobile browser)
 
-**Status:** implemented on `feature/map-authoring-pipeline` (October 17, 2026),
+**Status:** photos stored in Cloudflare R2 and an optional four-photo offer added (October 17, 2026; R2 not yet tried with a real upload). Implemented on `feature/map-authoring-pipeline` (October 17, 2026),
 requested by Arjun; not yet committed. Automated tests pass (pipeline 226 run,
 208 pass, 18 skipped; API 44 pass, 17 PostgreSQL-only skipped; web 103 pass),
 format/lint and the web build pass. **Not yet tested in a browser or on a
@@ -256,10 +256,24 @@ the server confirms.
 Images: EXIF orientation is applied (`ImageOps.exif_transpose`), the original
 bytes are kept unchanged, a display copy (long edge at most 2560 px, never
 upscaled or shrunk below that, JPEG quality 90 with 4:4:4 chroma so room signs
-stay readable) and a 320 px (long edge) JPEG thumbnail are stored through
-`default_storage` under `MEDIA_ROOT/capture/<target>/<session>/<photo>/`
-(`local/media` in development). `/media/` is never routed; images are served
-only by the authenticated endpoints above.
+stay readable) and a 320 px (long edge) JPEG thumbnail are stored in
+**Cloudflare R2 only, never on the server's disk**
+([`capture/photo_store.py`](../apps/api/capture/photo_store.py)): signed
+S3-compatible requests (SigV4 via httpx, no SDK) to a private bucket under
+`<R2_PREFIX>/capture/<target>/<session>/<photo>/<variant>.<ext>`, with
+`Asset.storage_key = "r2:<key>"`. The image endpoints above check access,
+then fetch the object from R2 and return the bytes; bucket URLs and
+credentials never reach the browser. Configure `R2_ACCOUNT_ID`,
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` (and optionally
+`R2_PREFIX`, default `snapway`) in the API's server env (`local/env/api.env`).
+Without them an upload returns `503` and nothing is stored. Tests use an
+in-memory store (`CAPTURE_PHOTO_STORE = "memory"`).
+
+**Photo offer.** Selecting a point that has no photos yet shows an optional
+offer to take up to four photos there (front, right, back, left). "Take photos"
+confirms the position if needed and opens the camera; any slot can be skipped
+and "Done" closes it at any time. "Not now" hides the offer for that point
+until the screen is reloaded.
 
 ### Storage model
 

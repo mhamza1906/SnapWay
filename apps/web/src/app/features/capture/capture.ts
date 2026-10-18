@@ -682,6 +682,10 @@ export class CapturePage {
   select(id: string): void {
     if (this.sheet() !== 'point') this.cancelEdit();
     this.selectedId.set(id);
+    // Offer (never require) the four photos at a point that has none yet.
+    this.photoPrompt.set(
+      this.progress().get(id)?.hasPhotos || this.skippedPrompts.has(id) ? null : id,
+    );
     const p = this.selected();
     if (p) this.map()?.centerOn(pointPosition(p), 1.5);
   }
@@ -845,6 +849,26 @@ export class CapturePage {
   }
 
   // Capture ---------------------------------------------------------------------------------
+
+  /** The point whose "take photos here?" offer is showing, if any. */
+  readonly photoPrompt = signal<string | null>(null);
+  /** Points where the contributor chose "Not now" (this visit only). */
+  private readonly skippedPrompts = new Set<string>();
+
+  /** "Take photos": confirms the position if needed, then opens the camera. Any slot can be skipped. */
+  takePhotosHere(): void {
+    const p = this.selected();
+    if (!p) return;
+    if (p.confirmedX === null) this.confirmHere();
+    this.photoPrompt.set(null);
+    this.startCapture();
+  }
+
+  skipPhotos(): void {
+    const id = this.photoPrompt();
+    if (id) this.skippedPrompts.add(id);
+    this.photoPrompt.set(null);
+  }
 
   startCapture(): void {
     const p = this.selected();

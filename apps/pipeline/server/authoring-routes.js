@@ -12,16 +12,17 @@ import { preparePlan } from "./pipelines/preparation.js";
 import { hashBytes } from "./pipelines/extraction.js";
 import { BuildingSchema, newBuilding, newFloor, parseBuilding } from "../shared/building/schema.js";
 import { emptyMap } from "../shared/map.js";
-import { designedSVG } from "../shared/building/design.js";
+import { designedSVG, seamParent } from "../shared/building/design.js";
+import { planHallPoints } from "../shared/building/capture-points.js";
 import { accessInventory, spaceRole } from "../shared/building/access.js";
 import { roomAvailability, routeBuilding } from "../shared/building/routing.js";
 import { routeDisplaySegments } from "../shared/building/route-display.js";
 import { validateBuilding } from "../shared/building/validation.js";
 import {
-  addAssumedDoor, assumedDoors, defineAsRoom, defineNotRoom, doorEdgeOptions,
-  editAssumedDoor, placeAssumedDoorways, removeAssumedDoor,
+  addAssumedDoor, assumedDoors, defineAsRoom, defineNotRoom, describeDoorway, doorEdgeOptions,
+  editAssumedDoor, placeAssumedDoorways, removeAssumedDoor, removeDoorways,
 } from "../shared/building/assumed-doors.js";
-import { mergeHistory, mergeNeighbours, mergeSpaces, renameSpace, setSpaceKind, setSpaceStair, unmergeSpaces } from "../shared/building/region-edits.js";
+import { absorbThinStrips, mergeHistory, mergeNeighbours, mergeSpaces, renameSpace, setSpaceKind, setSpaceStair, thinStrips, unmergeSpaces } from "../shared/building/region-edits.js";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 const body = (req) => ({ building: BuildingSchema.parse(req.body.building), floorId: req.body.floorId });
@@ -37,7 +38,8 @@ export function floorSummary(building, floorId, rooms = roomAvailability(buildin
     doors = (id) => floor.geometry.doors.filter((d) => d.spaceIds.includes(id)).length,
     // Walkable regions plus closed ones (so they can be re-opened); regions made
     // non-walkable any other way (source classification, Not a room) are left out.
-    listed = floor.geometry.spaces.filter((s) => s.access !== "nonwalkable" || s.use === "closed")
+    // Merge seams belong to their kept region and are not listed.
+    listed = floor.geometry.spaces.filter((s) => (s.access !== "nonwalkable" || s.use === "closed") && !seamParent(s.id))
       .sort((a, z) => a.label.localeCompare(z.label, undefined, { numeric: true })),
     // Regions each listed region shares a wall with (the only ones it can merge with).
     neighbours = mergeNeighbours(floor, listed);
@@ -49,6 +51,8 @@ export function floorSummary(building, floorId, rooms = roomAvailability(buildin
       stair: s.use === "stair", closed: s.use === "closed", doors: doors(s.id), neighbours: neighbours.get(s.id) })),
     stairs: listed.filter((s) => s.use === "stair").map((s) => ({ id: s.id, label: s.label })),
     merges: mergeHistory(floor),
+    // Thin strips between walls that are not real regions (see thinStrips).
+    strips: thinStrips(floor).map(({ id, label, hostId, hostLabel }) => ({ id, label, hostId, hostLabel })),
     needsAttention: inventory.queue.map((q) => ({ spaceId: q.spaceId, label: q.label, kind: q.kind, status: q.status, reason: q.reason })),
     assumed: assumedDoors(floor).map((a) => ({
       doorId: a.door.id, roomId: a.room.id, roomLabel: a.room.label, roomDoors: doors(a.room.id),
@@ -113,10 +117,16 @@ export function renderFloor(building, floorId, overlay = {}) {
       `<polygon data-highlight="${esc(s.id)}" points="${s.polygon.map((p) => `${num(p.x)},${num(p.y)}`).join(" ")}" fill="#1565c0" fill-opacity="0.25" stroke="#1565c0" stroke-width="3" stroke-linejoin="round" pointer-events="none"/>`),
     lines = (overlay.segments || []).map((s) =>
       `<line x1="${num(s.a.x)}" y1="${num(s.a.y)}" x2="${num(s.b.x)}" y2="${num(s.b.y)}" stroke="${esc(s.color || "#c2185b")}" stroke-width="4" stroke-linecap="round"/>`),
+    // Photo points (planHallPoints): numbered circles, junctions red, ends blue.
+    photos = (overlay.photoPoints || []).map((q) => {
+      const x = num(q.x), y = num(q.y), fill = q.reason === "junction" ? "#d32f2f" : q.reason === "end" ? "#1565c0" : "#7b1fa2";
+      // Picked points get an orange ring; each point is clickable (data-photo = its key).
+      return `<g data-photo="${Number.isInteger(q.key) ? q.key : ""}" pointer-events="all" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="${q.selected ? 11 : 9}" fill="${fill}" stroke="${q.selected ? "#f57c00" : "#fff"}" stroke-width="${q.selected ? 4 : 1.5}"/><text x="${x}" y="${y + 3.5}" font-size="10" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="#fff">${num(q.order)}</text></g>`;
+    }),
     paths = (overlay.routes || []).map((pts) =>
       `<polyline points="${pts.map((p) => `${num(p.x)},${num(p.y)}`).join(" ")}" fill="none" stroke="#1565c0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`);
-  return regions.length || lines.length || paths.length
-    ? svg.replace(/<\/svg>$/, `<g data-overlay="true" pointer-events="none">${regions.join("")}${paths.join("")}${lines.join("")}</g></svg>`)
+  return regions.length || lines.length || paths.length || photos.length
+    ? svg.replace(/<\/svg>$/, `<g data-overlay="true" pointer-events="none">${regions.join("")}${paths.join("")}${lines.join("")}${photos.join("")}</g></svg>`)
     : svg;
 }
 
@@ -258,12 +268,23 @@ export function authoringRouter() {
         out = addAssumedDoor(building, floorId, req.body.spaceId, req.body.reviewer || "", { edgeKey: req.body.edgeKey ?? null });
       respond(res, out.building, { doorId: out.doorId, opensOnto: out.opensOnto }); } catch (e) { next(e); }
   });
+  // Any doorway clicked on the map: the rooms it joins, its state and the edges it can move along.
+  r.post("/doorways/describe", (req, res, next) => {
+    try { const { building, floorId } = body(req), floor = building.floors.find((f) => f.id === floorId);
+      if (!floor) throw new Error("Unknown floor.");
+      const d = describeDoorway(floor, req.body.doorId);
+      res.json({ doorId: d.door.id, label: d.door.label, roomId: d.room?.id ?? null, roomLabel: d.room?.label ?? "", state: d.state, assumed: d.assumed,
+        joins: d.joins, edgeKey: d.edgeKey, t: d.t, width: d.width, segment: { a: d.door.a, b: d.door.b }, candidates: d.options.map(edgeView) }); } catch (e) { next(e); }
+  });
   r.post("/doorways/edit", (req, res, next) => {
     try { const { building, floorId } = body(req), { doorId, edgeKey, t, width, confirm, reviewer } = req.body;
       respond(res, editAssumedDoor(building, floorId, doorId, { edgeKey, t, width, confirm: !!confirm, reviewer: reviewer || "" })); } catch (e) { next(e); }
   });
   r.post("/doorways/remove", (req, res, next) => {
-    try { const { building, floorId } = body(req); respond(res, removeAssumedDoor(building, floorId, req.body.doorId, req.body.reviewer || "")); } catch (e) { next(e); }
+    try { const { building, floorId } = body(req);
+      // One doorway (`doorId`) or several (`doorIds`).
+      const ids = Array.isArray(req.body.doorIds) ? req.body.doorIds : [req.body.doorId];
+      respond(res, removeDoorways(building, floorId, ids, req.body.reviewer || "", { as: req.body.as })); } catch (e) { next(e); }
   });
   // Region tools. `reviewer` may be empty (recorded as an unnamed, agent-inspected edit).
   r.post("/spaces/rename", (req, res, next) => {
@@ -282,10 +303,19 @@ export function authoringRouter() {
     try { const { building, floorId } = body(req);
       respond(res, unmergeSpaces(building, floorId, req.body.recordId, req.body.reviewer || "")); } catch (e) { next(e); }
   });
+  // Photo points for a whole hall (see planHallPoints); read-only.
+  r.post("/hall-points", (req, res, next) => {
+    try { const { building, floorId } = body(req);
+      res.json(planHallPoints(building, floorId, req.body.spaceId, { spacingM: req.body.spacingM ?? 2 })); } catch (e) { if (e.status) e.statusCode = e.status; next(e); }
+  });
+  r.post("/spaces/fold-strips", (req, res, next) => {
+    try { const { building, floorId } = body(req), out = absorbThinStrips(building, floorId, req.body.reviewer || "");
+      respond(res, out.building, { absorbed: out.absorbed, skipped: out.skipped }); } catch (e) { next(e); }
+  });
   r.post("/spaces/merge", (req, res, next) => {
     try { const { building, floorId } = body(req), { spaceIds, label, stair, reviewer } = req.body,
         out = mergeSpaces(building, floorId, spaceIds, { label, stair, reviewer: reviewer || "" });
-      respond(res, out.building, { spaceId: out.spaceId }); } catch (e) { next(e); }
+      respond(res, out.building, { spaceId: out.spaceId, absorbed: out.absorbed, carved: out.carved }); } catch (e) { next(e); }
   });
   return r;
 }

@@ -397,6 +397,30 @@
               </ul>
             </div>
           }
+          @if (photoPrompt() === p.id) {
+            <div
+              class="photo-offer"
+              role="group"
+              aria-label="Take photos here"
+              data-testid="photo-offer"
+            >
+              <p>
+                <strong>Take photos at point {{ p.order }}?</strong>
+                You can store up to 4 photos here: front, right, back and left. All optional; skip
+                any you don't need.
+              </p>
+              <div class="photo-offer-actions">
+                <button class="btn primary" (click)="takePhotosHere()" data-testid="offer-take">
+                  <app-icon name="camera" />{{
+                    p.confirmedX === null ? "I'm here, take photos" : 'Take photos'
+                  }}
+                </button>
+                <button class="btn ghost" (click)="skipPhotos()" data-testid="offer-skip">
+                  Not now
+                </button>
+              </div>
+            </div>
+          }
           <div class="point-actions">
             @if (p.confirmedX === null) {
               <button class="btn secondary" (click)="confirmHere()" data-testid="confirm">

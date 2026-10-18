@@ -37,6 +37,14 @@ input {
     grid-template-columns: 1fr;
   }
 }
+// One tool panel at a time beside the map, scrolling on its own.
+.side-panels [hidden] {
+  display: none;
+}
+.panel-switch {
+  display: flex;
+  gap: 0.4rem;
+}
 .map-svg {
   width: 100%;
   overflow: auto;
@@ -115,8 +123,12 @@ select {
 }
 .side-panels {
   display: grid;
-  gap: 1rem;
+  gap: 0.6rem;
   min-width: 0;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
 }
 .side-panels > * {
   min-width: 0;
@@ -187,10 +199,6 @@ select {
 }
 .merge-role {
   font-size: 0.7rem;
-  text-transform: uppercase;
-}
-.merge-candidates .chosen {
-  box-shadow: inset 0 0 0 2px #c2185b;
 }
 .merged-list {
   display: grid;
@@ -198,9 +206,6 @@ select {
   padding: 0.75rem;
   border: 1px solid #d5e3dc;
   border-radius: 0.5rem;
-}
-.merged-list li {
-  width: 100%;
 }
 .merged-text {
   flex: 1 1 12rem;
@@ -306,4 +311,28 @@ select {
 }
 .region.closed .region-label {
   color: var(--muted);
+}
+
+.photo-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  max-height: 28rem;
+  overflow-y: auto;
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.25rem 0.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    &.picked {
+      background: rgba(245, 124, 0, 0.12);
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
 }

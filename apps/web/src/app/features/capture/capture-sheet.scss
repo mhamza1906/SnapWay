@@ -227,3 +227,19 @@ p {
   border-color: #efcfcc;
   background: #fdf6f5;
 }
+
+.photo-offer {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(21, 101, 192, 0.08);
+  border: 1px solid rgba(21, 101, 192, 0.25);
+  p {
+    margin: 0 0 0.5rem;
+  }
+}
+.photo-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

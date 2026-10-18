@@ -22,9 +22,9 @@ export const SLOT_OFFSET: Record<DirectionalSlot, number> = {
   left: 270,
 };
 export const SLOT_LABEL: Record<Slot, string> = {
-  forward: 'Forward',
+  forward: 'Front',
   left: 'Left',
-  backward: 'Backward',
+  backward: 'Back',
   right: 'Right',
   extra: 'Extra',
 };

@@ -140,15 +140,16 @@ The editor's **Regions** panel (map authoring screen) lets the user:
 - rename any region (default names such as "Unlabelled room 3" are flagged);
 - mark or unmark a region as a **stair** (stored as `kind: "lobby"`,
   `use: "stair"`; drawn with tread hatching);
-- **merge** two rooms at a time with "Merge rooms" (or a room's "Merge…"
-  button): pick the room to keep, then a room that shares a wall with it
-  (only those are offered; others are refused); the second is merged into the
-  first, optionally as a stair (the first keeps its id and name; the doorway
-  and wall between them are removed; doors to other regions and their
-  evidence move to the merged region);
-- **unmerge** from the "Merged rooms" checklist, newest merge first: both
-  rooms, the doorway between them (checked again) and the walls come back
-  exactly as before;
+- **merge** two or more rooms with "Merge rooms" (or a room's "Merge…"
+  button, or by ticking rooms first): the room selected first is kept, the
+  others are removed into it, optionally as a stair. Rooms need not touch;
+  each must be close to any chosen room. Of a corridor between them only the
+  part directly between the rooms is taken (the corridor keeps the rest); a
+  closet wholly between them is taken whole; both are named. Doorways between merged rooms are removed; their doorways to
+  other regions move to the kept room;
+- **unmerge** from the "Merged rooms" checklist, newest merge first: every
+  merged room (absorbed ones included), the doorways between them and the
+  walls come back exactly as before;
 - select regions by ticking them or clicking them on the map; selected regions
   are highlighted.
 

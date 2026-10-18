@@ -99,13 +99,22 @@ export const AccessRecordSchema = z.object({
       removedId: id,
       kept: z.any(),
       removed: z.any(),
+      // Every region merged into the kept one (a merge can take several).
+      removedAll: z.array(z.any()).default([]),
+      // Regions the merge only cut into (their shape before), pieces split off
+      // them, and every doorway of the regions involved before the merge.
+      carved: z.array(z.any()).default([]),
+      carvedParts: z.array(z.string()).default([]),
+      doorsBefore: z.array(z.any()).default([]),
       after: z.array(z.object({ x: z.number(), y: z.number() })),
       internalDoors: z.array(z.any()).default([]),
       repointedDoors: z.array(z.object({ id: z.string(), spaceIds: z.array(z.string()) })).default([]),
       removedWalls: z.array(z.any()).default([]),
       addedWallIds: z.array(z.string()).default([]),
       poiIds: z.array(z.string()).default([]),
+      pois: z.array(z.object({ id: z.string(), spaceId: z.string() })).default([]),
       recordIds: z.array(z.string()).default([]),
+      records: z.array(z.object({ id: z.string(), spaceId: z.string() })).default([]),
       adjacent: z.array(z.object({ id: z.string(), adjacentIds: z.array(z.string()) })).default([]),
       undone: z.boolean().default(false),
     })

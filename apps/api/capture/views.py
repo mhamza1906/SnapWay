@@ -6,10 +6,8 @@ import uuid
 from urllib.parse import quote
 
 from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
-from django.http import FileResponse
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from drf_spectacular.utils import extend_schema
@@ -31,6 +29,7 @@ from .access import (
 )
 from .models import REVISION_CHANGED, SLOTS, CaptureMapLink, CapturePhoto, CapturePoint
 from .models import CaptureSession as Session
+from .photo_store import PhotoMissing, PhotoStoreUnavailable, photo_store
 from .serializers import (
     PhotoMetadata,
     PointInput,
@@ -326,8 +325,8 @@ class RevisionCheckView(CaptureView):
         )
 
 
-def _save(name, data):
-    return default_storage.save(name, ContentFile(data))
+def _save(name, data, content_type):
+    return photo_store().save(name, data, content_type)
 
 
 @extend_schema(exclude=True)
@@ -383,14 +382,17 @@ class PhotoView(CaptureView):
         prefix = f"capture/{session.target_id}/{session.id}/{photo_id}"
         saved = []
         try:
-            saved.append(_save(f"{prefix}/original.{processed.extension}", processed.original))
-            saved.append(_save(f"{prefix}/display.jpg", processed.display.data))
-            saved.append(_save(f"{prefix}/thumbnail.jpg", processed.thumbnail.data))
+            saved.append(_save(f"{prefix}/original", processed.original, processed.content_type))
+            saved.append(_save(f"{prefix}/display", processed.display.data, "image/jpeg"))
+            saved.append(_save(f"{prefix}/thumbnail", processed.thumbnail.data, "image/jpeg"))
             with transaction.atomic():
                 point = CapturePoint.objects.select_for_update().get(id=point.id)
                 if CapturePhoto.objects.filter(id=photo_id).exists():
                     raise IntegrityError("concurrent photo")
                 photo = self._create(request, point, photo_id, meta, processed, saved)
+        except PhotoStoreUnavailable as error:
+            self._discard(saved)
+            return Response({"detail": str(error)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except IntegrityError:
             self._discard(saved)
             existing = CapturePhoto.objects.filter(id=photo_id).first()
@@ -414,8 +416,8 @@ class PhotoView(CaptureView):
     def _discard(names):
         for name in names:
             try:
-                default_storage.delete(name)
-            except OSError:
+                photo_store().delete(name)
+            except (OSError, PhotoStoreUnavailable):
                 logger.warning("Could not remove an orphaned capture file")
 
     def _create(self, request, point, photo_id, meta, processed, saved):
@@ -508,10 +510,12 @@ class PhotoImageView(CaptureView):
         check_session(request.user, photo.session)
         asset = photo.thumbnail_asset if variant == "thumbnail" else photo.display_asset
         try:
-            handle = default_storage.open(asset.storage_key, "rb")
-        except (FileNotFoundError, OSError):
+            data = photo_store().open(asset.storage_key)
+        except PhotoMissing:
             raise NotFound("Image file is unavailable.") from None
-        response = FileResponse(handle, content_type=asset.content_type)
+        except PhotoStoreUnavailable as error:
+            return Response({"detail": str(error)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        response = HttpResponse(data, content_type=asset.content_type)
         response["Cache-Control"] = "private, max-age=3600"
         response["X-Content-Type-Options"] = "nosniff"
         response["Content-Disposition"] = "inline"

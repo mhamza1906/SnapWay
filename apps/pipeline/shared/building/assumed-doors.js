@@ -10,6 +10,7 @@ import {
 import { roomAvailability } from "./routing.js";
 import { edgeIssue } from "./validation.js";
 import {
+  doorAccessState,
   doorRecord,
   lastClassification,
   regionNeedsSemanticReview,
@@ -534,15 +535,48 @@ export function assumedDoors(floor) {
     });
 }
 
-// Moves an assumed door to another hallway edge, position or width. With
-// `confirm`, a named developer records it as a manually reviewed opening.
+// The room a doorway belongs to for editing: an assumed door's own room, else
+// the side that is not a hallway (or the first side).
+function doorwayRoomId(floor, door, record) {
+  if (isAssumed(record) && door.spaceIds.includes(record.spaceId)) return record.spaceId;
+  const space = (id) => floor.geometry.spaces.find((s) => s.id === id);
+  return door.spaceIds.find((id) => space(id) && hallRank(space(id)) === 2) ?? door.spaceIds[0];
+}
+// The evidence a removed or moved door is recorded against: its own record, or
+// one made from the door for a door without per-opening evidence.
+const doorEvidence = (floor, door, record) => record || {
+  spaceId: door.spaceIds[0], openingType: door.spaceIds.length === 1 ? "exterior-door" : "door",
+  adjacentIds: door.spaceIds, segment: { a: door.a, b: door.b }, label: door.label,
+};
+// Any doorway as the editor shows it: the rooms it joins, its state, and (for
+// moving it) the room it belongs to with that room's shared edges.
+export function describeDoorway(floor, doorId) {
+  const door = floor.geometry.doors.find((d) => d.id === doorId);
+  if (!door) throw new Error("Unknown doorway.");
+  const record = doorRecord(floor, doorId), roomId = doorwayRoomId(floor, door, record),
+    room = floor.geometry.spaces.find((s) => s.id === roomId),
+    without = { ...floor, geometry: { ...floor.geometry, doors: floor.geometry.doors.filter((d) => d.id !== doorId) } },
+    candidates = room ? neighbourEdges(without, roomId).candidates : [],
+    mid = doorMid(door), other = door.spaceIds.find((id) => id !== roomId),
+    edge = candidates.find((c) => c.adjacentId === other && pointSegment(mid, c.a, c.b) < 1) || candidates.find((c) => c.adjacentId === other) || null;
+  return { door, record, room, state: doorAccessState(floor, door).state, assumed: isAssumed(record),
+    joins: door.spaceIds.map((id) => ({ id, label: floor.geometry.spaces.find((s) => s.id === id)?.label ?? id })),
+    candidates, edgeKey: edge?.key ?? null,
+    options: room ? doorwayChoices(without, roomId, candidates, [edge?.key]).map((c) => ({ ...c, doors: doorsOnStretch(without, c) })) : [],
+    t: edge ? distance(edge.a, mid) / edge.length : 0.5, width: distance(door.a, door.b) };
+}
+
+// Moves a doorway to another shared edge, position or width; works for any
+// doorway (a moved verified door keeps no old evidence: it is recorded as
+// placed in the editor until a named person confirms it). With `confirm`, a
+// named person records it as a manually reviewed opening.
 export function editAssumedDoor(building, floorId, doorId, { edgeKey, t, width, confirm = false, reviewer = "" }) {
   const floor = building.floors.find((f) => f.id === floorId),
     old = floor?.geometry.doors.find((d) => d.id === doorId),
-    record = old && doorRecord(floor, doorId);
-  if (!old || !isAssumed(record)) throw new Error("That is not an assumed doorway.");
+    record = old && doorEvidence(floor, old, doorRecord(floor, doorId));
+  if (!old) throw new Error("Unknown doorway.");
   if (confirm && !reviewer.trim()) throw new Error("Enter your name to confirm this doorway.");
-  const room = floor.geometry.spaces.find((s) => s.id === record.spaceId),
+  const room = floor.geometry.spaces.find((s) => s.id === doorwayRoomId(floor, old, doorRecord(floor, doorId))),
     without = { ...floor, geometry: { ...floor.geometry, doors: floor.geometry.doors.filter((d) => d.id !== doorId) } },
     edge = neighbourEdges(without, room.id).candidates.find((c) => c.key === edgeKey);
   if (!edge) throw new Error("Pick the space this doorway opens onto.");
@@ -561,13 +595,39 @@ export function editAssumedDoor(building, floorId, doorId, { edgeKey, t, width, 
     : { reviewer: reviewer.trim() || "Developer edit", reviewStatus: "agent-inspected", reason: `Assumed doorway moved for ${room.label}` }).building;
 }
 
-export function removeAssumedDoor(building, floorId, doorId, reviewer = "") {
+// Removes any doorway the map author says does not exist (an assumed one or
+// one found on the plan); the removal is recorded with the door's evidence.
+// `as`: "wall" turns the opening into a wall (drawn black); "none" just
+// removes the doorway and leaves no wall (to join two spaces, merge them).
+export function removeAssumedDoor(building, floorId, doorId, reviewer = "", { as } = {}) {
+  if (as !== undefined && as !== "wall" && as !== "none") throw new Error("Remove a doorway as a wall or with no line (as: wall or none).");
   const floor = building.floors.find((f) => f.id === floorId),
-    record = floor && doorRecord(floor, doorId);
-  if (!isAssumed(record)) throw new Error("That is not an assumed doorway.");
+    door = floor?.geometry.doors.find((d) => d.id === doorId);
+  if (!door) throw new Error("Unknown doorway.");
+  const record = doorRecord(floor, doorId), named = !!reviewer.trim(),
+    who = named ? reviewer.trim() : "the map author",
+    note = as === "wall" ? `Doorway made into a wall by ${who}`
+      : isAssumed(record) ? "Assumed doorway removed by the developer" : `Doorway removed: ${who} says it does not exist`;
   return applyAccessDecisions(building, floorId, [
-    { op: "reject-door", doorId, record: rejectRecord(floor, record, doorId, "Assumed doorway removed by the developer") },
-  ], { reviewer: reviewer.trim() || "Developer edit", reviewStatus: "agent-inspected", reason: "Assumed doorway removed" }).building;
+    { op: "reject-door", doorId, wall: as, record: rejectRecord(floor, doorEvidence(floor, door, record), doorId, note) },
+  ], { reviewer: reviewer.trim() || "Developer edit", reviewStatus: named ? "human-reviewed" : "agent-inspected", reason: "Doorway removed" }).building;
+}
+
+// Removes several doorways the same way (`as` as in removeAssumedDoor), in
+// one transaction.
+export function removeDoorways(building, floorId, doorIds, reviewer = "", { as } = {}) {
+  if (!Array.isArray(doorIds) || !doorIds.length) throw new Error("Choose at least one doorway.");
+  const ids = [...new Set(doorIds)], floor = building.floors.find((f) => f.id === floorId);
+  if (!floor) throw new Error("Unknown floor.");
+  const missing = ids.filter((id) => !floor.geometry.doors.some((d) => d.id === id));
+  if (missing.length) throw new Error(`Unknown doorway ${missing[0]}.`);
+  if (ids.length === 1) return removeAssumedDoor(building, floorId, ids[0], reviewer, { as });
+  const named = !!reviewer.trim(), who = named ? reviewer.trim() : "the map author";
+  return applyAccessDecisions(building, floorId, ids.map((doorId) => {
+    const door = floor.geometry.doors.find((d) => d.id === doorId), record = doorRecord(floor, doorId),
+      note = as === "wall" ? `Doorway made into a wall by ${who}` : `Doorway removed: ${who} says it does not exist`;
+    return { op: "reject-door", doorId, wall: as, record: rejectRecord(floor, doorEvidence(floor, door, record), doorId, note) };
+  }), { reviewer: reviewer.trim() || "Developer edit", reviewStatus: named ? "human-reviewed" : "agent-inspected", reason: `${ids.length} doorways removed` }).building;
 }
 
 function rejectRecord(floor, record, doorId, reason) {

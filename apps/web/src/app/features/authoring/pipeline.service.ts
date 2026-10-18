@@ -38,6 +38,14 @@ export interface AssumedDoor {
   segment: { a: Point; b: Point };
   candidates: EdgeOption[];
 }
+/** Any doorway clicked on the map, with what is needed to move it (same fields as AssumedDoor). */
+export interface DoorwayInfo extends AssumedDoor {
+  label: string;
+  /** verified, assumed, legacy (usable, no per-opening record), stale or rejected. */
+  state: string;
+  assumed: boolean;
+  joins: { id: string; label: string }[];
+}
 /** One recorded two-room merge: `removedLabel` was merged into the region `keptId`. */
 export interface MergeRecord {
   recordId: string;
@@ -64,7 +72,7 @@ export interface SpaceSummary {
   use?: 'stair' | 'hall' | 'closed' | null;
   /** Closed regions stay on the map but are never routed through. */
   closed?: boolean;
-  /** Regions this one shares a wall with: the only ones it can be merged with. */
+  /** Regions close to this one (touching or within a short reach): the ones it can merge with. */
   neighbours?: string[];
 }
 /**
@@ -80,6 +88,26 @@ export interface RenderOverlay {
   highlight?: string[];
   /** A space id; the returned SVG is zoomed (viewBox cropped) to that region. */
   focus?: string;
+  /** Numbered photo points to draw (from hallPoints). */
+  photoPoints?: HallPoint[];
+}
+export interface HallPoint {
+  order: number;
+  x: number;
+  y: number;
+  reason: 'junction' | 'end' | 'spacing';
+  /** Editor only: a stable key for picking the point, and whether it is picked. */
+  key?: number;
+  selected?: boolean;
+}
+export interface HallPlan {
+  spaceId: string;
+  label: string;
+  scaleVerified: boolean;
+  spacingM: number | null;
+  spacingPx: number;
+  lines: Point[][];
+  points: HallPoint[];
 }
 export interface FloorSummary {
   floorId: string;
@@ -100,6 +128,8 @@ export interface FloorSummary {
   stairs?: { id: string; label: string }[];
   /** Merges that can be undone, newest first; absent in responses from older pipeline builds. */
   merges?: MergeRecord[];
+  /** Thin strips between walls, each with the region it would fold into; absent in older responses. */
+  strips?: { id: string; label: string; hostId: string | null; hostLabel: string | null }[];
   needsAttention: {
     spaceId: string;
     label: string;
@@ -173,7 +203,15 @@ export interface Edited {
   [extra: string]: unknown;
 }
 /** A merge response also names the merged region (it keeps the first selected id). */
-export type Merged = Edited & { spaceId: string };
+/**
+ * `absorbed`: regions between the chosen rooms taken in whole; `carved`: regions (such as
+ * a corridor) that gave up only the part directly between the rooms.
+ */
+export type Merged = Edited & {
+  spaceId: string;
+  absorbed?: { id: string; label: string }[];
+  carved?: { id: string; label: string }[];
+};
 export interface LibraryEntry {
   key: string;
   name: string;
@@ -392,6 +430,10 @@ export class PipelineService {
   ): Promise<Edited> {
     return this.postLight('/authoring/doorways/not-room', building, { floorId, spaceId, reviewer });
   }
+  /** A doorway clicked on the map: the rooms it joins, its state and where it can move. */
+  describeDoor(building: PipelineBuilding, floorId: string, doorId: string): Promise<DoorwayInfo> {
+    return this.postLight('/authoring/doorways/describe', building, { floorId, doorId });
+  }
   edges(
     building: PipelineBuilding,
     floorId: string,
@@ -427,13 +469,35 @@ export class PipelineService {
   ): Promise<Edited> {
     return this.postLight('/authoring/doorways/edit', building, { floorId, ...edit });
   }
+  /** Several doorways removed the same way, in one request. */
+  removeDoors(
+    building: PipelineBuilding,
+    floorId: string,
+    doorIds: string[],
+    reviewer: string,
+    as: 'wall' | 'none',
+  ): Promise<Edited> {
+    return this.postLight('/authoring/doorways/remove', building, {
+      floorId,
+      doorIds,
+      reviewer,
+      as,
+    });
+  }
+  /** `as`: 'wall' turns the opening into a wall (drawn black); 'none' removes the line. */
   removeDoor(
     building: PipelineBuilding,
     floorId: string,
     doorId: string,
     reviewer: string,
+    as: 'wall' | 'none' = 'none',
   ): Promise<Edited> {
-    return this.postLight('/authoring/doorways/remove', building, { floorId, doorId, reviewer });
+    return this.postLight('/authoring/doorways/remove', building, {
+      floorId,
+      doorId,
+      reviewer,
+      as,
+    });
   }
   // Region decisions (names, roles, merges) are the map author's; the AI only suggests names.
   renameSpace(
@@ -471,6 +535,23 @@ export class PipelineService {
     merge: { spaceIds: string[]; label?: string; stair?: boolean; reviewer: string },
   ): Promise<Merged> {
     return this.postLight('/authoring/spaces/merge', building, { floorId, ...merge });
+  }
+  /** Photo points for a whole hall, in walking order (read-only). */
+  hallPoints(building: PipelineBuilding, floorId: string, spaceId: string): Promise<HallPlan> {
+    return this.postLight('/authoring/hall-points', building, { floorId, spaceId });
+  }
+  /** Folds every thin strip on the floor into its neighbour (each undoable under Merged rooms). */
+  foldStrips(
+    building: PipelineBuilding,
+    floorId: string,
+    reviewer: string,
+  ): Promise<
+    Edited & {
+      absorbed?: { label: string; hostLabel: string }[];
+      skipped?: { label: string; reason: string }[];
+    }
+  > {
+    return this.postLight('/authoring/spaces/fold-strips', building, { floorId, reviewer });
   }
   /** Undoes one recorded merge: both rooms come back as they were before it. */
   unmergeSpaces(

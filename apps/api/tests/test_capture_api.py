@@ -4,12 +4,13 @@ import hashlib
 import io
 import json
 import uuid
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 from capture.models import CaptureMapLink, CapturePhoto, CapturePoint
+from capture.photo_store import MemoryPhotoStore, photo_store, signing_key
 from django.contrib.auth import get_user_model
-from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.db import IntegrityError, connection, transaction
@@ -26,6 +27,7 @@ API = "/api/capture"
 @pytest.fixture(autouse=True)
 def private_media(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path / "media"
+    MemoryPhotoStore.files.clear()
 
 
 def make_target(building, floor_code, creator, map_building_id="fixture-building"):
@@ -401,18 +403,35 @@ def test_exif_rotated_image_is_stored_upright(world, started):
     assert (body["width"], body["height"]) == (200, 400)
     photo = CapturePhoto.objects.select_related("original_asset", "display_asset").get(id=photo_id)
     assert photo.original_asset.sha256 == hashlib.sha256(raw).hexdigest()
-    with default_storage.open(photo.original_asset.storage_key, "rb") as handle:
-        assert handle.read() == raw  # original bytes kept as uploaded (unrotated)
+    # original bytes kept as uploaded (unrotated)
+    assert photo_store().open(photo.original_asset.storage_key) == raw
     assert (photo.original_asset.width, photo.original_asset.height) == (400, 200)
     display = started.client.get(f"{API}/photos/{photo_id}/display")
     assert display.status_code == 200 and display["Content-Type"] == "image/jpeg"
-    with Image.open(io.BytesIO(b"".join(display.streaming_content))) as image:
+    with Image.open(io.BytesIO(display.content)) as image:
         assert image.size == (200, 400)
         top, bottom = image.getpixel((100, 20)), image.getpixel((100, 380))
     assert top[0] > 200 and top[2] < 60  # raw left (red) is now the top
     assert bottom[2] > 200 and bottom[0] < 60
     assert photo.display_asset.source_asset_id == photo.original_asset_id
     assert {a.kind for a in Asset.objects.all()} == {"photo"}
+    assert all(a.storage_key.startswith("r2:") for a in Asset.objects.all())
+
+
+def test_photos_are_never_written_to_local_disk(world, started, settings):
+    response = upload(started.client, started.point_id, uuid.uuid4(), jpeg())
+    assert response.status_code == 201, response.content
+    assert not Path(settings.MEDIA_ROOT).exists() or not any(Path(settings.MEDIA_ROOT).rglob("*.*"))
+
+
+def test_upload_without_r2_config_is_refused(world, started, settings):
+    settings.CAPTURE_PHOTO_STORE = "r2"
+    settings.R2_SECRET_ACCESS_KEY = ""
+    photo_id = uuid.uuid4()
+    response = upload(started.client, started.point_id, photo_id, jpeg())
+    assert response.status_code == 503
+    assert "R2_SECRET_ACCESS_KEY" in response.json()["detail"]
+    assert not CapturePhoto.objects.filter(id=photo_id).exists()
 
 
 def test_display_and_thumbnail_sizes(world, started):
@@ -423,10 +442,10 @@ def test_display_and_thumbnail_sizes(world, started):
     )
     thumb = started.client.get(f"{API}/photos/{photo_id}/thumbnail")
     assert thumb.status_code == 200 and thumb["Cache-Control"].startswith("private")
-    with Image.open(io.BytesIO(b"".join(thumb.streaming_content))) as image:
+    with Image.open(io.BytesIO(thumb.content)) as image:
         assert max(image.size) == 320 and image.size == (320, 107)
     display = started.client.get(f"{API}/photos/{photo_id}/display")
-    with Image.open(io.BytesIO(b"".join(display.streaming_content))) as image:
+    with Image.open(io.BytesIO(display.content)) as image:
         assert image.size == (2560, 853)
     small_id = uuid.uuid4()
     assert (
@@ -436,7 +455,7 @@ def test_display_and_thumbnail_sizes(world, started):
         == 201
     )
     display = started.client.get(f"{API}/photos/{small_id}/display")
-    with Image.open(io.BytesIO(b"".join(display.streaming_content))) as image:
+    with Image.open(io.BytesIO(display.content)) as image:
         assert image.size == (1600, 1200)  # no unnecessary downscale
     photo = CapturePhoto.objects.select_related("thumbnail_asset").get(id=photo_id)
     assert (photo.thumbnail_asset.width, photo.thumbnail_asset.height) == (320, 107)
@@ -598,3 +617,9 @@ def test_postgresql_guards_capture_photo_assets(world, started):
     for asset in (wrong_kind, other_target):
         with pytest.raises(IntegrityError), transaction.atomic():
             CapturePhoto.objects.filter(id=photo_id).update(display_asset=asset)
+
+
+def test_r2_signing_key_matches_the_aws_sigv4_example():
+    # AWS's published Signature Version 4 example (IAM, us-east-1, 2012-02-15).
+    key = signing_key("wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY", "20120215", "us-east-1", "iam")
+    assert key.hex() == "f4780e2d9f65fa895f9c67b32ce1baf0b0d8a43505a000a1a9e090d414db404d"
