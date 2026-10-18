@@ -91,6 +91,12 @@ The **Map authoring (AI)** screen (`/authoring`) uses the Node service in
 creating another env file. See [docs/pipeline](docs/pipeline/README.md) and the
 [feature record](docs/map-authoring-pipeline.md).
 
+Sam Ibrahim's [45-page review PDF](apps/web/public/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf)
+is included locally on this branch and served publicly at
+`/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf`. It is linked from every
+workspace's navigation, the authoring screen and the public map page; no sign-in
+is needed to read or download it. See the [project evidence notes](docs/sam-ibrahim-hardcoded-navigation.md#pdf-and-svg-evidence).
+
 **IA-1 real-photo acceptance failed.** Read the
 [phase audit, model/pipeline gaps and committed screenshots](docs/audits/2026-10-17-map-authoring-pipeline.md)
 before using this result as evidence of a completed authoring workflow. Real

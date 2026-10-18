@@ -40,6 +40,12 @@
     <nav class="bottom-nav" aria-label="Workspace tools">
       <a routerLink="/help" routerLinkActive="active" (click)="mobileOpen.set(false)"
         ><app-icon name="help" />Getting started</a
+      ><a
+        href="/documents/Sam_Ibrahim_Indoor_Navigation_Review.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        (click)="mobileOpen.set(false)"
+        ><app-icon name="download" />Sam Ibrahim PDF</a
       ><a routerLink="/settings" routerLinkActive="active" (click)="mobileOpen.set(false)"
         ><app-icon name="settings" />Settings</a
       >
